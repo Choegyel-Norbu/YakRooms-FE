@@ -1,0 +1,12 @@
+.bg-custom-background {
+  background-color: var(--color-background);
+}
+
+.text-custom-primary {
+  color: var(--color-primary);
+}
+.nav-btn {
+  border: 1px solid #000;
+  border-radius: 30px;
+  padding: 0.5rem 1rem;
+}
