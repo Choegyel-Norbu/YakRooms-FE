@@ -1,159 +1,223 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { MapPinIcon, HeartIcon } from "lucide-react"; // Using lucide-react for icons
+
+// ShadCN UI Components
 import {
   Card,
   CardHeader,
-  CardBody,
+  CardTitle,
+  CardDescription,
+  CardContent,
   CardFooter,
-  Typography,
-  Button,
-} from "@material-tailwind/react";
-import { StarIcon, MapPinIcon, HeartIcon } from "@heroicons/react/24/solid";
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TopHighlightsSection = () => {
   const [activeTab, setActiveTab] = useState("hotels");
+  const [hotelsData, setHotelsData] = useState([]);
+  const [restaurantsData, setRestaurantsData] = useState([]);
+  const [editorPicksData, setEditorPicksData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const listings = {
-    hotels: [
-      {
-        id: 1,
-        title: "Taj Tashi Thimphu",
-        type: "Luxury Hotel",
-        tag: "Editor's Pick",
-        rating: 4.8,
-        location: "Thimphu",
-        price: "$220/night",
-        image:
-          "https://utfs.io/f/2a9c7b02-9519-4d3a-aa27-d6f05fc84d0a-1tf88.png",
-      },
-      {
-        id: 2,
-        title: "Zhiwa Ling Heritage",
-        type: "Boutique Hotel",
-        tag: "Most Booked",
-        rating: 4.9,
-        location: "Paro",
-        price: "$190/night",
-        image:
-          "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-      },
-      {
-        id: 3,
-        title: "Amankora Punakha",
-        type: "Resort",
-        tag: "Luxury Stay",
-        rating: 4.7,
-        location: "Punakha",
-        price: "$350/night",
-        image:
-          "https://images.unsplash.com/photo-1564501049412-61c2a3083791?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-      },
-    ],
-    restaurants: [
-      {
-        id: 1,
-        title: "Bhutanese Kitchen",
-        type: "Local Cuisine",
-        tag: "Trending",
-        rating: 4.5,
-        location: "Thimphu",
-        price: "$15/person",
-        image:
-          "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-      },
-      {
-        id: 2,
-        title: "Cloud9 Café",
-        type: "Café",
-        tag: "Scenic Views",
-        rating: 4.6,
-        location: "Paro",
-        price: "$10/person",
-        image:
-          "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-      },
-    ],
-    editorPicks: [
-      {
-        id: 1,
-        title: "Gangtey Lodge",
-        type: "Eco Lodge",
-        tag: "Hidden Gem",
-        rating: 4.9,
-        location: "Gangtey",
-        price: "$180/night",
-        image:
-          "https://images.unsplash.com/photo-1582719471380-cd7775af7d73?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-      },
-      {
-        id: 2,
-        title: "Dochula Resort",
-        type: "Mountain View",
-        tag: "Sunrise Spot",
-        rating: 4.7,
-        location: "Dochula Pass",
-        price: "$160/night",
-        image:
-          "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-      },
-    ],
+  useEffect(() => {
+    const fetchHotels = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(
+          "http://localhost:8080/api/hotels/search?district=&hotelType=&page=0&size=5"
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setHotelsData(data.content ? data.content.slice(0, 3) : []); // Limit to max 3 cards
+      } catch (e) {
+        console.error("Failed to fetch hotels:", e);
+        setError("Failed to load hotels. Please try again later.");
+        setHotelsData([]); // Clear data on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchRestaurants = async () => {
+      // For now, using mock data for restaurants
+      setRestaurantsData(
+        [
+          {
+            id: 1,
+            name: "Bhutanese Kitchen",
+            type: "Local Cuisine",
+            tag: "Trending",
+            district: "Thimphu",
+            price: "$15/person",
+            photoUrls: [
+              "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
+            ],
+          },
+          {
+            id: 2,
+            name: "Cloud9 Café",
+            type: "Café",
+            tag: "Scenic Views",
+            district: "Paro",
+            price: "$10/person",
+            photoUrls: [
+              "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
+            ],
+          },
+          {
+            id: 3,
+            name: "Gelephu Delights",
+            type: "Fast Food",
+            tag: "Popular",
+            district: "Gelephu",
+            price: "$8/person",
+            photoUrls: [
+              "https://images.unsplash.com/photo-1571065518464-9ed31e5088f1?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            ],
+          },
+        ].slice(0, 3)
+      ); // Limit to max 3 cards
+    };
+
+    const fetchEditorPicks = async () => {
+      // For now, using mock data for editor's picks
+      setEditorPicksData(
+        [
+          {
+            id: 1,
+            name: "Gangtey Lodge",
+            hotelType: "Eco Lodge",
+            tag: "Hidden Gem",
+            district: "Gangtey",
+            price: "$180/night",
+            photoUrls: [
+              "https://images.unsplash.com/photo-1582719471380-cd7775af7d73?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
+            ],
+          },
+          {
+            id: 2,
+            name: "Dochula Resort",
+            hotelType: "Mountain View",
+            tag: "Sunrise Spot",
+            district: "Dochula Pass",
+            price: "$160/night",
+            photoUrls: [
+              "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
+            ],
+          },
+          {
+            id: 3,
+            name: "Phobjikha Homestay",
+            hotelType: "Farm Stay",
+            tag: "Authentic Experience",
+            district: "Phobjikha",
+            price: "$90/night",
+            photoUrls: [
+              "https://images.unsplash.com/photo-1579298245100-3f4a3d21c3c9?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            ],
+          },
+        ].slice(0, 3)
+      ); // Limit to max 3 cards
+    };
+
+    if (activeTab === "hotels") {
+      fetchHotels();
+    } else if (activeTab === "restaurants") {
+      fetchRestaurants();
+    } else if (activeTab === "editorPicks") {
+      fetchEditorPicks();
+    }
+  }, [activeTab]);
+
+  const getListingsForActiveTab = () => {
+    switch (activeTab) {
+      case "hotels":
+        return hotelsData;
+      case "restaurants":
+        return restaurantsData;
+      case "editorPicks":
+        return editorPicksData;
+      default:
+        return [];
+    }
   };
 
+  const currentListings = getListingsForActiveTab();
+
   return (
-    <section className="py-12 px-4 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
+    <section className="py-12 mt-10 px-4 lg:px-8 w-[70%] m-auto">
       <div className="container mx-auto">
-        <Typography variant="h3" className="text-center mb-8 text-gray-900">
+        <h3 className="text-center text-3xl font-bold mb-8 text-gray-900">
           Top Bhutanese Highlights
-        </Typography>
+        </h3>
 
         {/* Tabs */}
         <div className="flex justify-center mb-8">
-          <div className="inline-flex rounded-lg bg-gray-100 p-1">
-            {[
-              { id: "hotels", label: "Popular Stays" },
-              { id: "restaurants", label: "Trending Eats" },
-              { id: "editorPicks", label: "Editor's Picks" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === tab.id
-                    ? "bg-amber-500 text-white shadow"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
+          <Tabs defaultValue="hotels" onValueChange={setActiveTab}>
+            <TabsList className="bg-gray-100 p-1">
+              <TabsTrigger
+                value="hotels"
+                className="px-4 py-2 text-sm font-medium transition-colors data-[state=active]:bg-yellow-500 data-[state=active]:text-slate-900 hover:bg-yellow-600 data-[state=active]:hover:bg-yellow-600 data-[state=active]:shadow-sm"
               >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+                Popular Stays
+              </TabsTrigger>
+              <TabsTrigger
+                value="restaurants"
+                className="px-4 py-2 text-sm font-medium transition-colors data-[state=active]:bg-yellow-500 data-[state=active]:text-slate-900 hover:bg-yellow-600 data-[state=active]:hover:bg-yellow-600 data-[state=active]:shadow-sm"
+              >
+                Trending Eats
+              </TabsTrigger>
+              <TabsTrigger
+                value="editorPicks"
+                className="px-4 py-2 text-sm font-medium transition-colors data-[state=active]:bg-yellow-500 data-[state=active]:text-slate-900 hover:bg-yellow-600 data-[state=active]:hover:bg-yellow-600 data-[state=active]:shadow-sm"
+              >
+                Editor's Picks
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
+
+        {loading && <p className="text-center text-gray-600">Loading...</p>}
+        {error && <p className="text-center text-red-500">{error}</p>}
+        {!loading && !error && currentListings.length === 0 && (
+          <p className="text-center text-gray-600">
+            No listings found for this category.
+          </p>
+        )}
 
         {/* Mobile Carousel */}
         <div className="md:hidden overflow-x-auto pb-4">
           <div className="flex space-x-4 w-max">
-            {listings[activeTab].map((item) => (
+            {currentListings.map((item) => (
               <motion.div
                 key={item.id}
-                className="w-64 flex-shrink-0"
+                className="w-48 flex-shrink-0" // Made card much smaller for mobile
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <ListingCard item={item} />
+                <ListingCard item={item} activeTab={activeTab} />
               </motion.div>
             ))}
           </div>
         </div>
 
         {/* Desktop Grid */}
-        <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {listings[activeTab].map((item) => (
+        <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {" "}
+          {/* Adjusted gap for smaller cards */}
+          {currentListings.map((item) => (
             <motion.div
               key={item.id}
               whileHover={{ y: -5 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <ListingCard item={item} />
+              <ListingCard item={item} activeTab={activeTab} />
             </motion.div>
           ))}
         </div>
@@ -162,76 +226,96 @@ const TopHighlightsSection = () => {
   );
 };
 
-const ListingCard = ({ item }) => {
+const ListingCard = ({ item, activeTab }) => {
   const [isFavorite, setIsFavorite] = useState(false);
 
+  // Determine image URL based on the item structure
+  const imageUrl =
+    item.photoUrls && item.photoUrls.length > 0
+      ? item.photoUrls[0]
+      : "https://via.placeholder.com/400x300?text=No+Image"; // Smaller placeholder
+
+  // Determine title and type/description based on activeTab
+  let title = item.name;
+  let typeOrDescription = "";
+  let location = item.district || item.address;
+  let priceDisplay =
+    item.price || (activeTab === "hotels" ? "Price/night" : "Price/person");
+
+  if (activeTab === "hotels") {
+    typeOrDescription = item.hotelType || item.description;
+  } else if (activeTab === "restaurants") {
+    typeOrDescription = item.type || item.description;
+  } else if (activeTab === "editorPicks") {
+    typeOrDescription = item.hotelType || item.type || item.description;
+  }
+
   return (
-    <Card className="h-full overflow-hidden shadow-md hover:shadow-lg transition-shadow rounded-xl border border-gray-100">
-      <CardHeader
-        floated={false}
-        shadow={false}
-        color="transparent"
-        className="m-0 rounded-b-none"
-      >
-        <div className="relative h-48 w-full">
+    <Card className="h-full overflow-hidden shadow-md hover:shadow-lg transition-shadow rounded-xl border border-gray-100 w-full md:w-auto">
+      {" "}
+      {/* Ensured cards adjust to grid */}
+      <CardHeader className="p-0">
+        <div className="relative h-32 w-full">
+          {" "}
+          {/* Made card image much smaller */}
           <img
-            src={item.image}
-            alt={item.title}
-            className="h-full w-full object-cover"
+            src={imageUrl}
+            alt={title}
+            className="h-full w-full object-cover rounded-t-xl"
           />
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setIsFavorite(!isFavorite)}
-            className="absolute top-2 right-2 p-2 rounded-full bg-white/80 backdrop-blur-sm"
+            className="absolute top-1 right-1 p-1 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
           >
             <HeartIcon
-              className={`h-5 w-5 ${
-                isFavorite ? "fill-red-500" : "fill-gray-400"
+              className={`h-4 w-4 ${
+                // Smaller icon
+                isFavorite
+                  ? "fill-red-500 text-red-500"
+                  : "fill-gray-400 text-gray-400"
               }`}
             />
-          </button>
-          <div className="absolute bottom-2 left-2 px-2 py-1 rounded-md bg-amber-500 text-white text-xs font-bold">
-            {item.tag}
-          </div>
+          </Button>
+          {item.tag && (
+            <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded-md bg-yellow-500 text-slate-900 text-xs font-bold">
+              {" "}
+              {/* Smaller tag */}
+              {item.tag}
+            </div>
+          )}
         </div>
       </CardHeader>
-      <CardBody className="p-4">
-        <Typography variant="h5" className="mb-1 text-gray-900">
-          {item.title}
-        </Typography>
-        <Typography variant="small" className="text-gray-600 mb-2">
-          {item.type}
-        </Typography>
-        <div className="flex items-center mb-2">
-          <div className="flex">
-            {[...Array(5)].map((_, i) => (
-              <StarIcon
-                key={i}
-                className={`h-4 w-4 ${
-                  i < Math.floor(item.rating)
-                    ? "fill-amber-400"
-                    : "fill-gray-300"
-                }`}
-              />
-            ))}
-          </div>
-          <Typography variant="small" className="ml-1 text-gray-600">
-            {item.rating}
-          </Typography>
-        </div>
+      <CardContent className="p-3">
+        {" "}
+        {/* Reduced padding */}
+        <CardTitle className="mb-0.5 text-base font-semibold text-gray-900">
+          {" "}
+          {/* Smaller title */}
+          {title}
+        </CardTitle>
+        <CardDescription className="text-xs text-gray-600 mb-1">
+          {" "}
+          {/* Smaller description */}
+          {typeOrDescription}
+        </CardDescription>
         <div className="flex items-center text-gray-600">
-          <MapPinIcon className="h-4 w-4 mr-1" />
-          <Typography variant="small">{item.location}</Typography>
+          <MapPinIcon className="h-3 w-3 mr-1" /> {/* Smaller icon */}
+          <p className="text-xs">{location}</p> {/* Smaller location text */}
         </div>
-      </CardBody>
-      <CardFooter className="pt-0 px-4 pb-4">
-        <div className="flex justify-between items-center">
-          <Typography variant="h6" className="text-gray-900">
-            {item.price}
-          </Typography>
-          <Button size="sm" color="amber" className="rounded-full">
-            Book Now
-          </Button>
-        </div>
+      </CardContent>
+      <CardFooter className="flex justify-between items-center p-3 pt-0">
+        {" "}
+        {/* Reduced padding */}
+        <p className="text-base font-bold text-gray-900">{priceDisplay}</p>{" "}
+        {/* Adjusted font size */}
+        <Button
+          size="sm"
+          className="bg-yellow-500 hover:bg-yellow-600 text-slate-900 rounded-full px-3 py-1.5 text-xs" // Smaller button
+        >
+          Book Now
+        </Button>
       </CardFooter>
     </Card>
   );

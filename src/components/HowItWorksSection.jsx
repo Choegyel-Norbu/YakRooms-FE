@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Typography, Card } from "@material-tailwind/react";
+import { Card } from "@/components/ui/card";
 
 const HowItWorksSection = () => {
   const steps = [
@@ -47,9 +47,9 @@ const HowItWorksSection = () => {
   return (
     <section className="py-12 px-4 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto">
-        <Typography variant="h3" className="text-center mb-12 text-gray-900">
+        <h3 className="text-center text-3xl font-bold mb-12 text-gray-900">
           How YakRooms Works
-        </Typography>
+        </h3>
 
         <motion.div
           variants={container}
@@ -72,20 +72,18 @@ const HowItWorksSection = () => {
                   <div
                     className={`w-12 h-12 flex items-center justify-center rounded-full ${step.color} mb-4`}
                   >
-                    <Typography variant="h4" className={step.iconColor}>
+                    <span className={`text-2xl font-bold ${step.iconColor}`}>
                       {step.icon}
-                    </Typography>
+                    </span>
                   </div>
 
                   {/* Step title */}
-                  <Typography variant="h5" className="mb-3 text-gray-900">
+                  <h5 className="text-xl font-semibold mb-3 text-gray-900">
                     {step.title}
-                  </Typography>
+                  </h5>
 
                   {/* Step description */}
-                  <Typography variant="small" className="text-gray-600">
-                    {step.description}
-                  </Typography>
+                  <p className="text-sm text-gray-600">{step.description}</p>
 
                   {/* Connector (mobile) */}
                   {index < steps.length - 1 && (
@@ -105,9 +103,7 @@ const HowItWorksSection = () => {
                 <div className="flex-1 h-1 bg-gray-200 rounded-full"></div>
                 {index < steps.length - 1 && (
                   <div className="w-8 h-8 rounded-full bg-white border-4 border-gray-200 flex items-center justify-center mx-2">
-                    <Typography variant="small" className="text-gray-500">
-                      {index + 1}
-                    </Typography>
+                    <span className="text-sm text-gray-500">{index + 1}</span>
                   </div>
                 )}
               </React.Fragment>

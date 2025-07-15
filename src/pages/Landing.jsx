@@ -23,7 +23,6 @@ const Landing = () => {
   const [loginShow, setLoginShow] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [certModalOpen, setCertModalOpen] = useState(false);
-  const [image, setImage] = useState("");
   const certiRef = useRef(null);
   const [rating, setRating] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -188,30 +187,14 @@ const Landing = () => {
         />
 
         <FeatureSection />
-        <HowItWorksSection />
+        {/* <HowItWorksSection /> */}
         <TopHighlightsSection />
-        <TestimonialsSection />
+        {/* <TestimonialsSection /> */}
         <CTASection />
         <ListYourPropertySection />
         <TrustIndicatorsSection />
         {/* Footer */}
         <Footer />
-        {/* <button onClick={() => localStorage.removeItem("hasRated")}>
-          Remove rated
-        </button> */}
-        <AnimatePresence>
-          {rating && !hasRated && (
-            <motion.div
-              className="fixed bottom-0 z-20 w-full"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ type: "spring", stiffness: 100, damping: 10 }}
-            >
-              <RatingWidget onClose={handleDismiss} />
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </>
   );

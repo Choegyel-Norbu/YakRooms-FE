@@ -1,24 +1,33 @@
-import React, { useCallback } from "react";
-import { motion, useAnimation } from "framer-motion";
-import { useRef } from "react";
-import { useInView } from "framer-motion";
-import qoute2 from "../../assets/images/qoute2.png";
-import qoute1 from "../../assets/images/qoute1.png";
-import person from "../../assets/images/person.jpeg";
+import React, { useCallback, useRef, useState } from "react";
+import { motion, useInView } from "framer-motion";
 import { Link } from "react-router-dom";
-import yakroom from "../../assets/images/yakrooms.png";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
-const HeroLG = React.forwardRef(({ onScroll }, forwardedRef) => {
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  // Fortress,
+  Calendar as CalendarIcon,
+  Search,
+  Users,
+} from "lucide-react";
+
+const HeroLG = React.forwardRef((props, forwardedRef) => {
   const localRef = useRef(null);
-  const isInView = useInView(localRef, { once: true, amount: 0.5 });
+  const isInView = useInView(localRef, { once: true, amount: 0.3 });
+  const [date, setDate] = useState(new Date());
 
-  // Combine the forwarded ref with the local ref
   const setRefs = useCallback(
     (node) => {
-      // Set the local ref
       localRef.current = node;
-
-      // Set the forwarded ref
       if (typeof forwardedRef === "function") {
         forwardedRef(node);
       } else if (forwardedRef) {
@@ -32,10 +41,7 @@ const HeroLG = React.forwardRef(({ onScroll }, forwardedRef) => {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3,
-      },
+      transition: { staggerChildren: 0.15, delayChildren: 0.2 },
     },
   };
 
@@ -44,126 +50,102 @@ const HeroLG = React.forwardRef(({ onScroll }, forwardedRef) => {
     visible: {
       y: 0,
       opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 10,
-      },
-    },
-  };
-
-  const imageItemVariants = {
-    hidden: { y: 0, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 10,
-        damping: 15,
-        duration: 0.5,
-        ease: "easeOut",
-      },
-    },
-    exit: {
-      opacity: 0,
-      scale: 0.9,
-      transition: {
-        duration: 0.7,
-        ease: "easeInOut",
-      },
-    },
-  };
-
-  const imageVariants = {
-    hidden: { scale: 0.9, opacity: 0 },
-    visible: {
-      scale: 1,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 60,
-        damping: 10,
-        delay: 0.5,
-      },
+      transition: { type: "spring", stiffness: 100, damping: 12 },
     },
   };
 
   return (
-    <section className="relative h-[90vh] min-h-[600px] w-full overflow-hidden">
-      {/* Background with Bhutanese elements */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/50">
-        <img
-          src={yakroom}
-          alt="Bhutanese landscape with mountains and traditional architecture"
-          className="h-full w-full object-cover"
-        />
-        {/* Decorative prayer flags */}
-        <div className="absolute top-10 right-10 hidden md:block">
-          <svg
-            width="120"
-            height="80"
-            viewBox="0 0 120 80"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            {/* Simplified prayer flag SVG */}
-            <rect x="10" y="10" width="20" height="50" fill="#FF4D4F" />
-            <rect x="40" y="15" width="20" height="45" fill="#13C2C2" />
-            <rect x="70" y="20" width="20" height="40" fill="#FAAD14" />
-            <rect x="100" y="25" width="20" height="35" fill="#52C41A" />
-            <path d="M0 0L120 0L115 5L5 5L0 0Z" fill="#D9D9D9" />
-          </svg>
-        </div>
-      </div>
+    <section
+      ref={setRefs}
+      className="relative flex h-screen min-h-[700px] w-full items-center justify-center overflow-hidden bg-gradient-to-b from-blue-50 via-white to-white px-4 pt-16"
+    >
+      <div className="absolute inset-x-0 bottom-0 z-0 h-1/2 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(to_top,white,transparent)]"></div>
 
-      {/* Content */}
-      <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center text-white">
-        <div className="max-w-4xl space-y-6">
-          {/* Headline with Bhutanese touch */}
-          <h1 className="text-4xl font-bold leading-tight sm:text-5xl md:text-6xl">
-            Discover <span className="text-[#FFD666]">Authentic</span> Bhutanese
-            Stays & Food
-          </h1>
-
-          {/* Subtext */}
-          <p className="mx-auto max-w-2xl text-lg sm:text-xl">
-            Book hotels, explore local restaurants, and check real-time
-            prices—all in one place.
-          </p>
-
-          {/* Search CTA */}
-          <div className="mx-auto mt-8 flex max-w-md flex-col gap-4 sm:flex-row">
-            <Link to="/hotel">
-              <button className="rounded-lg bg-[#FF4D4F] px-6 cursor-pointer py-3 font-medium hover:bg-[#FF7875] focus:outline-none focus:ring-2 focus:ring-[#FF4D4F] focus:ring-offset-2">
-                Search Hotels
-              </button>
-            </Link>
-
-            <button className="rounded-lg border-2 border-white bg-white/10 px-6 py-3 font-medium backdrop-blur-sm hover:bg-white/20">
-              Explore Menus
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Decorative yak illustration at bottom */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-        <svg
-          width="60"
-          height="40"
-          viewBox="0 0 60 40"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+      <motion.div
+        className="relative text-black z-10 flex w-full max-w-5xl flex-col items-center justify-center space-y-6 text-center"
+        variants={containerVariants}
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+      >
+        <motion.h1
+          variants={itemVariants}
+          className="text-4xl font-bold text-black tracking-tight text-foreground sm:text-5xl md:text-6xl"
         >
-          <path
-            d="M30 5C35 5 40 10 40 15C40 20 35 25 30 25C25 25 20 20 20 15C20 10 25 5 30 5Z"
-            fill="#D9D9D9"
-          />
-          <path d="M25 25L20 35L25 40L35 40L40 35L35 25" fill="#8C8C8C" />
-          <path d="M30 15L30 25" stroke="#595959" strokeWidth="2" />
-        </svg>
-      </div>
+          Monsoon Charms Await in
+          <span className="relative inline-block text-black">
+            Phuentsholing
+            <svg
+              className="absolute -bottom-1.5 left-0 w-full text-black"
+              viewBox="0 0 100 8"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M1 7C16.6667 2.33333 60.5 -2 99 7"
+                stroke="hsl(var(--primary))"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+        </motion.h1>
+
+        <motion.p
+          variants={itemVariants}
+          className="mx-auto max-w-2xl text-lg text-muted-foreground sm:text-xl"
+        >
+          Your gateway to the Land of the Thunder Dragon. Find the perfect stay
+          to begin your journey.
+        </motion.p>
+
+        <motion.div variants={itemVariants} className="w-full pt-4">
+          <Card className="mx-auto w-full max-w-4xl shadow-lg">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                <div className="relative md:col-span-2">
+                  {/* <Fortress className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" /> */}
+                  <Input
+                    type="text"
+                    placeholder="Destination"
+                    defaultValue="Phuentsholing, Bhutan"
+                    className="h-12 pl-10 text-base"
+                  />
+                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "h-12 w-full justify-start text-left text-base font-normal",
+                        !date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-5 w-5" />
+                      {date ? format(date, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                <Button size="lg" className="h-12 text-base md:col-span-1">
+                  <Link to="/hotels" className="flex items-center">
+                    <Search className="mr-2 h-5 w-5" />
+                    Search
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
     </section>
   );
 });
