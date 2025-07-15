@@ -7,8 +7,8 @@ import HotelListingPage from "../pages/HotelListingPage";
 import HotelDetailsPage from "../pages/HotelDetailsPage";
 import AddListingPage from "../pages/AddListingPage";
 import RoomManagement from "../pages/RoomManagement";
-import HotelListingAdminPage from "../pages/HotelListingAdminPage";
 import HotelAdminDashboard from "../pages/HotelAdminDashboard";
+import SuperAdmin from "../pages/SuperAdmin";
 
 export default function () {
   return (
@@ -20,7 +20,7 @@ export default function () {
         <Route path="/hotel/:id" element={<HotelDetailsPage />} />
         <Route path="/listings" element={<AddListingPage />} />
         <Route path="/room" element={<RoomManagement />} />
-        <Route path="/adminDashboard" element={<HotelListingAdminPage />} />
+        <Route path="/adminDashboard" element={<SuperAdmin />} />
         <Route path="/hotelAdmin" element={<HotelAdminDashboard />} />
       </Routes>
     </AuthProvider>

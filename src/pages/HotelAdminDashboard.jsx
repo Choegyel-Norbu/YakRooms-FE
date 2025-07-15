@@ -1,108 +1,68 @@
-// HotelAdminDashboard.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  FiHome,
-  FiCalendar,
-  FiSettings,
-  FiPieChart,
-  FiInbox,
-  FiPlus,
-} from "react-icons/fi";
-import { FaHotel, FaBed, FaBoxes, FaRegBell } from "react-icons/fa";
+  Home,
+  Calendar,
+  Settings,
+  PieChart,
+  Hotel,
+  Bed,
+  Package,
+  Bell,
+  User,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import SummaryCards from "../components/cards/SummaryCards.jsx";
 import HotelInfoForm from "../components/hotel/HotelInfoForm.jsx";
 import RoomManager from "../components/RoomManager.jsx";
-import BookingTable from "../components/BookingTable.jsx";
+import BookingTable from "../components/hotel/BookingTable.jsx";
+import { useAuth } from "../services/AuthProvider.jsx";
+import api from "../services/Api.jsx";
 
 const HotelAdminDashboard = () => {
+  const { userId, userName } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [hotel, setHotel] = useState({
-    id: 1,
-    name: "Taj Tashi Thimphu",
-    type: "Luxury Hotel",
-    district: "Thimphu",
-    address: "Samten Lam, Thimphu",
-    description:
-      "A luxury hotel blending Bhutanese dzong architecture with contemporary design",
-    contact: {
-      phone: "+97517123456",
-      email: "info@tajtashi.com",
-    },
-    images: [
-      "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
-    ],
-    documents: {
-      license: "taj_tashi_license.pdf",
-    },
-  });
+  const [hotel, setHotel] = useState(null);
+  const [bookings, setBookings] = useState([]);
 
-  const [rooms, setRooms] = useState([
-    {
-      id: 1,
-      type: "Deluxe Room",
-      price: 220,
-      maxGuests: 2,
-      isAvailable: true,
-      description: "Spacious room with king bed and mountain views",
-      images: [
-        "https://images.unsplash.com/photo-1582719471380-cd7775af7d73?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
-      ],
-      amenities: [
-        { id: 1, name: "King Bed", icon: "bed" },
-        { id: 2, name: "Smart TV", icon: "tv" },
-        { id: 3, name: "Wi-Fi", icon: "wifi" },
-        { id: 4, name: "Attached Bathroom", icon: "bath" },
-      ],
-    },
-    {
-      id: 2,
-      type: "Suite",
-      price: 350,
-      maxGuests: 3,
-      isAvailable: true,
-      description: "Luxurious suite with separate living area",
-      images: [
-        "https://images.unsplash.com/photo-1564501049412-61c2a3083791?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
-      ],
-      amenities: [
-        { id: 1, name: "King Bed", icon: "bed" },
-        { id: 5, name: "Air Conditioning", icon: "ac" },
-        { id: 6, name: "Safe Locker", icon: "safe" },
-        { id: 7, name: "Balcony", icon: "balcony" },
-      ],
-    },
-  ]);
+  useEffect(() => {
+    console.log("Hotel admin panel");
+    const fetchHotelData = async () => {
+      try {
+        console.log("Inside try... ");
+        const res = await api.get(`/hotels/${userId}`);
+        console.log("Booking: " + res.data);
+        console.log("After try... ");
+        setHotel(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
 
-  const [bookings, setBookings] = useState([
-    {
-      id: 1,
-      guest: {
-        name: "Karma Dorji",
-        email: "karma@example.com",
-        phone: "+97517111222",
-      },
-      roomId: 1,
-      roomType: "Deluxe Room",
-      checkIn: "2023-06-15",
-      checkOut: "2023-06-18",
-      status: "confirmed",
-      payment: { amount: 660, currency: "Nu.", status: "paid" },
-    },
-    {
-      id: 2,
-      guest: {
-        name: "Dechen Wangmo",
-        email: "dechen@example.com",
-        phone: "+97517222333",
-      },
-      roomId: 2,
-      roomType: "Suite",
-      checkIn: "2023-06-20",
-      checkOut: "2023-06-25",
-      status: "pending",
-      payment: { amount: 1750, currency: "Nu.", status: "pending" },
-    },
-  ]);
+    const fetchAllBookings = async () => {
+      try {
+        const res = await api.get(`/bookings`);
+        setBookings(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    const fetchAllNotifications = async () => {
+      try {
+        const res = await api.get(`/notifications/${userId}`);
+        setNotifications(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchHotelData();
+    fetchAllBookings();
+  }, []);
 
   const [notifications, setNotifications] = useState([
     {
@@ -123,20 +83,6 @@ const HotelAdminDashboard = () => {
     setHotel(updatedHotel);
   };
 
-  const addRoom = (newRoom) => {
-    setRooms([...rooms, { ...newRoom, id: Date.now() }]);
-  };
-
-  const updateRoom = (updatedRoom) => {
-    setRooms(
-      rooms.map((room) => (room.id === updatedRoom.id ? updatedRoom : room))
-    );
-  };
-
-  const deleteRoom = (id) => {
-    setRooms(rooms.filter((room) => room.id !== id));
-  };
-
   const updateBookingStatus = (id, status) => {
     setBookings(
       bookings.map((booking) =>
@@ -153,108 +99,59 @@ const HotelAdminDashboard = () => {
     );
   };
 
+  const navigationItems = [
+    { id: "dashboard", label: "Dashboard", icon: Home },
+    { id: "hotel", label: "Hotel Details", icon: Hotel },
+    { id: "rooms", label: "Room Management", icon: Bed },
+    { id: "inventory", label: "Inventory Tracker", icon: Package },
+    { id: "bookings", label: "Bookings", icon: Calendar },
+    { id: "analytics", label: "Analytics", icon: PieChart },
+    { id: "settings", label: "Settings", icon: Settings },
+  ];
+
+  const getPageTitle = () => {
+    const titles = {
+      dashboard: "Dashboard",
+      hotel: "Hotel Details",
+      rooms: "Room Management",
+      inventory: "Inventory Tracker",
+      bookings: "Booking Management",
+      analytics: "Analytics & Reports",
+      settings: "Settings",
+    };
+    return titles[activeTab] || "Dashboard";
+  };
+
   return (
     <div className="flex h-screen bg-gray-50 text-gray-800">
       {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-md hidden md:block">
-        <div className="p-4 border-b">
+      <aside className="w-64 bg-white shadow-md hidden md:block border-r">
+        <div className="p-6 border-b">
           <h1 className="text-xl font-bold text-amber-600">YakRooms</h1>
-          <p className="text-sm text-gray-500">Hotel Admin Panel</p>
+          <p className="text-sm text-muted-foreground">Hotel Admin Panel</p>
         </div>
 
         <nav className="p-4">
           <ul className="space-y-2">
-            <li>
-              <button
-                onClick={() => setActiveTab("dashboard")}
-                className={`flex items-center w-full px-4 py-2 rounded-lg ${
-                  activeTab === "dashboard"
-                    ? "bg-amber-100 text-amber-700"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                <FiHome className="mr-3" />
-                Dashboard
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setActiveTab("hotel")}
-                className={`flex items-center w-full px-4 py-2 rounded-lg ${
-                  activeTab === "hotel"
-                    ? "bg-amber-100 text-amber-700"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                <FaHotel className="mr-3" />
-                Hotel Details
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setActiveTab("rooms")}
-                className={`flex items-center w-full px-4 py-2 rounded-lg ${
-                  activeTab === "rooms"
-                    ? "bg-amber-100 text-amber-700"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                <FaBed className="mr-3" />
-                Room Management
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setActiveTab("inventory")}
-                className={`flex items-center w-full px-4 py-2 rounded-lg ${
-                  activeTab === "inventory"
-                    ? "bg-amber-100 text-amber-700"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                <FaBoxes className="mr-3" />
-                Inventory Tracker
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setActiveTab("bookings")}
-                className={`flex items-center w-full px-4 py-2 rounded-lg ${
-                  activeTab === "bookings"
-                    ? "bg-amber-100 text-amber-700"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                <FiCalendar className="mr-3" />
-                Bookings
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setActiveTab("analytics")}
-                className={`flex items-center w-full px-4 py-2 rounded-lg ${
-                  activeTab === "analytics"
-                    ? "bg-amber-100 text-amber-700"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                <FiPieChart className="mr-3" />
-                Analytics
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setActiveTab("settings")}
-                className={`flex items-center w-full px-4 py-2 rounded-lg ${
-                  activeTab === "settings"
-                    ? "bg-amber-100 text-amber-700"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                <FiSettings className="mr-3" />
-                Settings
-              </button>
-            </li>
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.id}>
+                  <Button
+                    variant={activeTab === item.id ? "secondary" : "ghost"}
+                    className={`w-full justify-start ${
+                      activeTab === item.id
+                        ? "bg-amber-100 text-amber-700 hover:bg-amber-100"
+                        : "hover:bg-gray-100"
+                    }`}
+                    onClick={() => setActiveTab(item.id)}
+                  >
+                    <Icon className="mr-3 h-4 w-4" />
+                    {item.label}
+                  </Button>
+                </li>
+              );
+            })}
           </ul>
         </nav>
       </aside>
@@ -262,101 +159,179 @@ const HotelAdminDashboard = () => {
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
         {/* Top Navbar */}
-        <header className="bg-white shadow-sm p-4 flex justify-between items-center">
-          <h2 className="text-lg font-semibold capitalize">
-            {activeTab === "dashboard" && "Dashboard"}
-            {activeTab === "hotel" && "Hotel Details"}
-            {activeTab === "rooms" && "Room Management"}
-            {activeTab === "inventory" && "Inventory Tracker"}
-            {activeTab === "bookings" && "Booking Management"}
-            {activeTab === "analytics" && "Analytics & Reports"}
-            {activeTab === "settings" && "Settings"}
-          </h2>
-
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <button className="p-2 rounded-full hover:bg-gray-100 relative">
-                <FaRegBell />
-                {notifications.some((n) => !n.read) && (
-                  <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-                )}
-              </button>
+        <header className="bg-white shadow-sm p-4 border-b">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-900">
+                {getPageTitle()}
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Manage your hotel operations
+              </p>
             </div>
-            <div className="flex items-center">
-              <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
-                {/* <FiUser /> */}
+
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <Button variant="ghost" size="sm" className="relative p-2">
+                  <Bell className="h-5 w-5" />
+                  {notifications.some((n) => !n.read) && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-red-500 text-white text-xs">
+                      {notifications.filter((n) => !n.read).length}
+                    </Badge>
+                  )}
+                </Button>
               </div>
-              <span className="ml-2 hidden md:inline">Hotel Owner</span>
+
+              <Separator orientation="vertical" className="h-6" />
+
+              <div className="flex items-center space-x-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-amber-100 text-amber-600">
+                    <User className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium hidden md:inline">
+                  {userName}
+                </span>
+              </div>
             </div>
           </div>
         </header>
 
         {/* Dashboard Content */}
-        <main className="p-4 md:p-6">
+        <main className="p-3 space-y-6">
           {activeTab === "dashboard" && (
-            <>
-              <SummaryCards
-                rooms={rooms}
-                bookings={bookings}
-                notifications={notifications}
-                markAsRead={markNotificationAsRead}
-              />
-
-              <div className="mt-6 bg-white rounded-lg shadow-sm p-4">
-                <h3 className="text-lg font-semibold mb-4">Recent Bookings</h3>
-                <BookingTable
-                  bookings={bookings}
-                  onStatusChange={updateBookingStatus}
-                  viewMode="compact"
-                />
-              </div>
-            </>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Recent Bookings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <BookingTable
+                    bookings={bookings}
+                    onStatusChange={updateBookingStatus}
+                    viewMode="compact"
+                  />
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {activeTab === "hotel" && (
-            <HotelInfoForm hotel={hotel} onUpdate={updateHotel} />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Hotel className="h-5 w-5" />
+                  Hotel Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <HotelInfoForm hotel={hotel} onUpdate={updateHotel} />
+              </CardContent>
+            </Card>
           )}
 
           {activeTab === "rooms" && (
-            <RoomManager
-              rooms={rooms}
-              onAdd={addRoom}
-              onUpdate={updateRoom}
-              onDelete={deleteRoom}
-            />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bed className="h-5 w-5" />
+                  Room Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RoomManager />
+              </CardContent>
+            </Card>
           )}
 
           {activeTab === "inventory" && (
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <h3 className="text-lg font-semibold mb-4">Room Inventory</h3>
-              <p className="text-gray-500">Inventory tracking coming soon</p>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Room Inventory
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12">
+                  <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Inventory Tracking
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Advanced inventory management features coming soon
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {activeTab === "bookings" && (
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <BookingTable
-                bookings={bookings}
-                onStatusChange={updateBookingStatus}
-                viewMode="full"
-              />
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  All Bookings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <BookingTable
+                  bookings={bookings}
+                  onStatusChange={updateBookingStatus}
+                  viewMode="full"
+                />
+              </CardContent>
+            </Card>
           )}
 
           {activeTab === "analytics" && (
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <h3 className="text-lg font-semibold mb-4">
-                Analytics & Reports
-              </h3>
-              <p className="text-gray-500">Analytics dashboard coming soon</p>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <PieChart className="h-5 w-5" />
+                  Analytics & Reports
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12">
+                  <PieChart className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Business Analytics
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Comprehensive analytics dashboard with insights and reports
+                    coming soon
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {activeTab === "settings" && (
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <h3 className="text-lg font-semibold mb-4">Settings</h3>
-              <p className="text-gray-500">Settings panel coming soon</p>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12">
+                  <Settings className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    System Settings
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Configure your hotel management preferences and system
+                    settings
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </main>
       </div>

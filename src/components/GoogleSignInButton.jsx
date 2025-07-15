@@ -33,6 +33,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose }) => {
           pictureURL: res.data.user.pictureURL,
           flag: res.data.user.registerFlag,
           detailSet: res.data.user.detailSet,
+          hotelId: res.data.user.hotelId,
         });
         onClose();
       }

@@ -6,6 +6,7 @@ import qoute2 from "../../assets/images/qoute2.png";
 import qoute1 from "../../assets/images/qoute1.png";
 import person from "../../assets/images/person.jpeg";
 import { Link } from "react-router-dom";
+import yakroom from "../../assets/images/yakrooms.png";
 
 const HeroLG = React.forwardRef(({ onScroll }, forwardedRef) => {
   const localRef = useRef(null);
@@ -93,7 +94,7 @@ const HeroLG = React.forwardRef(({ onScroll }, forwardedRef) => {
       {/* Background with Bhutanese elements */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/50">
         <img
-          src="https://images.unsplash.com/photo-1566438480900-0609be27a4be?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2096&q=80"
+          src={yakroom}
           alt="Bhutanese landscape with mountains and traditional architecture"
           className="h-full w-full object-cover"
         />
