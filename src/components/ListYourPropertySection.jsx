@@ -44,7 +44,7 @@ const ListYourPropertySection = () => {
   ];
 
   return (
-    <section className="py-20 px-4 bg-muted/20">
+    <section className="lg:py-20 px-4 bg-muted/20">
       <div className="container mx-auto">
         <div className="max-w-6xl mx-auto">
           {/* Header Section */}
@@ -57,7 +57,7 @@ const ListYourPropertySection = () => {
               Partner with{" "}
               <span className="text-primary">
                 YakRooms
-              </span>{" "}
+              </span>
               & Grow Your Business
             </h2>
             <p className="text-md text-muted-foreground max-w-3xl mx-auto">

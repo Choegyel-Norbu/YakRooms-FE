@@ -28,6 +28,7 @@ const Landing = () => {
   const [dismissed, setDismissed] = useState(false);
   const contactMeRef = useRef(null);
   const homeRef = useRef(null);
+  const footerRef = useRef(null);
   const [hasRated, setHasRated] = useState(
     localStorage.getItem("hasRated") === "true"
   );
@@ -173,7 +174,7 @@ const Landing = () => {
     <>
       <div className=" relative bg-white text-black dark:text-white">
         {/* Navigation */}
-        <Navbar onLoginClick={toggleLogin} />
+        <Navbar onLoginClick={toggleLogin} onContactClick={() => footerRef.current?.scrollIntoView({ behavior: 'smooth' })} />
 
         {/* LoginModal */}
         {loginShow && <LoginModal onClose={closeLogin} />}
@@ -189,7 +190,7 @@ const Landing = () => {
         <FeatureSection />
         <ListYourPropertySection />
         
-        <Footer />
+        <Footer ref={footerRef} />
       </div>
     </>
   );
