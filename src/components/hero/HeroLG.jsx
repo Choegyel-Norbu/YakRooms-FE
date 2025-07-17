@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,47 @@ import {
 
 const HeroLG = () => {
   const [date, setDate] = useState(new Date());
+  const [searchDistrict, setSearchDistrict] = useState("");
+  const [searchError, setSearchError] = useState("");
+  const navigate = useNavigate();
+
+  const validateAndSearch = () => {
+    // Clear previous errors
+    setSearchError("");
+
+    // Validate district input
+    if (!searchDistrict || searchDistrict.trim() === "") {
+      setSearchError("Please enter a district to search");
+      return;
+    }
+
+    // Check if district contains only letters and spaces
+    if (!/^[a-zA-Z\s]+$/.test(searchDistrict.trim())) {
+      setSearchError("District must contain only letters");
+      return;
+    }
+
+    // Navigate to hotel listing page with search parameters
+    const searchParams = new URLSearchParams({
+      district: searchDistrict.trim(),
+      // You can add more search parameters here if needed
+      // checkIn: format(date, "yyyy-MM-dd"),
+      // guests: "1",
+    });
+
+    navigate(`/hotel?${searchParams.toString()}`);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      validateAndSearch();
+    }
+  };
+
+  const handleStartExploring = () => {
+    // Navigate to hotel listing page without filters
+    navigate("/hotel");
+  };
 
   return (
     <section className="relative flex min-h-screen w-full items-center justify-center bg-background px-4 py-16">
@@ -66,52 +108,38 @@ const HeroLG = () => {
         </div>
 
         {/* Search Form */}
-        <div className="w-full max-w-4xl space-y-4 ">
+        <div className="w-full max-w-4xl space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="relative md:col-span-2">
               <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search destination"
-                className="h-12 pl-10 text-base"
+                placeholder="Search district (e.g., Thimphu, Paro, Punakha)"
+                className={cn(
+                  "h-12 pl-10 text-base",
+                  searchError && "border-red-500 focus:border-red-500"
+                )}
+                value={searchDistrict}
+                onChange={(e) => {
+                  setSearchDistrict(e.target.value);
+                  if (searchError) setSearchError(""); // Clear error when user starts typing
+                }}
+                onKeyPress={handleKeyPress}
               />
+              {searchError && (
+                <p className="mt-2 text-sm text-red-500 text-left">{searchError}</p>
+              )}
             </div>
-
-            {/* <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "h-12 w-full justify-start text-left text-base font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Select date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover> */}
 
             <Button
               size="lg"
               className="h-12 text-base bg-yellow-500 hover:bg-yellow-600 text-slate-900 cursor-pointer"
+              onClick={validateAndSearch}
             >
-              <Search className="mr-2 h-4 w-4 " />
+              <Search className="mr-2 h-4 w-4" />
               Search Hotels
             </Button>
           </div>
-
-          {/* <p className="text-sm text-muted-foreground">
-            Discover handpicked accommodations from budget-friendly hotels
-          </p> */}
         </div>
 
         <Separator className="w-full max-w-2xl" />
@@ -121,7 +149,12 @@ const HeroLG = () => {
           <p className="text-base text-muted-foreground">
             Ready to explore Bhutan's cultural heart?
           </p>
-          <Button variant="outline" size="lg" className="group">
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="group"
+            onClick={handleStartExploring}
+          >
             Start Exploring
             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Button>

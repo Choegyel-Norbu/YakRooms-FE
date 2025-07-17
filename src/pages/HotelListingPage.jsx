@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { MapPin, Star, StarHalf, Loader2, Filter } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -70,6 +70,7 @@ const StarRating = ({ rating }) => {
 };
 
 const HotelListingPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState("popularity");
   const [priceRange, setPriceRange] = useState([0, 500]);
@@ -82,7 +83,7 @@ const HotelListingPage = () => {
     totalPages: 1,
     totalElements: 0,
   });
-  const [searchParams, setSearchParams] = useState({
+  const [searchState, setSearchState] = useState({
     district: "",
     checkIn: "",
     checkOut: "",
@@ -99,21 +100,51 @@ const HotelListingPage = () => {
     "Boutique Hotel",
   ];
 
+  // Initialize search state from URL parameters
+  useEffect(() => {
+    const urlDistrict = searchParams.get("district") || "";
+    const urlCheckIn = searchParams.get("checkIn") || "";
+    const urlCheckOut = searchParams.get("checkOut") || "";
+    const urlGuests = parseInt(searchParams.get("guests")) || 1;
+    const urlHotelType = searchParams.get("hotelType") || "";
+
+    setSearchState({
+      district: urlDistrict,
+      checkIn: urlCheckIn,
+      checkOut: urlCheckOut,
+      guests: urlGuests,
+      hotelType: urlHotelType,
+    });
+
+    // If there are search parameters from URL, trigger search immediately
+    if (urlDistrict || urlHotelType) {
+      // Small delay to ensure state is set
+      setTimeout(() => {
+        filterHotels(0, {
+          district: urlDistrict,
+          hotelType: urlHotelType,
+        });
+      }, 100);
+    } else {
+      fetchHotels(0);
+    }
+  }, []);
+
   const validateForm = () => {
     let errors = { district: "", hotelType: "" };
     let isValid = true;
 
-    if (!searchParams.district || searchParams.district.trim() === "") {
+    if (!searchState.district || searchState.district.trim() === "") {
       errors.district = "District is required";
       isValid = false;
-    } else if (!/^[a-zA-Z\s]+$/.test(searchParams.district.trim())) {
+    } else if (!/^[a-zA-Z\s]+$/.test(searchState.district.trim())) {
       errors.district = "District must contain only letters";
       isValid = false;
     }
 
     if (
-      searchParams.hotelType &&
-      !allowedHotelTypes.includes(searchParams.hotelType)
+      searchState.hotelType &&
+      !allowedHotelTypes.includes(searchState.hotelType)
     ) {
       errors.hotelType = "Invalid hotel type selected";
       isValid = false;
@@ -150,16 +181,13 @@ const HotelListingPage = () => {
     }
   };
 
-  useEffect(() => {
-    fetchHotels(0);
-  }, []);
-
-  const filterHotels = async (page = 0) => {
+  const filterHotels = async (page = 0, customSearchParams = null) => {
     try {
       setLoading(true);
+      const searchData = customSearchParams || searchState;
       const params = new URLSearchParams({
-        district: searchParams.district,
-        hotelType: searchParams.hotelType,
+        district: searchData.district,
+        hotelType: searchData.hotelType,
         page,
         size: pagination.size,
       });
@@ -171,6 +199,12 @@ const HotelListingPage = () => {
         totalPages: response.data.totalPages,
         totalElements: response.data.totalElements,
       });
+
+      // Update URL to reflect current search
+      const urlParams = new URLSearchParams();
+      if (searchData.district) urlParams.set("district", searchData.district);
+      if (searchData.hotelType) urlParams.set("hotelType", searchData.hotelType);
+      setSearchParams(urlParams);
     } catch (error) {
       console.error("Error filtering hotels:", error);
     } finally {
@@ -198,10 +232,10 @@ const HotelListingPage = () => {
         hotel.price >= priceRange[0] &&
         hotel.price <= priceRange[1] &&
         (selectedTypes.length === 0 || selectedTypes.includes(hotel.type)) &&
-        (searchParams.district === "" ||
+        (searchState.district === "" ||
           hotel.district
             .toLowerCase()
-            .includes(searchParams.district.toLowerCase()))
+            .includes(searchState.district.toLowerCase()))
       );
     })
     .sort((a, b) => {
@@ -213,7 +247,7 @@ const HotelListingPage = () => {
 
   const handlePageChange = (newPage) => {
     if (newPage >= 0 && newPage < pagination.totalPages) {
-      if (searchParams.district || searchParams.hotelType) {
+      if (searchState.district || searchState.hotelType) {
         filterHotels(newPage);
       } else {
         fetchHotels(newPage);
@@ -228,11 +262,12 @@ const HotelListingPage = () => {
   const handleResetFilters = () => {
     setPriceRange([0, 500]);
     setSelectedTypes([]);
-    setSearchParams((prev) => ({
+    setSearchState((prev) => ({
       ...prev,
       district: "",
       hotelType: "",
     }));
+    setSearchParams({}); // Clear URL parameters
     fetchHotels(0);
   };
 
@@ -310,8 +345,8 @@ const HotelListingPage = () => {
               </SheetHeader>
               <div className="p-6 pt-4">
                 <FilterSidebar
-                  searchParams={searchParams}
-                  setSearchParams={setSearchParams}
+                  searchParams={searchState}
+                  setSearchParams={setSearchState}
                   onSearchClick={onSearchClick}
                   formErrors={formErrors}
                 />
@@ -328,8 +363,8 @@ const HotelListingPage = () => {
                 </CardHeader>
                 <CardContent>
                   <FilterSidebar
-                    searchParams={searchParams}
-                    setSearchParams={setSearchParams}
+                    searchParams={searchState}
+                    setSearchParams={setSearchState}
                     onSearchClick={onSearchClick}
                     formErrors={formErrors}
                   />
@@ -342,8 +377,8 @@ const HotelListingPage = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">
-                  {searchParams.district
-                    ? `Stays in ${searchParams.district}`
+                  {searchState.district
+                    ? `Stays in ${searchState.district}`
                     : "All Stays"}
                 </h1>
                 <p className="text-muted-foreground">
@@ -364,14 +399,12 @@ const HotelListingPage = () => {
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="popularity">Popularity</SelectItem>
                     <SelectItem value="price-low">
                       Price: Low to High
                     </SelectItem>
                     <SelectItem value="price-high">
                       Price: High to Low
                     </SelectItem>
-                    <SelectItem value="rating">Top Rated</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -178,8 +178,6 @@ const Landing = () => {
         {/* LoginModal */}
         {loginShow && <LoginModal onClose={closeLogin} />}
 
-        {/* hero section  */}
-        {/* {isMobile ? <HeroSM /> : <HeroLG />} */}
         <HeroLG
           ref={homeRef}
           onScroll={() =>
@@ -189,16 +187,8 @@ const Landing = () => {
 
         <TopHighlightsSection />
         <FeatureSection />
-        {/* <HowItWorksSection /> */}
-
-        {/* <TestimonialsSection /> */}
-        <div className="flex flex-col lg:flex-row gap-1 w-[90%] m-auto">
-          <ListYourPropertySection />
-          <CTASection />
-        </div>
-
-        {/* <TrustIndicatorsSection /> */}
-        {/* Footer */}
+        <ListYourPropertySection />
+        
         <Footer />
       </div>
     </>

@@ -37,6 +37,7 @@ const Navbar = ({ onLoginClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [theme, setTheme] = useState("light"); // Default to light theme
+  const [scrollbarWidth, setScrollbarWidth] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,6 +51,19 @@ const Navbar = ({ onLoginClick }) => {
     const root = window.document.documentElement;
     root.classList.remove("light", "dark");
     root.classList.add(theme);
+  }, [theme]);
+
+  // Calculate scrollbar width to prevent layout shift
+  useEffect(() => {
+    const calculateScrollbarWidth = () => {
+      const scrollbarWidth =
+        window.innerWidth - document.documentElement.clientWidth;
+      setScrollbarWidth(scrollbarWidth);
+    };
+
+    calculateScrollbarWidth();
+    window.addEventListener("resize", calculateScrollbarWidth);
+    return () => window.removeEventListener("resize", calculateScrollbarWidth);
   }, []);
 
   const navLinks = [
@@ -77,7 +91,7 @@ const Navbar = ({ onLoginClick }) => {
     }
 
     return (
-      <DropdownMenu>
+      <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
             <Avatar className="h-10 w-10 border-2 border-yellow-500">
@@ -151,6 +165,7 @@ const Navbar = ({ onLoginClick }) => {
       style={{
         transform: "translateZ(0)", // Force hardware acceleration
         willChange: "transform", // Optimize for transforms
+        paddingRight: scrollbarWidth, // Compensate for scrollbar width
       }}
     >
       <div className="container mx-auto">
