@@ -1,6 +1,7 @@
 import { ToastContainer } from "react-toastify";
 import AppRouting from "./routes/AppRouting";
 import { BrowserRouter } from "react-router-dom";
+import { Toaster } from "sonner";
 
 import { AuthProvider } from "./services/AuthProvider";
 
@@ -10,6 +11,7 @@ function App() {
       <AuthProvider>
         <AppRouting />
         <ToastContainer />
+        <Toaster />
       </AuthProvider>
     </BrowserRouter>
   );

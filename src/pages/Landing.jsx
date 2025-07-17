@@ -52,6 +52,7 @@ const Landing = () => {
     triggerOnce: false, // Set true if you want it only once
     threshold: 0.1,
   });
+
   const toggleLogin = () => {
     setLoginShow(!loginShow);
   };
@@ -186,13 +187,17 @@ const Landing = () => {
           }
         />
 
+        <TopHighlightsSection />
         <FeatureSection />
         {/* <HowItWorksSection /> */}
-        <TopHighlightsSection />
+
         {/* <TestimonialsSection /> */}
-        <CTASection />
-        <ListYourPropertySection />
-        <TrustIndicatorsSection />
+        <div className="flex flex-row gap-1 w-[90%] m-auto">
+          <ListYourPropertySection />
+          <CTASection />
+        </div>
+
+        {/* <TrustIndicatorsSection /> */}
         {/* Footer */}
         <Footer />
       </div>

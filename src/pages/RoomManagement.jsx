@@ -25,9 +25,38 @@ import {
 } from "react-icons/md";
 import { IoVolumeMute } from "react-icons/io5";
 import Footer from "../components/Footer";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 const RoomManagement = () => {
-  // Sample hotel data - in real app this would come from props or API
   const [hotel, setHotel] = useState({
     id: 1,
     name: "Taj Tashi Thimphu",
@@ -87,9 +116,11 @@ const RoomManagement = () => {
     type: "",
   });
   const [showAmenityForm, setShowAmenityForm] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: "", type: "" });
 
-  // Standard amenities with icons
+  const form = useForm({
+    defaultValues: roomForm,
+  });
+
   const standardAmenities = [
     { id: 1, name: "Single Bed", icon: <FaBed />, type: "bed" },
     { id: 2, name: "Double Bed", icon: <FaBed />, type: "bed" },
@@ -160,6 +191,7 @@ const RoomManagement = () => {
       ...roomForm,
       photos: [...roomForm.photos, ...newPhotos],
     });
+    form.setValue("photos", [...roomForm.photos, ...newPhotos]);
   };
 
   const removePhoto = (index) => {
@@ -167,46 +199,54 @@ const RoomManagement = () => {
       ...roomForm,
       photos: roomForm.photos.filter((_, i) => i !== index),
     });
+    form.setValue(
+      "photos",
+      roomForm.photos.filter((_, i) => i !== index)
+    );
   };
 
   const toggleAmenity = (amenity) => {
     const isSelected = roomForm.amenities.some((a) => a.name === amenity.name);
+    let updatedAmenities;
     if (isSelected) {
-      setRoomForm({
-        ...roomForm,
-        amenities: roomForm.amenities.filter((a) => a.name !== amenity.name),
-      });
+      updatedAmenities = roomForm.amenities.filter(
+        (a) => a.name !== amenity.name
+      );
     } else {
-      setRoomForm({
-        ...roomForm,
-        amenities: [...roomForm.amenities, amenity],
-      });
+      updatedAmenities = [...roomForm.amenities, amenity];
     }
+    setRoomForm({
+      ...roomForm,
+      amenities: updatedAmenities,
+    });
+    form.setValue("amenities", updatedAmenities);
   };
 
   const addCustomAmenity = () => {
     if (newAmenity.name.trim() === "") return;
 
+    const updatedAmenities = [
+      ...roomForm.amenities,
+      {
+        id: Date.now(),
+        name: newAmenity.name,
+        icon: "custom",
+        type: newAmenity.type || "other",
+      },
+    ];
+
     setRoomForm({
       ...roomForm,
-      amenities: [
-        ...roomForm.amenities,
-        {
-          id: Date.now(),
-          name: newAmenity.name,
-          icon: "custom",
-          type: newAmenity.type || "other",
-        },
-      ],
+      amenities: updatedAmenities,
     });
-
+    form.setValue("amenities", updatedAmenities);
     setNewAmenity({ name: "", icon: "", type: "" });
     setShowAmenityForm(false);
   };
 
   const startEditRoom = (room) => {
     setEditingRoom(room.id);
-    setRoomForm({
+    const roomToEdit = {
       type: room.type,
       description: room.description,
       price: room.price,
@@ -214,7 +254,9 @@ const RoomManagement = () => {
       isAvailable: room.isAvailable,
       photos: [...room.photos],
       amenities: [...room.amenities],
-    });
+    };
+    setRoomForm(roomToEdit);
+    form.reset(roomToEdit);
     setShowRoomForm(true);
   };
 
@@ -225,7 +267,7 @@ const RoomManagement = () => {
   };
 
   const resetForm = () => {
-    setRoomForm({
+    const defaultForm = {
       type: "",
       description: "",
       price: "",
@@ -233,51 +275,67 @@ const RoomManagement = () => {
       isAvailable: true,
       photos: [],
       amenities: [],
-    });
+    };
+    setRoomForm(defaultForm);
+    form.reset(defaultForm);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Validate form
-    if (!roomForm.type || !roomForm.description || !roomForm.price) {
-      showToast("Please fill all required fields", "error");
+  const onSubmit = (values) => {
+    if (!values.type || !values.description || !values.price) {
+      toast({
+        title: "Error",
+        description: "Please fill all required fields.",
+        variant: "destructive",
+      });
       return;
     }
 
     if (editingRoom) {
-      // Update existing room
       const updatedRooms = hotel.rooms.map((room) =>
-        room.id === editingRoom ? { ...roomForm, id: editingRoom } : room
+        room.id === editingRoom ? { ...values, id: editingRoom } : room
       );
       setHotel({ ...hotel, rooms: updatedRooms });
-      showToast("Room updated successfully", "success");
+      toast({
+        title: "Success",
+        description: "Room updated successfully.",
+      });
     } else {
-      // Add new room
       const newRoom = {
-        ...roomForm,
+        ...values,
         id: Date.now(),
       };
       setHotel({ ...hotel, rooms: [...hotel.rooms, newRoom] });
-      showToast("Room added successfully", "success");
+      toast({
+        title: "Success",
+        description: "Room added successfully.",
+      });
     }
 
     cancelEdit();
   };
 
   const deleteRoom = (id) => {
-    if (window.confirm("Are you sure you want to delete this room?")) {
-      setHotel({
-        ...hotel,
-        rooms: hotel.rooms.filter((room) => room.id !== id),
-      });
-      showToast("Room deleted successfully", "success");
-    }
-  };
-
-  const showToast = (message, type) => {
-    setToast({ show: true, message, type });
-    setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
+    toast({
+      title: "Are you sure?",
+      description: "This action cannot be undone.",
+      variant: "destructive",
+      action: (
+        <ToastAction
+          altText="Delete"
+          onClick={() => {
+            setHotel({
+              ...hotel,
+              rooms: hotel.rooms.filter((room) => room.id !== id),
+            });
+            toast({
+              title: "Room deleted successfully.",
+            });
+          }}
+        >
+          Delete
+        </ToastAction>
+      ),
+    });
   };
 
   const getIconComponent = (iconName) => {
@@ -299,13 +357,13 @@ const RoomManagement = () => {
       case "charging":
         return <MdChargingStation />;
       case "mirror":
-        return <GiWardrobe />;
+        return <MdTableRestaurant />;
       case "wardrobe":
-        return <GiWardrobe />;
+        return <MdTableRestaurant />;
       case "table":
         return <MdTableRestaurant />;
       case "towel":
-        return <FaFireExtinguisher />;
+        return <MdBalcony />;
       case "fire":
         return <FaFireExtinguisher />;
       case "sound":
@@ -319,441 +377,508 @@ const RoomManagement = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      {/* Toast Notification */}
-      {toast.show && (
-        <div
-          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-white ${
-            toast.type === "success" ? "bg-green-500" : "bg-red-500"
-          }`}
-        >
-          {toast.message}
-        </div>
-      )}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-gray-800">
+            {hotel.name}
+          </CardTitle>
+          <CardDescription className="text-gray-600 flex items-center">
+            <MdTableRestaurant className="mr-1" /> {hotel.location}
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
-      {/* Hotel Info Header */}
-      <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">{hotel.name}</h1>
-        <p className="text-gray-600 flex items-center">
-          <MdTableRestaurant className="mr-1" /> {hotel.location}
-        </p>
-      </div>
-
-      {/* Add/Edit Room Form */}
       {showRoomForm ? (
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">
-            {editingRoom ? "Edit Room" : "Add New Room"}
-          </h2>
-
-          <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Room Type */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Room Type *
-                </label>
-                <select
-                  name="type"
-                  value={roomForm.type}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                >
-                  <option value="">Select Room Type</option>
-                  <option value="Single Room">Single Room</option>
-                  <option value="Double Room">Double Room</option>
-                  <option value="Deluxe Room">Deluxe Room</option>
-                  <option value="Suite">Suite</option>
-                  <option value="Family Room">Family Room</option>
-                  <option value="Executive Room">Executive Room</option>
-                  <option value="Presidential Suite">Presidential Suite</option>
-                </select>
-              </div>
-
-              {/* Price */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price per night (Nu.) *
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  value={roomForm.price}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                  placeholder="Enter price"
-                />
-              </div>
-
-              {/* Max Guests */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Max Guests *
-                </label>
-                <input
-                  type="number"
-                  name="maxGuests"
-                  value={roomForm.maxGuests}
-                  onChange={handleInputChange}
-                  min="1"
-                  max="10"
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                />
-              </div>
-
-              {/* Availability */}
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="isAvailable"
-                  name="isAvailable"
-                  checked={roomForm.isAvailable}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
-                />
-                <label
-                  htmlFor="isAvailable"
-                  className="ml-2 block text-sm text-gray-700"
-                >
-                  Currently Available
-                </label>
-              </div>
-
-              {/* Description */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description *
-                </label>
-                <textarea
-                  name="description"
-                  value={roomForm.description}
-                  onChange={handleInputChange}
-                  required
-                  rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                  placeholder="Describe the room features, view, size, etc."
-                ></textarea>
-              </div>
-
-              {/* Photos */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Photos
-                </label>
-                <div className="flex flex-wrap gap-3 mb-3">
-                  {roomForm.photos.map((photo, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={photo}
-                        alt={`Preview ${index}`}
-                        className="w-24 h-24 object-cover rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(index)}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <label className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-amber-400 transition">
-                  <FiImage className="text-amber-500 text-2xl mb-2" />
-                  <p className="text-sm text-gray-600">
-                    Upload room photos (5 max)
-                  </p>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handlePhotoUpload}
-                    className="hidden"
-                    disabled={roomForm.photos.length >= 5}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold">
+              {editingRoom ? "Edit Room" : "Add New Room"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Room Type *</FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            setRoomForm((prev) => ({ ...prev, type: value }));
+                          }}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Room Type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Single Room">
+                              Single Room
+                            </SelectItem>
+                            <SelectItem value="Double Room">
+                              Double Room
+                            </SelectItem>
+                            <SelectItem value="Deluxe Room">
+                              Deluxe Room
+                            </SelectItem>
+                            <SelectItem value="Suite">Suite</SelectItem>
+                            <SelectItem value="Family Room">
+                              Family Room
+                            </SelectItem>
+                            <SelectItem value="Executive Room">
+                              Executive Room
+                            </SelectItem>
+                            <SelectItem value="Presidential Suite">
+                              Presidential Suite
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </label>
-                {roomForm.photos.length >= 5 && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Maximum 5 photos reached
-                  </p>
-                )}
-              </div>
 
-              {/* Amenities */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Room Amenities
-                </label>
+                  <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Price per night (Nu.) *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Enter price"
+                            {...field}
+                            onChange={(e) => {
+                              field.onChange(e);
+                              handleInputChange(e);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
-                  {standardAmenities.map((amenity) => (
-                    <div
-                      key={amenity.id}
-                      onClick={() => toggleAmenity(amenity)}
-                      className={`flex items-center p-2 rounded-lg cursor-pointer transition ${
-                        roomForm.amenities.some((a) => a.name === amenity.name)
-                          ? "bg-amber-100 border-amber-300"
-                          : "bg-gray-50 border-gray-200"
-                      } border`}
-                    >
-                      <span className="text-amber-500 mr-2">
-                        {amenity.icon}
-                      </span>
-                      <span className="text-sm">{amenity.name}</span>
-                    </div>
-                  ))}
-                </div>
+                  <FormField
+                    control={form.control}
+                    name="maxGuests"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Max Guests *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="10"
+                            {...field}
+                            onChange={(e) => {
+                              field.onChange(e);
+                              handleInputChange(e);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                {/* Custom Amenity */}
-                {showAmenityForm ? (
-                  <div className="bg-gray-50 p-3 rounded-lg mb-3">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
-                      <div>
-                        <label className="block text-xs text-gray-500 mb-1">
-                          Name
-                        </label>
-                        <input
-                          type="text"
-                          name="name"
-                          value={newAmenity.name}
-                          onChange={handleAmenityChange}
-                          className="w-full px-3 py-1 text-sm border border-gray-300 rounded-lg"
-                          placeholder="e.g., Mini Fridge"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-500 mb-1">
-                          Type
-                        </label>
-                        <select
-                          name="type"
-                          value={newAmenity.type}
-                          onChange={handleAmenityChange}
-                          className="w-full px-3 py-1 text-sm border border-gray-300 rounded-lg"
-                        >
-                          <option value="">Select Type</option>
-                          <option value="furniture">Furniture</option>
-                          <option value="electronics">Electronics</option>
-                          <option value="bathroom">Bathroom</option>
-                          <option value="comfort">Comfort</option>
-                          <option value="view">View</option>
-                          <option value="security">Security</option>
-                        </select>
-                      </div>
-                      <div className="flex items-end gap-2">
-                        <button
-                          type="button"
-                          onClick={addCustomAmenity}
-                          className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-lg text-sm"
-                        >
-                          Add
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setShowAmenityForm(false)}
-                          className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-lg text-sm"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setShowAmenityForm(true)}
-                    className="flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700"
-                  >
-                    <FiPlus /> Add Custom Amenity
-                  </button>
-                )}
+                  <FormField
+                    control={form.control}
+                    name="isAvailable"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked);
+                              setRoomForm((prev) => ({
+                                ...prev,
+                                isAvailable: checked,
+                              }));
+                            }}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Currently Available</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
 
-                {/* Selected Amenities */}
-                {roomForm.amenities.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      Selected Amenities
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {roomForm.amenities.map((amenity, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center bg-amber-50 px-3 py-1 rounded-full text-sm"
-                        >
-                          {amenity.icon !== "custom" ? (
-                            <span className="text-amber-500 mr-1">
-                              {getIconComponent(amenity.icon)}
-                            </span>
-                          ) : (
-                            <span className="text-amber-500 mr-1">
-                              <FiCheck />
-                            </span>
-                          )}
-                          {amenity.name}
-                          <button
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>Description *</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe the room features, view, size, etc."
+                            rows={3}
+                            {...field}
+                            onChange={(e) => {
+                              field.onChange(e);
+                              handleInputChange(e);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="md:col-span-2">
+                    <Label className="block text-sm font-medium text-gray-700 mb-1">
+                      Photos
+                    </Label>
+                    <div className="flex flex-wrap gap-3 mb-3">
+                      {roomForm.photos.map((photo, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={photo}
+                            alt={`Preview ${index}`}
+                            className="w-24 h-24 object-cover rounded-lg"
+                          />
+                          <Button
                             type="button"
-                            onClick={() => toggleAmenity(amenity)}
-                            className="ml-1 text-gray-500 hover:text-red-500"
+                            onClick={() => removePhoto(index)}
+                            className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs"
+                            variant="destructive"
+                            size="icon"
                           >
-                            <FiX size={14} />
-                          </button>
+                            <FiX />
+                          </Button>
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Form Actions */}
-            <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-              <button
-                type="button"
-                onClick={cancelEdit}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition"
-              >
-                {editingRoom ? "Update Room" : "Save Room"}
-              </button>
-            </div>
-          </form>
-        </div>
-      ) : (
-        <button
-          onClick={() => {
-            setShowRoomForm(true);
-            setEditingRoom(null);
-            resetForm();
-          }}
-          className="flex items-center gap-2 mb-6 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition"
-        >
-          <FiPlus /> Add New Room
-        </button>
-      )}
-
-      {/* Existing Rooms List */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
-        <h2 className="text-xl font-semibold p-6 border-b">
-          Your Rooms ({hotel.rooms.length})
-        </h2>
-
-        {hotel.rooms.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            No rooms added yet. Click "Add New Room" to get started.
-          </div>
-        ) : (
-          <div className="divide-y">
-            {hotel.rooms.map((room) => (
-              <div key={room.id} className="p-6 hover:bg-gray-50 transition">
-                <div className="flex flex-col md:flex-row md:items-center gap-6">
-                  {/* Room Photo */}
-                  {room.photos.length > 0 && (
-                    <div className="w-full md:w-48 h-32 flex-shrink-0">
-                      <img
-                        src={room.photos[0]}
-                        alt={room.type}
-                        className="w-full h-full object-cover rounded-lg"
+                    <Label
+                      htmlFor="photo-upload"
+                      className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-amber-400 transition"
+                    >
+                      <FiImage className="text-amber-500 text-2xl mb-2" />
+                      <p className="text-sm text-gray-600">
+                        Upload room photos (5 max)
+                      </p>
+                      <Input
+                        id="photo-upload"
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                        disabled={roomForm.photos.length >= 5}
                       />
-                    </div>
-                  )}
+                    </Label>
+                    {roomForm.photos.length >= 5 && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Maximum 5 photos reached
+                      </p>
+                    )}
+                  </div>
 
-                  {/* Room Info */}
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-lg font-medium text-gray-800">
-                          {room.type}
-                        </h3>
-                        <p className="text-gray-600 text-sm">
-                          {room.description}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xl font-bold text-amber-600">
-                          Nu. {room.price}
-                        </p>
-                        <p className="text-sm text-gray-500">per night</p>
-                      </div>
+                  <div className="md:col-span-2">
+                    <Label className="block text-sm font-medium text-gray-700 mb-2">
+                      Room Amenities
+                    </Label>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
+                      {standardAmenities.map((amenity) => (
+                        <Button
+                          key={amenity.id}
+                          type="button"
+                          variant={
+                            roomForm.amenities.some(
+                              (a) => a.name === amenity.name
+                            )
+                              ? "default"
+                              : "outline"
+                          }
+                          onClick={() => toggleAmenity(amenity)}
+                          className={`flex items-center justify-start p-2 h-auto ${
+                            roomForm.amenities.some(
+                              (a) => a.name === amenity.name
+                            )
+                              ? "bg-amber-500 text-white"
+                              : ""
+                          }`}
+                        >
+                          <span className="mr-2">{amenity.icon}</span>
+                          <span className="text-sm">{amenity.name}</span>
+                        </Button>
+                      ))}
                     </div>
 
-                    {/* Amenities */}
-                    {room.amenities.length > 0 && (
-                      <div className="mt-3">
+                    {showAmenityForm ? (
+                      <Card className="p-3 mb-3">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2">
+                          <div>
+                            <Label className="block text-xs text-gray-500 mb-1">
+                              Name
+                            </Label>
+                            <Input
+                              type="text"
+                              name="name"
+                              value={newAmenity.name}
+                              onChange={handleAmenityChange}
+                              placeholder="e.g., Mini Fridge"
+                            />
+                          </div>
+                          <div>
+                            <Label className="block text-xs text-gray-500 mb-1">
+                              Type
+                            </Label>
+                            <Select
+                              name="type"
+                              value={newAmenity.type}
+                              onValueChange={(value) =>
+                                handleAmenityChange({
+                                  target: { name: "type", value },
+                                })
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="furniture">
+                                  Furniture
+                                </SelectItem>
+                                <SelectItem value="electronics">
+                                  Electronics
+                                </SelectItem>
+                                <SelectItem value="bathroom">
+                                  Bathroom
+                                </SelectItem>
+                                <SelectItem value="comfort">Comfort</SelectItem>
+                                <SelectItem value="view">View</SelectItem>
+                                <SelectItem value="security">
+                                  Security
+                                </SelectItem>
+                                <SelectItem value="other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex items-end gap-2">
+                            <Button
+                              type="button"
+                              onClick={addCustomAmenity}
+                              size="sm"
+                            >
+                              Add
+                            </Button>
+                            <Button
+                              type="button"
+                              onClick={() => setShowAmenityForm(false)}
+                              variant="outline"
+                              size="sm"
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="link"
+                        onClick={() => setShowAmenityForm(true)}
+                        className="p-0 h-auto"
+                      >
+                        <FiPlus className="mr-1" /> Add Custom Amenity
+                      </Button>
+                    )}
+
+                    {roomForm.amenities.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">
+                          Selected Amenities
+                        </h4>
                         <div className="flex flex-wrap gap-2">
-                          {room.amenities.slice(0, 5).map((amenity, index) => (
+                          {roomForm.amenities.map((amenity, index) => (
                             <div
                               key={index}
-                              className="flex items-center text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
+                              className="flex items-center bg-amber-50 px-3 py-1 rounded-full text-sm"
                             >
                               {amenity.icon !== "custom" ? (
                                 <span className="text-amber-500 mr-1">
                                   {getIconComponent(amenity.icon)}
                                 </span>
-                              ) : null}
+                              ) : (
+                                <span className="text-amber-500 mr-1">
+                                  <FiCheck />
+                                </span>
+                              )}
                               {amenity.name}
+                              <Button
+                                type="button"
+                                onClick={() => toggleAmenity(amenity)}
+                                variant="ghost"
+                                size="icon"
+                                className="ml-1 h-5 w-5"
+                              >
+                                <FiX size={14} />
+                              </Button>
                             </div>
                           ))}
-                          {room.amenities.length > 5 && (
-                            <div className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                              +{room.amenities.length - 5} more
-                            </div>
-                          )}
                         </div>
                       </div>
                     )}
-
-                    {/* Details */}
-                    <div className="mt-3 flex flex-wrap gap-4 text-sm">
-                      <div className="flex items-center text-gray-600">
-                        {/* <FiUsers className="mr-1" /> {room.maxGuests}{" "} */}
-                        {room.maxGuests > 1 ? "guests" : "guest"}
-                      </div>
-                      <div
-                        className={`flex items-center ${
-                          room.isAvailable ? "text-green-600" : "text-red-600"
-                        }`}
-                      >
-                        {room.isAvailable ? (
-                          <>
-                            <FiCheck className="mr-1" /> Available
-                          </>
-                        ) : (
-                          <>
-                            <FiX className="mr-1" /> Not Available
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-2 self-start md:self-center">
-                    <button
-                      onClick={() => startEditRoom(room)}
-                      className="p-2 text-gray-600 hover:text-amber-600 transition"
-                    >
-                      <FiEdit />
-                    </button>
-                    <button
-                      onClick={() => deleteRoom(room.id)}
-                      className="p-2 text-gray-600 hover:text-red-600 transition"
-                    >
-                      <FiTrash2 />
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+
+                <Separator />
+
+                <div className="flex justify-end gap-3">
+                  <Button type="button" variant="outline" onClick={cancelEdit}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    {editingRoom ? "Update Room" : "Save Room"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      ) : (
+        <Button
+          onClick={() => {
+            setShowRoomForm(true);
+            setEditingRoom(null);
+            resetForm();
+          }}
+          className="mb-6"
+        >
+          <FiPlus className="mr-2" /> Add New Room
+        </Button>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Rooms ({hotel.rooms.length})</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {hotel.rooms.length === 0 ? (
+            <div className="p-6 text-center text-gray-500">
+              No rooms added yet. Click "Add New Room" to get started.
+            </div>
+          ) : (
+            <div className="divide-y">
+              {hotel.rooms.map((room) => (
+                <div key={room.id} className="p-6 hover:bg-gray-50 transition">
+                  <div className="flex flex-col md:flex-row md:items-center gap-6">
+                    {room.photos.length > 0 && (
+                      <div className="w-full md:w-48 h-32 flex-shrink-0">
+                        <img
+                          src={room.photos[0]}
+                          alt={room.type}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-800">
+                            {room.type}
+                          </h3>
+                          <p className="text-gray-600 text-sm">
+                            {room.description}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-bold text-amber-600">
+                            Nu. {room.price}
+                          </p>
+                          <p className="text-sm text-gray-500">per night</p>
+                        </div>
+                      </div>
+
+                      {room.amenities.length > 0 && (
+                        <div className="mt-3">
+                          <div className="flex flex-wrap gap-2">
+                            {room.amenities
+                              .slice(0, 5)
+                              .map((amenity, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
+                                >
+                                  {amenity.icon !== "custom" ? (
+                                    <span className="text-amber-500 mr-1">
+                                      {getIconComponent(amenity.icon)}
+                                    </span>
+                                  ) : null}
+                                  {amenity.name}
+                                </div>
+                              ))}
+                            {room.amenities.length > 5 && (
+                              <div className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                                +{room.amenities.length - 5} more
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="mt-3 flex flex-wrap gap-4 text-sm">
+                        <div className="flex items-center text-gray-600">
+                          {room.maxGuests}{" "}
+                          {room.maxGuests > 1 ? "guests" : "guest"}
+                        </div>
+                        <div
+                          className={`flex items-center ${
+                            room.isAvailable ? "text-green-600" : "text-red-600"
+                          }`}
+                        >
+                          {room.isAvailable ? (
+                            <>
+                              <FiCheck className="mr-1" /> Available
+                            </>
+                          ) : (
+                            <>
+                              <FiX className="mr-1" /> Not Available
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 self-start md:self-center">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => startEditRoom(room)}
+                      >
+                        <FiEdit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteRoom(room.id)}
+                      >
+                        <FiTrash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
       <Footer />
     </div>
   );

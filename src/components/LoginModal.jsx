@@ -3,7 +3,7 @@ import useOutsideClick from "../hooks/useOutsideClick";
 import GoogleSignInButton from "./GoogleSignInButton";
 import { useAuth } from "../services/AuthProvider";
 
-const LoginModal = ({ onClose }) => {
+const LoginModal = ({ onClose, flag }) => {
   const modalRef = useRef(null);
   const { login } = useAuth();
   const [error, setError] = useState("");
@@ -27,7 +27,7 @@ const LoginModal = ({ onClose }) => {
 
         {/* Logo and Title */}
         <div className="text-center mb-6">
-          <h2 className="text-xl font-semibold text-black mb-4">Chogyal</h2>
+          <h2 className="text-xl font-semibold text-black mb-4">YakRooms</h2>
           <p className="text-gray-500 mt-1 text-sm">
             We'll sign you in or create an account if you don't have one yet.
           </p>
@@ -46,7 +46,7 @@ const LoginModal = ({ onClose }) => {
         )}
 
         {/* Continue with Google */}
-        <GoogleSignInButton onClose={onClose} onLoginSuccess={login} />
+        <GoogleSignInButton onClose={onClose} onLoginSuccess={login} flag />
 
         <p className="text-xs text-center text-gray-400 mt-4">
           By signing up or signing in, you agree to our{" "}

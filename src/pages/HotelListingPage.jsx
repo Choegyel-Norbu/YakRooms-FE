@@ -398,8 +398,8 @@ const HotelListingPage = () => {
                           />
                         </Link>
                         <div className="absolute top-3 right-3 bg-background/80 backdrop-blur-sm text-foreground text-sm font-semibold px-2 py-1 rounded-full flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
-                          <span>{hotel.rating.toFixed(1)}</span>
+                          {/* <Star className="h-4 w-4 fill-amber-400 text-amber-500" /> */}
+                          {/* <span>{hotel.rating.toFixed(1)}</span> */}
                         </div>
                       </div>
                       <CardHeader>
@@ -417,7 +417,9 @@ const HotelListingPage = () => {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="flex-grow">
-                        <StarRating rating={hotel.rating} />
+                        {/* <div className="text-20">
+                          <StarRating rating={hotel.rating} />
+                        </div> */}
                       </CardContent>
                       <CardFooter className="bg-muted/40 px-6 py-4 flex justify-between items-center">
                         <div>

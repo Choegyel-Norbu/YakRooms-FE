@@ -30,6 +30,7 @@ const HotelAdminDashboard = () => {
 
   useEffect(() => {
     console.log("Hotel admin panel");
+    console.log("User id :" + userId);
     const fetchHotelData = async () => {
       try {
         console.log("Inside try... ");

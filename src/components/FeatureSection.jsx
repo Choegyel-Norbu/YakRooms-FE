@@ -36,7 +36,7 @@ const FeatureSection = () => {
           <h2 className="text-4xl font-bold tracking-tight text-foreground">
             Why Choose <span className="text-primary">YakRooms</span>?
           </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-sm text-muted-foreground max-w-3xl mx-auto">
             We bridge the gap between travelers and authentic Bhutanese
             experiences. From cozy homestays to bustling local restaurants,
             discover the heart of Bhutan with confidence and ease.

@@ -4,7 +4,7 @@ import { auth, provider } from "../config/firebaseConfig";
 import axios from "axios";
 import API_BASE_URL from "../../config";
 
-const GoogleSignInButton = ({ onLoginSuccess, onClose }) => {
+const GoogleSignInButton = ({ onLoginSuccess, onClose, flag }) => {
   const [message, setMessage] = useState("");
   const handleGoogleSignIn = async () => {
     try {
@@ -34,6 +34,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose }) => {
           flag: res.data.user.registerFlag,
           detailSet: res.data.user.detailSet,
           hotelId: res.data.user.hotelId,
+          flag,
         });
         onClose();
       }

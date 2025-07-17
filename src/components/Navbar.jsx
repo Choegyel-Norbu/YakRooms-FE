@@ -29,29 +29,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-// Mock useAuth for demonstration purposes
-const useAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Default to logged in for showcase
-  const login = () => setIsAuthenticated(true);
-  const logout = () => setIsAuthenticated(false);
-  // Add a mock user object
-  const user = {
-    name: "Pema Wangmo",
-    image: "https://i.pravatar.cc/150?u=pema",
-  };
-  return { isAuthenticated, login, logout, user };
-};
+import { useAuth } from "@/services/AuthProvider";
+import { Select, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Navbar = ({ onLoginClick }) => {
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout, userName, email } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [theme, setTheme] = useState("light"); // Default to light theme
@@ -68,11 +50,11 @@ const Navbar = ({ onLoginClick }) => {
     const root = window.document.documentElement;
     root.classList.remove("light", "dark");
     root.classList.add(theme);
-  }, [theme]);
+  }, []);
 
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Hotels", path: "/hotels" },
+    { name: "Hotels", path: "/hotel" },
     { name: "Restaurants", path: "/restaurants" },
     { name: "Contact", path: "/contact" },
   ];
@@ -99,25 +81,33 @@ const Navbar = ({ onLoginClick }) => {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
             <Avatar className="h-10 w-10 border-2 border-yellow-500">
-              <AvatarImage src={user.image} alt={user.name} />
+              <AvatarImage src={""} alt={userName} />
               <AvatarFallback className="bg-slate-700 text-yellow-500">
-                {user.name?.charAt(0).toUpperCase()}
+                {userName?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuContent
+          className="w-56"
+          align="end"
+          forceMount
+          side="bottom"
+          sideOffset={5}
+          avoidCollisions={true}
+          collisionPadding={10}
+        >
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{user.name}</p>
+              <p className="text-sm font-medium leading-none">{userName}</p>
               <p className="text-xs leading-none text-muted-foreground">
-                pema.w@example.com
+                {email}
               </p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link to="/dashboard">
+            <Link to="/hotelAdmin">
               <LayoutDashboard className="mr-2 h-4 w-4" />
               <span>Dashboard</span>
             </Link>
@@ -158,8 +148,12 @@ const Navbar = ({ onLoginClick }) => {
           ? "bg-background/80 shadow-md backdrop-blur-sm"
           : "bg-background/95"
       )}
+      style={{
+        transform: "translateZ(0)", // Force hardware acceleration
+        willChange: "transform", // Optimize for transforms
+      }}
     >
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-primary">
             <Building2 className="h-8 w-8 text-yellow-500" />
@@ -185,9 +179,8 @@ const Navbar = ({ onLoginClick }) => {
           </nav>
 
           <div className="flex items-center gap-2">
-            <div className="hidden md:block">
-              <ThemeToggle />
-            </div>
+            <div className="hidden md:block">{/* <ThemeToggle /> */}</div>
+
             <UserNav />
             <div className="md:hidden">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -227,15 +220,11 @@ const Navbar = ({ onLoginClick }) => {
                     </nav>
                     <div className="mt-auto pt-6 pb-2 border-t">
                       <div className="flex items-center justify-between">
-                        <ThemeToggle />
+                        {/* <ThemeToggle /> */}
                         <Select defaultValue="en">
                           <SelectTrigger className="w-[120px]">
                             <SelectValue placeholder="Language" />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="en">English</SelectItem>
-                            <SelectItem value="dz">Dzongkha</SelectItem>
-                          </SelectContent>
                         </Select>
                       </div>
                     </div>

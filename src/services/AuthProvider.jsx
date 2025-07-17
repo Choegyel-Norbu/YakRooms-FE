@@ -13,6 +13,7 @@ const defaultAuthState = {
   registerFlag: false,
   pictureURL: "",
   userId: "",
+  flag: false,
 };
 
 export const AuthProvider = ({ children }) => {
@@ -33,6 +34,7 @@ export const AuthProvider = ({ children }) => {
         registerFlag: localStorage.getItem("registerFlag") === "true",
         pictureURL: localStorage.getItem("pictureURL") || "",
         userId: localStorage.getItem("userId") || "",
+        flag: false,
       };
     } catch (error) {
       console.error("Failed to read from localStorage", error);
@@ -80,9 +82,12 @@ export const AuthProvider = ({ children }) => {
         pictureURL: authData.pictureURL || "",
         registerFlag: Boolean(authData.flag),
         clientDetailSet: Boolean(authData.detailSet),
+        flag: true,
       });
 
-      navigate("/");
+      if (!flag) {
+        navigate("/");
+      }
     } catch (error) {
       console.error("Failed to save auth data", error);
     }

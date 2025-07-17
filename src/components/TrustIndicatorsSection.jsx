@@ -3,8 +3,9 @@ import { motion } from "framer-motion";
 import CountUp from "react-countup";
 
 // ShadCN UI Components
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 // Using Heroicons as an alternative to lucide-react
 import {
@@ -77,70 +78,100 @@ const TrustIndicatorsSection = () => {
   ];
 
   return (
-    <section className="py-16 px-4 lg:px-8">
-      <div className="container mx-auto">
+    <section className="py-16 px-4 lg:px-8 bg-background">
+      <div className="container mx-auto max-w-7xl">
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
+          className="space-y-12"
         >
-          <h3 className="text-center text-3xl font-bold mb-4 text-gray-900">
-            Trusted by Thousands
-          </h3>
-          <p className="text-center text-lg mb-12 text-gray-600 max-w-2xl mx-auto">
-            Built for Bhutan, Backed by Technology
-          </p>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {stats.map((stat) => (
-              <motion.div
-                key={stat.id}
-                whileHover={{ y: -5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <Card className="p-6 shadow-sm hover:shadow-md transition-shadow h-full">
-                  <CardContent className="flex flex-col items-center text-center p-0">
-                    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white shadow-sm mb-4">
-                      {stat.icon}
-                    </div>
-                    <h3 className="text-4xl font-bold text-gray-900 mb-1">
-                      <CountUp
-                        end={stat.value}
-                        duration={2}
-                        separator=","
-                        suffix={stat.suffix}
-                      />
-                    </h3>
-                    <p className="text-gray-600">
-                      {stat.label} {stat.emoji}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+          {/* Header Section */}
+          <div className="text-center space-y-4">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+              Trusted by Thousands
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Built for Bhutan, Backed by Technology
+            </p>
           </div>
 
-          {/* Growing Text */}
-          <p className="text-center text-sm text-gray-500 mb-8">
-            And growing every day – thanks to our amazing community.
-          </p>
+          {/* Main Content Card */}
+          <Card className="border-0 shadow-lg bg-card">
+            <CardHeader className="pb-8">
+              <CardTitle className="text-2xl font-semibold text-center text-card-foreground">
+                Platform Statistics
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {stats.map((stat) => (
+                  <motion.div
+                    key={stat.id}
+                    whileHover={{ y: -5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                    className="group"
+                  >
+                    <Card className="border bg-background hover:bg-accent/50 transition-colors duration-200 h-full">
+                      <CardContent className="p-6">
+                        <div className="flex flex-col items-center text-center space-y-4">
+                          {/* Icon Container */}
+                          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-muted group-hover:bg-primary/10 transition-colors duration-200">
+                            {stat.icon}
+                          </div>
 
-          {/* Trust Badges */}
-          <div className="flex flex-wrap justify-center gap-3">
-            {trustBadges.map((badge, index) => (
-              <Badge
-                key={index}
-                variant={badge.variant}
-                className={`rounded-full border bg-white/80 backdrop-blur-sm px-4 py-2 ${badge.className}`}
-              >
-                <div className="flex items-center gap-2">
-                  {badge.icon}
-                  <span>{badge.label}</span>
+                          {/* Counter */}
+                          <div className="space-y-2">
+                            <div className="text-3xl font-bold text-foreground md:text-4xl">
+                              <CountUp
+                                end={stat.value}
+                                duration={2}
+                                separator=","
+                                suffix={stat.suffix}
+                              />
+                            </div>
+                            <p className="text-sm text-muted-foreground font-medium">
+                              {stat.label} {stat.emoji}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+
+              <Separator className="my-8" />
+
+              {/* Trust Badges Section */}
+              <div className="space-y-6">
+                <h3 className="text-xl font-semibold text-center text-card-foreground">
+                  Built with Modern Technology
+                </h3>
+                <div className="flex flex-wrap justify-center gap-4">
+                  {trustBadges.map((badge, index) => (
+                    <Badge
+                      key={index}
+                      variant={badge.variant}
+                      className={`${badge.className} px-4 py-2 text-sm font-medium flex items-center gap-2 hover:opacity-80 transition-opacity`}
+                    >
+                      {badge.icon}
+                      <span>{badge.label}</span>
+                    </Badge>
+                  ))}
                 </div>
-              </Badge>
-            ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Bottom Section */}
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground max-w-xl mx-auto">
+              Join thousands of travelers who trust YakRooms for their authentic
+              Bhutanese experience
+            </p>
           </div>
         </motion.div>
       </div>

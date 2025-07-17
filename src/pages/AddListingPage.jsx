@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import api from "../services/Api.jsx";
 import { uploadFile } from "../lib/uploadService.jsx";
+import { toast } from "sonner";
+import { CheckCircle } from "lucide-react";
 
 import {
   FiHome,
@@ -325,7 +327,15 @@ const AddListingPage = () => {
 
       console.log("User ID: " + userId);
       const res = await api.post(`/hotels/${userId}`, updatedFormData);
-      res.status === 200 && localStorage.setItem("hoteId" + res.data.id);
+
+      if (res.status === 200) {
+        toast.success("Hotel Verified", {
+          description: "The hotel has been successfully verified.",
+          icon: <CheckCircle className="text-green-600" />,
+        });
+        localStorage.setItem("hotelId", res.data.id.toString());
+      }
+
       setIsSubmitted(true);
     } catch (error) {
       console.error("Submission failed:", error);

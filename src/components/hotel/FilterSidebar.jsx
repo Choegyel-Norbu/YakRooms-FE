@@ -14,12 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 
-const FilterSidebar = ({
-  searchParams,
-  setSearchParams,
-  onSearchClick,
-  formErrors,
-}) => {
+const FilterSidebar = ({ searchParams, setSearchParams, onSearchClick }) => {
   const handleDistrictChange = (e) => {
     setSearchParams((prev) => ({
       ...prev,
@@ -50,23 +45,21 @@ const FilterSidebar = ({
             onChange={handleDistrictChange}
           />
         </div>
-        {formErrors?.district && (
-          <p className="text-sm text-destructive">{formErrors.district}</p>
-        )}
       </div>
 
       {/* Hotel Type Select */}
       <div className="grid w-full items-center gap-1.5">
         <Label htmlFor="hotelType">Hotel Type</Label>
         <Select
-          value={searchParams.hotelType || "ALL_TYPES"}
+          value={searchParams.hotelType}
           onValueChange={handleHotelTypeChange}
         >
           <SelectTrigger id="hotelType">
             <SelectValue placeholder="Select a type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL_TYPES">All Hotel Types</SelectItem>
+            {/* The value "" here correctly represents "All Types" for the backend */}
+            <SelectItem value="ALL_TYPES">Select Hotel Types</SelectItem>
             <SelectItem value="Resort">Resort</SelectItem>
             <SelectItem value="Hotel">Hotel</SelectItem>
             <SelectItem value="Guesthouse">Guesthouse</SelectItem>
@@ -74,9 +67,6 @@ const FilterSidebar = ({
             <SelectItem value="Boutique Hotel">Boutique Hotel</SelectItem>
           </SelectContent>
         </Select>
-        {formErrors?.hotelType && (
-          <p className="text-sm text-destructive">{formErrors.hotelType}</p>
-        )}
       </div>
 
       {/* Search Button */}

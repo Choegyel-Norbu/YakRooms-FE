@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { MapPinIcon, HeartIcon } from "lucide-react"; // Using lucide-react for icons
-
+import { Link } from "react-router-dom";
 // ShadCN UI Components
 import {
   Card,
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import api from "@/services/Api";
 
 const TopHighlightsSection = () => {
   const [activeTab, setActiveTab] = useState("hotels");
@@ -27,14 +28,11 @@ const TopHighlightsSection = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(
-          "http://localhost:8080/api/hotels/search?district=&hotelType=&page=0&size=5"
-        );
-        if (!response.ok) {
+        const response = await api.get("/hotels/topThree");
+        if (!response.status === 200) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
-        setHotelsData(data.content ? data.content.slice(0, 3) : []); // Limit to max 3 cards
+        setHotelsData(response.data);
       } catch (e) {
         console.error("Failed to fetch hotels:", e);
         setError("Failed to load hotels. Please try again later.");
@@ -197,7 +195,7 @@ const TopHighlightsSection = () => {
             {currentListings.map((item) => (
               <motion.div
                 key={item.id}
-                className="w-48 flex-shrink-0" // Made card much smaller for mobile
+                className="w-48 flex-shrink-0"
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
@@ -209,8 +207,6 @@ const TopHighlightsSection = () => {
 
         {/* Desktop Grid */}
         <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {" "}
-          {/* Adjusted gap for smaller cards */}
           {currentListings.map((item) => (
             <motion.div
               key={item.id}
@@ -232,15 +228,15 @@ const ListingCard = ({ item, activeTab }) => {
   // Determine image URL based on the item structure
   const imageUrl =
     item.photoUrls && item.photoUrls.length > 0
-      ? item.photoUrls[0]
-      : "https://via.placeholder.com/400x300?text=No+Image"; // Smaller placeholder
+      ? item.photoUrls
+      : "https://via.placeholder.com/400x300?text=No+Image";
 
   // Determine title and type/description based on activeTab
+  let id = item.id;
   let title = item.name;
   let typeOrDescription = "";
   let location = item.district || item.address;
-  let priceDisplay =
-    item.price || (activeTab === "hotels" ? "Price/night" : "Price/person");
+  let priceDisplay = item.lowestPrice || "-";
 
   if (activeTab === "hotels") {
     typeOrDescription = item.hotelType || item.description;
@@ -251,13 +247,9 @@ const ListingCard = ({ item, activeTab }) => {
   }
 
   return (
-    <Card className="h-full overflow-hidden shadow-md hover:shadow-lg transition-shadow rounded-xl border border-gray-100 w-full md:w-auto">
-      {" "}
-      {/* Ensured cards adjust to grid */}
-      <CardHeader className="p-0">
+    <Card className="h-full flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-shadow rounded-xl border border-gray-100">
+      <CardHeader className="p-0 flex-grow-0">
         <div className="relative h-32 w-full">
-          {" "}
-          {/* Made card image much smaller */}
           <img
             src={imageUrl}
             alt={title}
@@ -271,7 +263,6 @@ const ListingCard = ({ item, activeTab }) => {
           >
             <HeartIcon
               className={`h-4 w-4 ${
-                // Smaller icon
                 isFavorite
                   ? "fill-red-500 text-red-500"
                   : "fill-gray-400 text-gray-400"
@@ -280,42 +271,36 @@ const ListingCard = ({ item, activeTab }) => {
           </Button>
           {item.tag && (
             <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded-md bg-yellow-500 text-slate-900 text-xs font-bold">
-              {" "}
-              {/* Smaller tag */}
               {item.tag}
             </div>
           )}
         </div>
       </CardHeader>
-      <CardContent className="p-3">
-        {" "}
-        {/* Reduced padding */}
-        <CardTitle className="mb-0.5 text-base font-semibold text-gray-900">
-          {" "}
-          {/* Smaller title */}
+      <CardContent className="p-3 flex-grow">
+        <CardTitle className="mb-0.5 text-base font-semibold text-gray-900 line-clamp-1">
           {title}
         </CardTitle>
-        <CardDescription className="text-xs text-gray-600 mb-1">
-          {" "}
-          {/* Smaller description */}
+        <CardDescription className="text-xs text-gray-600 mb-1 line-clamp-1">
           {typeOrDescription}
         </CardDescription>
         <div className="flex items-center text-gray-600">
-          <MapPinIcon className="h-3 w-3 mr-1" /> {/* Smaller icon */}
-          <p className="text-xs">{location}</p> {/* Smaller location text */}
+          <MapPinIcon className="h-3 w-3 mr-1" />
+          <p className="text-xs line-clamp-1">{location}</p>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between items-center p-3 pt-0">
-        {" "}
-        {/* Reduced padding */}
-        <p className="text-base font-bold text-gray-900">{priceDisplay}</p>{" "}
-        {/* Adjusted font size */}
-        <Button
-          size="sm"
-          className="bg-yellow-500 hover:bg-yellow-600 text-slate-900 rounded-full px-3 py-1.5 text-xs" // Smaller button
-        >
-          Book Now
-        </Button>
+      <CardFooter className="p-3 border-t bg-gray-50">
+        <div className="w-full flex justify-between items-center">
+          <p className="text-14  text-gray-900">
+            <span className="text-yellow-600">From - </span>{" "}
+            <span className="font-bold">Nu. {priceDisplay}</span> /night
+          </p>
+          <Button
+            size="sm"
+            className="bg-yellow-500 hover:bg-yellow-600 text-slate-900 rounded-full px-3 py-1.5 text-xs cursor-pointer"
+          >
+            <Link to={`/hotel/${id}`}>View Details</Link>
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

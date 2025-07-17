@@ -11,10 +11,73 @@ import {
   LogIn,
   LogOut,
   Trash2,
+  MoreHorizontal,
+  XCircle,
 } from "lucide-react";
 
-import api from "../../services/Api";
-import DeleteConfirmationDialog from "../cards/DeleteConfirmationDialog";
+import api from "../../services/Api"; // Your API service for making requests
+
+// shadcn/ui components
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import { toast } from "sonner"; // For toast notifications
+
+// shadcn/ui AlertDialog components for the confirmation dialog
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../../components/ui/alert-dialog";
+
+// --- DeleteConfirmationDialog Component ---
+// This component provides a generic confirmation dialog using shadcn/ui's AlertDialog.
+const DeleteConfirmationDialog = ({
+  open,
+  onOpenChange,
+  onConfirm,
+  title,
+  description,
+}) => {
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm}>Continue</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
 
 const BookingTable = () => {
   const [bookings, setBookings] = useState([]);
@@ -22,11 +85,12 @@ const BookingTable = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [deleteDialog, setDeleteDialog] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState(false); // Controls the delete confirmation dialog visibility
+  const [bookingToDelete, setBookingToDelete] = useState(null); // Stores the ID of the booking to be deleted
 
-  const pageSize = 10;
+  const pageSize = 10; // Number of bookings per page
 
-  // Fetch bookings data
+  // --- Fetch Bookings Data ---
   const fetchBookings = async (page) => {
     setLoading(true);
     setError(null);
@@ -38,20 +102,17 @@ const BookingTable = () => {
       }
       const data = res.data;
 
-      // Assuming the API returns data in format: { content: [...], totalPages: number }
-      // Adjust based on actual API response structure
       if (data.content) {
         setBookings(data.content);
         setTotalPages(data.totalPages || 1);
       } else if (Array.isArray(data)) {
-        // If API returns array directly
+        // Fallback if API returns array directly (e.g., for smaller datasets)
         setBookings(data);
-        // For demo purposes, simulate pagination
         setTotalPages(Math.ceil(data.length / pageSize));
       }
     } catch (err) {
       setError(err.message);
-      // Mock data for demo purposes when API is not available
+      // Mock data for demonstration purposes if API fails or is unavailable
       const mockData = Array.from({ length: 25 }, (_, i) => ({
         id: i + 1,
         userId: Math.floor(Math.random() * 100) + 1,
@@ -90,32 +151,65 @@ const BookingTable = () => {
     fetchBookings(currentPage);
   }, [currentPage]);
 
-  // Action handlers (stub functions)
-  const handleConfirm = async (id, newStatus) => {
-    console.log("Confirming booking:", id);
-    const res = await api.put(`/bookings/${id}/status/${newStatus}`);
-
-    // API call to confirm booking
+  // --- Update Booking Status ---
+  const updateBookingStatus = async (id, newStatus) => {
+    setLoading(true);
+    try {
+      const res = await api.put(`/bookings/${id}/status/${newStatus}`);
+      if (res.status === 200) {
+        toast.success(
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-green-500" />
+            Booking status updated successfully to {newStatus.replace("_", " ")}
+            .
+          </div>
+        );
+      }
+      fetchBookings(currentPage); // Re-fetch to get updated data
+    } catch (err) {
+      toast.error(
+        <div className="flex items-center gap-2">
+          <XCircle className="h-5 w-5 text-red-500" />
+          Failed to update booking status. Please try again.
+        </div>
+      );
+      console.error("Status update error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCheckIn = async (id, newStatus) => {
-    console.log("Checking in booking:", id);
-    const res = await api.put(`/bookings/${id}/status/${newStatus}`);
-    // API call to check in
+  // --- Handle Booking Deletion ---
+  // This function is called when the user confirms deletion from the dialog.
+  const handleDeleteBooking = async () => {
+    if (!bookingToDelete) return; // Should not happen if dialog is opened correctly
+
+    setLoading(true);
+    try {
+      await api.delete(`/bookings/${bookingToDelete}`);
+      toast.success(
+        <div className="flex items-center gap-2">
+          <CheckCircle className="h-5 w-5 text-green-500" />
+          Booking {bookingToDelete} has been removed successfully.
+        </div>
+      );
+      fetchBookings(currentPage); // Re-fetch to get updated data
+    } catch (err) {
+      toast.error(
+        <div className="flex items-center gap-2">
+          <XCircle className="h-5 w-5 text-red-500" />
+          Failed to delete booking. Please try again.
+        </div>
+      );
+      console.error("Delete booking error:", err);
+    } finally {
+      setLoading(false);
+      setDeleteDialog(false); // Close the dialog
+      setBookingToDelete(null); // Reset the ID
+    }
   };
 
-  const handleCheckOut = async (id, newStatus) => {
-    console.log("Checking out booking:", id);
-    const res = await api.put(`/bookings/${id}/status/${newStatus}`);
-    // API call to check out
-  };
-
-  const handleDelete = (id) => {
-    console.log("Deleting booking:", id);
-    // API call to delete booking
-  };
-
-  // Pagination handlers
+  // --- Pagination Handlers ---
   const handlePreviousPage = () => {
     if (currentPage > 0) {
       setCurrentPage(currentPage - 1);
@@ -132,7 +226,7 @@ const BookingTable = () => {
     setCurrentPage(page);
   };
 
-  // Generate page numbers for pagination
+  // Generate page numbers for pagination controls
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
@@ -151,23 +245,32 @@ const BookingTable = () => {
     return pages;
   };
 
-  // Status badge styling
+  // --- Status Badge Styling ---
   const getStatusBadge = (status) => {
-    const baseClasses = "px-2 py-1 rounded-full text-xs font-medium";
+    let variant = "default";
     switch (status) {
       case "CONFIRMED":
-        return `${baseClasses} bg-blue-100 text-blue-800`;
+        variant = "success";
+        break;
       case "PENDING":
-        return `${baseClasses} bg-yellow-100 text-yellow-800`;
+        variant = "warning";
+        break;
       case "CHECKED_IN":
-        return `${baseClasses} bg-green-100 text-green-800`;
+        variant = "info";
+        break;
       case "CHECKED_OUT":
-        return `${baseClasses} bg-gray-100 text-gray-800`;
+        variant = "secondary";
+        break;
+      case "CANCELLED":
+        variant = "destructive";
+        break;
       default:
-        return `${baseClasses} bg-gray-100 text-gray-800`;
+        variant = "default";
     }
+    return <Badge variant={variant}>{status.replace("_", " ")}</Badge>;
   };
 
+  // --- Loading State Display ---
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -177,229 +280,231 @@ const BookingTable = () => {
   }
 
   return (
-    <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-      {/* Header */}
-      <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
           <User className="h-5 w-5" />
           Booking Management
-        </h2>
-      </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* --- Error Message Display --- */}
+        {error && (
+          <div
+            className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4"
+            role="alert"
+          >
+            <p className="font-bold">Error:</p>
+            <p>{error}</p>
+            <p className="text-sm mt-1">Using mock data for demonstration</p>
+          </div>
+        )}
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 m-4">
-          <p className="text-red-700">Error: {error}</p>
-          <p className="text-sm text-red-600 mt-1">
-            Using mock data for demonstration
-          </p>
-        </div>
-      )}
-
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Guest Info
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Phone
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Room
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Guests
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Check-in
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Check-out
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Total Price
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {bookings.map((booking) => (
-              <tr
-                key={booking.id}
-                className="hover:bg-gray-50 transition-colors"
-              >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">
-                      {booking.name}
+        {/* --- Bookings Table --- */}
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Guest Info</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Room</TableHead>
+                <TableHead>Guests</TableHead>
+                <TableHead>Check-in</TableHead>
+                <TableHead>Check-out</TableHead>
+                <TableHead>Total Price</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {bookings.map((booking) => (
+                <TableRow key={booking.id}>
+                  <TableCell>
+                    <div className="font-medium">{booking.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {booking.email}
                     </div>
-                    <div className="text-sm text-gray-500">{booking.email}</div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center text-sm text-gray-900">
-                    <Phone className="h-4 w-4 mr-1 text-gray-400" />
-                    {booking.phone || "N/A"}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <Phone className="h-4 w-4 mr-1 text-muted-foreground" />
+                      {booking.phone || "N/A"}
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium">
                     {booking.roomNumber}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center text-sm text-gray-900">
-                    <Users className="h-4 w-4 mr-1 text-gray-400" />
-                    {booking.guests}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center text-sm text-gray-900">
-                    <Calendar className="h-4 w-4 mr-1 text-gray-400" />
-                    {booking.checkInDate}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center text-sm text-gray-900">
-                    <Calendar className="h-4 w-4 mr-1 text-gray-400" />
-                    {booking.checkOutDate}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center text-sm font-medium text-gray-900">
-                    <DollarSign className="h-4 w-4 mr-1 text-gray-400" />$
-                    {booking.totalPrice}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={getStatusBadge(booking.status)}>
-                    {booking.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleConfirm(booking.id, "CONFIRMED")}
-                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                    >
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Confirm
-                    </button>
-                    <button
-                      onClick={() => handleCheckIn(booking.id, "CHECKED_IN")}
-                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-                    >
-                      <LogIn className="h-3 w-3 mr-1" />
-                      Check-in
-                    </button>
-                    <button
-                      onClick={() => handleCheckOut(booking.id, "CHECKED_OUT")}
-                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors"
-                    >
-                      <LogOut className="h-3 w-3 mr-1" />
-                      Check-out
-                    </button>
-                    <DeleteConfirmationDialog
-                      onConfirm={handleDelete}
-                      className=""
-                    >
-                      <Trash2 className="h-3 w-3 mr-1" />
-                      Delete
-                    </DeleteConfirmationDialog>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 mr-1 text-muted-foreground" />
+                      {booking.guests}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                      {booking.checkInDate}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                      {booking.checkOutDate}
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center">
+                      Nu.{" "}
+                      {new Intl.NumberFormat("en-IN").format(
+                        booking.totalPrice
+                      )}
+                      /-
+                    </div>
+                  </TableCell>
 
-      {/* Pagination */}
-      <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-        <div className="flex-1 flex justify-between sm:hidden">
-          <button
-            onClick={handlePreviousPage}
-            disabled={currentPage === 0}
-            className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-              currentPage === 0
-                ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                : "text-gray-700 bg-white hover:bg-gray-50"
-            }`}
-          >
-            Previous
-          </button>
-          <button
-            onClick={handleNextPage}
-            disabled={currentPage === totalPages - 1}
-            className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-              currentPage === totalPages - 1
-                ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                : "text-gray-700 bg-white hover:bg-gray-50"
-            }`}
-          >
-            Next
-          </button>
-        </div>
-        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm text-gray-700">
-              Showing page{" "}
-              <span className="font-medium">{currentPage + 1}</span> of{" "}
-              <span className="font-medium">{totalPages}</span>
-            </p>
-          </div>
-          <div>
-            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-              <button
-                onClick={handlePreviousPage}
-                disabled={currentPage === 0}
-                className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
-                  currentPage === 0
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-gray-500 hover:bg-gray-50"
-                }`}
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-
-              {getPageNumbers().map((page) => (
-                <button
-                  key={page}
-                  onClick={() => handlePageClick(page)}
-                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                    page === currentPage
-                      ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                      : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                  }`}
-                >
-                  {page + 1}
-                </button>
+                  <TableCell>{getStatusBadge(booking.status)}</TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {booking.status === "PENDING" && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              updateBookingStatus(booking.id, "CONFIRMED")
+                            }
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" /> Confirm
+                          </DropdownMenuItem>
+                        )}
+                        {(booking.status === "CONFIRMED" ||
+                          booking.status === "PENDING") && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              updateBookingStatus(booking.id, "CHECKED_IN")
+                            }
+                          >
+                            <LogIn className="h-4 w-4 mr-2" /> Check-in
+                          </DropdownMenuItem>
+                        )}
+                        {booking.status === "CHECKED_IN" && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              updateBookingStatus(booking.id, "CHECKED_OUT")
+                            }
+                          >
+                            <LogOut className="h-4 w-4 mr-2" /> Check-out
+                          </DropdownMenuItem>
+                        )}
+                        {(booking.status === "PENDING" ||
+                          booking.status === "CONFIRMED") && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              updateBookingStatus(booking.id, "CANCELLED")
+                            }
+                          >
+                            <XCircle className="h-4 w-4 mr-2" /> Cancel
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setBookingToDelete(booking.id); // Set the ID to be deleted
+                            setDeleteDialog(true); // Open the confirmation dialog
+                          }}
+                          className="text-red-600" // Highlight delete action
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
               ))}
+            </TableBody>
+          </Table>
+        </div>
 
-              <button
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages - 1}
-                className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-                  currentPage === totalPages - 1
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-gray-500 hover:bg-gray-50"
-                }`}
+        {/* --- Pagination Controls --- */}
+        <div className="flex items-center justify-between px-4 py-3 sm:px-6">
+          {/* Mobile pagination */}
+          <div className="flex-1 flex justify-between sm:hidden">
+            <Button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 0}
+              variant="outline"
+            >
+              Previous
+            </Button>
+            <Button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages - 1}
+              variant="outline"
+            >
+              Next
+            </Button>
+          </div>
+          {/* Desktop pagination */}
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Showing page{" "}
+                <span className="font-medium">{currentPage + 1}</span> of{" "}
+                <span className="font-medium">{totalPages}</span>
+              </p>
+            </div>
+            <div>
+              <nav
+                className="flex rounded-md shadow-sm -space-x-px"
+                aria-label="Pagination"
               >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </nav>
+                <Button
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 0}
+                  variant="outline"
+                  className="rounded-l-md rounded-r-none"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+
+                {getPageNumbers().map((page) => (
+                  <Button
+                    key={page}
+                    onClick={() => handlePageClick(page)}
+                    variant={page === currentPage ? "default" : "outline"}
+                    className="rounded-none"
+                  >
+                    {page + 1}
+                  </Button>
+                ))}
+
+                <Button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages - 1}
+                  variant="outline"
+                  className="rounded-r-md rounded-l-none"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </nav>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+
+      {/* --- Delete Confirmation Dialog --- */}
+      {/* This dialog is controlled by `deleteDialog` state and uses `bookingToDelete` for the actual ID */}
+      <DeleteConfirmationDialog
+        open={deleteDialog}
+        onOpenChange={setDeleteDialog} // Function to close the dialog
+        onConfirm={handleDeleteBooking} // Function to call when confirmed
+        title="Confirm Deletion"
+        description={`Are you sure you want to delete booking ID ${bookingToDelete}? This action cannot be undone.`}
+      />
+    </Card>
   );
 };
 
