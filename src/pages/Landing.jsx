@@ -192,7 +192,7 @@ const Landing = () => {
         {/* <HowItWorksSection /> */}
 
         {/* <TestimonialsSection /> */}
-        <div className="flex flex-row gap-1 w-[90%] m-auto">
+        <div className="flex flex-col lg:flex-row gap-1 w-[90%] m-auto">
           <ListYourPropertySection />
           <CTASection />
         </div>

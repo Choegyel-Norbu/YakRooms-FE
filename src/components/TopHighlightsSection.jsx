@@ -149,7 +149,7 @@ const TopHighlightsSection = () => {
   const currentListings = getListingsForActiveTab();
 
   return (
-    <section className="py-12 mt-10 px-4 lg:px-8 w-[70%] m-auto">
+    <section className="py-5 lg:py-12 lg:mt-10 px-4 lg:px-8 lg:w-[70%] m-auto">
       <div className="container mx-auto">
         <h3 className="text-center text-3xl font-bold mb-8 text-gray-900">
           Top Bhutanese Highlights
