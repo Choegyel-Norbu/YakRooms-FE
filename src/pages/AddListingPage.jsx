@@ -3,22 +3,40 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import api from "../services/Api.jsx";
 import { uploadFile } from "../lib/uploadService.jsx";
 import { toast } from "sonner";
-import { CheckCircle } from "lucide-react";
+import { 
+  CheckCircle, 
+  Upload, 
+  Phone, 
+  Mail, 
+  MapPin, 
+  ArrowRight, 
+  ArrowLeft, 
+  Check,
+  Home,
+  Coffee,
+  Users,
+  Hotel,
+  Utensils,
+  FileText,
+  Camera,
+  Shield
+} from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
-  FiHome,
-  FiCoffee,
-  FiMapPin,
-  FiPhone,
-  FiMail,
-  FiUpload,
-  FiCheck,
-  FiArrowRight,
-  FiUsers,
-  FiArrowLeft,
-} from "react-icons/fi";
-
-import { FaHotel, FaUtensils } from "react-icons/fa";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "../services/AuthProvider.jsx";
 
 const AddListingPage = () => {
@@ -53,23 +71,27 @@ const AddListingPage = () => {
     {
       id: "hotel",
       label: "Hotel",
-      icon: <FaHotel className="text-2xl text-amber-600" />,
+      icon: Hotel,
+      description: "Full-service accommodation with professional amenities"
     },
-    {
-      id: "homestay",
-      label: "Homestay",
-      icon: <FiHome className="text-2xl text-amber-600" />,
-    },
+    // {
+    //   id: "homestay",
+    //   label: "Homestay",
+    //   icon: Home,
+    //   description: "Authentic family-run accommodation experience"
+    // },
     {
       id: "restaurant",
       label: "Restaurant",
-      icon: <FaUtensils className="text-2xl text-amber-600" />,
+      icon: Utensils,
+      description: "Full dining establishment with complete menu"
     },
-    {
-      id: "cafe",
-      label: "Café",
-      icon: <FiCoffee className="text-2xl text-amber-600" />,
-    },
+    // {
+    //   id: "cafe",
+    //   label: "Café",
+    //   icon: Coffee,
+    //   description: "Casual dining spot for coffee, tea, and light meals"
+    // },
   ];
 
   const amenitiesOptions = {
@@ -124,7 +146,6 @@ const AddListingPage = () => {
       },
     }));
 
-    // Clear error if file is uploaded
     if (errors[field]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -153,7 +174,6 @@ const AddListingPage = () => {
       photos: [...prev.photos, ...newPhotos],
     }));
 
-    // Clear error if photos are uploaded
     if (errors.photos) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -194,13 +214,19 @@ const AddListingPage = () => {
     "Trashiyangtse",
   ];
 
+  const stepInfo = [
+    { title: "Choose Type", description: "Select your business type", icon: Hotel },
+    { title: "Business Details", description: "Tell us about your business", icon: FileText },
+    { title: "Verification", description: "Upload required documents", icon: Shield },
+    { title: "Review & Submit", description: "Final review before submission", icon: Check }
+  ];
+
   const handleListingTypeChange = (typeId) => {
     setListingType(typeId);
     setFormData((prev) => ({
       ...prev,
       amenities: [],
     }));
-    // Clear listing type error if selected
     if (errors.listingType) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -213,7 +239,6 @@ const AddListingPage = () => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    // Clear error when user types
     if (errors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -261,10 +286,6 @@ const AddListingPage = () => {
         newErrors.description = "Description is required";
       if (!formData.district) newErrors.district = "District is required";
       if (!formData.village) newErrors.village = "Village/Town is required";
-      // if (!formData.email) newErrors.email = "Email is required";
-      // else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      //   newErrors.email = "Please enter a valid email";
-      // }
       if (!formData.phone) newErrors.phone = "Phone is required";
       if (formData.photos.length === 0)
         newErrors.photos = "At least one photo is required";
@@ -289,7 +310,6 @@ const AddListingPage = () => {
   const submitFinalListing = async (e) => {
     e.preventDefault();
 
-    // Final validation before submission
     if (!validateStep()) return;
 
     setIsSubmitting(true);
@@ -331,7 +351,6 @@ const AddListingPage = () => {
       if (res.status === 200) {
         toast.success("Hotel Verified", {
           description: "The hotel has been successfully verified.",
-          icon: <CheckCircle className="text-green-600" />,
         });
         localStorage.setItem("hotelId", res.data.id.toString());
       }
@@ -344,6 +363,7 @@ const AddListingPage = () => {
       setIsSubmitting(false);
     }
   };
+
   useEffect(() => {
     if (isSubmitted) {
       const timeout = setTimeout(() => {
@@ -351,793 +371,713 @@ const AddListingPage = () => {
         navigate("/");
       }, 3000);
 
-      return () => clearTimeout(timeout); // cleanup if component unmounts early
+      return () => clearTimeout(timeout);
     }
   }, [isSubmitted, navigate]);
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-xl shadow-md max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FiCheck className="text-green-500 text-3xl" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            Listing Submitted!
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Your {listingType} listing has been submitted for review. We'll
-            notify you once it's approved.
-          </p>
-          <button
-            onClick={() => {
-              setIsSubmitted(false);
-              setStep(1);
-              setFormData({
-                name: "",
-                description: "",
-                district: "",
-                village: "",
-                address: "",
-                email: "",
-                phone: "",
-                amenities: [],
-                photos: [],
-                license: null,
-                idProof: null,
-                notes: "",
-                coordinates: { lat: "", lng: "" },
-                numberOfRooms: "",
-                roomTypesDescription: "",
-              });
-              setErrors({});
-            }}
-            className="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 px-4 rounded-lg font-medium transition"
-          >
-            Add Another Listing
-          </button>
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="text-center p-8">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Check className="text-green-600 h-8 w-8" />
+            </div>
+            <h2 className="text-2xl font-bold text-foreground mb-2">
+              Listing Submitted!
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              Your {listingType} listing has been submitted for review. We'll
+              notify you once it's approved.
+            </p>
+            <Button
+              onClick={() => {
+                setIsSubmitted(false);
+                setStep(1);
+                setFormData({
+                  name: "",
+                  description: "",
+                  district: "",
+                  village: "",
+                  address: "",
+                  email: "",
+                  phone: "",
+                  amenities: [],
+                  photos: [],
+                  license: null,
+                  idProof: null,
+                  notes: "",
+                  coordinates: { lat: "", lng: "" },
+                  numberOfRooms: "",
+                  roomTypesDescription: "",
+                });
+                setErrors({});
+              }}
+              className="w-full"
+            >
+              Add Another Listing
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-4xl mx-auto">
+        {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-amber-700 mb-2">
+          <h1 className="text-4xl font-bold text-foreground mb-2">
             Add Your Listing
           </h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground text-lg">
             Share your business with travelers in Bhutan
           </p>
         </div>
 
-        <div className="flex justify-between mb-8 relative">
-          {[1, 2, 3, 4].map((stepNumber) => (
-            <div key={stepNumber} className="flex flex-col items-center z-10">
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  step >= stepNumber
-                    ? "bg-amber-500 text-white"
-                    : "bg-white border-2 border-amber-500 text-amber-500"
-                }`}
-              >
-                {step > stepNumber ? <FiCheck /> : stepNumber}
-              </div>
-              <span
-                className={`text-xs mt-2 ${
-                  step >= stepNumber
-                    ? "text-amber-600 font-medium"
-                    : "text-gray-500"
-                }`}
-              >
-                {stepNumber === 1 && "Type"}
-                {stepNumber === 2 && "Details"}
-                {stepNumber === 3 && "Verification"}
-                {stepNumber === 4 && "Submit"}
-              </span>
-            </div>
-          ))}
-          <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-1">
-            <div
-              className="h-full bg-amber-500 transition-all duration-300"
-              style={{ width: `${(step - 1) * 33.33}%` }}
-            ></div>
+        {/* Progress Indicator */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            {stepInfo.map((info, index) => {
+              const StepIcon = info.icon;
+              const stepNumber = index + 1;
+              const isActive = step === stepNumber;
+              const isCompleted = step > stepNumber;
+              
+              return (
+                <div key={stepNumber} className="flex-1 flex flex-col items-center">
+                  <div className={`
+                    w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 mb-2
+                    ${isCompleted 
+                      ? 'bg-primary text-primary-foreground' 
+                      : isActive 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'bg-muted text-muted-foreground'
+                    }
+                  `}>
+                    {isCompleted ? <Check className="h-5 w-5" /> : <StepIcon className="h-5 w-5" />}
+                  </div>
+                  <div className="text-center">
+                    <div className={`text-sm font-medium ${isActive || isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      {info.title}
+                    </div>
+                    <div className="text-xs text-muted-foreground hidden sm:block">
+                      {info.description}
+                    </div>
+                  </div>
+                  {index < stepInfo.length - 1 && (
+                    <div className={`
+                      hidden md:block absolute w-full h-0.5 top-6 left-1/2 -z-10
+                      ${step > stepNumber ? 'bg-primary' : 'bg-border'}
+                    `} style={{ width: `${100 / stepInfo.length}%` }} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="w-full bg-border h-1 rounded-full">
+            <div 
+              className="h-full bg-primary rounded-full transition-all duration-300"
+              style={{ width: `${(step / 4) * 100}%` }}
+            />
           </div>
         </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
-          className="bg-white rounded-xl shadow-md p-6 md:p-8"
-        >
-          {step === 1 && (
-            <div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-6">
-                What type of listing are you adding?
-              </h2>
-              {errors.listingType && (
-                <p className="text-red-500 text-sm mb-4">
-                  {errors.listingType}
-                </p>
-              )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {listingTypes.map((type) => (
-                  <div
-                    key={type.id}
-                    onClick={() => handleListingTypeChange(type.id)}
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition ${
-                      listingType === type.id
-                        ? "border-amber-500 bg-amber-50"
-                        : "border-gray-200 hover:border-amber-300"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      {type.icon}
-                      <span className="font-medium">{type.label}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                Business Information
-              </h2>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Business Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-2 border ${
-                    errors.name ? "border-red-500" : "border-gray-300"
-                  } rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500`}
-                />
-                {errors.name && (
-                  <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows={4}
-                  className={`w-full px-4 py-2 border ${
-                    errors.description ? "border-red-500" : "border-gray-300"
-                  } rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500`}
-                ></textarea>
-                {errors.description && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.description}
+        {/* Form Content */}
+        <Card>
+          <CardContent className="p-8">
+            {step === 1 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-semibold text-foreground mb-2">
+                    What type of listing are you adding?
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Choose the category that best describes your business
                   </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    District <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    name="district"
-                    value={formData.district}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-2 border ${
-                      errors.district ? "border-red-500" : "border-gray-300"
-                    } rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500`}
-                  >
-                    <option value="">Select District</option>
-                    {districts.map((district) => (
-                      <option key={district} value={district}>
-                        {district}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.district && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.district}
-                    </p>
-                  )}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Village/Town <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="village"
-                    value={formData.village}
-                    onChange={handleChange}
-                    className={`w-full px-4 py-2 border ${
-                      errors.village ? "border-red-500" : "border-gray-300"
-                    } rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500`}
-                  />
-                  {errors.village && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.village}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className={`w-full pl-10 pr-4 py-2 border ${
-                        errors.phone ? "border-red-500" : "border-gray-300"
-                      } rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500`}
-                    />
-                    <FiPhone className="absolute left-3 top-3 text-gray-400" />
+                
+                {errors.listingType && (
+                  <div className="text-destructive text-sm bg-destructive/10 p-3 rounded-md">
+                    {errors.listingType}
                   </div>
-                  {errors.phone && (
-                    <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Hotel Type <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      name="hotelType"
-                      value={formData.hotelType}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg disabled:bg-gray-100"
-                    >
-                      <option value="">Select Hotel Type</option>
-                      <option value="ONE_STAR">One Star</option>
-                      <option value="TWO_STAR">Two Star</option>
-                      <option value="THREE_STAR">Three Star</option>
-                      <option value="FOUR_STAR">Four Star</option>
-                      <option value="FIVE_STAR">Five Star</option>
-                      <option value="BUDGET">Budget</option>
-                      <option value="BOUTIQUE">Boutique</option>
-                      <option value="RESORT">Resort</option>
-                    </select>
-                  </div>
-                  {errors.phone && (
-                    <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-                  )}
-                </div>
-              </div>
-
-              {currentAmenities.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Amenities
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {currentAmenities.map((amenity) => (
-                      <div key={amenity} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={`amenity-${amenity}`}
-                          name={amenity}
-                          checked={formData.amenities.includes(amenity)}
-                          onChange={handleChange}
-                          className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
-                        />
-                        <label
-                          htmlFor={`amenity-${amenity}`}
-                          className="ml-2 text-sm text-gray-700"
-                        >
-                          {amenity}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Photos <span className="text-red-500">*</span>
-                </label>
-                <div className="flex flex-wrap gap-3 mb-3">
-                  {formData.photos.map((photo, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={photo.url}
-                        alt={`Preview ${index}`}
-                        className="w-24 h-24 object-cover rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(index)}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <label className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-amber-400 transition">
-                  <FiUpload className="text-amber-500 text-2xl mb-2" />
-                  <p className="text-sm text-gray-600">Upload photos (5 max)</p>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handlePhotoUpload}
-                    className="hidden"
-                    disabled={formData.photos.length >= 5}
-                  />
-                </label>
-                {errors.photos && (
-                  <p className="text-red-500 text-sm mt-1">{errors.photos}</p>
                 )}
-                {formData.photos.length >= 5 && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Maximum 5 photos reached
-                  </p>
-                )}
-              </div>
-
-              <div className="pt-4 border-t">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Location Coordinates (Optional)
-                </label>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      Latitude
-                    </label>
-                    <input
-                      type="text"
-                      name="lat"
-                      value={formData.coordinates.lat}
-                      onChange={handleCoordinateChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                      placeholder="e.g. 27.4728"
+                  {listingTypes.map((type) => {
+                    const IconComponent = type.icon;
+                    return (
+                      <Card
+                        key={type.id}
+                        className={`cursor-pointer transition-all hover:shadow-md ${
+                          listingType === type.id
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                        onClick={() => handleListingTypeChange(type.id)}
+                      >
+                        <CardContent className="p-6">
+                          <div className="flex items-start gap-4">
+                            <div className={`
+                              p-3 rounded-lg 
+                              ${listingType === type.id 
+                                ? 'bg-primary text-primary-foreground' 
+                                : 'bg-muted text-muted-foreground'
+                              }
+                            `}>
+                              <IconComponent className="h-6 w-6" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-foreground mb-1">
+                                {type.label}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {type.description}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-semibold text-foreground mb-2">
+                    Business Information
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Provide details about your {listingType}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">
+                      Business Name <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className={errors.name ? "border-destructive" : ""}
+                    />
+                    {errors.name && (
+                      <p className="text-destructive text-sm">{errors.name}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">
+                      Phone Number <span className="text-destructive">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        className={`pl-10 ${errors.phone ? "border-destructive" : ""}`}
+                      />
+                    </div>
+                    {errors.phone && (
+                      <p className="text-destructive text-sm">{errors.phone}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">
+                    Description <span className="text-destructive">*</span>
+                  </Label>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    rows={4}
+                    className={errors.description ? "border-destructive" : ""}
+                  />
+                  {errors.description && (
+                    <p className="text-destructive text-sm">{errors.description}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="district">
+                      District <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={formData.district}
+                      onValueChange={(value) => {
+                        setFormData(prev => ({ ...prev, district: value }));
+                        if (errors.district) {
+                          setErrors(prev => {
+                            const newErrors = { ...prev };
+                            delete newErrors.district;
+                            return newErrors;
+                          });
+                        }
+                      }}
+                    >
+                      <SelectTrigger className={errors.district ? "border-destructive" : ""}>
+                        <SelectValue placeholder="Select District" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {districts.map((district) => (
+                          <SelectItem key={district} value={district}>
+                            {district}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.district && (
+                      <p className="text-destructive text-sm">{errors.district}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="village">
+                      Village/Town <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="village"
+                      name="village"
+                      value={formData.village}
+                      onChange={handleChange}
+                      className={errors.village ? "border-destructive" : ""}
+                    />
+                    {errors.village && (
+                      <p className="text-destructive text-sm">{errors.village}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address (Optional)</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="address"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      className="pl-10"
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      Longitude
-                    </label>
-                    <input
-                      type="text"
-                      name="lng"
-                      value={formData.coordinates.lng}
-                      onChange={handleCoordinateChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                      placeholder="e.g. 89.6393"
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="hotelType">
+                    Hotel Type <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={formData.hotelType}
+                    onValueChange={(value) => {
+                      setFormData(prev => ({ ...prev, hotelType: value }));
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Hotel Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ONE_STAR">One Star</SelectItem>
+                      <SelectItem value="TWO_STAR">Two Star</SelectItem>
+                      <SelectItem value="THREE_STAR">Three Star</SelectItem>
+                      <SelectItem value="FOUR_STAR">Four Star</SelectItem>
+                      <SelectItem value="FIVE_STAR">Five Star</SelectItem>
+                      <SelectItem value="BUDGET">Budget</SelectItem>
+                      <SelectItem value="BOUTIQUE">Boutique</SelectItem>
+                      <SelectItem value="RESORT">Resort</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {currentAmenities.length > 0 && (
+                  <div className="space-y-4">
+                    <Label>Amenities</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {currentAmenities.map((amenity) => (
+                        <div key={amenity} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`amenity-${amenity}`}
+                            checked={formData.amenities.includes(amenity)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  amenities: [...prev.amenities, amenity]
+                                }));
+                              } else {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  amenities: prev.amenities.filter(item => item !== amenity)
+                                }));
+                              }
+                            }}
+                          />
+                          <Label
+                            htmlFor={`amenity-${amenity}`}
+                            className="text-sm font-normal"
+                          >
+                            {amenity}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <Label>
+                    Photos <span className="text-destructive">*</span>
+                  </Label>
+                  
+                  {formData.photos.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                      {formData.photos.map((photo, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={photo.url}
+                            alt={`Preview ${index}`}
+                            className="w-full h-24 object-cover rounded-lg border"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                            onClick={() => removePhoto(index)}
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
+                    <CardContent className="p-6">
+                      <Label 
+                        htmlFor="photos" 
+                        className="flex flex-col items-center justify-center cursor-pointer"
+                      >
+                        <Camera className="h-8 w-8 text-muted-foreground mb-2" />
+                        <span className="text-sm text-muted-foreground text-center">
+                          Upload photos (Maximum 5)
+                        </span>
+                        <Input
+                          id="photos"
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                          disabled={formData.photos.length >= 5}
+                        />
+                      </Label>
+                    </CardContent>
+                  </Card>
+                  
+                  {errors.photos && (
+                    <p className="text-destructive text-sm">{errors.photos}</p>
+                  )}
+                  {formData.photos.length >= 5 && (
+                    <p className="text-muted-foreground text-xs">
+                      Maximum 5 photos reached
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-semibold text-foreground mb-2">
+                    Verification Documents
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Upload required documents for verification. Your listing will be reviewed within 2-3 business days.
+                  </p>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <Label>
+                      Trade License <span className="text-destructive">*</span>
+                    </Label>
+                    <Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
+                      <CardContent className="p-6">
+                        <Label 
+                          htmlFor="license" 
+                          className="flex flex-col items-center justify-center cursor-pointer"
+                        >
+                          <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                          <span className="text-sm text-muted-foreground text-center">
+                            {formData.license
+                              ? formData.license.name
+                              : "Upload trade license (PDF or image)"}
+                          </span>
+                          <Input
+                            id="license"
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={(e) => handleFileUpload(e, "license")}
+                            className="hidden"
+                          />
+                        </Label>
+                      </CardContent>
+                    </Card>
+                    {errors.license && (
+                      <p className="text-destructive text-sm">{errors.license}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    <Label>
+                      ID Proof (Citizen ID or Passport) <span className="text-destructive">*</span>
+                    </Label>
+                    <Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
+                      <CardContent className="p-6">
+                        <Label 
+                          htmlFor="idProof" 
+                          className="flex flex-col items-center justify-center cursor-pointer"
+                        >
+                          <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                          <span className="text-sm text-muted-foreground text-center">
+                            {formData.idProof
+                              ? formData.idProof.name
+                              : "Upload ID proof (PDF or image)"}
+                          </span>
+                          <Input
+                            id="idProof"
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={(e) => handleFileUpload(e, "idProof")}
+                            className="hidden"
+                          />
+                        </Label>
+                      </CardContent>
+                    </Card>
+                    {errors.idProof && (
+                      <p className="text-destructive text-sm">{errors.idProof}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Additional Notes (Optional)</Label>
+                    <Textarea
+                      id="notes"
+                      name="notes"
+                      value={formData.notes}
+                      onChange={handleChange}
+                      rows={3}
+                      placeholder="Any additional information about your business..."
                     />
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {step === 3 && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                Verification Documents
-              </h2>
-              <p className="text-gray-600 mb-6">
-                To ensure the quality of our platform, we require verification
-                documents. Your listing will be reviewed within 2-3 business
-                days.
-              </p>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Trade License <span className="text-red-500">*</span>
-                </label>
-                <label className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-amber-400 transition">
-                  <FiUpload className="text-amber-500 text-2xl mb-2" />
-                  <p className="text-sm text-gray-600">
-                    {formData.license
-                      ? formData.license.name
-                      : "Upload trade license (PDF or image)"}
-                  </p>
-                  <input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => handleFileUpload(e, "license")}
-                    className="hidden"
-                  />
-                </label>
-                {errors.license && (
-                  <p className="text-red-500 text-sm mt-1">{errors.license}</p>
-                )}
-                {formData.license && (
-                  <div className="mt-4">
-                    {formData.license.type === "application/pdf" ? (
-                      <iframe
-                        src={formData.license.url}
-                        title="PDF Preview"
-                        className="w-full h-64 border rounded-md"
-                      ></iframe>
-                    ) : (
-                      <img
-                        src={formData.license.url}
-                        alt="Preview"
-                        className="w-full max-w-xs mt-2 rounded-md shadow-md"
-                      />
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  ID Proof (Citizen ID or Passport){" "}
-                  <span className="text-red-500">*</span>
-                </label>
-                <label className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-amber-400 transition">
-                  <FiUpload className="text-amber-500 text-2xl mb-2" />
-                  <p className="text-sm text-gray-600">
-                    {formData.idProof
-                      ? formData.idProof.name
-                      : "Upload ID proof (PDF or image)"}
-                  </p>
-                  <input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => handleFileUpload(e, "idProof")}
-                    className="hidden"
-                  />
-                </label>
-                {errors.idProof && (
-                  <p className="text-red-500 text-sm mt-1">{errors.idProof}</p>
-                )}
-                {formData.idProof && (
-                  <div className="mt-4">
-                    {formData.idProof.type === "application/pdf" ? (
-                      <iframe
-                        src={formData.idProof.url}
-                        title="ID Proof Preview"
-                        className="w-full h-64 border rounded-md"
-                      ></iframe>
-                    ) : (
-                      <img
-                        src={formData.idProof.url}
-                        alt="ID Proof Preview"
-                        className="w-full max-w-xs mt-2 rounded-md shadow-md"
-                      />
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Additional Notes (Optional)
-                </label>
-                <textarea
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleChange}
-                  rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                ></textarea>
-              </div>
-            </div>
-          )}
-
-          {step === 4 && (
-            <div className="max-w-3xl mx-auto">
-              <div className="space-y-8 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <div className="max-w-3xl mx-auto">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-8 pb-2 border-b border-gray-200">
+            {step === 4 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-semibold text-foreground mb-2">
                     Review Your Listing
                   </h2>
+                  <p className="text-muted-foreground">
+                    Please review all information before submitting
+                  </p>
+                </div>
 
-                  <div className="space-y-8 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                    {/* Listing Type */}
-                    <div className="pb-6 border-b border-gray-100">
-                      <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center">
-                        <svg
-                          className="w-5 h-5 mr-2 text-amber-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                          />
-                        </svg>
+                <div className="space-y-6">
+                  {/* Listing Type */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Hotel className="h-5 w-5 text-primary" />
                         Listing Type
-                      </h3>
-                      <p className="capitalize text-gray-600 bg-gray-50 px-3 py-2 rounded-md inline-block">
-                        {listingType}
-                      </p>
-                    </div>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Badge variant="secondary" className="text-base px-3 py-1">
+                        {listingType.charAt(0).toUpperCase() + listingType.slice(1)}
+                      </Badge>
+                    </CardContent>
+                  </Card>
 
-                    {/* Business Info */}
-                    <div className="pb-6 border-b border-gray-100">
-                      <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center">
-                        <svg
-                          className="w-5 h-5 mr-2 text-amber-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                          />
-                        </svg>
+                  {/* Business Information */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-primary" />
                         Business Information
-                      </h3>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <p className="text-gray-700">
-                            <span className="font-medium text-gray-800">
-                              Name:
-                            </span>
-                            <span className="block mt-1 text-gray-600">
-                              {formData.name}
-                            </span>
-                          </p>
-                          <p className="text-gray-700">
-                            <span className="font-medium text-gray-800">
-                              Description:
-                            </span>
-                            <span className="block mt-1 text-gray-600">
-                              {formData.description}
-                            </span>
-                          </p>
-                          {(listingType === "hotel" ||
-                            listingType === "homestay") && (
-                            <>
-                              <p className="text-gray-700">
-                                {/* <span className="font-medium text-gray-800">
-                              Rooms:
-                            </span> */}
-                                <span className="block mt-1 text-gray-600">
-                                  {formData.numberOfRooms}
-                                </span>
-                              </p>
-                              {formData.roomTypesDescription && (
-                                <p className="text-gray-700">
-                                  <span className="font-medium text-gray-800">
-                                    Room Types:
-                                  </span>
-                                  <span className="block mt-1 text-gray-600">
-                                    {formData.roomTypesDescription}
-                                  </span>
-                                </p>
-                              )}
-                            </>
-                          )}
-                        </div>
-                        <div className="space-y-2">
-                          <p className="text-gray-700">
-                            <span className="font-medium text-gray-800">
-                              Location:
-                            </span>
-                            <span className="block mt-1 text-gray-600">
-                              {formData.village}, {formData.district}
-                            </span>
-                          </p>
+                        <div className="space-y-3">
+                          <div>
+                            <Label className="text-muted-foreground">Business Name</Label>
+                            <p className="font-medium">{formData.name}</p>
+                          </div>
+                          <div>
+                            <Label className="text-muted-foreground">Location</Label>
+                            <p className="font-medium">{formData.village}, {formData.district}</p>
+                          </div>
                           {formData.address && (
-                            <p className="text-gray-700">
-                              <span className="font-medium text-gray-800">
-                                Address:
-                              </span>
-                              <span className="block mt-1 text-gray-600">
-                                {formData.address}
-                              </span>
-                            </p>
+                            <div>
+                              <Label className="text-muted-foreground">Address</Label>
+                              <p className="font-medium">{formData.address}</p>
+                            </div>
                           )}
-                          <p className="text-gray-700">
-                            <span className="font-medium text-gray-800">
-                              Contact:
-                            </span>
-                            <span className="block mt-1 text-gray-600">
-                              {email}
-                            </span>
-                            <span className="block text-gray-600">
-                              {formData.phone}
-                            </span>
-                          </p>
-                          {formData.amenities.length > 0 && (
-                            <p className="text-gray-700">
-                              <span className="font-medium text-gray-800">
-                                Amenities:
-                              </span>
-                              <span className="block mt-1 text-gray-600">
-                                {formData.amenities.join(", ")}
-                              </span>
-                            </p>
+                        </div>
+                        <div className="space-y-3">
+                          <div>
+                            <Label className="text-muted-foreground">Contact</Label>
+                            <p className="font-medium">{email}</p>
+                            <p className="font-medium">{formData.phone}</p>
+                          </div>
+                          {formData.hotelType && (
+                            <div>
+                              <Label className="text-muted-foreground">Hotel Type</Label>
+                              <p className="font-medium">{formData.hotelType.replace('_', ' ')}</p>
+                            </div>
                           )}
                         </div>
                       </div>
-                    </div>
+                      
+                      <div>
+                        <Label className="text-muted-foreground">Description</Label>
+                        <p className="font-medium">{formData.description}</p>
+                      </div>
 
-                    {/* Verification */}
-                    <div className="pb-6">
-                      <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center">
-                        <svg
-                          className="w-5 h-5 mr-2 text-amber-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                          />
-                        </svg>
-                        Verification Documents
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {formData.amenities.length > 0 && (
                         <div>
-                          <p className="text-gray-700">
-                            <span className="font-medium text-gray-800">
-                              Trade License:
-                            </span>
-                            <span
-                              className={`block mt-1 ${
-                                formData.license?.name
-                                  ? "text-gray-600"
-                                  : "text-gray-400"
-                              }`}
-                            >
-                              {formData.license?.name || "Not uploaded"}
-                            </span>
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-700">
-                            <span className="font-medium text-gray-800">
-                              ID Proof:
-                            </span>
-                            <span
-                              className={`block mt-1 ${
-                                formData.idProof?.name
-                                  ? "text-gray-600"
-                                  : "text-gray-400"
-                              }`}
-                            >
-                              {formData.idProof?.name || "Not uploaded"}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                      {formData.notes && (
-                        <div className="mt-4">
-                          <p className="text-gray-700">
-                            <span className="font-medium text-gray-800">
-                              Additional Notes:
-                            </span>
-                            <span className="block mt-1 text-gray-600">
-                              {formData.notes}
-                            </span>
-                          </p>
+                          <Label className="text-muted-foreground">Amenities</Label>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {formData.amenities.map((amenity) => (
+                              <Badge key={amenity} variant="outline">
+                                {amenity}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
                       )}
-                    </div>
 
-                    {/* Terms */}
-                    {/* <div className="pt-6 border-t border-gray-200">
-                      <div className="flex items-start">
-                        <input
-                          type="checkbox"
-                          id="terms"
-                          className="h-5 w-5 text-amber-600 focus:ring-amber-500 border-gray-300 rounded mt-0.5"
-                        />
-                        <label
-                          htmlFor="terms"
-                          className="ml-3 text-sm text-gray-700"
-                        >
-                          I confirm that all information provided is accurate
-                          and I agree to
-                          <span className="text-amber-600 hover:text-amber-700">
-                            {" "}
-                            YakRooms' Terms of Service
-                          </span>{" "}
-                          and
-                          <span className="text-amber-600 hover:text-amber-700">
-                            {" "}
-                            Privacy Policy
-                          </span>
-                          .
-                        </label>
+                      {formData.photos.length > 0 && (
+                        <div>
+                          <Label className="text-muted-foreground">Photos ({formData.photos.length})</Label>
+                          <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mt-2">
+                            {formData.photos.map((photo, index) => (
+                              <img
+                                key={index}
+                                src={photo.url}
+                                alt={`Photo ${index + 1}`}
+                                className="w-full h-16 object-cover rounded border"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Verification Documents */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Shield className="h-5 w-5 text-primary" />
+                        Verification Documents
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-muted-foreground">Trade License</Label>
+                          <p className="font-medium">
+                            {formData.license?.name || "Not uploaded"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-muted-foreground">ID Proof</Label>
+                          <p className="font-medium">
+                            {formData.idProof?.name || "Not uploaded"}
+                          </p>
+                        </div>
                       </div>
-                    </div> */}
-                  </div>
+                      
+                      {formData.notes && (
+                        <div>
+                          <Label className="text-muted-foreground">Additional Notes</Label>
+                          <p className="font-medium">{formData.notes}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </CardContent>
 
-          <div className="flex justify-between mt-8 pt-6 border-t">
+          {/* Navigation Buttons */}
+          <div className="flex justify-between items-center p-6 border-t bg-muted/30">
             {step > 1 ? (
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={prevStep}
-                className="flex items-center gap-2 px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                className="flex items-center gap-2"
               >
-                <FiArrowLeft /> Back
-              </button>
+                <ArrowLeft className="h-4 w-4" /> Back
+              </Button>
             ) : (
-              <Link
-                to="/"
-                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
-              >
-                Cancel
-              </Link>
+              <Button variant="outline" asChild>
+                <Link to="/">Cancel</Link>
+              </Button>
             )}
 
             {step < 4 ? (
-              <button
+              <Button
                 type="button"
                 onClick={nextStep}
                 disabled={step === 1 && !listingType}
-                className={`flex items-center gap-2 px-6 py-2 rounded-lg text-white transition ${
-                  step === 1 && !listingType
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-amber-500 hover:bg-amber-600"
-                }`}
+                className="flex items-center gap-2"
               >
-                Next <FiArrowRight />
-              </button>
+                Next <ArrowRight className="h-4 w-4" />
+              </Button>
             ) : (
-              <button
+              <Button
                 type="submit"
                 onClick={submitFinalListing}
                 disabled={isSubmitting}
-                className={`flex items-center gap-2 px-6 py-2 rounded-lg text-white transition ${
-                  isSubmitting
-                    ? "bg-amber-400 cursor-not-allowed"
-                    : "bg-amber-500 hover:bg-amber-600"
-                }`}
+                className="flex items-center gap-2"
               >
-                {isSubmitting ? "Submitting..." : "Submit Listing"}
-              </button>
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    Submit Listing
+                    <Check className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
             )}
           </div>
-        </form>
+        </Card>
       </div>
     </div>
   );

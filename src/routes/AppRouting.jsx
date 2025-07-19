@@ -9,6 +9,7 @@ import AddListingPage from "../pages/AddListingPage";
 import RoomManagement from "../pages/RoomManagement";
 import HotelAdminDashboard from "../pages/HotelAdminDashboard";
 import SuperAdmin from "../pages/SuperAdmin";
+import PortfolioPage from "../pages/PortfolioPage";
 
 export default function () {
   return (
@@ -22,6 +23,7 @@ export default function () {
         <Route path="/room" element={<RoomManagement />} />
         <Route path="/adminDashboard" element={<SuperAdmin />} />
         <Route path="/hotelAdmin" element={<HotelAdminDashboard />} />
+        <Route path="/portfolio" element={<PortfolioPage />} />
       </Routes>
     </AuthProvider>
   );

@@ -116,15 +116,9 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
         photoUrls: updatedPhotoUrls,
       }));
       form.setValue("photoUrls", updatedPhotoUrls);
-      toast({
-        title: "Images uploaded successfully.",
-      });
+      toast.success("Images uploaded successfully.");
     } catch (err) {
-      toast({
-        title: "Failed to upload images.",
-        description: "Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Failed to upload images. Please try again.");
       console.error("Image upload error:", err);
     } finally {
       setIsLoading(false);
@@ -154,17 +148,10 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       if (res.status === 200) {
         onUpdate(res.data);
         setIsEditing(false);
-        toast({
-          title: "Hotel details updated successfully.",
-          description: <CheckCircle className="h-5 w-5 text-green-500" />,
-        });
+        toast.success("Hotel details updated successfully.");
       }
     } catch (err) {
-      toast({
-        title: "Failed to update hotel information.",
-        description: <XCircle className="h-5 w-5 text-red-500" />,
-        variant: "destructive",
-      });
+      toast.error("Failed to update hotel information.");
       console.error("Update error:", err);
     } finally {
       setIsLoading(false);

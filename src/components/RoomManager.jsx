@@ -1,17 +1,54 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FiPlus, FiEdit, FiTrash2, FiCheck, FiX } from "react-icons/fi";
+import { Plus, Edit, Trash2, Check, X, Upload, Bed, Wifi, Tv, Snowflake, Waves } from "lucide-react";
 import { uploadFile } from "../lib/uploadService";
-import {
-  FaBed,
-  FaWifi,
-  FaTv,
-  FaSnowflake,
-  FaSwimmingPool,
-} from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useAuth } from "../services/AuthProvider";
 import api from "../services/Api";
-import { CheckCircle, XCircle } from "lucide-react";
+
+// ShadCN UI Components
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+// import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const RoomManager = () => {
   const { hotelId } = useAuth();
@@ -40,15 +77,15 @@ const RoomManager = () => {
 
   // Constants
   const standardAmenities = [
-    { id: 1, name: "Single Bed", icon: <FaBed /> },
-    { id: 2, name: "Double Bed", icon: <FaBed /> },
-    { id: 3, name: "Queen Bed", icon: <FaBed /> },
-    { id: 4, name: "King Bed", icon: <FaBed /> },
-    { id: 5, name: "Smart TV", icon: <FaTv /> },
-    { id: 6, name: "Normal TV", icon: <FaTv /> },
-    { id: 7, name: "Wi-Fi", icon: <FaWifi /> },
-    { id: 8, name: "Air Conditioning", icon: <FaSnowflake /> },
-    { id: 9, name: "Swimming Pool Access", icon: <FaSwimmingPool /> },
+    { id: 1, name: "Single Bed", icon: Bed },
+    { id: 2, name: "Double Bed", icon: Bed },
+    { id: 3, name: "Queen Bed", icon: Bed },
+    { id: 4, name: "King Bed", icon: Bed },
+    { id: 5, name: "Smart TV", icon: Tv },
+    { id: 6, name: "Normal TV", icon: Tv },
+    { id: 7, name: "Wi-Fi", icon: Wifi },
+    { id: 8, name: "Air Conditioning", icon: Snowflake },
+    { id: 9, name: "Swimming Pool Access", icon: Waves },
   ];
 
   const roomTypeOptions = [
@@ -175,6 +212,20 @@ const RoomManager = () => {
       setErrors((prev) => ({
         ...prev,
         [name]: validateField(name, fieldValue),
+      }));
+    }
+  };
+
+  const handleSelectChange = (name, value) => {
+    setRoomForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: validateField(name, value),
       }));
     }
   };
@@ -348,10 +399,6 @@ const RoomManager = () => {
 
   // Delete handler
   const handleDelete = async (roomId) => {
-    if (!window.confirm("Are you sure you want to delete this room?")) {
-      return;
-    }
-
     setIsDeleting(roomId);
     try {
       await api.delete(`/rooms/${roomId}`);
@@ -368,287 +415,233 @@ const RoomManager = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-amber-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">Room Management</h3>
-        <button
-          onClick={() => {
-            setShowForm(true);
-            setEditingRoom(null);
-          }}
-          className="flex items-center gap-1 px-3 py-1 bg-amber-500 text-white rounded-lg text-sm hover:bg-amber-600 transition-colors"
-        >
-          <FiPlus /> Add Room
-        </button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-semibold text-foreground">Room Management</h3>
+          <p className="text-sm text-muted-foreground">Manage your hotel rooms and availability</p>
+        </div>
+        <Button onClick={() => { setShowForm(true); setEditingRoom(null); }}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Room
+        </Button>
       </div>
 
-      {/* Room Form */}
-      {showForm && (
-        <div className="mb-6 border rounded-lg p-4 bg-gray-50" ref={formRef}>
-          {verifyAlert && (
-            <div
-              className={`w-full p-4 rounded-md flex items-center space-x-3 mb-4 ${
-                roomAdded
-                  ? "bg-green-100 border border-green-300 text-green-800"
-                  : "bg-red-100 border border-red-300 text-red-800"
-              }`}
-            >
-              {roomAdded ? (
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              ) : (
-                <XCircle className="w-5 h-5 text-red-600" />
-              )}
-              <p className="font-medium">
-                {roomAdded
-                  ? "Room added successfully!"
-                  : "Something went wrong. Please try again later."}
-              </p>
-            </div>
-          )}
+      {/* Success/Error Alert */}
+      {verifyAlert && (
+        <Alert className={roomAdded ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+          <Check className={`h-4 w-4 ${roomAdded ? "text-green-600" : "text-red-600"}`} />
+          <AlertDescription className={roomAdded ? "text-green-800" : "text-red-800"}>
+            {roomAdded
+              ? "Room added successfully!"
+              : "Something went wrong. Please try again later."}
+          </AlertDescription>
+        </Alert>
+      )}
 
-          <h4 className="text-md font-medium mb-3">
-            {editingRoom ? "Edit Room" : "Add New Room"}
-          </h4>
+      {/* Room Form Dialog */}
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingRoom ? "Edit Room" : "Add New Room"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingRoom ? "Update room information below." : "Fill in the details to add a new room."}
+            </DialogDescription>
+          </DialogHeader>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} ref={formRef} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Room Type */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Room Type <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="roomType"
+              <div className="space-y-2">
+                <Label htmlFor="roomType">
+                  Room Type <span className="text-destructive">*</span>
+                </Label>
+                <Select
                   value={roomForm.roomType}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-2 border rounded-lg ${
-                    errors.roomType
-                      ? "border-red-500"
-                      : roomForm.roomType
-                      ? "border-green-500"
-                      : "border-gray-300"
-                  }`}
+                  onValueChange={(value) => handleSelectChange("roomType", value)}
                 >
-                  <option value="">Select Room Type</option>
-                  {roomTypeOptions.map((type) => (
-                    <option key={type} value={type}>
-                      {type.charAt(0) + type.slice(1).toLowerCase()}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className={errors.roomType ? "border-destructive" : ""}>
+                    <SelectValue placeholder="Select Room Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roomTypeOptions.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type.charAt(0) + type.slice(1).toLowerCase()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.roomType && (
-                  <p className="mt-1 text-sm text-red-500">{errors.roomType}</p>
+                  <p className="text-sm text-destructive">{errors.roomType}</p>
                 )}
               </div>
 
               {/* Price */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price per night (Nu.) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
+              <div className="space-y-2">
+                <Label htmlFor="price">
+                  Price per night (Nu.) <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="price"
                   name="price"
-                  value={roomForm.price}
-                  onChange={handleInputChange}
+                  type="number"
                   min="0"
                   step="1"
-                  className={`w-full px-4 py-2 border rounded-lg ${
-                    errors.price
-                      ? "border-red-500"
-                      : roomForm.price
-                      ? "border-green-500"
-                      : "border-gray-300"
-                  }`}
+                  value={roomForm.price}
+                  onChange={handleInputChange}
+                  className={errors.price ? "border-destructive" : ""}
                 />
                 {errors.price && (
-                  <p className="mt-1 text-sm text-red-500">{errors.price}</p>
+                  <p className="text-sm text-destructive">{errors.price}</p>
                 )}
               </div>
 
               {/* Room Number */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Room Number <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
+              <div className="space-y-2">
+                <Label htmlFor="roomNumber">
+                  Room Number <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="roomNumber"
                   name="roomNumber"
                   value={roomForm.roomNumber}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-2 border rounded-lg ${
-                    errors.roomNumber
-                      ? "border-red-500"
-                      : roomForm.roomNumber
-                      ? "border-green-500"
-                      : "border-gray-300"
-                  }`}
+                  className={errors.roomNumber ? "border-destructive" : ""}
                 />
                 {errors.roomNumber && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.roomNumber}
-                  </p>
+                  <p className="text-sm text-destructive">{errors.roomNumber}</p>
                 )}
               </div>
 
               {/* Availability */}
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
+              <div className="flex items-center space-x-2">
+                <Checkbox
                   id="available"
-                  name="available"
                   checked={roomForm.available}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
+                  onCheckedChange={(checked) => 
+                    setRoomForm(prev => ({ ...prev, available: checked }))
+                  }
                 />
-                <label
-                  htmlFor="available"
-                  className="ml-2 block text-sm text-gray-700"
-                >
-                  Available for booking
-                </label>
-              </div>
-
-              {/* Description */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  name="description"
-                  value={roomForm.description}
-                  onChange={handleInputChange}
-                  rows={3}
-                  className={`w-full px-4 py-2 border rounded-lg ${
-                    errors.description
-                      ? "border-red-500"
-                      : roomForm.description?.length >= 20
-                      ? "border-green-500"
-                      : "border-gray-300"
-                  }`}
-                />
-                {errors.description && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.description}
-                  </p>
-                )}
-              </div>
-
-              {/* Room Images */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Room Images <span className="text-red-500">*</span>
-                </label>
-
-                {/* Image Preview */}
-                <div className="flex flex-wrap gap-3 mb-3">
-                  {roomForm.images.map((image, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={image.url}
-                        alt={`Room ${index + 1}`}
-                        className="w-24 h-24 object-cover rounded border"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Upload Area */}
-                <label className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-amber-400 transition">
-                  <FiPlus className="text-amber-500 text-2xl mb-2" />
-                  <p className="text-sm text-gray-600">
-                    Upload room images (max 5)
-                  </p>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </label>
-                {errors.images && (
-                  <p className="mt-1 text-sm text-red-500">{errors.images}</p>
-                )}
-              </div>
-
-              {/* Amenities */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Amenities
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                  {standardAmenities.map((amenity) => (
-                    <div
-                      key={amenity.id}
-                      onClick={() => toggleAmenity(amenity)}
-                      className={`flex items-center p-2 rounded-lg cursor-pointer transition border ${
-                        roomForm.amenities.some((a) => a.id === amenity.id)
-                          ? "bg-amber-100 border-amber-300"
-                          : "bg-gray-50 border-gray-200"
-                      }`}
-                    >
-                      <span className="text-amber-500 mr-2">
-                        {amenity.icon}
-                      </span>
-                      <span className="text-sm">{amenity.name}</span>
-                    </div>
-                  ))}
-                </div>
+                <Label htmlFor="available">Available for booking</Label>
               </div>
             </div>
 
-            {/* Form Actions */}
-            <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
-              <button
-                type="button"
-                onClick={cancelEdit}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                disabled={isSubmitting}
-              >
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description">
+                Description <span className="text-destructive">*</span>
+              </Label>
+              <Textarea
+                id="description"
+                name="description"
+                rows={3}
+                value={roomForm.description}
+                onChange={handleInputChange}
+                className={errors.description ? "border-destructive" : ""}
+              />
+              {errors.description && (
+                <p className="text-sm text-destructive">{errors.description}</p>
+              )}
+            </div>
+
+            {/* Room Images */}
+            <div className="space-y-4">
+              <Label>
+                Room Images <span className="text-destructive">*</span>
+              </Label>
+
+              {/* Image Preview */}
+              {roomForm.images.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {roomForm.images.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={image.url}
+                        alt={`Room ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg border"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                        onClick={() => removeImage(index)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Upload Area */}
+              <Card className="border-dashed border-2 hover:border-primary transition-colors cursor-pointer">
+                <CardContent className="flex flex-col items-center justify-center p-6">
+                  <Label htmlFor="imageUpload" className="cursor-pointer flex flex-col items-center">
+                    <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                    <span className="text-sm text-muted-foreground">
+                      Upload room images (max 5)
+                    </span>
+                    <Input
+                      id="imageUpload"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </Label>
+                </CardContent>
+              </Card>
+              {errors.images && (
+                <p className="text-sm text-destructive">{errors.images}</p>
+              )}
+            </div>
+
+            {/* Amenities */}
+            <div className="space-y-4">
+              <Label>Amenities</Label>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {standardAmenities.map((amenity) => {
+                  const Icon = amenity.icon;
+                  const isSelected = roomForm.amenities.some((a) => a.id === amenity.id);
+                  return (
+                    <Card
+                      key={amenity.id}
+                      className={`cursor-pointer transition-colors ${
+                        isSelected
+                          ? "border-primary bg-primary/5"
+                          : "hover:bg-accent"
+                      }`}
+                      onClick={() => toggleAmenity(amenity)}
+                    >
+                      <CardContent className="flex items-center p-3">
+                        <Icon className={`h-4 w-4 mr-2 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                        <span className="text-sm">{amenity.name}</span>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={cancelEdit} disabled={isSubmitting}>
                 Cancel
-              </button>
-              <button
-                type="submit"
-                className={`px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors flex items-center justify-center min-w-24 ${
-                  isSubmitting ? "opacity-75 cursor-not-allowed" : ""
-                }`}
-                disabled={isSubmitting}
-              >
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
-                    <svg
-                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
                     {editingRoom ? "Updating..." : "Adding..."}
                   </>
                 ) : editingRoom ? (
@@ -656,83 +649,101 @@ const RoomManager = () => {
                 ) : (
                   "Add Room"
                 )}
-              </button>
-            </div>
+              </Button>
+            </DialogFooter>
           </form>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
-      {/* Rooms List */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white rounded-lg overflow-hidden">
-          <thead className="bg-gray-800 text-white">
-            <tr>
-              <th className="py-3 px-4 text-left">Room No.</th>
-              <th className="py-3 px-4 text-left">Type</th>
-              <th className="py-3 px-4 text-left">Description</th>
-              <th className="py-3 px-4 text-left">Price</th>
-              <th className="py-3 px-4 text-left">Amenities</th>
-              <th className="py-3 px-4 text-left">Status</th>
-              <th className="py-3 px-4 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="text-gray-700">
-            {rooms.map((room) => (
-              <tr
-                key={room.id}
-                className="border-b border-gray-200 hover:bg-gray-50"
-              >
-                <td className="py-3 px-4">{room.roomNumber}</td>
-                <td className="py-3 px-4">{room.roomType}</td>
-                <td className="py-3 px-4 max-w-xs truncate">
-                  {room.description}
-                </td>
-                <td className="py-3 px-4">Nu {room.price?.toFixed(2)}</td>
-                <td className="py-3 px-4 max-w-xs truncate">
-                  {Array.isArray(room.amenities)
-                    ? room.amenities.join(", ")
-                    : room.amenities}
-                </td>
-                <td className="py-3 px-4">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      room.available
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {room.available ? "Available" : "Not Available"}
-                  </span>
-                </td>
-                <td className="py-3 px-4">
-                  <button
-                    onClick={() => startEdit(room)}
-                    className=" text-blue-500 px-3 py-1 rounded text-sm transition-colors"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(room.id)}
-                    disabled={isDeleting === room.id}
-                    className={`text-red-600 px-3 py-1 rounded text-sm transition-colors ${
-                      isDeleting === room.id
-                        ? "opacity-50 cursor-not-allowed"
-                        : ""
-                    }`}
-                  >
-                    {isDeleting === room.id ? "Deleting..." : "Delete"}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {/* Rooms Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Rooms</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Room No.</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Amenities</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rooms.map((room) => (
+                <TableRow key={room.id}>
+                  <TableCell className="font-medium">{room.roomNumber}</TableCell>
+                  <TableCell>{room.roomType}</TableCell>
+                  <TableCell className="max-w-xs truncate">{room.description}</TableCell>
+                  <TableCell>Nu {room.price?.toFixed(2)}</TableCell>
+                  <TableCell className="max-w-xs truncate">
+                    {Array.isArray(room.amenities)
+                      ? room.amenities.join(", ")
+                      : room.amenities}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={room.available ? "default" : "destructive"}>
+                      {room.available ? "Available" : "Not Available"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => startEdit(room)}
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            disabled={isDeleting === room.id}
+                          >
+                            {isDeleting === room.id ? (
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                            ) : (
+                              <Trash2 className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the room
+                              and remove all associated data.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(room.id)}>
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
+      {/* Error Alert */}
       {error && (
-        <div className="mt-4 p-4 bg-red-100 border border-red-300 text-red-700 rounded">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <X className="h-4 w-4" />
+          {/* <AlertDescription>{error}</AlertDescription> */}
+        </Alert>
       )}
     </div>
   );

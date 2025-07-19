@@ -53,7 +53,7 @@ const ListYourPropertySection = () => {
               <Sparkles className="w-4 h-4 mr-2" />
               Partner Program
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
+            <h2 className="text-3xl md:text-3xl font-bold tracking-tight">
               Partner with{" "}
               <span className="text-primary">
                 YakRooms
@@ -78,7 +78,7 @@ const ListYourPropertySection = () => {
                 {stats.map((stat, index) => (
                   <Card key={index} className="text-center hover:shadow-md transition-shadow">
                     <CardContent className="p-6">
-                      <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
+                      <div className="text-2xl md:text-3xl font-bold text-yellow-500 mb-1">
                         {stat.number}
                       </div>
                       <div className="text-sm text-muted-foreground">{stat.label}</div>
@@ -134,7 +134,7 @@ const ListYourPropertySection = () => {
                   {/* CTA Buttons */}
                   <div className="space-y-3">
                     <Link to="/listings" className="block">
-                      <Button size="lg" className="w-full group/btn">
+                      <Button size="lg" className="w-full bg-yellow-500 hover:bg-yellow-500 text-primary cursor-pointer">
                         <span>List Your Property Today</span>
                         <ArrowUpRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />
                       </Button>
@@ -154,7 +154,7 @@ const ListYourPropertySection = () => {
                         <Star key={i} className="w-4 h-4 fill-current" />
                       ))}
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm  text-yelllow-500">
                       Trusted by 500+ partners
                     </p>
                   </div>

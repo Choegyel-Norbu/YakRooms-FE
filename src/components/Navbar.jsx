@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
 import {
-  Building2,
   Menu,
   X,
   Sun,
@@ -14,7 +13,6 @@ import {
   UtensilsCrossed,
   Mail,
   ChevronRight,
-  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -36,15 +34,82 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/services/AuthProvider";
-import { Select, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-const Navbar = ({ onLoginClick, onContactClick }) => {
+// YakRooms Logo Component
+const YakRoomsLogo = ({ size = "default" }) => {
+  const dimensions = {
+    small: { width: 140, height: 36 },
+    default: { width: 170, height: 44 },
+    large: { width: 200, height: 52 }
+  };
+
+  const { width, height } = dimensions[size];
+  const scale = height / 80; // Original SVG height is 80
+
+  return (
+    <svg 
+      width={width} 
+      height={height} 
+      viewBox="0 0 200 80" 
+      xmlns="http://www.w3.org/2000/svg"
+      className="flex-shrink-0"
+    >
+      <defs>
+        <linearGradient id="mountainGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style={{stopColor:"#3B82F6", stopOpacity:1}} />
+          <stop offset="100%" style={{stopColor:"#1E40AF", stopOpacity:1}} />
+        </linearGradient>
+        
+        <linearGradient id="yakGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style={{stopColor:"#374151", stopOpacity:1}} />
+          <stop offset="100%" style={{stopColor:"#1F2937", stopOpacity:1}} />
+        </linearGradient>
+        
+        <linearGradient id="roofGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style={{stopColor:"#EAB308", stopOpacity:1}} />
+          <stop offset="100%" style={{stopColor:"#CA8A04", stopOpacity:1}} />
+        </linearGradient>
+      </defs>
+      
+      <circle cx="40" cy="40" r="35" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="2"/>
+      <path d="M 15 50 L 25 30 L 35 40 L 45 25 L 55 35 L 65 50 Z" fill="url(#mountainGradient)" opacity="0.7"/>
+      <rect x="30" y="35" width="20" height="15" fill="#8B5CF6" rx="1"/>
+      <path d="M 25 35 L 40 25 L 55 35 Z" fill="url(#roofGradient)"/>
+      <rect x="38" y="25" width="4" height="3" fill="#CA8A04" rx="1"/>
+      <rect x="37" y="42" width="6" height="8" fill="#7C3AED" rx="1"/>
+      <rect x="32" y="38" width="3" height="3" fill="#60A5FA" rx="0.5"/>
+      <rect x="45" y="38" width="3" height="3" fill="#60A5FA" rx="0.5"/>
+      <ellipse cx="20" cy="45" rx="6" ry="3" fill="url(#yakGradient)"/>
+      <ellipse cx="17" cy="43" rx="2" ry="2" fill="url(#yakGradient)"/>
+      <path d="M 15 42 Q 14 40 16 41" stroke="#374151" strokeWidth="1" fill="none"/>
+      <path d="M 18 42 Q 19 40 17 41" stroke="#374151" strokeWidth="1" fill="none"/>
+      <circle cx="16" cy="42" r="0.5" fill="#1F2937"/>
+      
+      <text x="90" y="35" fontFamily="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontSize="24" fontWeight="700" fill="#1E40AF">
+        Yak
+      </text>
+      <text x="130" y="35" fontFamily="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontSize="24" fontWeight="700" fill="#EAB308">
+        Rooms
+      </text>
+      
+      <text x="90" y="50" fontFamily="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontSize="9" fontWeight="400" fill="#6B7280">
+        Authentic Bhutanese Hospitality
+      </text>
+      
+      <circle cx="165" cy="25" r="2" fill="#EAB308" opacity="0.6"/>
+      <circle cx="175" cy="30" r="1.5" fill="#3B82F6" opacity="0.5"/>
+      <circle cx="185" cy="20" r="1" fill="#8B5CF6" opacity="0.7"/>
+    </svg>
+  );
+};
+
+const Navbar = ({ onLoginClick }) => {
   const { isAuthenticated, logout, userName, email } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [theme, setTheme] = useState("light"); // Default to light theme
+  const [theme, setTheme] = useState("light");
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
 
   useEffect(() => {
@@ -61,7 +126,6 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
     root.classList.add(theme);
   }, [theme]);
 
-  // Calculate scrollbar width to prevent layout shift
   useEffect(() => {
     const calculateScrollbarWidth = () => {
       const scrollbarWidth =
@@ -78,7 +142,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
     { name: "Home", path: "/", icon: Home, description: "Back to homepage" },
     { name: "Hotels", path: "/hotel", icon: Hotel, description: "Find accommodations" },
     { name: "Restaurants", path: "/restaurants", icon: UtensilsCrossed, description: "Discover local dining" },
-    { name: "Contact", path: "/contact", icon: Mail, description: "Get in touch", isContact: true },
+    { name: "Contact", path: "/contact", icon: Mail, description: "Get in touch" },
   ];
 
   const UserNav = () => {
@@ -132,12 +196,6 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
             <Link to="/hotelAdmin">
               <LayoutDashboard className="mr-2 h-4 w-4" />
               <span>Dashboard</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link to="/profile">
-              <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -194,7 +252,6 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
 
     return (
       <div className="space-y-4 pt-6 border-t">
-        {/* User Info */}
         <div className="flex items-center space-x-3 px-3 py-2 rounded-lg bg-muted/50">
           <Avatar className="h-10 w-10 border-2 border-primary">
             <AvatarImage src={""} alt={userName} />
@@ -208,7 +265,6 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           </div>
         </div>
 
-        {/* User Actions */}
         <div className="space-y-1">
           <SheetClose asChild>
             <Link
@@ -248,39 +304,32 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           : "bg-background/95"
       )}
       style={{
-        transform: "translateZ(0)", // Force hardware acceleration
-        willChange: "transform", // Optimize for transforms
-        paddingRight: scrollbarWidth, // Compensate for scrollbar width
+        transform: "translateZ(0)",
+        willChange: "transform",
+        paddingRight: scrollbarWidth,
       }}
     >
       <div className="container mx-auto">
         <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-primary">
-            <Building2 className="h-8 w-8 text-yellow-500" />
-            <span className="text-xl font-bold text-foreground">YakRooms</span>
+          <Link to="/" className="flex items-center text-primary">
+            <YakRoomsLogo size="default" />
           </Link>
 
           <nav className="hidden md:flex items-center gap-2">
             {navLinks.map((link) => (
-              link.isContact ? (
-                <Button key={link.name} variant="ghost" onClick={onContactClick}>
-                  <span className="text-sm font-medium transition-colors text-muted-foreground">{link.name}</span>
-                </Button>
-              ) : (
-                <Button key={link.name} variant="ghost" asChild>
-                  <NavLink
-                    to={link.path}
-                    className={({ isActive }) =>
-                      cn(
-                        "text-sm font-medium transition-colors",
-                        isActive ? "text-primary" : "text-muted-foreground"
-                      )
-                    }
-                  >
-                    {link.name}
-                  </NavLink>
-                </Button>
-              )
+              <Button key={link.name} variant="ghost" asChild>
+                <NavLink
+                  to={link.path}
+                  className={({ isActive }) =>
+                    cn(
+                      "text-sm font-medium transition-colors",
+                      isActive ? "text-primary" : "text-muted-foreground"
+                    )
+                  }
+                >
+                  {link.name}
+                </NavLink>
+              </Button>
             ))}
           </nav>
 
@@ -304,19 +353,12 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                         className="flex items-center gap-3"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <div className="p-2 rounded-lg bg-primary/10">
-                          <Building2 className="h-6 w-6 text-primary" />
-                        </div>
-                        <div className="text-left">
-                          <div className="text-lg font-bold text-foreground">YakRooms</div>
-                          <div className="text-xs text-muted-foreground">Discover Bhutan</div>
-                        </div>
+                        <YakRoomsLogo size="small" />
                       </Link>
                     </SheetTitle>
                   </SheetHeader>
 
                   <div className="flex-1 py-6">
-                    {/* Navigation Links */}
                     <nav className="space-y-2">
                       <div className="px-3 pb-2">
                         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -324,43 +366,30 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                         </h3>
                       </div>
                       {navLinks.map((link) => (
-                        link.isContact ? (
-                          <Button
-                            key={link.name}
-                            variant="ghost"
-                            className="w-full justify-start"
-                            onClick={() => {
-                              onContactClick && onContactClick();
-                              setIsMobileMenuOpen(false);
-                            }}
+                        <SheetClose key={link.name} asChild>
+                          <Link
+                            to={link.path}
+                            className="flex items-center justify-between px-3 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group"
                           >
-                            <link.icon className="mr-3 h-4 w-4" />
-                            {link.name}
-                          </Button>
-                        ) : (
-                          <Button
-                            key={link.name}
-                            variant="ghost"
-                            className="w-full justify-start"
-                            asChild
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            <NavLink to={link.path} className="w-full flex items-center">
-                              <link.icon className="mr-3 h-4 w-4" />
-                              {link.name}
-                            </NavLink>
-                          </Button>
-                        )
+                            <div className="flex items-center">
+                              <div className="p-2 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
+                                <link.icon className="h-4 w-4 group-hover:text-primary transition-colors" />
+                              </div>
+                              <div>
+                                <div className="font-medium">{link.name}</div>
+                                <div className="text-xs text-muted-foreground">{link.description}</div>
+                              </div>
+                            </div>
+                            <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                          </Link>
+                        </SheetClose>
                       ))}
                     </nav>
 
-                    {/* User Section */}
                     <MobileUserSection />
                   </div>
 
-                  {/* Footer */}
                   <div className="border-t pt-4">
-                    {/* App Info */}
                     <div className="px-3 py-2 bg-muted/30 rounded-lg">
                       <div className="flex items-center justify-between">
                         <div>

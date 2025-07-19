@@ -1,5 +1,6 @@
 import React from "react";
-import { Hotel, UtensilsCrossed, ArrowRight, CheckCircle } from "lucide-react";
+import { Hotel, UtensilsCrossed, ArrowRight, CheckCircle, Sparkles, MapPin, Star, Users, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // ShadCN UI Components
 import {
@@ -23,8 +24,8 @@ const FeatureSection = () => {
       to: "/hotel",
       badge: "Popular",
       highlights: ["Instant Confirmation", "24/7 Support", "Best Price Guarantee"],
-      // gradient: "from-blue-500/10 to-purple-500/10",
       iconBg: "text-blue-600 group-hover:text-white",
+      stats: { bookings: "10K+", satisfaction: "98%" }
     },
     {
       icon: UtensilsCrossed,
@@ -33,8 +34,8 @@ const FeatureSection = () => {
       to: "/restaurants",
       badge: "New",
       highlights: ["Local Favorites", "Authentic Cuisine", "Verified Reviews"],
-      // gradient: "from-orange-500/10 to-red-500/10",
       iconBg: "text-orange-600 group-hover:text-white",
+      stats: { restaurants: "200+", reviews: "5K+" }
     },
   ];
 
@@ -47,7 +48,7 @@ const FeatureSection = () => {
             <Badge variant="secondary" className="px-4 py-1.5">
               🏔️ Authentic Bhutanese Experience
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
+            <h2 className="text-4xl md:text-3xl font-bold tracking-tight text-foreground">
               Why Choose{" "}
               <span className="text-primary">
                 YakRooms
@@ -113,6 +114,19 @@ const FeatureSection = () => {
                   </CardHeader>
 
                   <CardContent className="relative z-10 space-y-6">
+                    {/* Stats Row */}
+                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Users className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-medium">{feature.stats?.restaurants || feature.stats?.bookings}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                    </div>
+
                     {/* Highlights */}
                     <div className="space-y-3">
                       {feature.highlights.map((highlight) => (
@@ -123,14 +137,17 @@ const FeatureSection = () => {
                       ))}
                     </div>
 
-                    {/* CTA Button */}
+                    {/* Enhanced CTA Button */}
                     <div className="pt-4">
                       <Button 
                         variant="ghost" 
-                        className="group/btn w-full justify-between p-4 h-auto rounded-xl border border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
+                        className="group/btn w-full justify-between p-4 h-auto rounded-xl border border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 relative overflow-hidden"
                         disabled
                       >
-                        <span className="font-medium">Explore Now</span>
+                        <div className="flex items-center space-x-3">
+                          <Sparkles className="w-4 h-4 text-primary" />
+                          <span className="font-medium">Coming Soon</span>
+                        </div>
                         <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
                       </Button>
                     </div>
@@ -138,9 +155,9 @@ const FeatureSection = () => {
                 </Card>
               </div>
             ) : (
-              <a 
+              <Link 
                 key={feature.title} 
-                href={feature.to} 
+                to={feature.to} 
                 className="block h-full group"
               >
                 <Card
@@ -182,6 +199,19 @@ const FeatureSection = () => {
                   </CardHeader>
 
                   <CardContent className="relative z-10 space-y-6">
+                    {/* Stats Row */}
+                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Users className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-medium">{feature.stats?.restaurants || feature.stats?.bookings}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                    </div>
+
                     {/* Highlights */}
                     <div className="space-y-3">
                       {feature.highlights.map((highlight) => (
@@ -192,40 +222,83 @@ const FeatureSection = () => {
                       ))}
                     </div>
 
-                    {/* CTA Button */}
+                    {/* Enhanced CTA Button */}
                     <div className="pt-4">
                       <Button 
                         variant="ghost" 
-                        className="group/btn w-full justify-between p-4 h-auto rounded-xl border border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
+                        className="group/btn w-full justify-between p-4 h-auto rounded-xl border border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 relative overflow-hidden"
                       >
-                        <span className="font-medium">Explore Now</span>
+                        <div className="flex items-center space-x-3">
+                          <Sparkles className="w-4 h-4 text-primary" />
+                          <span className="font-medium">Explore Now</span>
+                        </div>
                         <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
-              </a>
+              </Link>
             )
           ))}
         </div>
 
-        {/* Bottom CTA */}
-        <div className="text-center pt-8">
-          <p className="text-muted-foreground mb-4">
-            Ready to start your Bhutanese adventure?
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-primary hover:bg-primary/90">
-              Start Exploring
-            </Button>
-            <Button size="lg" variant="outline">
-              Learn More
-            </Button>
+        {/* Enhanced Bottom CTA */}
+        <div className="text-center pt-12">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-gradient-to-r from-primary/5 to-yellow-500/5 rounded-2xl p-8 border border-border/50">
+              <div className="space-y-6">
+                <div className="flex items-center justify-center space-x-2">
+                  <MapPin className="w-5 h-5 text-primary" />
+                  <Badge variant="outline" className="px-3 py-1">
+                    🏔️ Bhutan's Premier Platform
+                  </Badge>
+                </div>
+                
+                <h3 className="text-2xl md:text-3xl font-bold text-foreground">
+                  Ready to start your Bhutanese adventure?
+                </h3>
+                
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  Join thousands of travelers who trust YakRooms for authentic Bhutanese experiences. 
+                  From the majestic Himalayas to vibrant local culture, your journey starts here.
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                  <Link to="/hotel">
+                    <Button size="lg" className="bg-primary hover:bg-primary/90 group">
+                      <span>Start Exploring</span>
+                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </Button>
+                  </Link>
+                  
+                  <Link to="/about">
+                    <Button size="lg" variant="outline" className="group">
+                      <span>Learn More</span>
+                      <Shield className="ml-2 h-4 w-4 transition-transform group-hover:scale-110" />
+                    </Button>
+                  </Link>
+                </div>
+
+                {/* Trust Indicators */}
+                <div className="flex items-center justify-center space-x-6 pt-4 border-t border-border/50">
+                  <div className="flex items-center space-x-2">
+                    <Shield className="w-4 h-4 text-green-500" />
+                    <span className="text-sm text-muted-foreground">Secure Booking</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Star className="w-4 h-4 text-yellow-500" />
+                    <span className="text-sm text-muted-foreground">Verified Properties</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Users className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm text-muted-foreground">24/7 Support</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Removed grid pattern style */}
     </section>
   );
 };

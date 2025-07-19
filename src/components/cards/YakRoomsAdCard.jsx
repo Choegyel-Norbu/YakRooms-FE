@@ -1,83 +1,104 @@
-import { BadgeCheck, Hotel, Utensils, ArrowRight } from "lucide-react";
+import React from "react";
+import { BadgeCheck, Hotel, Utensils, ArrowRight, Building2, Star, MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function YakRoomsAdCard() {
+  const features = [
+    {
+      icon: BadgeCheck,
+      title: "Real-time Availability",
+      description: "Instant booking confirmation with live room availability",
+      color: "text-green-600"
+    },
+    {
+      icon: Hotel,
+      title: "Verified Accommodations",
+      description: "Curated selection of hotels and authentic homestays",
+      color: "text-blue-600"
+    },
+    {
+      icon: Utensils,
+      title: "Local Dining Guide",
+      description: "Discover restaurants with updated menus and pricing",
+      color: "text-orange-600"
+    }
+  ];
+
   return (
-    <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg max-w-4xl mx-auto border border-gray-100 overflow-hidden">
-      <div className="flex flex-col md:flex-row">
-        {/* Left: Content */}
-        <div className="flex-1 p-8 md:p-10">
-          <div className="flex items-center mb-4">
-            <img
-              src="/yakrooms-logo.png" // Replace with your logo path
-              alt="YakRooms Logo"
-              className="w-10 h-10 mr-3"
-            />
-            <h2 className="text-xl font-bold">YakRooms</h2>
+    <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-background to-muted/20">
+      <CardContent className="p-0">
+        {/* Header Section */}
+        <div className="p-6 pb-4 border-b bg-gradient-to-r from-primary/5 to-primary/10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Building2 className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-foreground">YakRooms</h2>
+              <Badge variant="secondary" className="text-xs">
+                Bhutan's #1 Platform
+              </Badge>
+            </div>
           </div>
-
-          <p className="text-16 text-gray-700 mb-6 font-medium">
-            Bhutan's Premier Hotel Booking & Culinary Experience Platform
+          
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            Your gateway to authentic Bhutanese hospitality and unforgettable travel experiences
           </p>
-
-          <div className="space-y-4 mb-8">
-            <div className="flex items-start">
-              <BadgeCheck className="flex-shrink-0 w-5 h-5 text-green-500 mt-0.5 mr-3" />
-              <div>
-                <h4 className="text-14 font-semibold text-gray-900">
-                  Real-time Availability
-                </h4>
-                <p className="text-gray-600 text-14">
-                  Instant booking confirmation with live room availability
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start">
-              <Hotel className="flex-shrink-0 w-5 h-5 text-blue-500 mt-0.5 mr-3" />
-              <div>
-                <h4 className="text-14 font-semibold text-gray-900">
-                  Verified Accommodations
-                </h4>
-                <p className="text-gray-600 text-sm">
-                  Curated selection of hotels and authentic homestays
-                </p>
-              </div>
-            </div>
-
-            {/* <div className="flex items-start">
-              <Utensils className="flex-shrink-0 w-5 h-5 text-red-500 mt-0.5 mr-3" />
-              <div>
-                <h4 className="text-14 font-semibold text-gray-900">
-                  Local Dining Guide
-                </h4>
-                <p className="text-gray-600 text-sm">
-                  Discover restaurants with updated menus and pricing
-                </p>
-              </div>
-            </div> */}
-          </div>
         </div>
 
-        {/* Right: Visual */}
-        <div className="flex-1 bg-gradient-to-br from-yellow-50 to-yellow-100 flex items-center justify-center p-8">
-          <div className="relative w-full h-64">
-            <div className="absolute inset-0 bg-[url('/hotel-image.jpg')] bg-cover bg-center rounded-lg shadow-md"></div>
-            <div className="absolute -bottom-4 -right-4 bg-white p-3 rounded-lg shadow-lg">
-              <div className="flex items-center">
-                <div className="bg-yellow-100 p-2 rounded-full mr-2">
-                  <Hotel className="w-5 h-5 text-yellow-600" />
+        {/* Features Section */}
+        <div className="p-6 space-y-4">
+          {features.map((feature, index) => {
+            const Icon = feature.icon;
+            return (
+              <div key={index} className="flex items-start gap-3 group">
+                <div className="p-2 rounded-lg bg-muted group-hover:bg-primary/10 transition-colors">
+                  <Icon className={`w-4 h-4 ${feature.color} group-hover:text-primary transition-colors`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-semibold text-foreground mb-1">
+                    {feature.title}
+                  </h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {feature.description}
+                  </p>
                 </div>
               </div>
+            );
+          })}
+        </div>
+
+        {/* Visual Section */}
+        
+
+        {/* Footer */}
+        <div className="p-4 border-t bg-muted/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs">
+                🇧🇹 Made in Bhutan
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                Trusted by thousands
+              </span>
             </div>
+            
+            <Button size="sm" className="h-8 px-3 text-xs">
+              Explore Now
+              <ArrowRight className="w-3 h-3 ml-1" />
+            </Button>
           </div>
         </div>
-      </div>
 
-      <div className="bg-gray-50 px-8 py-3 border-t border-gray-100">
-        <p className="text-sm text-gray-600 text-center">
-          Empowering Bhutanese hospitality & authentic travel experiences
-        </p>
-      </div>
-    </div>
+        {/* Bottom Tagline */}
+        <div className="px-6 py-3 bg-primary/5 border-t">
+          <p className="text-xs text-center text-muted-foreground">
+            Empowering Bhutanese hospitality & authentic travel experiences
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
