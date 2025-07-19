@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import api from "../services/Api";
-import { CheckCircle, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -443,9 +444,26 @@ const SuperAdmin = () => {
   return (
     <div className="min-h-screen bg-muted/40 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">
-          Hotel Verification Dashboard
-        </h1>
+        {/* Navigation Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <Link to="/">
+              <Button variant="outline" className="flex items-center space-x-2">
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Home</span>
+              </Button>
+            </Link>
+            <div className="h-6 w-px bg-border"></div>
+            <h1 className="text-3xl font-bold text-gray-800">
+              Hotel Verification Dashboard
+            </h1>
+          </div>
+          <Link to="/">
+            <Button variant="ghost" size="icon" className="hidden sm:flex">
+              <Home className="h-5 w-5" />
+            </Button>
+          </Link>
+        </div>
 
         <SearchFilters />
 

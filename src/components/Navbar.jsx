@@ -105,8 +105,8 @@ const YakRoomsLogo = ({ size = "default" }) => {
   );
 };
 
-const Navbar = ({ onLoginClick }) => {
-  const { isAuthenticated, logout, userName, email } = useAuth();
+const Navbar = ({ onLoginClick, onContactClick }) => {
+  const { isAuthenticated, logout, userName, email, role } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [theme, setTheme] = useState("light");
@@ -142,7 +142,7 @@ const Navbar = ({ onLoginClick }) => {
     { name: "Home", path: "/", icon: Home, description: "Back to homepage" },
     { name: "Hotels", path: "/hotel", icon: Hotel, description: "Find accommodations" },
     { name: "Restaurants", path: "/restaurants", icon: UtensilsCrossed, description: "Discover local dining" },
-    { name: "Contact", path: "/contact", icon: Mail, description: "Get in touch" },
+    { name: "Contact", path: "/contact", icon: Mail, description: "Get in touch", isContact: true },
   ];
 
   const UserNav = () => {
@@ -192,12 +192,14 @@ const Navbar = ({ onLoginClick }) => {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <Link to="/hotelAdmin">
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              <span>Dashboard</span>
-            </Link>
-          </DropdownMenuItem>
+          {(role === "HOTEL_ADMIN" || role === "SUPER_ADMIN") && (
+            <DropdownMenuItem asChild>
+              <Link to={role === "HOTEL_ADMIN" ? "/hotelAdmin" : "/adminDashboard"}>
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                <span>Dashboard</span>
+              </Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={logout}>
             <LogOut className="mr-2 h-4 w-4" />
@@ -266,18 +268,20 @@ const Navbar = ({ onLoginClick }) => {
         </div>
 
         <div className="space-y-1">
-          <SheetClose asChild>
-            <Link
-              to="/hotelAdmin"
-              className="flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group"
-            >
-              <div className="flex items-center">
-                <LayoutDashboard className="mr-3 h-4 w-4" />
-                Dashboard
-              </div>
-              <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </SheetClose>
+          {(role === "HOTEL_ADMIN" || role === "SUPER_ADMIN") && (
+            <SheetClose asChild>
+              <Link
+                to={role === "HOTEL_ADMIN" ? "/hotelAdmin" : "/adminDashboard"}
+                className="flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group"
+              >
+                <div className="flex items-center">
+                  <LayoutDashboard className="mr-3 h-4 w-4" />
+                  Dashboard
+                </div>
+                <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </SheetClose>
+          )}
           <Separator className="my-2" />
           <Button
             variant="ghost"
@@ -317,26 +321,34 @@ const Navbar = ({ onLoginClick }) => {
 
           <nav className="hidden md:flex items-center gap-2">
             {navLinks.map((link) => (
-              <Button key={link.name} variant="ghost" asChild>
-                <NavLink
-                  to={link.path}
-                  className={({ isActive }) =>
-                    cn(
-                      "text-sm font-medium transition-colors",
-                      isActive ? "text-primary" : "text-muted-foreground"
-                    )
-                  }
-                >
-                  {link.name}
-                </NavLink>
-              </Button>
+              link.isContact ? (
+                <Button key={link.name} variant="ghost" onClick={onContactClick}>
+                  <span className="text-sm font-medium transition-colors text-muted-foreground hover:text-primary">{link.name}</span>
+                </Button>
+              ) : (
+                <Button key={link.name} variant="ghost" asChild>
+                  <NavLink
+                    to={link.path}
+                    className={({ isActive }) =>
+                      cn(
+                        "text-sm font-medium transition-colors",
+                        isActive ? "text-primary" : "text-muted-foreground"
+                      )
+                    }
+                  >
+                    {link.name}
+                  </NavLink>
+                </Button>
+              )
             ))}
           </nav>
 
           <div className="flex items-center gap-2">
             <div className="hidden md:block">{/* <ThemeToggle /> */}</div>
 
-            <UserNav />
+            <div className="hidden md:block">
+              <UserNav />
+            </div>
             <div className="md:hidden">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
@@ -366,23 +378,48 @@ const Navbar = ({ onLoginClick }) => {
                         </h3>
                       </div>
                       {navLinks.map((link) => (
-                        <SheetClose key={link.name} asChild>
-                          <Link
-                            to={link.path}
-                            className="flex items-center justify-between px-3 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group"
+                        link.isContact ? (
+                          <Button
+                            key={link.name}
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => {
+                              onContactClick && onContactClick();
+                              setIsMobileMenuOpen(false);
+                            }}
                           >
-                            <div className="flex items-center">
-                              <div className="p-2 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
-                                <link.icon className="h-4 w-4 group-hover:text-primary transition-colors" />
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex items-center">
+                                <div className="p-2 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
+                                  <link.icon className="h-4 w-4 group-hover:text-primary transition-colors" />
+                                </div>
+                                <div>
+                                  <div className="font-medium">{link.name}</div>
+                                  <div className="text-xs text-muted-foreground">{link.description}</div>
+                                </div>
                               </div>
-                              <div>
-                                <div className="font-medium">{link.name}</div>
-                                <div className="text-xs text-muted-foreground">{link.description}</div>
-                              </div>
+                              <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                             </div>
-                            <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                          </Link>
-                        </SheetClose>
+                          </Button>
+                        ) : (
+                          <SheetClose key={link.name} asChild>
+                            <Link
+                              to={link.path}
+                              className="flex items-center justify-between px-3 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group"
+                            >
+                              <div className="flex items-center">
+                                <div className="p-2 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
+                                  <link.icon className="h-4 w-4 group-hover:text-primary transition-colors" />
+                                </div>
+                                <div>
+                                  <div className="font-medium">{link.name}</div>
+                                  <div className="text-xs text-muted-foreground">{link.description}</div>
+                                </div>
+                              </div>
+                              <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                          </SheetClose>
+                        )
                       ))}
                     </nav>
 

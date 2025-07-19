@@ -12,6 +12,8 @@ import {
   ArrowLeft,
   Building2,
   LogOut,
+  Menu,
+  X,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import SummaryCards from "../components/cards/SummaryCards.jsx";
 import HotelInfoForm from "../components/hotel/HotelInfoForm.jsx";
 import RoomManager from "../components/RoomManager.jsx";
@@ -38,6 +47,7 @@ const HotelAdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [hotel, setHotel] = useState(null);
   const [bookings, setBookings] = useState([]);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     console.log("Hotel admin panel");
@@ -115,6 +125,27 @@ const HotelAdminDashboard = () => {
     return descriptions[activeTab] || "Manage your hotel operations";
   };
 
+  const NavigationButton = ({ item, onClick, isActive }) => {
+    const Icon = item.icon;
+    return (
+      <Button
+        variant={isActive ? "secondary" : "ghost"}
+        className={`w-full justify-start transition-colors ${
+          isActive
+            ? "bg-primary/10 text-primary hover:bg-primary/10"
+            : "hover:bg-accent"
+        }`}
+        onClick={onClick}
+      >
+        <Icon className="mr-3 h-4 w-4" />
+        {item.label}
+        {isActive && (
+          <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
+        )}
+      </Button>
+    );
+  };
+
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
@@ -140,27 +171,14 @@ const HotelAdminDashboard = () => {
 
         <nav className="p-4">
           <div className="space-y-1">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Button
-                  key={item.id}
-                  variant={activeTab === item.id ? "secondary" : "ghost"}
-                  className={`w-full justify-start transition-colors ${
-                    activeTab === item.id
-                      ? "bg-primary/10 text-primary hover:bg-primary/10"
-                      : "hover:bg-accent"
-                  }`}
-                  onClick={() => setActiveTab(item.id)}
-                >
-                  <Icon className="mr-3 h-4 w-4" />
-                  {item.label}
-                  {activeTab === item.id && (
-                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
-                  )}
-                </Button>
-              );
-            })}
+            {navigationItems.map((item) => (
+              <NavigationButton
+                key={item.id}
+                item={item}
+                isActive={activeTab === item.id}
+                onClick={() => setActiveTab(item.id)}
+              />
+            ))}
           </div>
         </nav>
       </aside>
@@ -182,9 +200,49 @@ const HotelAdminDashboard = () => {
 
               <div className="flex items-center space-x-4">
                 {/* Mobile Navigation Button */}
-                <Button variant="outline" size="sm" className="md:hidden">
-                  <Home className="h-4 w-4" />
-                </Button>
+                <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="sm" className="md:hidden">
+                      <Menu className="h-4 w-4" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-[280px] p-0">
+                    <SheetHeader className="p-6 border-b">
+                      <SheetTitle className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-primary/10">
+                          <Building2 className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <h1 className="text-lg font-bold text-foreground">YakRooms</h1>
+                          <p className="text-xs text-muted-foreground">Admin Panel</p>
+                        </div>
+                      </SheetTitle>
+                    </SheetHeader>
+                    
+                    <div className="p-4">
+                      <Link to="/" className="block mb-4">
+                        <Button variant="outline" size="sm" className="w-full">
+                          <ArrowLeft className="mr-2 h-4 w-4" />
+                          Back to Website
+                        </Button>
+                      </Link>
+                      
+                      <nav className="space-y-1">
+                        {navigationItems.map((item) => (
+                          <NavigationButton
+                            key={item.id}
+                            item={item}
+                            isActive={activeTab === item.id}
+                            onClick={() => {
+                              setActiveTab(item.id);
+                              setMobileMenuOpen(false);
+                            }}
+                          />
+                        ))}
+                      </nav>
+                    </div>
+                  </SheetContent>
+                </Sheet>
 
                 <Separator orientation="vertical" className="h-6" />
 
