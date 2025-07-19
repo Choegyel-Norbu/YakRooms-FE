@@ -228,7 +228,7 @@ const ListingCard = ({ item, activeTab }) => {
   // Determine image URL based on the item structure
   const imageUrl =
     item.photoUrls && item.photoUrls.length > 0
-      ? item.photoUrls
+      ? item.photoUrls[0]
       : "https://via.placeholder.com/400x300?text=No+Image";
 
   // Determine title and type/description based on activeTab
