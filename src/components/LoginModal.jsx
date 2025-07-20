@@ -45,8 +45,8 @@ const LoginModal = ({ onClose, flag }) => {
           </div>
         )}
 
-        {/* Continue with Google */}
         <GoogleSignInButton onClose={onClose} onLoginSuccess={login} flag />
+        {/* Continue with Google */}
 
         <p className="text-xs text-center text-gray-400 mt-4">
           By signing up or signing in, you agree to our{" "}

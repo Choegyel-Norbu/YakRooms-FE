@@ -236,7 +236,7 @@ const ListingCard = ({ item, activeTab }) => {
   let title = item.name;
   let typeOrDescription = "";
   let location = item.district || item.address;
-  let priceDisplay = item.lowestPrice || "-";
+  let priceDisplay = item.lowestPrice || item.price || null;
 
   if (activeTab === "hotels") {
     typeOrDescription = item.hotelType || item.description;
@@ -245,6 +245,22 @@ const ListingCard = ({ item, activeTab }) => {
   } else if (activeTab === "editorPicks") {
     typeOrDescription = item.hotelType || item.type || item.description;
   }
+
+  // Determine price display message
+  const getPriceDisplay = () => {
+    if (priceDisplay && priceDisplay !== "-" && priceDisplay !== "null") {
+      return (
+        <>
+          <span className="text-yellow-600">From - </span>
+          <span className="font-bold">Nu. {priceDisplay}</span> /night
+        </>
+      );
+    } else {
+      return (
+        <span className="text-gray-500 italic">Contact for pricing</span>
+      );
+    }
+  };
 
   return (
     <Card className="h-full flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-shadow rounded-xl border border-gray-100">
@@ -290,9 +306,8 @@ const ListingCard = ({ item, activeTab }) => {
       </CardContent>
       <CardFooter className="p-3 border-t bg-gray-50">
         <div className="w-full flex justify-between items-center">
-          <p className="text-14  text-gray-900">
-            <span className="text-yellow-600">From - </span>{" "}
-            <span className="font-bold">Nu. {priceDisplay}</span> /night
+          <p className="text-14 text-gray-900">
+            {getPriceDisplay()}
           </p>
           <Button
             size="sm"
