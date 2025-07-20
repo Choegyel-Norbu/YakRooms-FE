@@ -13,6 +13,15 @@ dist-ssr
 *.local
 .metadata/
 .env
+.env.local
+.env.development
+.env.production
+.env.staging
+
+# API Configuration
+src/services/Api.jsx
+src/config/api.js
+src/config/api.jsx
 
 # Editor directories and files
 .vscode/*
