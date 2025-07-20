@@ -17,8 +17,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/services/AuthProvider";
 
-const ListYourPropertySection = () => {
+const ListYourPropertySection = ({ onLoginClick }) => {
+  const { isAuthenticated } = useAuth();
+
+  const handleListPropertyClick = (e) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      onLoginClick();
+    }
+  };
+
   const benefits = [
     {
       icon: TrendingUp,
@@ -133,12 +143,23 @@ const ListYourPropertySection = () => {
                 <CardContent className="space-y-6">
                   {/* CTA Buttons */}
                   <div className="space-y-3">
-                    <Link to="/listings" className="block">
-                      <Button size="lg" className="w-full bg-yellow-500 hover:bg-yellow-500 text-primary cursor-pointer">
+                    {isAuthenticated ? (
+                      <Link to="/listings" className="block">
+                        <Button size="lg" className="w-full bg-yellow-500 hover:bg-yellow-500 text-primary cursor-pointer">
+                          <span>List Your Property Today</span>
+                          <ArrowUpRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button 
+                        size="lg" 
+                        className="w-full bg-yellow-500 hover:bg-yellow-500 text-primary cursor-pointer"
+                        onClick={handleListPropertyClick}
+                      >
                         <span>List Your Property Today</span>
                         <ArrowUpRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />
                       </Button>
-                    </Link>
+                    )}
                     
                     <Button variant="outline" size="lg" className="w-full">
                       Learn More About Partnership
