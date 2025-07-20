@@ -14,6 +14,14 @@ export const uploadFile = async (file, field) => {
     const isImage = file.type.startsWith("image/");
     const isPDF = file.type === "application/pdf";
 
+     // ✅ Use your actual Vercel URL
+     const callbackUrl = process.env.NODE_ENV === 'production' 
+     ? "https://yak-rooms-fe.vercel.app/api/uploadthing"  // Your actual domain
+     : `${window.location.origin}/api/uploadthing`;
+
+     console.log("Using callback URL:", callbackUrl); // Debug log
+
+
     // Step 1: Prepare the upload
     const configResponse = await axios.post(
       "https://uploadthing.com/api/prepareUpload",
@@ -25,7 +33,7 @@ export const uploadFile = async (file, field) => {
             type: file.type || "application/octet-stream",
           },
         ],
-        callbackUrl: `${window.location.origin}/api/uploadthing`,
+        callbackUrl,
         callbackSlug: field === "photos" ? "listingPhotos" : "verificationDocs",
         routeConfig: {
           [isImage ? "image" : "pdf"]: {
