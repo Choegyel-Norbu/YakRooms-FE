@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8080/api",
-  // baseURL: "https://0d123863c798.ngrok-free.app",
+  // baseURL: "http://localhost:8080/api",
+  baseURL: "https://0d123863c798.ngrok-free.app",
   // baseURL: "https://sdp-platform-production.up.railway.app/api",
   withCredentials: false, // Important for cookies/sessions
   headers: {
