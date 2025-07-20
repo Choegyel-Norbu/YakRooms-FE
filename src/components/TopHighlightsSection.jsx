@@ -12,14 +12,10 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import api from "@/services/Api";
 
 const TopHighlightsSection = () => {
-  const [activeTab, setActiveTab] = useState("hotels");
   const [hotelsData, setHotelsData] = useState([]);
-  const [restaurantsData, setRestaurantsData] = useState([]);
-  const [editorPicksData, setEditorPicksData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -42,164 +38,35 @@ const TopHighlightsSection = () => {
       }
     };
 
-    const fetchRestaurants = async () => {
-      // For now, using mock data for restaurants
-      setRestaurantsData(
-        [
-          {
-            id: 1,
-            name: "Bhutanese Kitchen",
-            type: "Local Cuisine",
-            tag: "Trending",
-            district: "Thimphu",
-            price: "$15/person",
-            photoUrls: [
-              "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-            ],
-          },
-          {
-            id: 2,
-            name: "Cloud9 Café",
-            type: "Café",
-            tag: "Scenic Views",
-            district: "Paro",
-            price: "$10/person",
-            photoUrls: [
-              "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-            ],
-          },
-          {
-            id: 3,
-            name: "Gelephu Delights",
-            type: "Fast Food",
-            tag: "Popular",
-            district: "Gelephu",
-            price: "$8/person",
-            photoUrls: [
-              "https://images.unsplash.com/photo-1571065518464-9ed31e5088f1?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-            ],
-          },
-        ].slice(0, 3)
-      ); // Limit to max 3 cards
-    };
-
-    const fetchEditorPicks = async () => {
-      // For now, using mock data for editor's picks
-      setEditorPicksData(
-        [
-          {
-            id: 1,
-            name: "Gangtey Lodge",
-            hotelType: "Eco Lodge",
-            tag: "Hidden Gem",
-            district: "Gangtey",
-            price: "$180/night",
-            photoUrls: [
-              "https://images.unsplash.com/photo-1582719471380-cd7775af7d73?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-            ],
-          },
-          {
-            id: 2,
-            name: "Dochula Resort",
-            hotelType: "Mountain View",
-            tag: "Sunrise Spot",
-            district: "Dochula Pass",
-            price: "$160/night",
-            photoUrls: [
-              "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-            ],
-          },
-          {
-            id: 3,
-            name: "Phobjikha Homestay",
-            hotelType: "Farm Stay",
-            tag: "Authentic Experience",
-            district: "Phobjikha",
-            price: "$90/night",
-            photoUrls: [
-              "https://images.unsplash.com/photo-1579298245100-3f4a3d21c3c9?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-            ],
-          },
-        ].slice(0, 3)
-      ); // Limit to max 3 cards
-    };
-
-    if (activeTab === "hotels") {
-      fetchHotels();
-    } else if (activeTab === "restaurants") {
-      fetchRestaurants();
-    } else if (activeTab === "editorPicks") {
-      fetchEditorPicks();
-    }
-  }, [activeTab]);
-
-  const getListingsForActiveTab = () => {
-    switch (activeTab) {
-      case "hotels":
-        return hotelsData;
-      case "restaurants":
-        return restaurantsData;
-      case "editorPicks":
-        return editorPicksData;
-      default:
-        return [];
-    }
-  };
-
-  const currentListings = getListingsForActiveTab();
+    fetchHotels();
+  }, []);
 
   return (
     <section className="py-5 lg:py-12 lg:mt-10 px-4 lg:px-8 lg:w-[70%] m-auto">
       <div className="container mx-auto">
         <h3 className="text-center text-3xl font-bold mb-8 text-gray-900">
-          Top Bhutanese Highlights
+          Top Listed Hotels
         </h3>
-
-        {/* Tabs */}
-        <div className="flex justify-center mb-8">
-          <Tabs defaultValue="hotels" onValueChange={setActiveTab}>
-            <TabsList className="bg-gray-100 p-1">
-              <TabsTrigger
-                value="hotels"
-                className="px-4 py-2 text-sm font-medium transition-colors data-[state=active]:bg-yellow-500 data-[state=active]:text-slate-900 hover:bg-yellow-600 data-[state=active]:hover:bg-yellow-600 data-[state=active]:shadow-sm"
-              >
-                Popular Stays
-              </TabsTrigger>
-              <TabsTrigger
-                value="restaurants"
-                className="px-4 py-2 text-sm font-medium transition-colors data-[state=active]:bg-yellow-500 data-[state=active]:text-slate-900 hover:bg-yellow-600 data-[state=active]:hover:bg-yellow-600 data-[state=active]:shadow-sm"
-              >
-                Trending Eats
-              </TabsTrigger>
-              <TabsTrigger
-                value="editorPicks"
-                className="px-4 py-2 text-sm font-medium transition-colors data-[state=active]:bg-yellow-500 data-[state=active]:text-slate-900 hover:bg-yellow-600 data-[state=active]:hover:bg-yellow-600 data-[state=active]:shadow-sm"
-              >
-                Editor's Picks
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
 
         {loading && <p className="text-center text-gray-600">Loading...</p>}
         {error && <p className="text-center text-red-500">{error}</p>}
-        {!loading && !error && currentListings.length === 0 && (
+        {!loading && !error && hotelsData.length === 0 && (
           <p className="text-center text-gray-600">
-            No listings found for this category.
+            No hotels found.
           </p>
         )}
 
         {/* Mobile Carousel */}
         <div className="md:hidden overflow-x-auto pb-4">
           <div className="flex space-x-4 w-max">
-            {currentListings.map((item) => (
+            {hotelsData.map((item) => (
               <motion.div
                 key={item.id}
                 className="w-48 flex-shrink-0"
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <ListingCard item={item} activeTab={activeTab} />
+                <ListingCard item={item} />
               </motion.div>
             ))}
           </div>
@@ -207,13 +74,13 @@ const TopHighlightsSection = () => {
 
         {/* Desktop Grid */}
         <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {currentListings.map((item) => (
+          {hotelsData.map((item) => (
             <motion.div
               key={item.id}
               whileHover={{ y: -5 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <ListingCard item={item} activeTab={activeTab} />
+              <ListingCard item={item} />
             </motion.div>
           ))}
         </div>
@@ -222,7 +89,7 @@ const TopHighlightsSection = () => {
   );
 };
 
-const ListingCard = ({ item, activeTab }) => {
+const ListingCard = ({ item }) => {
   const [isFavorite, setIsFavorite] = useState(false);
 
   // Determine image URL based on the item structure
@@ -231,20 +98,12 @@ const ListingCard = ({ item, activeTab }) => {
       ? item.photoUrls
       : "https://via.placeholder.com/400x300?text=No+Image";
 
-  // Determine title and type/description based on activeTab
-  let id = item.id;
-  let title = item.name;
-  let typeOrDescription = "";
-  let location = item.district || item.address;
-  let priceDisplay = item.lowestPrice || item.price || null;
-
-  if (activeTab === "hotels") {
-    typeOrDescription = item.hotelType || item.description;
-  } else if (activeTab === "restaurants") {
-    typeOrDescription = item.type || item.description;
-  } else if (activeTab === "editorPicks") {
-    typeOrDescription = item.hotelType || item.type || item.description;
-  }
+  // Hotel-specific data
+  const id = item.id;
+  const title = item.name;
+  const typeOrDescription = item.hotelType || item.description;
+  const location = item.district || item.address;
+  const priceDisplay = item.lowestPrice || item.price || null;
 
   // Determine price display message
   const getPriceDisplay = () => {
