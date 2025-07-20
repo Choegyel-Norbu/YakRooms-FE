@@ -37,71 +37,19 @@ import { useAuth } from "@/services/AuthProvider";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-// YakRooms Logo Component
-const YakRoomsLogo = ({ size = "default" }) => {
-  const dimensions = {
-    small: { width: 140, height: 36 },
-    default: { width: 170, height: 44 },
-    large: { width: 200, height: 52 }
+// YakRooms Text Logo Component
+const YakRoomsText = ({ size = "default" }) => {
+  const textSizes = {
+    small: "text-lg font-bold",
+    default: "text-xl font-bold",
+    large: "text-2xl font-bold"
   };
 
-  const { width, height } = dimensions[size];
-  const scale = height / 80; // Original SVG height is 80
-
   return (
-    <svg 
-      width={width} 
-      height={height} 
-      viewBox="0 0 200 80" 
-      xmlns="http://www.w3.org/2000/svg"
-      className="flex-shrink-0"
-    >
-      <defs>
-        <linearGradient id="mountainGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" style={{stopColor:"#3B82F6", stopOpacity:1}} />
-          <stop offset="100%" style={{stopColor:"#1E40AF", stopOpacity:1}} />
-        </linearGradient>
-        
-        <linearGradient id="yakGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" style={{stopColor:"#374151", stopOpacity:1}} />
-          <stop offset="100%" style={{stopColor:"#1F2937", stopOpacity:1}} />
-        </linearGradient>
-        
-        <linearGradient id="roofGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" style={{stopColor:"#EAB308", stopOpacity:1}} />
-          <stop offset="100%" style={{stopColor:"#CA8A04", stopOpacity:1}} />
-        </linearGradient>
-      </defs>
-      
-      <circle cx="40" cy="40" r="35" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="2"/>
-      <path d="M 15 50 L 25 30 L 35 40 L 45 25 L 55 35 L 65 50 Z" fill="url(#mountainGradient)" opacity="0.7"/>
-      <rect x="30" y="35" width="20" height="15" fill="#8B5CF6" rx="1"/>
-      <path d="M 25 35 L 40 25 L 55 35 Z" fill="url(#roofGradient)"/>
-      <rect x="38" y="25" width="4" height="3" fill="#CA8A04" rx="1"/>
-      <rect x="37" y="42" width="6" height="8" fill="#7C3AED" rx="1"/>
-      <rect x="32" y="38" width="3" height="3" fill="#60A5FA" rx="0.5"/>
-      <rect x="45" y="38" width="3" height="3" fill="#60A5FA" rx="0.5"/>
-      <ellipse cx="20" cy="45" rx="6" ry="3" fill="url(#yakGradient)"/>
-      <ellipse cx="17" cy="43" rx="2" ry="2" fill="url(#yakGradient)"/>
-      <path d="M 15 42 Q 14 40 16 41" stroke="#374151" strokeWidth="1" fill="none"/>
-      <path d="M 18 42 Q 19 40 17 41" stroke="#374151" strokeWidth="1" fill="none"/>
-      <circle cx="16" cy="42" r="0.5" fill="#1F2937"/>
-      
-      <text x="90" y="35" fontFamily="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontSize="24" fontWeight="700" fill="#1E40AF">
-        Yak
-      </text>
-      <text x="130" y="35" fontFamily="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontSize="24" fontWeight="700" fill="#EAB308">
-        Rooms
-      </text>
-      
-      <text x="90" y="50" fontFamily="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fontSize="9" fontWeight="400" fill="#6B7280">
-        Authentic Bhutanese Hospitality
-      </text>
-      
-      <circle cx="165" cy="25" r="2" fill="#EAB308" opacity="0.6"/>
-      <circle cx="175" cy="30" r="1.5" fill="#3B82F6" opacity="0.5"/>
-      <circle cx="185" cy="20" r="1" fill="#8B5CF6" opacity="0.7"/>
-    </svg>
+    <div className={`${textSizes[size]} font-sans tracking-tight`}>
+      <span className="text-blue-600">Yak</span>
+      <span className="text-yellow-500">Rooms</span>
+    </div>
   );
 };
 
@@ -313,10 +261,10 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
         paddingRight: scrollbarWidth,
       }}
     >
-      <div className="container mx-auto">
+      <div className="w-full px-4 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center text-primary">
-            <YakRoomsLogo size="default" />
+            <YakRoomsText size="default" />
           </Link>
 
           <nav className="hidden md:flex items-center gap-2">
@@ -352,8 +300,8 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
             <div className="md:hidden">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Menu className="h-6 w-6" />
+                  <Button variant="ghost" size="icon" className="h-14 w-14 sm:h-12 sm:w-12">
+                    <Menu className="h-8 w-8 sm:h-7 sm:w-7" />
                     <span className="sr-only">Toggle menu</span>
                   </Button>
                 </SheetTrigger>
@@ -365,7 +313,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                         className="flex items-center gap-3"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <YakRoomsLogo size="small" />
+                        <YakRoomsText size="small" />
                       </Link>
                     </SheetTitle>
                   </SheetHeader>
