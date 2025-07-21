@@ -13,8 +13,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-// import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -54,22 +52,12 @@ const RoomManager = () => {
   const { hotelId } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
-  const [verifyAlert, setVerifyAlert] = useState(false);
   const [roomAdded, setRoomAdded] = useState(false);
-  const [error, setError] = useState(null);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(null);
   const formRef = useRef(null);
-
-  // Debug hotelId changes
-  useEffect(() => {
-    console.log("=== RoomManager hotelId changed ===");
-    console.log("hotelId from useAuth():", hotelId);
-    console.log("typeof hotelId:", typeof hotelId);
-    console.log("localStorage hotelId:", localStorage.getItem("hotelId"));
-  }, [hotelId]);
 
   // Form state
   const [roomForm, setRoomForm] = useState({
@@ -152,21 +140,14 @@ const RoomManager = () => {
         setRooms(response.data);
       } catch (err) {
         console.error("Error fetching rooms:", err);
-        setError("Failed to load rooms.");
         toast.error("Failed to load rooms");
       } finally {
         setLoading(false);
       }
     };
 
-    // Only fetch if hotelId is available
-    if (hotelId) {
-      fetchRooms();
-    } else {
-      console.log("No hotelId available, skipping room fetch");
-      setLoading(false);
-    }
-  }, [hotelId]); // Add hotelId as dependency
+    fetchRooms();
+  }, []);
 
   // Listen for localStorage changes
   useEffect(() => {
@@ -400,8 +381,7 @@ const RoomManager = () => {
         // Add new room to local state
         setRooms((prev) => [...prev, response.data]);
         setRoomAdded(true);
-        setVerifyAlert(true);
-        setTimeout(() => setVerifyAlert(false), 3000);
+        setTimeout(() => setRoomAdded(false), 3000);
       }
 
       cancelEdit();
@@ -450,37 +430,22 @@ const RoomManager = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Header - Mobile Friendly */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-semibold text-foreground">Room Management</h3>
-          <p className="hidden sm:block text-sm text-muted-foreground">Manage your hotel rooms and availability</p>
+          <p className="text-sm text-muted-foreground">Manage your hotel rooms and availability</p>
         </div>
-        <Button 
-          onClick={() => { setShowForm(true); setEditingRoom(null); }}
-          className="w-full sm:w-auto"
-        >
+        <Button onClick={() => { setShowForm(true); setEditingRoom(null); }}>
           <Plus className="mr-2 h-4 w-4" />
           Add Room
         </Button>
       </div>
 
-      {/* Success/Error Alert */}
-      {verifyAlert && (
-        <Alert className={roomAdded ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
-          <Check className={`h-4 w-4 ${roomAdded ? "text-green-600" : "text-red-600"}`} />
-          <AlertDescription className={roomAdded ? "text-green-800" : "text-red-800"}>
-            {roomAdded
-              ? "Room added successfully!"
-              : "Something went wrong. Please try again later."}
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Room Form Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingRoom ? "Edit Room" : "Add New Room"}
@@ -490,7 +455,7 @@ const RoomManager = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} ref={formRef} className="space-y-4 sm:space-y-6">
+          <form onSubmit={handleSubmit} ref={formRef} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Room Type */}
               <div className="space-y-2">
@@ -554,18 +519,16 @@ const RoomManager = () => {
                 )}
               </div>
 
-              {/* Available Status */}
-              <div className="space-y-2">
-                <Label htmlFor="available" className="flex items-center space-x-2">
-                  <Checkbox
-                    id="available"
-                    checked={roomForm.available}
-                    onCheckedChange={(checked) =>
-                      setRoomForm({ ...roomForm, available: checked })
-                    }
-                  />
-                  <span>Available for booking</span>
-                </Label>
+              {/* Availability */}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="available"
+                  checked={roomForm.available}
+                  onCheckedChange={(checked) => 
+                    setRoomForm(prev => ({ ...prev, available: checked }))
+                  }
+                />
+                <Label htmlFor="available">Available for booking</Label>
               </div>
             </div>
 
@@ -577,10 +540,9 @@ const RoomManager = () => {
               <Textarea
                 id="description"
                 name="description"
+                rows={3}
                 value={roomForm.description}
                 onChange={handleInputChange}
-                placeholder="Describe the room, its features, and any special amenities..."
-                rows={3}
                 className={errors.description ? "border-destructive" : ""}
               />
               {errors.description && (
@@ -588,93 +550,101 @@ const RoomManager = () => {
               )}
             </div>
 
+            {/* Room Images */}
+            <div className="space-y-4">
+              <Label>
+                Room Images <span className="text-destructive">*</span>
+              </Label>
+
+              {/* Image Preview */}
+              {roomForm.images.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {roomForm.images.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={image.url}
+                        alt={`Room ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg border"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                        onClick={() => removeImage(index)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Upload Area */}
+              <Card className="border-dashed border-2 hover:border-primary transition-colors cursor-pointer">
+                <CardContent className="flex flex-col items-center justify-center p-6">
+                  <Label htmlFor="imageUpload" className="cursor-pointer flex flex-col items-center">
+                    <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                    <span className="text-sm text-muted-foreground">
+                      Upload room images (max 5)
+                    </span>
+                    <Input
+                      id="imageUpload"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </Label>
+                </CardContent>
+              </Card>
+              {errors.images && (
+                <p className="text-sm text-destructive">{errors.images}</p>
+              )}
+            </div>
+
             {/* Amenities */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               <Label>Amenities</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {standardAmenities.map((amenity) => {
                   const Icon = amenity.icon;
-                  const isSelected = roomForm.amenities.includes(amenity.name);
+                  const isSelected = roomForm.amenities.some((a) => a.id === amenity.id);
                   return (
-                    <div
+                    <Card
                       key={amenity.id}
-                      className={`flex items-center space-x-2 p-2 rounded-lg border cursor-pointer transition-colors ${
+                      className={`cursor-pointer transition-colors ${
                         isSelected
-                          ? "bg-primary/10 border-primary/30 text-primary"
-                          : "bg-background border-border hover:bg-accent"
+                          ? "border-primary bg-primary/5"
+                          : "hover:bg-accent"
                       }`}
-                      onClick={() => toggleAmenity(amenity.name)}
+                      onClick={() => toggleAmenity(amenity)}
                     >
-                      <Icon className="h-4 w-4" />
-                      <span className="text-sm">{amenity.name}</span>
-                    </div>
+                      <CardContent className="flex items-center p-3">
+                        <Icon className={`h-4 w-4 mr-2 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                        <span className="text-sm">{amenity.name}</span>
+                      </CardContent>
+                    </Card>
                   );
                 })}
               </div>
             </div>
 
-            {/* Image Upload */}
-            <div className="space-y-3">
-              <Label>Room Images</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {roomForm.images.map((image, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={image}
-                      alt={`Room ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-                {roomForm.images.length < 6 && (
-                  <label className="border-2 border-dashed border-border rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
-                    <Upload className="h-6 w-6 text-muted-foreground mb-2" />
-                    <span className="text-sm text-muted-foreground">Upload Image</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                  </label>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Upload up to 6 images. Supported formats: JPG, PNG, GIF
-              </p>
-            </div>
-
-            <DialogFooter className="flex flex-col sm:flex-row gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setShowForm(false);
-                  cancelEdit();
-                }}
-                className="w-full sm:w-auto"
-              >
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={cancelEdit} disabled={isSubmitting}>
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full sm:w-auto"
-              >
+              <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? (
-                  <div className="flex items-center">
+                  <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
                     {editingRoom ? "Updating..." : "Adding..."}
-                  </div>
+                  </>
+                ) : editingRoom ? (
+                  "Update Room"
                 ) : (
-                  editingRoom ? "Update Room" : "Add Room"
+                  "Add Room"
                 )}
               </Button>
             </DialogFooter>
@@ -682,100 +652,88 @@ const RoomManager = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Rooms Table - Mobile Responsive */}
+      {/* Rooms Table */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base sm:text-lg">All Rooms</CardTitle>
+        <CardHeader>
+          <CardTitle>All Rooms</CardTitle>
         </CardHeader>
-        <CardContent className="p-0 sm:p-6">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-xs sm:text-sm">Room No.</TableHead>
-                  <TableHead className="text-xs sm:text-sm">Type</TableHead>
-                  <TableHead className="hidden sm:table-cell text-xs sm:text-sm">Description</TableHead>
-                  <TableHead className="text-xs sm:text-sm">Price</TableHead>
-                  <TableHead className="hidden md:table-cell text-xs sm:text-sm">Amenities</TableHead>
-                  <TableHead className="text-xs sm:text-sm">Status</TableHead>
-                  <TableHead className="text-xs sm:text-sm">Actions</TableHead>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Room No.</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Amenities</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rooms.map((room) => (
+                <TableRow key={room.id}>
+                  <TableCell className="font-medium">{room.roomNumber}</TableCell>
+                  <TableCell>{room.roomType}</TableCell>
+                  <TableCell className="max-w-xs truncate">{room.description}</TableCell>
+                  <TableCell>Nu {room.price?.toFixed(2)}</TableCell>
+                  <TableCell className="max-w-xs truncate">
+                    {Array.isArray(room.amenities)
+                      ? room.amenities.join(", ")
+                      : room.amenities}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={room.available ? "default" : "destructive"}>
+                      {room.available ? "Available" : "Not Available"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => startEdit(room)}
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            disabled={isDeleting === room.id}
+                          >
+                            {isDeleting === room.id ? (
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                            ) : (
+                              <Trash2 className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the room
+                              and remove all associated data.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(room.id)}>
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rooms.map((room) => (
-                  <TableRow key={room.id}>
-                    <TableCell className="font-medium text-xs sm:text-sm">{room.roomNumber}</TableCell>
-                    <TableCell className="text-xs sm:text-sm">{room.roomType}</TableCell>
-                    <TableCell className="hidden sm:table-cell text-xs sm:text-sm max-w-xs truncate">{room.description}</TableCell>
-                    <TableCell className="text-xs sm:text-sm">Nu {room.price?.toFixed(2)}</TableCell>
-                    <TableCell className="hidden md:table-cell text-xs sm:text-sm max-w-xs truncate">
-                      {Array.isArray(room.amenities)
-                        ? room.amenities.join(", ")
-                        : room.amenities}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={room.available ? "default" : "destructive"} className="text-xs">
-                        {room.available ? "Available" : "Not Available"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-1 sm:space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => startEdit(room)}
-                          className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              disabled={isDeleting === room.id}
-                              className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-                            >
-                              {isDeleting === room.id ? (
-                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
-                              ) : (
-                                <Trash2 className="h-3 w-3" />
-                              )}
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the room
-                                and remove all associated data.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(room.id)}>
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
-
-      {/* Error Alert */}
-      {error && (
-        <Alert variant="destructive">
-          <X className="h-4 w-4" />
-          {/* <AlertDescription>{error}</AlertDescription> */}
-        </Alert>
-      )}
     </div>
   );
 };
