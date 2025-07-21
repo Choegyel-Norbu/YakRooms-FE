@@ -434,7 +434,7 @@ const RoomManager = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-semibold text-foreground">Room Management</h3>
+          {/* <h3 className="text-lg font-semibold text-foreground">Room Management</h3> */}
           <p className="text-sm text-muted-foreground">Manage your hotel rooms and availability</p>
         </div>
         <Button onClick={() => { setShowForm(true); setEditingRoom(null); }}>
