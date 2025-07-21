@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }) => {
         registerFlag: Boolean(authData.flag),
         clientDetailSet: Boolean(authData.detailSet),
         flag: true,
-        hotelId: existingHotelId, // Preserve hotelId
+        hotelId: authData.hotelId || existingHotelId || null,
       });
 
       if (!flag) {
