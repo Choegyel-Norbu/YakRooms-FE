@@ -14,6 +14,8 @@ const defaultAuthState = {
   pictureURL: "",
   userId: "",
   flag: false,
+  hotelId: null, // Added this
+
 };
 
 export const AuthProvider = ({ children }) => {
@@ -35,6 +37,8 @@ export const AuthProvider = ({ children }) => {
         pictureURL: localStorage.getItem("pictureURL") || "",
         userId: localStorage.getItem("userId") || "",
         flag: false,
+        hotelId: localStorage.getItem("hotelId") || null, // Added this
+
       };
     } catch (error) {
       console.error("Failed to read from localStorage", error);
@@ -72,6 +76,9 @@ export const AuthProvider = ({ children }) => {
         Boolean(authData.detailSet).toString()
       );
 
+      // Preserve existing hotelId from localStorage
+      const existingHotelId = localStorage.getItem("hotelId");
+
       setAuthState({
         isAuthenticated: true,
         token: authData.token,
@@ -83,6 +90,7 @@ export const AuthProvider = ({ children }) => {
         registerFlag: Boolean(authData.flag),
         clientDetailSet: Boolean(authData.detailSet),
         flag: true,
+        hotelId: existingHotelId, // Preserve hotelId
       });
 
       if (!flag) {
@@ -90,6 +98,40 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Failed to save auth data", error);
+    }
+  };
+
+   // Simple function to set hotelId
+   const setHotelId = (hotelId) => {
+    try {
+      console.log("Setting hotelId in AuthProvider:", hotelId);
+      const hotelIdString = hotelId?.toString() || null;
+      localStorage.setItem("hotelId", hotelIdString);
+      setAuthState((prev) => {
+        const newState = {
+          ...prev,
+          hotelId: hotelIdString,
+        };
+        console.log("New auth state with hotelId:", newState);
+        return newState;
+      });
+      console.log("Hotel ID set in AuthProvider:", hotelIdString);
+    } catch (error) {
+      console.error("Failed to set hotelId", error);
+    }
+  };
+
+  // Function to set role
+  const setRole = (role) => {
+    try {
+      localStorage.setItem("role", role);
+      setAuthState((prev) => ({
+        ...prev,
+        role,
+      }));
+      console.log("Role set in AuthProvider:", role);
+    } catch (error) {
+      console.error("Failed to set role", error);
     }
   };
 
@@ -104,7 +146,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ ...authState, login, logout }}>
+    <AuthContext.Provider value={{ ...authState, login, logout, setHotelId, setRole }}>
       {children}
     </AuthContext.Provider>
   );

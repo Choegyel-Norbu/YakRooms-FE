@@ -41,7 +41,7 @@ import { useAuth } from "../services/AuthProvider.jsx";
 
 const AddListingPage = () => {
   const [step, setStep] = useState(1);
-  const { email, userId } = useAuth();
+  const { email, userId, setHotelId, setRole } = useAuth();
   const [listingType, setListingType] = useState("");
   const [formData, setFormData] = useState({
     name: "",
@@ -349,10 +349,11 @@ const AddListingPage = () => {
       const res = await api.post(`/hotels/${userId}`, updatedFormData);
 
       if (res.status === 200) {
+        setHotelId(res.data.id);
+        setRole('HOTEL_ADMIN');
         toast.success("Hotel Verified", {
           description: "The hotel has been successfully verified.",
         });
-        localStorage.setItem("hotelId", res.data.id.toString());
       }
 
       setIsSubmitted(true);
