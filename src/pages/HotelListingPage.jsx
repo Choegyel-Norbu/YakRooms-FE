@@ -579,7 +579,7 @@ const HotelListingPage = () => {
                           <div>
                             <p className="text-sm text-muted-foreground">Starting from</p>
                             <p className="text-xl font-bold text-primary">
-                              Nu. {new Intl.NumberFormat('en-IN').format(hotel.price)}
+                              Nu. {hotel.lowestPrice}
                               <span className="text-sm font-normal text-muted-foreground ml-1">
                                 /night
                               </span>

@@ -42,6 +42,7 @@ import { Separator } from "@/components/ui/separator";
 // YakRooms Text Logo Component
 const YakRoomsText = ({ size = "default" }) => {
   const textSizes = {
+    // Optimized mobile-first text sizes
     small: "text-lg font-bold",
     default: "text-xl font-bold",
     large: "text-2xl font-bold"
@@ -173,33 +174,41 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
   );
 
   const ContactSection = () => (
-    <div className="space-y-3 pt-4 border-t">
-      <div className="px-3 pb-2">
+    // Reduced top padding for mobile spacing
+    <div className="space-y-3 pt-3 border-t">
+      {/* Fixed uniform left padding */}
+      <div className="px-6 pb-1">
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           Contact & Support
         </h3>
       </div>
       
       {/* Contact Card */}
-      <div className="mx-3 p-4 rounded-lg bg-gradient-to-br from-blue-50 to-yellow-50 border border-blue-100 dark:from-blue-950/20 dark:to-yellow-950/20 dark:border-blue-800/30">
-        <div className="flex items-start space-x-3">
+      {/* Fixed uniform horizontal margin for mobile edge breathing room */}
+      <div className="mx-6 p-3 rounded-lg bg-gradient-to-br from-blue-50 to-yellow-50 border border-blue-100 dark:from-blue-950/20 dark:to-yellow-950/20 dark:border-blue-800/30">
+        {/* Reduced spacing between avatar and content */}
+        <div className="flex items-start space-x-2">
           <div className="flex-shrink-0">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-yellow-500 flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">C</span>
+            {/* Slightly smaller avatar for mobile */}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-yellow-500 flex items-center justify-center">
+              <span className="text-white font-semibold text-xs">C</span>
             </div>
           </div>
           <div className="flex-1 min-w-0">
+            {/* Mobile-optimized text size */}
             <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
               Chogyal Norbu
             </h4>
             <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
               chogyalnorbu973@gmail.com
             </p>
-            <div className="flex items-center gap-2 mt-2">
+            {/* Reduced gap and margin for mobile */}
+            <div className="flex items-center gap-1.5 mt-1.5">
               <Button
                 size="sm"
                 variant="outline"
-                className="h-7 px-2 text-xs border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950/30"
+                // Smaller button height for mobile
+                className="h-6 px-2 text-xs border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950/30"
                 onClick={() => {
                   window.location.href = 'mailto:chogyalnorbu973@gmail.com';
                   setIsMobileMenuOpen(false);
@@ -211,7 +220,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
               <Button
                 size="sm"
                 variant="outline"
-                className="h-7 px-2 text-xs border-yellow-200 text-yellow-600 hover:bg-yellow-50 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-950/30"
+                className="h-6 px-2 text-xs border-yellow-200 text-yellow-600 hover:bg-yellow-50 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-950/30"
                 onClick={() => {
                   onContactClick && onContactClick();
                   setIsMobileMenuOpen(false);
@@ -226,11 +235,13 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
       </div>
 
       {/* Quick Contact Options */}
-      <div className="space-y-1 px-3">
+      {/* Fixed uniform left padding */}
+      <div className="space-y-0.5 px-6">
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start h-8 text-xs text-muted-foreground hover:text-primary"
+          // Smaller button height for mobile
+          className="w-full justify-start h-7 text-xs text-muted-foreground hover:text-primary"
           onClick={() => {
             window.location.href = 'tel:+97517123456'; // Add actual phone number
             setIsMobileMenuOpen(false);
@@ -244,8 +255,10 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
       {/* Logout Button */}
       {isAuthenticated && (
         <>
-          <Separator className="mx-3" />
-          <div className="px-3">
+          {/* Fixed uniform horizontal margin */}
+          <Separator className="mx-6" />
+          {/* Fixed uniform left padding */}
+          <div className="px-6">
             <Button
               variant="ghost"
               className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -266,13 +279,16 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
   const MobileUserSection = () => {
     if (!isAuthenticated) {
       return (
-        <div className="space-y-3">
-          <div className="px-3 pb-2">
+        // Reduced vertical spacing
+        <div className="space-y-2">
+          {/* Fixed uniform left padding */}
+          <div className="px-6 pb-1">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Account
             </h3>
           </div>
-          <div className="space-y-2 px-3">
+          {/* Fixed uniform left padding */}
+          <div className="space-y-1.5 px-6">
             <Button 
               variant="ghost" 
               className="w-full justify-start" 
@@ -299,15 +315,19 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
     }
 
     return (
-      <div className="space-y-4">
-        <div className="px-3 pb-2">
+      // Reduced vertical spacing
+      <div className="space-y-3">
+        {/* Fixed uniform left padding */}
+        <div className="px-6 pb-1">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Account
           </h3>
         </div>
         
-        <div className="flex items-center space-x-3 px-3 py-3 rounded-lg bg-muted/50 mx-3">
-          <Avatar className="h-10 w-10 border-2 border-primary">
+        {/* Fixed uniform horizontal margin for mobile breathing room */}
+        <div className="flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-muted/50 mx-6">
+          {/* Slightly smaller avatar for mobile */}
+          <Avatar className="h-9 w-9 border-2 border-primary">
             <AvatarImage src={""} alt={userName} />
             <AvatarFallback className="bg-primary text-primary-foreground">
               {userName?.charAt(0).toUpperCase()}
@@ -319,13 +339,15 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           </div>
         </div>
 
-        <div className="space-y-1 px-3">
+        {/* Fixed uniform left padding */}
+        <div className="space-y-0.5 px-6">
           {(role === "HOTEL_ADMIN" || role === "SUPER_ADMIN") && (
             <>
               <SheetClose asChild>
                 <Link
                   to={role === "HOTEL_ADMIN" ? "/hotelAdmin" : "/adminDashboard"}
-                  className="flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group"
+                  // Reduced vertical padding for mobile
+                  className="flex items-center justify-between px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group"
                 >
                   <div className="flex items-center">
                     <LayoutDashboard className="mr-3 h-4 w-4" />
@@ -334,7 +356,8 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                   <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </SheetClose>
-              <Separator className="my-2" />
+              {/* Reduced margin */}
+              <Separator className="my-1.5" />
             </>
           )}
         </div>
@@ -356,8 +379,10 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
         paddingRight: scrollbarWidth,
       }}
     >
-      <div className="w-full px-4 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+      {/* Mobile-optimized container padding */}
+      <div className="w-full px-3 lg:px-8">
+        {/* Slightly reduced navbar height for mobile */}
+        <div className="flex h-14 sm:h-16 items-center justify-between">
           <Link to="/" className="flex items-center text-primary">
             <YakRoomsText size="default" />
           </Link>
@@ -395,13 +420,16 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
             <div className="md:hidden">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-14 w-14 sm:h-12 sm:w-12">
-                    <Menu className="h-8 w-8 sm:h-7 sm:w-7" />
+                  {/* Optimized mobile menu button size */}
+                  <Button variant="ghost" size="icon" className="h-10 w-10">
+                    <Menu className="h-6 w-6" />
                     <span className="sr-only">Toggle menu</span>
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[320px] sm:w-[380px] flex flex-col">
-                  <SheetHeader className="border-b pb-4">
+                {/* Reduced mobile sheet width for better mobile experience */}
+                <SheetContent side="right" className="w-[300px] sm:w-[320px] flex flex-col">
+                  {/* Reduced header padding */}
+                  <SheetHeader className="border-b pb-3">
                     <SheetTitle>
                       <Link
                         to="/"
@@ -413,11 +441,14 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                     </SheetTitle>
                   </SheetHeader>
 
-                  <div className="flex-1 py-6">
+                  {/* Removed main content padding to eliminate space between header and account section */}
+                  <div className="flex-1">
                     <MobileUserSection />
                     
-                    <nav className="space-y-2 pt-6">
-                      <div className="px-3 pb-2">
+                    {/* Reduced navigation spacing */}
+                    <nav className="space-y-1.5 pt-4">
+                      {/* Fixed uniform left padding */}
+                      <div className="px-6 pb-1">
                         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                           Navigation
                         </h3>
@@ -426,10 +457,12 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                         <SheetClose key={link.name} asChild>
                           <Link
                             to={link.path}
-                            className="flex items-center justify-between px-3 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group mx-3"
+                            // Fixed uniform horizontal margin for mobile
+                            className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group mx-6"
                           >
                             <div className="flex items-center">
-                              <div className="p-2 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
+                              {/* Reduced icon container padding */}
+                              <div className="p-1.5 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
                                 <link.icon className="h-4 w-4 group-hover:text-primary transition-colors" />
                               </div>
                               <div>
@@ -446,7 +479,9 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                     <ContactSection />
                   </div>
 
-                  <div className="border-t pt-4">
+                  {/* Reduced footer padding */}
+                  <div className="border-t pt-3">
+                    {/* Reduced padding and margin for mobile */}
                     <div className="px-3 py-2 bg-muted/30 rounded-lg mx-3">
                       <div className="flex items-center justify-between">
                         <div>

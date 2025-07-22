@@ -42,8 +42,10 @@ const TopHighlightsSection = () => {
   }, []);
 
   return (
+    // Adjusted for consistent section padding and width across sizes
     <section className="py-5 lg:py-12 lg:mt-10 px-4 lg:px-8 lg:w-[70%] m-auto">
       <div className="container mx-auto">
+        {/* Adjusted heading size for better hierarchy */}
         <h3 className="text-center text-3xl font-bold mb-8 text-gray-900">
           Top Listed Hotels
         </h3>
@@ -56,13 +58,15 @@ const TopHighlightsSection = () => {
           </p>
         )}
 
-        {/* Mobile Carousel */}
+        {/* Mobile Carousel - Now with fixed card width for consistency */}
         <div className="md:hidden overflow-x-auto pb-4">
-          <div className="flex space-x-4 w-max">
+          {/* Added horizontal padding for consistent breathing room on mobile */}
+          <div className="flex space-x-4 w-max px-4">
             {hotelsData.map((item) => (
               <motion.div
                 key={item.id}
-                className="w-48 flex-shrink-0"
+                // Ensured consistent card width across all screen sizes
+                className="w-72 flex-shrink-0" // Keeping consistent with the desired large card size
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
@@ -72,17 +76,23 @@ const TopHighlightsSection = () => {
           </div>
         </div>
 
-        {/* Desktop Grid */}
-        <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {hotelsData.map((item) => (
-            <motion.div
-              key={item.id}
-              whileHover={{ y: -5 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <ListingCard item={item} />
-            </motion.div>
-          ))}
+        {/* Desktop Grid - Now with fixed card width for consistency and horizontal scroll on overflow */}
+        {/* Added overflow-x-auto for md and lg screens to enable horizontal scrolling if content exceeds layout */}
+        <div className="hidden md:block overflow-x-auto">
+          {/* Adjusted grid for responsiveness, gap, and centering */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-none justify-items-center md:w-max md:mx-auto"> {/* Added md:w-max and md:mx-auto to allow content to dictate width and center if wider than viewport */}
+            {hotelsData.map((item) => (
+              <motion.div
+                key={item.id}
+                // Ensured consistent card width across all screen sizes
+                className="w-72" // Keeping consistent with the desired large card size
+                whileHover={{ y: -5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <ListingCard item={item} />
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -122,9 +132,11 @@ const ListingCard = ({ item }) => {
   };
 
   return (
+    // Ensured consistent card height and shadow for visual appeal
     <Card className="h-full flex flex-col overflow-hidden shadow-md hover:shadow-lg transition-shadow rounded-xl border border-gray-100">
       <CardHeader className="p-0 flex-grow-0">
-        <div className="relative h-32 w-full">
+        {/* Adjusted image height to be consistent with larger card size */}
+        <div className="relative h-44 w-full"> {/* Increased height from h-32 to h-44 for consistency */}
           <img
             src={imageUrl}
             alt={title}
@@ -134,7 +146,8 @@ const ListingCard = ({ item }) => {
             variant="ghost"
             size="icon"
             onClick={() => setIsFavorite(!isFavorite)}
-            className="absolute top-1 right-1 p-1 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+            // Adjusted positioning and padding of favorite button for consistency
+            className="absolute top-3 right-3 p-1.5 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
           >
             <HeartIcon
               className={`h-4 w-4 ${
@@ -145,32 +158,40 @@ const ListingCard = ({ item }) => {
             />
           </Button>
           {item.tag && (
-            <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded-md bg-yellow-500 text-slate-900 text-xs font-bold">
+            // Adjusted positioning and padding of tag for consistency
+            <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-md bg-yellow-500 text-slate-900 text-xs font-bold">
               {item.tag}
             </div>
           )}
         </div>
       </CardHeader>
+      {/* Adjusted content padding for better visual spacing */}
       <CardContent className="p-3 flex-grow">
+        {/* Adjusted title font size for consistency */}
         <CardTitle className="mb-0.5 text-base font-semibold text-gray-900 line-clamp-1">
           {title}
         </CardTitle>
-        <CardDescription className="text-xs text-gray-600 mb-1 line-clamp-1">
+        {/* Adjusted description font size for consistency */}
+        <CardDescription className="text-sm text-gray-600 mb-1 line-clamp-1">
           {typeOrDescription}
         </CardDescription>
-        <div className="flex items-center text-gray-600">
-          <MapPinIcon className="h-3 w-3 mr-1" />
-          <p className="text-xs line-clamp-1">{location}</p>
+        {/* Adjusted map icon and location text sizes for consistency */}
+        <div className="flex items-center text-gray-600 mb-1">
+          <MapPinIcon className="h-3.5 w-3.5 mr-1" /> {/* Increased icon size */}
+          <p className="text-sm line-clamp-1">{location}</p> {/* Increased text size */}
         </div>
       </CardContent>
+      {/* Adjusted footer padding for consistent spacing */}
       <CardFooter className="p-3 border-t bg-gray-50">
         <div className="w-full flex justify-between items-center">
-          <p className="text-14 text-gray-900">
+          {/* Adjusted price display font size for consistency */}
+          <p className="text-sm text-gray-900"> {/* Changed from text-14 to text-sm */}
             {getPriceDisplay()}
           </p>
+          {/* Adjusted button padding and text size for consistency */}
           <Button
             size="sm"
-            className="bg-yellow-500 hover:bg-yellow-600 text-slate-900 rounded-full px-3 py-1.5 text-xs cursor-pointer"
+            className="bg-yellow-500 hover:bg-yellow-600 text-slate-900 rounded-full px-4 py-2 text-sm cursor-pointer" // Increased px and py for larger button
           >
             <Link to={`/hotel/${id}`}>View Details</Link>
           </Button>

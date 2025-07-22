@@ -245,7 +245,7 @@ const FeatureSection = () => {
         {/* Enhanced Bottom CTA */}
         <div className="text-center pt-12">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-gradient-to-r from-primary/5 to-yellow-500/5 rounded-2xl p-8 border border-border/50">
+            <div className="bg-gradient-to-r from-primary/5 to-yellow-500/5  p-8 border border-border/50">
               <div className="space-y-6">
                 <div className="flex items-center justify-center space-x-2">
                   <MapPin className="w-5 h-5 text-primary" />

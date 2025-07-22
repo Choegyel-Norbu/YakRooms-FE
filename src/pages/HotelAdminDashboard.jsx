@@ -125,15 +125,17 @@ const HotelAdminDashboard = () => {
     return (
       <Button
         variant={isActive ? "secondary" : "ghost"}
-        className={`w-full justify-start transition-colors text-sm sm:text-base ${
+        // Reduced padding for tighter mobile spacing
+        className={`w-full justify-start transition-colors py-2 px-3 text-sm ${
           isActive
             ? "bg-primary/10 text-primary hover:bg-primary/10"
             : "hover:bg-accent"
         }`}
         onClick={onClick}
       >
-        <Icon className="mr-2 sm:mr-3 h-4 w-4" />
-        <span className="text-xs sm:text-sm md:text-base">{item.label}</span>
+        {/* Consistent icon spacing for mobile */}
+        <Icon className="mr-2 h-4 w-4" />
+        <span className="text-sm">{item.label}</span>
         {isActive && (
           <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
         )}
@@ -144,9 +146,10 @@ const HotelAdminDashboard = () => {
   return (
     <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
-      <aside className="w-56 lg:w-64 bg-card shadow-sm hidden md:block border-r">
-        <div className="p-4 lg:p-6 border-b">
-          <div className="flex items-center gap-2 lg:gap-3 mb-3 lg:mb-4">
+      <aside className="w-56 lg:w-64 bg-card shadow-sm hidden md:block border-r flex flex-col">
+        {/* Reduced padding for desktop sidebar header */}
+        <div className="p-4 lg:p-5 border-b">
+          <div className="flex items-center gap-2 lg:gap-3 mb-3">
             <div className="p-1.5 lg:p-2 rounded-lg bg-primary/10">
               <Building2 className="h-5 w-5 lg:h-6 lg:w-6 text-primary" />
             </div>
@@ -155,16 +158,10 @@ const HotelAdminDashboard = () => {
               <p className="text-xs text-muted-foreground">Admin Panel</p>
             </div>
           </div>
-          
-          <Link to="/">
-            <Button variant="outline" size="sm" className="w-full text-xs lg:text-sm">
-              <ArrowLeft className="mr-2 h-3 w-3 lg:h-4 lg:w-4" />
-              Back to Website
-            </Button>
-          </Link>
         </div>
 
-        <nav className="p-3 lg:p-4">
+        {/* Reduced padding for desktop navigation - takes up remaining space */}
+        <nav className="p-3 lg:p-4 flex-1">
           <div className="space-y-1">
             {navigationItems.map((item) => (
               <NavigationButton
@@ -176,24 +173,41 @@ const HotelAdminDashboard = () => {
             ))}
           </div>
         </nav>
+
+        {/* Desktop back button moved to bottom with colorful styling */}
+        <div className="p-3 lg:p-4 border-t">
+          <Link to="/">
+            <Button variant="default" size="sm" className="w-full text-xs lg:text-sm bg-primary hover:bg-primary/90 text-primary-foreground">
+              <ArrowLeft className="mr-2 h-3 w-3 lg:h-4 lg:w-4" />
+              Back to Website
+            </Button>
+          </Link>
+        </div>
       </aside>
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
         {/* Top Header */}
         <header className="bg-card shadow-sm border-b sticky top-0 z-10">
-          <div className="px-3 sm:px-4 lg:px-6 py-3 lg:py-4">
+          {/* Reduced header padding for mobile - breathing room from edges */}
+          <div className="px-4 py-3 lg:px-6 lg:py-4">
             <div className="flex justify-between items-center">
-              <div className="space-y-0.5 lg:space-y-1 flex-1 min-w-0">
-                <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground truncate">
+              {/* Mobile-optimized typography hierarchy */}
+              <div className="space-y-0.5 flex-1 min-w-0">
+                {/* Optimized font size for mobile readability */}
+                <h2 className="text-xl sm:text-xl lg:text-2xl font-semibold text-foreground truncate">
                   {getPageTitle()}
                 </h2>
-                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
-                  {getPageDescription()}
-                </p>
+                {/* Hide description for dashboard tab to save space */}
+                {activeTab !== "dashboard" && (
+                  <p className="text-sm sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
+                    {getPageDescription()}
+                  </p>
+                )}
               </div>
 
-              <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+              {/* Adjusted spacing between header elements */}
+              <div className="flex items-center space-x-3 flex-shrink-0">
                 {/* Mobile Navigation Button */}
                 <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                   <SheetTrigger asChild>
@@ -201,43 +215,25 @@ const HotelAdminDashboard = () => {
                       <Menu className="h-4 w-4" />
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="w-[280px] p-0">
-                    <SheetHeader className="p-4 sm:p-6 border-b">
+                  <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
+                    {/* Mobile sidebar header with proper spacing */}
+                    <SheetHeader className="p-4 border-b">
                       <SheetTitle className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-primary/10">
                           <Building2 className="h-5 w-5 text-primary" />
                         </div>
                         <div>
+                          {/* Consistent mobile typography */}
                           <h1 className="text-lg font-bold text-foreground">YakRooms</h1>
                           <p className="text-xs text-muted-foreground">Admin Panel</p>
                         </div>
                       </SheetTitle>
                     </SheetHeader>
                     
-                    <div className="p-4">
-                      {/* User Profile Section in Mobile Sidebar */}
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 mb-4">
-                        <Avatar className="h-10 w-10 border-2 border-primary/20">
-                          <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                            {userName?.charAt(0).toUpperCase() || "U"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium leading-none truncate">{userName}</p>
-                          <p className="text-xs leading-none text-muted-foreground mt-1">
-                            Hotel Administrator
-                          </p>
-                        </div>
-                      </div>
-
-                      <Link to="/" className="block mb-4">
-                        <Button variant="outline" size="sm" className="w-full">
-                          <ArrowLeft className="mr-2 h-4 w-4" />
-                          Back to Website
-                        </Button>
-                      </Link>
-                      
-                      <nav className="space-y-1">
+                    {/* Mobile sidebar content with navigation */}
+                    <div className="flex-1 flex flex-col p-4">
+                      {/* Mobile navigation with tighter spacing */}
+                      <nav className="space-y-1 flex-1">
                         {navigationItems.map((item) => (
                           <NavigationButton
                             key={item.id}
@@ -250,6 +246,32 @@ const HotelAdminDashboard = () => {
                           />
                         ))}
                       </nav>
+
+                      {/* User info and home button moved to bottom */}
+                      <div className="space-y-3 mt-4 pt-4 border-t">
+                        {/* User Profile Section at bottom */}
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                          <Avatar className="h-9 w-9 border-2 border-primary/20">
+                            <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                              {userName?.charAt(0).toUpperCase() || "U"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium leading-none truncate">{userName}</p>
+                            <p className="text-xs leading-none text-muted-foreground mt-1">
+                              Hotel Administrator
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Back to website button at bottom - made colorful */}
+                        <Link to="/" className="block">
+                          <Button variant="default" size="sm" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back to Website
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
                   </SheetContent>
                 </Sheet>
@@ -291,15 +313,19 @@ const HotelAdminDashboard = () => {
         </header>
 
         {/* Dashboard Content */}
-        <main className="p-0 sm:p-4 lg:p-6 space-y-4 lg:space-y-6">
+        {/* Removed horizontal padding for content - full width layout */}
+        <main className="py-4 sm:p-4 lg:p-6 space-y-4">
           {activeTab === "dashboard" && (
-            <div className="space-y-4 lg:space-y-6">
+            // Reduced vertical spacing between dashboard elements
+            <div className="space-y-4">
               {/* Welcome Card */}
               <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-                <CardContent className="p-0 md:p-6">
+                {/* Optimized card content padding for mobile */}
+                <CardContent className="p-4 md:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1 truncate">
+                      {/* Mobile-optimized welcome text size */}
+                      <h3 className="text-lg sm:text-lg font-semibold text-foreground mb-1 truncate">
                         Welcome back, {userName}!
                       </h3>
                       <p className="text-sm text-muted-foreground">
@@ -317,13 +343,15 @@ const HotelAdminDashboard = () => {
 
               {/* Recent Bookings */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                <CardHeader className="p-4 md:p-6">
+                  {/* Consistent mobile heading size */}
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Calendar className="h-4 w-4 text-primary" />
                     Recent Bookings
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-0 md:p-6 pt-0">
+                {/* Removed card content padding to prevent horizontal scroll */}
+                <CardContent className="p-0 md:px-6 md:pb-6">
                   <div className="overflow-x-auto">
                     <BookingTable
                       hotelId={hotelId}
@@ -338,20 +366,22 @@ const HotelAdminDashboard = () => {
           )}
 
           {activeTab === "hotel" && hotel && (
-            <div className="space-y-4 lg:space-y-6">
+            // Consistent spacing for hotel section
+            <div className="space-y-4">
               <HotelInfoForm hotel={hotel} onUpdate={updateHotel} />
             </div>
           )}
 
           {activeTab === "rooms" && (
             <Card>
-              <CardHeader className="">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Bed className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              {/* Consistent card header padding */}
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Bed className="h-4 w-4 text-primary" />
                   Room Management
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 md:p-6 pt-0">
+              <CardContent className="p-0 md:px-6 md:pb-6">
                 <RoomManager />
               </CardContent>
             </Card>
@@ -359,18 +389,21 @@ const HotelAdminDashboard = () => {
 
           {activeTab === "inventory" && (
             <Card>
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Package className="h-4 w-4 text-primary" />
                   Room Inventory
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 md:p-6 pt-0">
-                <div className="text-center py-12 lg:py-16">
-                  <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-muted rounded-full flex items-center justify-center mb-3 sm:mb-4">
-                    <Package className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+              <CardContent className="p-4 md:px-6 md:pb-6">
+                {/* Reduced padding for mobile empty state */}
+                <div className="text-center py-8 lg:py-12">
+                  {/* Smaller icon for mobile */}
+                  <div className="mx-auto w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
+                    <Package className="h-6 w-6 text-muted-foreground" />
                   </div>
-                  <h3 className="text-base sm:text-lg font-medium text-foreground mb-2">
+                  {/* Optimized heading size for mobile */}
+                  <h3 className="text-lg font-medium text-foreground mb-2">
                     Inventory Tracking
                   </h3>
                   <p className="text-sm text-muted-foreground max-w-sm mx-auto px-4">
@@ -386,13 +419,13 @@ const HotelAdminDashboard = () => {
 
           {activeTab === "bookings" && (
             <Card>
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Calendar className="h-4 w-4 text-primary" />
                   All Bookings
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 md:p-6 pt-0">
+              <CardContent className="p-0 md:px-6 md:pb-6">
                 <div className="overflow-x-auto">
                   <BookingTable
                     hotelId={hotelId}
@@ -407,18 +440,19 @@ const HotelAdminDashboard = () => {
 
           {activeTab === "analytics" && (
             <Card>
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <PieChart className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <PieChart className="h-4 w-4 text-primary" />
                   Analytics & Reports
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 md:p-6 pt-0">
-                <div className="text-center py-12 lg:py-16">
-                  <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-muted rounded-full flex items-center justify-center mb-3 sm:mb-4">
-                    <PieChart className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+              <CardContent className="p-4 md:px-6 md:pb-6">
+                {/* Optimized empty state for mobile */}
+                <div className="text-center py-8 lg:py-12">
+                  <div className="mx-auto w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
+                    <PieChart className="h-6 w-6 text-muted-foreground" />
                   </div>
-                  <h3 className="text-base sm:text-lg font-medium text-foreground mb-2">
+                  <h3 className="text-lg font-medium text-foreground mb-2">
                     Business Analytics
                   </h3>
                   <p className="text-sm text-muted-foreground max-w-sm mx-auto px-4">
@@ -434,18 +468,19 @@ const HotelAdminDashboard = () => {
 
           {activeTab === "settings" && (
             <Card>
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Settings className="h-4 w-4 text-primary" />
                   Settings
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 md:p-6 pt-0">
-                <div className="text-center py-12 lg:py-16">
-                  <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-muted rounded-full flex items-center justify-center mb-3 sm:mb-4">
-                    <Settings className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+              <CardContent className="p-4 md:px-6 md:pb-6">
+                {/* Mobile-optimized settings empty state */}
+                <div className="text-center py-8 lg:py-12">
+                  <div className="mx-auto w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
+                    <Settings className="h-6 w-6 text-muted-foreground" />
                   </div>
-                  <h3 className="text-base sm:text-lg font-medium text-foreground mb-2">
+                  <h3 className="text-lg font-medium text-foreground mb-2">
                     System Settings
                   </h3>
                   <p className="text-sm text-muted-foreground max-w-sm mx-auto px-4">
