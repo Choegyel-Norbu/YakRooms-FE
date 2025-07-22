@@ -79,7 +79,7 @@ const DeleteConfirmationDialog = ({
   );
 };
 
-const BookingTable = () => {
+const BookingTable = ({ hotelId }) => {
   const [bookings, setBookings] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -96,7 +96,7 @@ const BookingTable = () => {
     setError(null);
 
     try {
-      const res = await api.get(`/bookings/?page=${page}&size=${pageSize}`);
+      const res = await api.get(`/bookings/?page=${page}&size=${pageSize}&hotelId=${hotelId}`);
       if (!res.data) {
         throw new Error("Failed to fetch bookings");
       }
@@ -112,31 +112,6 @@ const BookingTable = () => {
       }
     } catch (err) {
       setError(err.message);
-      // Mock data for demonstration purposes if API fails or is unavailable
-      const mockData = Array.from({ length: 25 }, (_, i) => ({
-        id: i + 1,
-        userId: Math.floor(Math.random() * 100) + 1,
-        roomId: Math.floor(Math.random() * 50) + 1,
-        checkInDate: new Date(2025, 6, 15 + i).toISOString().split("T")[0],
-        checkOutDate: new Date(2025, 6, 17 + i).toISOString().split("T")[0],
-        guests: Math.floor(Math.random() * 4) + 1,
-        status: ["CONFIRMED", "PENDING", "CHECKED_IN", "CHECKED_OUT"][
-          Math.floor(Math.random() * 4)
-        ],
-        totalPrice: (Math.random() * 2000 + 500).toFixed(2),
-        createdAt: null,
-        name: ["Choegyel Norbu", "Tenzin Wangmo", "Karma Dorji", "Pema Lhamo"][
-          Math.floor(Math.random() * 4)
-        ],
-        phone: `+975-${Math.floor(Math.random() * 90000000) + 10000000}`,
-        email: [
-          "choegyell@gmail.com",
-          "tenzin@example.com",
-          "karma@test.com",
-          "pema@demo.com",
-        ][Math.floor(Math.random() * 4)],
-        roomNumber: `A${Math.floor(Math.random() * 50) + 1}`,
-      }));
 
       const startIndex = page * pageSize;
       const endIndex = startIndex + pageSize;
@@ -148,8 +123,8 @@ const BookingTable = () => {
   };
 
   useEffect(() => {
-    fetchBookings(currentPage);
-  }, [currentPage]);
+    if (hotelId) fetchBookings(currentPage);
+  }, [currentPage, hotelId]);
 
   // --- Update Booking Status ---
   const updateBookingStatus = async (id, newStatus) => {
@@ -270,7 +245,14 @@ const BookingTable = () => {
     return <Badge variant={variant}>{status.replace("_", " ")}</Badge>;
   };
 
-  // --- Loading State Display ---
+  if (!hotelId) {
+    return (
+      <div className="flex justify-center items-center h-64 text-muted-foreground">
+        No hotel selected. Please log in as a hotel admin or select a hotel.
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">

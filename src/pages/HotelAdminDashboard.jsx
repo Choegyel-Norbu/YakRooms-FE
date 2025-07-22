@@ -35,7 +35,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import SummaryCards from "../components/cards/SummaryCards.jsx";
 import HotelInfoForm from "../components/hotel/HotelInfoForm.jsx";
 import RoomManager from "../components/RoomManager.jsx";
 import BookingTable from "../components/hotel/BookingTable.jsx";
@@ -43,7 +42,7 @@ import { useAuth } from "../services/AuthProvider.jsx";
 import api from "../services/Api.jsx";
 
 const HotelAdminDashboard = () => {
-  const { userId, userName, logout } = useAuth();
+  const { userId, userName, logout, hotelId } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [hotel, setHotel] = useState(null);
   const [bookings, setBookings] = useState([]);
@@ -68,17 +67,9 @@ const HotelAdminDashboard = () => {
       }
     };
 
-    const fetchAllBookings = async () => {
-      try {
-        const res = await api.get(`/bookings`);
-        setBookings(res.data);
-      } catch (err) {
-        console.log(err);
-      }
-    };
+    
 
     fetchHotelData();
-    fetchAllBookings();
   }, []);
 
   const updateHotel = (updatedHotel) => {
@@ -335,6 +326,7 @@ const HotelAdminDashboard = () => {
                 <CardContent className="p-0 md:p-6 pt-0">
                   <div className="overflow-x-auto">
                     <BookingTable
+                      hotelId={hotelId}
                       bookings={bookings}
                       onStatusChange={updateBookingStatus}
                       viewMode="compact"
@@ -403,6 +395,7 @@ const HotelAdminDashboard = () => {
               <CardContent className="p-0 md:p-6 pt-0">
                 <div className="overflow-x-auto">
                   <BookingTable
+                    hotelId={hotelId}
                     bookings={bookings}
                     onStatusChange={updateBookingStatus}
                     viewMode="full"

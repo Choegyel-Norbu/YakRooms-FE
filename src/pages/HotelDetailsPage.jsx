@@ -55,7 +55,7 @@ import {
 import { useAuth } from "@/services/AuthProvider.jsx";
 
 const HotelDetailsPage = () => {
-  const { isAuthenticated } = useAuth();
+  // const { isAuthenticated, hotelId } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [hotel, setHotel] = useState(null);
@@ -217,7 +217,7 @@ const HotelDetailsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Enhanced Header */}
-      <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-20 border-b bg-background/95 ">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           {/* Left side - Navigation */}
           <div className="flex items-center gap-2">
@@ -241,12 +241,12 @@ const HotelDetailsPage = () => {
           </div>
 
           {/* Center - Title on mobile */}
-          <h1 className="text-lg font-bold sm:hidden">
+          <h1 className="text-lg font-bold ">
             {hotel.name}
           </h1>
-          <h1 className="text-xl font-bold hidden sm:block">
+          {/* <h1 className="text-xl font-bold hidden sm:block">
             Hotel Details
-          </h1>
+          </h1> */}
 
           {/* Right side - Actions */}
           <div className="flex items-center gap-2">

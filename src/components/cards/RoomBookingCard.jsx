@@ -27,7 +27,7 @@ import LoginModal from "../LoginModal.jsx"; // Assuming this is your LoginModal 
 import { toast } from "sonner"; // Using sonner for toasts
 
 export default function RoomBookingCard({ room }) {
-  const { userId, isAuthenticated } = useAuth();
+  const { userId, isAuthenticated, hotelId } = useAuth();
   const [openBookingDialog, setOpenBookingDialog] = useState(false);
   const [openLoginModal, setOpenLoginModal] = useState(false);
   const [bookingDetails, setBookingDetails] = useState({
@@ -119,6 +119,7 @@ export default function RoomBookingCard({ room }) {
         roomId: room.id,
         totalPrice: calculateTotalPrice(),
         userId,
+        hotelId,
         days: calculateDays(),
       };
       const res = await api.post("/bookings", payload);
