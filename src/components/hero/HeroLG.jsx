@@ -92,7 +92,7 @@ const HeroLG = () => {
         <Separator className="w-24" />
 
         {/* Features Section */}
-        <div className="grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3 hidden sm:grid">
           <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
             <span>Real-time availability</span>

@@ -174,7 +174,9 @@ const Landing = () => {
     <>
       <div className=" relative bg-white text-black dark:text-white">
         {/* Navigation */}
-        <Navbar onLoginClick={toggleLogin} onContactClick={() => footerRef.current?.scrollIntoView({ behavior: 'smooth' })} />
+        <div className="pr-0 sm:pr-0">
+          <Navbar onLoginClick={toggleLogin} onContactClick={() => footerRef.current?.scrollIntoView({ behavior: 'smooth' })} />
+        </div>
 
         {/* LoginModal */}
         {loginShow && <LoginModal onClose={closeLogin} />}

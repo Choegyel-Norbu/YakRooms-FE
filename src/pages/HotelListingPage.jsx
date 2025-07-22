@@ -1,16 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { 
   MapPin, 
-  Star, 
-  StarHalf, 
   Loader2, 
-  Filter, 
   Home, 
   Building2,
-  ChevronDown,
-  SlidersHorizontal,
-  Search
+  ChevronDown
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -22,6 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -29,16 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   Pagination,
   PaginationContent,
@@ -47,138 +34,53 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import FilterSidebar from "@/components/hotel/FilterSidebar";
 import api from "../services/Api";
+import Navbar from "../components/Navbar.jsx";
 
-// Star rating component
-const StarRating = ({ rating }) => {
-  const stars = [];
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
-  const totalStars = 5;
+// YakRooms Text Logo Component (copied from Navbar.jsx)
+const YakRoomsText = ({ size = "default" }) => {
+  const textSizes = {
+    small: "text-lg font-bold",
+    default: "text-xl font-bold",
+    large: "text-2xl font-bold"
+  };
 
-  for (let i = 1; i <= totalStars; i++) {
-    if (i <= fullStars) {
-      stars.push(
-        <Star
-          key={`full-${i}`}
-          className="h-4 w-4 fill-yellow-400 text-yellow-400"
-        />
-      );
-    } else if (i === fullStars + 1 && hasHalfStar) {
-      stars.push(
-        <StarHalf
-          key="half"
-          className="h-4 w-4 fill-yellow-400 text-yellow-400"
-        />
-      );
-    } else {
-      stars.push(
-        <Star key={`empty-${i}`} className="h-4 w-4 text-gray-300" />
-      );
-    }
-  }
-
-  return <div className="flex items-center space-x-0.5">{stars}</div>;
+  return (
+    <div className={`${textSizes[size]} font-sans tracking-tight`}>
+      <span className="text-blue-600">Yak</span>
+      <span className="text-yellow-500">Rooms</span>
+    </div>
+  );
 };
 
 const HotelListingPage = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [showFilters, setShowFilters] = useState(false);
-  const [sortBy, setSortBy] = useState("popularity");
-  const [priceRange, setPriceRange] = useState([0, 500]);
-  const [selectedTypes, setSelectedTypes] = useState([]);
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState("default"); // Added sort state
   const [pagination, setPagination] = useState({
     page: 0,
     size: 6,
     totalPages: 1,
     totalElements: 0,
   });
-  const [searchState, setSearchState] = useState({
-    district: "",
-    checkIn: "",
-    checkOut: "",
-    guests: 1,
-    hotelType: "",
-  });
-  const [formErrors, setFormErrors] = useState({ district: "", hotelType: "" });
 
-  const allowedHotelTypes = [
-    "Resort",
-    "Hotel",
-    "Guesthouse",
-    "Homestay",
-    "Boutique Hotel",
-  ];
-
-  // Initialize search state from URL parameters
   useEffect(() => {
-    const urlDistrict = searchParams.get("district") || "";
-    const urlCheckIn = searchParams.get("checkIn") || "";
-    const urlCheckOut = searchParams.get("checkOut") || "";
-    const urlGuests = parseInt(searchParams.get("guests")) || 1;
-    const urlHotelType = searchParams.get("hotelType") || "";
-
-    setSearchState({
-      district: urlDistrict,
-      checkIn: urlCheckIn,
-      checkOut: urlCheckOut,
-      guests: urlGuests,
-      hotelType: urlHotelType,
-    });
-
-    // If there are search parameters from URL, trigger search immediately
-    if (urlDistrict || urlHotelType) {
-      setTimeout(() => {
-        filterHotels(0, {
-          district: urlDistrict,
-          hotelType: urlHotelType,
-        });
-      }, 100);
-    } else {
-      fetchHotels(0);
-    }
-  }, []);
-
-  const validateForm = () => {
-    let errors = { district: "", hotelType: "" };
-    let isValid = true;
-
-    if (!searchState.district || searchState.district.trim() === "") {
-      errors.district = "District is required";
-      isValid = false;
-    } else if (!/^[a-zA-Z\s]+$/.test(searchState.district.trim())) {
-      errors.district = "District must contain only letters";
-      isValid = false;
-    }
-
-    if (
-      searchState.hotelType &&
-      !allowedHotelTypes.includes(searchState.hotelType)
-    ) {
-      errors.hotelType = "Invalid hotel type selected";
-      isValid = false;
-    }
-
-    setFormErrors(errors);
-    return isValid;
-  };
-
-  const onSearchClick = (e) => {
-    e.preventDefault();
-    if (validateForm()) {
-      handleSearch();
-    }
-  };
+    fetchHotels(0);
+  }, [sortBy]); // Re-fetch when sort changes
 
   const fetchHotels = async (page = 0) => {
     try {
       setLoading(true);
-      const response = await api.get(
-        `/hotels?page=${page}&size=${pagination.size}`
-      );
+      let endpoint = `/hotels?page=${page}&size=${pagination.size}`;
+      
+      // Use different endpoints based on sort selection
+      if (sortBy === "price-high") {
+        endpoint = `/hotels/sortedByHighestPrice?page=${page}&size=${pagination.size}`;
+      } else if (sortBy === "price-low") {
+        endpoint = `/hotels/sortedByLowestPrice?page=${page}&size=${pagination.size}`;
+      }
+      
+      const response = await api.get(endpoint);
       setHotels(response.data.content);
       setPagination({
         page: response.data.pageable.pageNumber,
@@ -193,95 +95,28 @@ const HotelListingPage = () => {
     }
   };
 
-  const filterHotels = async (page = 0, customSearchParams = null) => {
-    try {
-      setLoading(true);
-      const searchData = customSearchParams || searchState;
-      const params = new URLSearchParams({
-        district: searchData.district,
-        hotelType: searchData.hotelType,
-        page,
-        size: pagination.size,
-      });
-      const response = await api.get(`/hotels/search?${params.toString()}`);
-      setHotels(response.data.content);
-      setPagination({
-        page: response.data.pageable.pageNumber,
-        size: response.data.size,
-        totalPages: response.data.totalPages,
-        totalElements: response.data.totalElements,
-      });
-
-      // Update URL to reflect current search
-      const urlParams = new URLSearchParams();
-      if (searchData.district) urlParams.set("district", searchData.district);
-      if (searchData.hotelType) urlParams.set("hotelType", searchData.hotelType);
-      setSearchParams(urlParams);
-    } catch (error) {
-      console.error("Error filtering hotels:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Updated transform function without rating data
   const transformHotelData = (hotel) => ({
     id: hotel.id,
     name: hotel.name,
     district: hotel.district,
-    price: Math.floor(Math.random() * 400) + 80,
-    rating: 4 + Math.random(),
+    // Use lowestPrice from API response, fallback to random if null
+    price: hotel.lowestPrice || Math.floor(Math.random() * 400) + 80,
+    // Include lowestPrice for conditional display
+    lowestPrice: hotel.lowestPrice,
     image:
       hotel.photoUrls?.[0] ||
       `https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop&auto=format`,
     type: hotel.hotelType || "Hotel",
-    reviews: Math.floor(Math.random() * 100) + 20,
     amenities: hotel.amenities || [],
   });
 
-  const sortedAndFilteredHotels = hotels
-    .map(transformHotelData)
-    .filter((hotel) => {
-      return (
-        hotel.price >= priceRange[0] &&
-        hotel.price <= priceRange[1] &&
-        (selectedTypes.length === 0 || selectedTypes.includes(hotel.type)) &&
-        (searchState.district === "" ||
-          hotel.district
-            .toLowerCase()
-            .includes(searchState.district.toLowerCase()))
-      );
-    })
-    .sort((a, b) => {
-      if (sortBy === "price-low") return a.price - b.price;
-      if (sortBy === "price-high") return b.price - a.price;
-      if (sortBy === "rating") return b.rating - a.rating;
-      return b.reviews - a.reviews;
-    });
+  const transformedHotels = hotels.map(transformHotelData);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 0 && newPage < pagination.totalPages) {
-      if (searchState.district || searchState.hotelType) {
-        filterHotels(newPage);
-      } else {
-        fetchHotels(newPage);
-      }
+      fetchHotels(newPage);
     }
-  };
-
-  const handleSearch = () => {
-    filterHotels(0);
-  };
-
-  const handleResetFilters = () => {
-    setPriceRange([0, 500]);
-    setSelectedTypes([]);
-    setSearchState((prev) => ({
-      ...prev,
-      district: "",
-      hotelType: "",
-    }));
-    setSearchParams({});
-    fetchHotels(0);
   };
 
   const renderPagination = () => {
@@ -339,7 +174,7 @@ const HotelListingPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Enhanced Header */}
+      {/* Simplified Header */}
       <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-20 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
@@ -347,19 +182,18 @@ const HotelListingPage = () => {
             <div className="flex items-center gap-4">
               <Link
                 to="/"
-                className="flex items-center gap-2 text-xl font-bold tracking-tight text-primary"
+                className="flex items-center gap-2"
               >
-                <Building2 className="h-6 w-6 text-primary" />
-                <span className="hidden sm:block">YakRooms</span>
+                <YakRoomsText size="default" />
               </Link>
               
-              {/* Mobile Home Button */}
-              <Button asChild variant="ghost" size="sm" className="sm:hidden">
+              {/* Mobile Home Button - removed as per request */}
+              {/* <Button asChild variant="ghost" size="sm" className="sm:hidden">
                 <Link to="/">
                   <Home className="h-4 w-4 mr-2" />
                   Home
                 </Link>
-              </Button>
+              </Button> */}
             </div>
 
             {/* Center - Tagline (hidden on mobile) */}
@@ -369,14 +203,8 @@ const HotelListingPage = () => {
               </p>
             </div>
 
-            {/* Right side - Search indicator */}
+            {/* Right side - Results count */}
             <div className="flex items-center gap-2">
-              {(searchState.district || searchState.hotelType) && (
-                <Badge variant="secondary" className="hidden sm:flex">
-                  <Search className="h-3 w-3 mr-1" />
-                  Active Filters
-                </Badge>
-              )}
               <span className="text-sm text-muted-foreground hidden lg:block">
                 {pagination.totalElements} results
               </span>
@@ -386,244 +214,147 @@ const HotelListingPage = () => {
       </header>
 
       <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row lg:gap-8">
-          {/* Mobile Filter Button */}
-          <div className="lg:hidden mb-6">
-            <Sheet open={showFilters} onOpenChange={setShowFilters}>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="w-full">
-                  <SlidersHorizontal className="mr-2 h-4 w-4" />
-                  Filters & Search
-                  {(searchState.district || searchState.hotelType) && (
-                    <Badge variant="secondary" className="ml-2">
-                      Active
-                    </Badge>
-                  )}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[340px] p-0">
-                <SheetHeader className="p-6 pb-4 border-b">
-                  <SheetTitle className="flex items-center gap-2">
-                    <Filter className="h-5 w-5" />
-                    Filters & Search
-                  </SheetTitle>
-                </SheetHeader>
-                <div className="p-6 pt-4">
-                  <FilterSidebar
-                    searchParams={searchState}
-                    setSearchParams={setSearchState}
-                    onSearchClick={onSearchClick}
-                    formErrors={formErrors}
-                  />
+        {/* Main Content */}
+        <main className="w-full">
+          {/* Header Section with Sort Controls */}
+          <div className="mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="space-y-1">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                  All Hotels in Bhutan
+                </h1>
+                <div className="text-muted-foreground">
+                  <span>
+                    {loading
+                      ? "Loading hotels..."
+                      : `${pagination.totalElements} ${pagination.totalElements === 1 ? 'hotel' : 'hotels'} found`}
+                  </span>
                 </div>
-              </SheetContent>
-            </Sheet>
+              </div>
+
+              {/* Sort Controls */}
+              <div className="flex items-center gap-3">
+                <Label htmlFor="sort-by" className="text-sm font-medium whitespace-nowrap">
+                  Sort by
+                </Label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger id="sort-by" className="w-[180px]">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Default</SelectItem>
+                    <SelectItem value="price-low">Price: Low to High</SelectItem>
+                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
 
-          {/* Desktop Sidebar */}
-          <aside className="hidden lg:block w-full lg:w-1/4 xl:w-1/5">
-            <div className="sticky top-24">
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Search className="h-5 w-5 text-primary" />
-                    Search & Filter
-                  </CardTitle>
-                  <CardDescription>
-                    Find your perfect stay in Bhutan
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <FilterSidebar
-                    searchParams={searchState}
-                    setSearchParams={setSearchState}
-                    onSearchClick={onSearchClick}
-                    formErrors={formErrors}
-                  />
-                </CardContent>
-              </Card>
+          {/* Results */}
+          {loading ? (
+            <div className="flex flex-col items-center justify-center h-96 space-y-4">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <p className="text-muted-foreground">Finding the best hotels for you...</p>
             </div>
-          </aside>
-
-          {/* Main Content */}
-          <main className="w-full lg:w-3/4 xl:w-4/5">
-            {/* Enhanced Header Section */}
-            <div className="mb-8">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                <div className="space-y-1">
-                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-                    {searchState.district
-                      ? `Hotels in ${searchState.district}`
-                      : "All Hotels in Bhutan"}
-                  </h1>
-                  <div className="flex items-center gap-4 text-muted-foreground">
-                    <span>
-                      {loading
-                        ? "Searching..."
-                        : `${pagination.totalElements} ${pagination.totalElements === 1 ? 'hotel' : 'hotels'} found`}
-                    </span>
-                    {(searchState.district || searchState.hotelType) && (
-                      <Button
-                        variant="link"
-                        onClick={handleResetFilters}
-                        className="h-auto p-0 text-primary"
-                      >
-                        Clear filters
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Sort Controls */}
-                <div className="flex items-center gap-3">
-                  <Label htmlFor="sort-by" className="text-sm font-medium whitespace-nowrap">
-                    Sort by
-                  </Label>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger id="sort-by" className="w-[160px]">
-                      <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="popularity">Most Popular</SelectItem>
-                      <SelectItem value="price-low">Price: Low to High</SelectItem>
-                      <SelectItem value="price-high">Price: High to Low</SelectItem>
-                      <SelectItem value="rating">Highest Rated</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Active Filters Display */}
-              {(searchState.district || searchState.hotelType) && (
-                <div className="flex items-center gap-2 p-4 bg-muted/50 rounded-lg">
-                  <span className="text-sm font-medium">Active filters:</span>
-                  {searchState.district && (
-                    <Badge variant="secondary">
-                      District: {searchState.district}
-                    </Badge>
-                  )}
-                  {searchState.hotelType && (
-                    <Badge variant="secondary">
-                      Type: {searchState.hotelType}
-                    </Badge>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Results */}
-            {loading ? (
-              <div className="flex flex-col items-center justify-center h-96 space-y-4">
-                <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <p className="text-muted-foreground">Finding the best hotels for you...</p>
-              </div>
-            ) : sortedAndFilteredHotels.length > 0 ? (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-                  {sortedAndFilteredHotels.map((hotel) => (
-                    <Card
-                      key={hotel.id}
-                      className="overflow-hidden flex flex-col group transition-all hover:shadow-xl border-0 shadow-md"
-                    >
-                      <div className="relative overflow-hidden">
-                        <Link to={`/hotel/${hotel.id}`}>
-                          <img
-                            src={hotel.image}
-                            alt={hotel.name}
-                            className="h-48 w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
-                            loading="lazy"
-                          />
-                        </Link>
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        
-                        {/* Rating Badge */}
-                        <div className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm text-foreground text-sm font-semibold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                          <span>{hotel.rating.toFixed(1)}</span>
-                        </div>
-
-                        {/* Hotel Type Badge */}
-                        <div className="absolute top-3 left-3">
-                          <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm">
-                            {hotel.type}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      <CardHeader className="flex-1">
-                        <div className="space-y-2">
-                          <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors line-clamp-2">
-                            <Link to={`/hotel/${hotel.id}`} className="hover:underline">
-                              {hotel.name}
-                            </Link>
-                          </CardTitle>
-                          <CardDescription className="flex items-center">
-                            <MapPin className="mr-1.5 h-4 w-4 flex-shrink-0" />
-                            <span>{hotel.district}, Bhutan</span>
-                          </CardDescription>
-                        </div>
-
-                        {/* Rating and Reviews */}
-                        <div className="flex items-center justify-between pt-2">
-                          <div className="flex items-center gap-2">
-                            <StarRating rating={hotel.rating} />
-                            <span className="text-sm text-muted-foreground">
-                              ({hotel.reviews} reviews)
-                            </span>
-                          </div>
-                        </div>
-                      </CardHeader>
-
-                      <CardFooter className="bg-muted/30 border-t px-6 py-4">
-                        <div className="flex justify-between items-center w-full">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Starting from</p>
-                            <p className="text-xl font-bold text-primary">
-                              Nu. {hotel.lowestPrice}
-                              <span className="text-sm font-normal text-muted-foreground ml-1">
-                                /night
-                              </span>
-                            </p>
-                          </div>
-                          <Button asChild size="sm">
-                            <Link to={`/hotel/${hotel.id}`}>
-                              View Details
-                            </Link>
-                          </Button>
-                        </div>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </div>
-                {renderPagination()}
-              </>
-            ) : (
-              <Card className="text-center py-16 px-6 bg-muted/20 border-dashed border-2">
-                <CardContent className="space-y-4">
-                  <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                    <Building2 className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <CardTitle className="text-2xl">No Hotels Found</CardTitle>
-                  <CardDescription className="max-w-md mx-auto">
-                    We couldn't find any hotels matching your search criteria. 
-                    Try adjusting your filters or search for a different location.
-                  </CardDescription>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
-                    <Button onClick={handleResetFilters} variant="outline">
-                      Reset All Filters
-                    </Button>
-                    <Button asChild>
-                      <Link to="/">
-                        <Home className="mr-2 h-4 w-4" />
-                        Back to Home
+          ) : transformedHotels.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                {transformedHotels.map((hotel) => (
+                  <Card
+                    key={hotel.id}
+                    className="overflow-hidden flex flex-col group transition-all hover:shadow-xl border-0 shadow-md"
+                  >
+                    <div className="relative overflow-hidden">
+                      <Link to={`/hotel/${hotel.id}`}>
+                        <img
+                          src={hotel.image}
+                          alt={hotel.name}
+                          className="h-48 w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                          loading="lazy"
+                        />
                       </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </main>
-        </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                      {/* Hotel Type Badge */}
+                      <div className="absolute top-3 left-3">
+                        <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm">
+                          {hotel.type}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <CardHeader className="flex-1">
+                      <div className="space-y-2">
+                        <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors line-clamp-2">
+                          <Link to={`/hotel/${hotel.id}`} className="hover:underline">
+                            {hotel.name}
+                          </Link>
+                        </CardTitle>
+                        <CardDescription className="flex items-center">
+                          <MapPin className="mr-1.5 h-4 w-4 flex-shrink-0" />
+                          <span>{hotel.district}, Bhutan</span>
+                        </CardDescription>
+                      </div>
+                    </CardHeader>
+
+                    <CardFooter className="bg-muted/30 border-t px-6 py-4">
+                      <div className="flex justify-between items-center w-full">
+                        <div>
+                          {/* Fixed price display to properly use lowestPrice */}
+                          {hotel.lowestPrice ? (
+                            <>
+                              <p className="text-sm text-muted-foreground">From</p>
+                              <p className="text-xl font-bold text-primary">
+                                Nu. {new Intl.NumberFormat('en-IN').format(hotel.lowestPrice)}
+                                <span className="text-sm font-normal text-muted-foreground ml-1">
+                                  /night
+                                </span>
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                            
+                              <p className="text-sm text-primary">
+                                No specific price available
+                              </p>
+                            </>
+                          )}
+                        </div>
+                        <Button asChild size="sm">
+                          <Link to={`/hotel/${hotel.id}`}>
+                            View Details
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+              {renderPagination()}
+            </>
+          ) : (
+            <Card className="text-center py-16 px-6 bg-muted/20 border-dashed border-2">
+              <CardContent className="space-y-4">
+                <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                  <Building2 className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <CardTitle className="text-2xl">No Hotels Found</CardTitle>
+                <CardDescription className="max-w-md mx-auto">
+                  We couldn't find any hotels. Please try again later.
+                </CardDescription>
+                <div className="flex justify-center mt-6">
+                  <Button asChild>
+                    <Link to="/">
+                      <Home className="mr-2 h-4 w-4" />
+                      Back to Home
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </main>
       </div>
     </div>
   );

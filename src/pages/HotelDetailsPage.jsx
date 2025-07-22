@@ -54,6 +54,22 @@ import {
 } from "@/components/ui/sheet";
 import { useAuth } from "@/services/AuthProvider.jsx";
 
+// YakRooms Text Logo Component (copied from Navbar.jsx)
+const YakRoomsText = ({ size = "default" }) => {
+  const textSizes = {
+    small: "text-lg font-bold",
+    default: "text-xl font-bold",
+    large: "text-2xl font-bold"
+  };
+
+  return (
+    <div className={`${textSizes[size]} font-sans tracking-tight`}>
+      <span className="text-blue-600">Yak</span>
+      <span className="text-yellow-500">Rooms</span>
+    </div>
+  );
+};
+
 const HotelDetailsPage = () => {
   // const { isAuthenticated, hotelId } = useAuth();
   const { id } = useParams();
@@ -218,7 +234,6 @@ const HotelDetailsPage = () => {
     <div className="min-h-screen bg-background">
       {/* Optimized header for mobile */}
       <header className="sticky top-0 z-20 border-b bg-background/95">
-        {/* Removed container class to avoid automatic horizontal padding */}
         <div className="mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
           {/* Left side - Navigation */}
           <div className="flex items-center gap-1 sm:gap-2">
@@ -232,12 +247,9 @@ const HotelDetailsPage = () => {
               </Link>
             </Button>
             <Separator orientation="vertical" className="h-6 hidden sm:block" />
-            <Button asChild variant="ghost" className="hidden sm:flex">
-              <Link to="/">
-                <Building2 className="mr-2 h-4 w-4" />
-                YakRooms
-              </Link>
-            </Button>
+            <Link to="/" className="hidden sm:flex items-center gap-2">
+              <YakRoomsText size="default" />
+            </Link>
           </div>
 
           {/* Center - Optimized title for mobile */}
@@ -250,18 +262,7 @@ const HotelDetailsPage = () => {
             <Button variant="ghost" size="icon" onClick={handleShare} className="h-8 w-8 sm:h-10 sm:w-10">
               <Share2 className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsFavorite(!isFavorite)}
-              className="h-8 w-8 sm:h-10 sm:w-10"
-            >
-              <Heart
-                className={`h-4 w-4 transition-colors ${
-                  isFavorite ? "fill-red-500 text-red-500" : ""
-                }`}
-              />
-            </Button>
+            {/* Removed Heart (love sign) button */}
           </div>
         </div>
       </header>
@@ -345,8 +346,8 @@ const HotelDetailsPage = () => {
                   </Badge>
                 </div>
                 
-                {/* Rating Section - Smaller for mobile */}
-                <div className="flex items-center gap-1.5 sm:gap-2">
+                {/* Rating Section - Removed star ratings */}
+                {/* <div className="flex items-center gap-1.5 sm:gap-2">
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
                       <Star
@@ -358,7 +359,7 @@ const HotelDetailsPage = () => {
                     ))}
                   </div>
                   <span className="text-xs sm:text-sm text-muted-foreground">(4.0)</span>
-                </div>
+                </div> */}
               </div>
 
               <Separator />

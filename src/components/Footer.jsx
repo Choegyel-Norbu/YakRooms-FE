@@ -77,14 +77,7 @@ const Footer = React.forwardRef((props, ref) => {
                   About Us
                 </a>
               </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Contact
-                </a>
-              </li>
+              
             </ul>
           </nav>
 

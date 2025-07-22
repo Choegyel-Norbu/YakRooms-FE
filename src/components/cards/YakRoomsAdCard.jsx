@@ -4,6 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+// YakRooms Text Logo Component (copied from Navbar.jsx)
+const YakRoomsText = ({ size = "default" }) => {
+  const textSizes = {
+    small: "text-lg font-bold",
+    default: "text-xl font-bold",
+    large: "text-2xl font-bold"
+  };
+
+  return (
+    <div className={`${textSizes[size]} font-sans tracking-tight`}>
+      <span className="text-blue-600">Yak</span>
+      <span className="text-yellow-500">Rooms</span>
+    </div>
+  );
+};
+
 export default function YakRoomsAdCard() {
   const features = [
     {
@@ -36,7 +52,7 @@ export default function YakRoomsAdCard() {
               <Building2 className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground">YakRooms</h2>
+              <YakRoomsText size="default" />
               <Badge variant="secondary" className="text-xs">
                 Bhutan's #1 Platform
               </Badge>
