@@ -33,3 +33,5 @@ src/config/api.jsx
 *.njsproj
 *.sln
 *.sw?
+config.js
+src/services/Api.jsx
