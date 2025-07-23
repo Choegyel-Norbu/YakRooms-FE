@@ -4,6 +4,7 @@ import RoomBookingCard from "../components/cards/RoomBookingCard.jsx";
 import Footer from "../components/Footer";
 import YakRoomsAdCard from "../components/cards/YakRoomsAdCard";
 import api from "../services/Api";
+import { useRoomSubscription } from "../hooks/useRoomSubscription";
 
 import {
   ArrowLeft,
@@ -122,6 +123,9 @@ const HotelDetailsPage = () => {
       fetchHotelData();
     }
   }, [id, currentPage, hotel]);
+
+  // Subscribe to real-time room updates
+  useRoomSubscription(id, setAvailableRooms);
 
   useEffect(() => {
     if (isInitialLoad.current) {
