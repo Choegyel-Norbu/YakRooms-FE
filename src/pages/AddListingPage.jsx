@@ -699,6 +699,7 @@ const AddListingPage = () => {
                       <SelectItem value="BUDGET">Budget</SelectItem>
                       <SelectItem value="BOUTIQUE">Boutique</SelectItem>
                       <SelectItem value="RESORT">Resort</SelectItem>
+                      <SelectItem value="HOMESTAY">Homestay</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -201,6 +201,21 @@ const HotelListingPage = () => {
     );
   };
 
+  // YakRooms Text Logo Component (copied from Navbar.jsx)
+  const YakRoomsText = ({ size = "default" }) => {
+    const textSizes = {
+      small: "text-lg font-bold",
+      default: "text-xl font-bold",
+      large: "text-2xl font-bold"
+    };
+    return (
+      <div className={`${textSizes[size]} font-sans tracking-tight`}>
+        <span className="text-blue-600">Yak</span>
+        <span className="text-yellow-500">Rooms</span>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Simplified Header */}
@@ -211,19 +226,13 @@ const HotelListingPage = () => {
             <div className="flex items-center gap-4">
               <Link
                 to="/"
-                className="flex items-center gap-2 text-xl font-bold tracking-tight text-primary"
+                className="flex items-center gap-2"
               >
-                <Building2 className="h-6 w-6 text-primary" />
-                <span className="hidden sm:block">YakRooms</span>
+                <YakRoomsText size="default" />
               </Link>
               
               {/* Mobile Home Button */}
-              <Button asChild variant="ghost" size="sm" className="sm:hidden">
-                <Link to="/">
-                  <Home className="h-4 w-4 mr-2" />
-                  Home
-                </Link>
-              </Button>
+            
             </div>
 
             {/* Center - Tagline (hidden on mobile) */}
@@ -268,11 +277,15 @@ const HotelListingPage = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
-                      {hotelTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="ONE_STAR">One Star</SelectItem>
+                      <SelectItem value="TWO_STAR">Two Star</SelectItem>
+                      <SelectItem value="THREE_STAR">Three Star</SelectItem>
+                      <SelectItem value="FOUR_STAR">Four Star</SelectItem>
+                      <SelectItem value="FIVE_STAR">Five Star</SelectItem>
+                      <SelectItem value="BUDGET">Budget</SelectItem>
+                      <SelectItem value="BOUTIQUE">Boutique</SelectItem>
+                      <SelectItem value="RESORT">Resort</SelectItem>
+                      <SelectItem value="HOMESTAY">Homestay</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
