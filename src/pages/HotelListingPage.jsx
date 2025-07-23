@@ -414,12 +414,10 @@ const HotelListingPage = () => {
                             </>
                           ) : (
                             <>
-                              <p className="text-sm text-muted-foreground">Starting from</p>
-                              <p className="text-xl font-bold text-primary">
-                                Nu. {new Intl.NumberFormat('en-IN').format(hotel.price)}
-                                <span className="text-sm font-normal text-muted-foreground ml-1">
-                                  /night
-                                </span>
+                            {/* Do not change this part of the code */}
+                              <p className="text-sm text-primary">
+                                No specific price available
+                                
                               </p>
                             </>
                           )}

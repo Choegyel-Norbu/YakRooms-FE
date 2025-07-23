@@ -42,60 +42,76 @@ const TopHighlightsSection = () => {
   }, []);
 
   return (
-    // Adjusted for consistent section padding and width across sizes
-    <section className="py-5 lg:py-12 lg:mt-10 px-4 lg:px-8 lg:w-[70%] m-auto">
-      <div className="container mx-auto">
-        {/* Adjusted heading size for better hierarchy */}
-        <h3 className="text-center text-3xl font-bold mb-8 text-gray-900">
-          Top Listed Hotels
-        </h3>
+    <>
+      <style>
+        {`
+          /* Hide scrollbar for Chrome, Safari and Opera */
+          .overflow-x-auto::-webkit-scrollbar {
+            display: none;
+          }
+          
+          /* Hide scrollbar for IE, Edge and Firefox */
+          .overflow-x-auto {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+          }
+        `}
+      </style>
+      {/* Adjusted for consistent section padding and width across sizes */}
+      <section className="py-5 lg:py-12 lg:mt-10 px-4 lg:px-8 lg:w-[70%] m-auto">
+        <div className="container mx-auto">
+          {/* Adjusted heading size for better hierarchy */}
+          <h3 className="text-center text-3xl font-bold mb-8 text-gray-900">
+            Top Listed Hotels
+          </h3>
 
-        {loading && <p className="text-center text-gray-600">Loading...</p>}
-        {error && <p className="text-center text-red-500">{error}</p>}
-        {!loading && !error && hotelsData.length === 0 && (
-          <p className="text-center text-gray-600">
-            No hotels found.
-          </p>
-        )}
+          {loading && <p className="text-center text-gray-600">Loading...</p>}
+          {error && <p className="text-center text-red-500">{error}</p>}
+          {!loading && !error && hotelsData.length === 0 && (
+            <p className="text-center text-gray-600">
+              No hotels found.
+            </p>
+          )}
 
-        {/* Mobile Carousel - Now with fixed card width for consistency */}
-        <div className="md:hidden overflow-x-auto pb-4">
-          {/* Added horizontal padding for consistent breathing room on mobile */}
-          <div className="flex space-x-4 w-max px-4">
-            {hotelsData.map((item) => (
-              <motion.div
-                key={item.id}
-                // Ensured consistent card width across all screen sizes
-                className="w-72 flex-shrink-0" // Keeping consistent with the desired large card size
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <ListingCard item={item} />
-              </motion.div>
-            ))}
+          {/* Mobile Carousel - Now with fixed card width for consistency */}
+          <div className="md:hidden overflow-x-auto pb-4">
+            {/* Added horizontal padding for consistent breathing room on mobile */}
+            <div className="flex space-x-4 w-max px-4">
+              {hotelsData.map((item) => (
+                <motion.div
+                  key={item.id}
+                  // Ensured consistent card width across all screen sizes
+                  className="w-72 flex-shrink-0" // Keeping consistent with the desired large card size
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <ListingCard item={item} />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Desktop Grid - Now with fixed card width for consistency and horizontal scroll on overflow */}
+          {/* Added overflow-x-auto for md and lg screens to enable horizontal scrolling if content exceeds layout */}
+          <div className="hidden md:block overflow-x-auto">
+            {/* Adjusted grid for responsiveness, gap, and centering */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-none justify-items-center md:w-max md:mx-auto"> {/* Added md:w-max and md:mx-auto to allow content to dictate width and center if wider than viewport */}
+              {hotelsData.map((item) => (
+                <motion.div
+                  key={item.id}
+                  // Ensured consistent card width across all screen sizes
+                  className="w-72" // Keeping consistent with the desired large card size
+                  whileHover={{ y: -5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <ListingCard item={item} />
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
-
-        {/* Desktop Grid - Now with fixed card width for consistency and horizontal scroll on overflow */}
-        {/* Added overflow-x-auto for md and lg screens to enable horizontal scrolling if content exceeds layout */}
-        <div className="hidden md:block overflow-x-auto">
-          {/* Adjusted grid for responsiveness, gap, and centering */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-none justify-items-center md:w-max md:mx-auto"> {/* Added md:w-max and md:mx-auto to allow content to dictate width and center if wider than viewport */}
-            {hotelsData.map((item) => (
-              <motion.div
-                key={item.id}
-                // Ensured consistent card width across all screen sizes
-                className="w-72" // Keeping consistent with the desired large card size
-                whileHover={{ y: -5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <ListingCard item={item} />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 };
 
