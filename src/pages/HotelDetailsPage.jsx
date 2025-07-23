@@ -54,22 +54,6 @@ import {
 } from "@/components/ui/sheet";
 import { useAuth } from "@/services/AuthProvider.jsx";
 
-// YakRooms Text Logo Component (copied from Navbar.jsx)
-const YakRoomsText = ({ size = "default" }) => {
-  const textSizes = {
-    small: "text-lg font-bold",
-    default: "text-xl font-bold",
-    large: "text-2xl font-bold"
-  };
-
-  return (
-    <div className={`${textSizes[size]} font-sans tracking-tight`}>
-      <span className="text-blue-600">Yak</span>
-      <span className="text-yellow-500">Rooms</span>
-    </div>
-  );
-};
-
 const HotelDetailsPage = () => {
   // const { isAuthenticated, hotelId } = useAuth();
   const { id } = useParams();
@@ -234,22 +218,28 @@ const HotelDetailsPage = () => {
     <div className="min-h-screen bg-background">
       {/* Optimized header for mobile */}
       <header className="sticky top-0 z-20 border-b bg-background/95">
+        {/* Removed container class to avoid automatic horizontal padding */}
         <div className="mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
           {/* Left side - Navigation */}
           <div className="flex items-center gap-1 sm:gap-2">
-            <Button variant="ghost" onClick={() => navigate(-1)} className="hidden sm:flex">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
+            {/* Back button: icon only on small screens, icon+text on sm+ */}
+            <Button variant="ghost" onClick={() => navigate(-1)} className="p-2">
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline ml-2">Back</span>
             </Button>
-            <Button asChild variant="ghost" className="sm:hidden p-2">
+            {/* Removed Home and YakRooms navigation */}
+            {/* <Button asChild variant="ghost" className="sm:hidden p-2">
               <Link to="/">
                 <Home className="h-4 w-4" />
               </Link>
             </Button>
             <Separator orientation="vertical" className="h-6 hidden sm:block" />
-            <Link to="/" className="hidden sm:flex items-center gap-2">
-              <YakRoomsText size="default" />
-            </Link>
+            <Button asChild variant="ghost" className="hidden sm:flex">
+              <Link to="/">
+                <Building2 className="mr-2 h-4 w-4" />
+                YakRooms
+              </Link>
+            </Button> */}
           </div>
 
           {/* Center - Optimized title for mobile */}
@@ -267,8 +257,8 @@ const HotelDetailsPage = () => {
         </div>
       </header>
 
-      {/* Removed container class to eliminate automatic horizontal padding */}
-      <main className="mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-0 space-y-6 sm:space-y-8">
+      {/* Restored container with proper padding */}
+      <main className="container mx-auto px-4 sm:px-6 py-6 lg:py-8 space-y-6 sm:space-y-8">
         {/* Enhanced Hero Section */}
         <Card className="overflow-hidden">
           {/* Optimized image height for mobile */}
@@ -346,8 +336,8 @@ const HotelDetailsPage = () => {
                   </Badge>
                 </div>
                 
-                {/* Rating Section - Removed star ratings */}
-                {/* <div className="flex items-center gap-1.5 sm:gap-2">
+                {/* Rating Section - Smaller for mobile */}
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
                       <Star
@@ -359,7 +349,7 @@ const HotelDetailsPage = () => {
                     ))}
                   </div>
                   <span className="text-xs sm:text-sm text-muted-foreground">(4.0)</span>
-                </div> */}
+                </div>
               </div>
 
               <Separator />
@@ -374,31 +364,30 @@ const HotelDetailsPage = () => {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-          <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
             {/* Enhanced Amenities Section */}
             <Card>
-              {/* Reduced card header padding */}
-              <CardHeader className="pb-3 sm:pb-6">
+              {/* Restored card header padding */}
+              <CardHeader className="pb-6">
                 <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                  <CheckCircle className="h-5 w-5 text-primary" />
                   Hotel Amenities
                 </CardTitle>
                 <CardDescription className="text-sm sm:text-base">
                   Everything you need for a comfortable stay
                 </CardDescription>
               </CardHeader>
-              {/* Reduced card content padding */}
+              {/* Restored card content padding */}
               <CardContent className="pt-0">
-                {/* Adjusted grid for mobile */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                {/* Grid for amenities */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {hotel.amenities?.map((amenity, index) => {
                     const IconComponent = getAmenityIcon(amenity);
                     return (
-                      // Reduced padding for mobile
-                      <div key={index} className="flex items-center p-2.5 sm:p-3 rounded-lg bg-muted/50">
-                        <IconComponent className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-primary flex-shrink-0" />
-                        <span className="text-xs sm:text-sm font-medium">{amenity}</span>
+                      <div key={index} className="flex items-center p-3 rounded-lg bg-muted/50">
+                        <IconComponent className="h-5 w-5 mr-3 text-primary flex-shrink-0" />
+                        <span className="text-sm font-medium">{amenity}</span>
                       </div>
                     );
                   })}
@@ -407,24 +396,24 @@ const HotelDetailsPage = () => {
             </Card>
 
             {/* Enhanced Rooms Section */}
-            <div ref={roomsSectionRef} className="space-y-4 sm:space-y-6 scroll-mt-24">
+            <div ref={roomsSectionRef} className="space-y-6 scroll-mt-24">
               <div className="flex items-center justify-between">
                 <div>
-                  {/* Mobile-optimized heading size */}
-                  <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+                  {/* Heading size */}
+                  <h2 className="text-2xl font-bold tracking-tight">
                     Available Rooms
                   </h2>
-                  <p className="text-sm sm:text-base text-muted-foreground">
+                  <p className="text-base text-muted-foreground">
                     Choose from our selection of comfortable rooms
                   </p>
                 </div>
                 {loading && (
-                  <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-primary" />
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 )}
               </div>
 
-              {/* Reduced minimum height for mobile */}
-              <div className="space-y-4 sm:space-y-6 min-h-[300px] sm:min-h-[400px]">
+              {/* Restored minimum height */}
+              <div className="space-y-6 min-h-[400px]">
                 {availableRooms.length > 0
                   ? availableRooms.map((room) => (
                       <Card
@@ -439,49 +428,47 @@ const HotelDetailsPage = () => {
                                 `https://via.placeholder.com/500x300?text=Room+${room.roomNumber}`
                               }
                               alt={`Room ${room.roomNumber}`}
-                              // Reduced image height for mobile
-                              className="h-48 sm:h-64 w-full object-cover lg:h-full"
+                              className="h-64 w-full object-cover lg:h-full"
                             />
                             {room.available && (
                               <Badge
                                 variant="default"
-                                // Adjusted badge positioning and size for mobile
-                                className="absolute left-2 sm:left-3 top-2 sm:top-3 bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
+                                className="absolute left-3 top-3 bg-green-600 hover:bg-green-700"
                               >
-                                <CheckCircle className="mr-1 h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                                <CheckCircle className="mr-1 h-3.5 w-3.5" />
                                 Available
                               </Badge>
                             )}
                           </div>
 
-                          {/* Reduced padding for mobile */}
-                          <div className="flex flex-1 flex-col justify-between p-4 sm:p-6">
-                            {/* Reduced spacing for mobile */}
-                            <div className="space-y-3 sm:space-y-4">
-                              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-                                {/* Reduced spacing for mobile */}
-                                <div className="space-y-1 sm:space-y-2">
-                                  {/* Mobile-optimized text sizes */}
-                                  <CardTitle className="text-lg sm:text-xl">
+                          {/* Restored padding */}
+                          <div className="flex flex-1 flex-col justify-between p-6">
+                            {/* Restored spacing */}
+                            <div className="space-y-4">
+                              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                                {/* Restored spacing */}
+                                <div className="space-y-2">
+                                  {/* Text sizes */}
+                                  <CardTitle className="text-xl">
                                     {room.roomType} - Room {room.roomNumber}
                                   </CardTitle>
-                                  <CardDescription className="text-sm sm:text-base">
+                                  <CardDescription className="text-base">
                                     {room.description}
                                   </CardDescription>
                                 </div>
                                 <div className="text-right flex-shrink-0">
-                                  {/* Mobile-optimized price display with "From" label */}
-                                  <div className="text-xl sm:text-2xl font-bold text-primary">
+                                  {/* Price display with "From" label */}
+                                  <div className="text-2xl font-bold text-primary">
                                     {hotel.lowestPrice ? (
                                       <>
-                                        <span className="text-sm sm:text-base font-normal text-muted-foreground">From </span>
+                                        <span className="text-base font-normal text-muted-foreground">From </span>
                                         Nu. {new Intl.NumberFormat("en-IN").format(hotel.lowestPrice)}
                                       </>
                                     ) : (
                                       <>Nu. {new Intl.NumberFormat("en-IN").format(room.price)}</>
                                     )}
                                   </div>
-                                  <p className="text-xs sm:text-sm text-muted-foreground">
+                                  <p className="text-sm text-muted-foreground">
                                     per night
                                   </p>
                                 </div>
@@ -489,12 +476,12 @@ const HotelDetailsPage = () => {
 
                               {room.amenities?.length > 0 && (
                                 <div>
-                                  {/* Mobile-optimized subtitle */}
-                                  <h4 className="font-medium text-xs sm:text-sm mb-2 sm:mb-3 text-muted-foreground">
+                                  {/* Subtitle */}
+                                  <h4 className="font-medium text-sm mb-3 text-muted-foreground">
                                     Room Amenities
                                   </h4>
-                                  {/* Reduced gap for mobile */}
-                                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                                  {/* Gap spacing */}
+                                  <div className="flex flex-wrap gap-2">
                                     {room.amenities.map((amenity, index) => (
                                       <Badge key={index} variant="outline" className="text-xs">
                                         {amenity}
@@ -505,8 +492,8 @@ const HotelDetailsPage = () => {
                               )}
                             </div>
 
-                            {/* Reduced margin and padding for mobile */}
-                            <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t">
+                            {/* Restored margin and padding */}
+                            <div className="mt-6 pt-4 border-t">
                               <RoomBookingCard room={room} />
                             </div>
                           </div>
@@ -515,13 +502,13 @@ const HotelDetailsPage = () => {
                     ))
                   : !loading && (
                       <Card>
-                        {/* Reduced padding for mobile */}
-                        <CardContent className="pt-4 sm:pt-6">
-                          {/* Reduced padding for mobile empty state */}
-                          <div className="text-center py-8 sm:py-12">
-                            <Building2 className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground mb-3 sm:mb-4" />
-                            <h3 className="text-base sm:text-lg font-medium mb-1 sm:mb-2">No rooms available</h3>
-                            <p className="text-sm sm:text-base text-muted-foreground">
+                        {/* Restored padding */}
+                        <CardContent className="pt-6">
+                          {/* Restored padding for empty state */}
+                          <div className="text-center py-12">
+                            <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                            <h3 className="text-lg font-medium mb-2">No rooms available</h3>
+                            <p className="text-base text-muted-foreground">
                               Please try different dates or contact the hotel directly.
                             </p>
                           </div>
@@ -532,8 +519,7 @@ const HotelDetailsPage = () => {
 
               {/* Enhanced Pagination */}
               {paginationData && paginationData.totalPages > 1 && (
-                // Reduced top padding for mobile
-                <div className="flex justify-center pt-3 sm:pt-4">
+                <div className="flex justify-center pt-4">
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
