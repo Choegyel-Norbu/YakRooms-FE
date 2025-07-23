@@ -41,6 +41,21 @@ import BookingTable from "../components/hotel/BookingTable.jsx";
 import { useAuth } from "../services/AuthProvider.jsx";
 import api from "../services/Api.jsx";
 
+// YakRooms Text Logo Component (copied from Navbar.jsx)
+const YakRoomsText = ({ size = "default" }) => {
+  const textSizes = {
+    small: "text-lg font-bold",
+    default: "text-xl font-bold",
+    large: "text-2xl font-bold"
+  };
+  return (
+    <div className={`${textSizes[size]} font-sans tracking-tight`}>
+      <span className="text-blue-600">Yak</span>
+      <span className="text-yellow-500">Rooms</span>
+    </div>
+  );
+};
+
 const HotelAdminDashboard = () => {
   const { userId, userName, logout, hotelId } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -150,11 +165,9 @@ const HotelAdminDashboard = () => {
         {/* Reduced padding for desktop sidebar header */}
         <div className="p-4 lg:p-5 border-b">
           <div className="flex items-center gap-2 lg:gap-3 mb-3">
-            <div className="p-1.5 lg:p-2 rounded-lg bg-primary/10">
-              <Building2 className="h-5 w-5 lg:h-6 lg:w-6 text-primary" />
-            </div>
+            {/* Removed home icon */}
             <div>
-              <h1 className="text-base lg:text-lg font-bold text-foreground">YakRooms</h1>
+              <YakRoomsText size="default" />
               <p className="text-xs text-muted-foreground">Admin Panel</p>
             </div>
           </div>
@@ -219,12 +232,9 @@ const HotelAdminDashboard = () => {
                     {/* Mobile sidebar header with proper spacing */}
                     <SheetHeader className="p-4 border-b">
                       <SheetTitle className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-primary/10">
-                          <Building2 className="h-5 w-5 text-primary" />
-                        </div>
+                        {/* Removed home icon for mobile sidebar */}
                         <div>
-                          {/* Consistent mobile typography */}
-                          <h1 className="text-lg font-bold text-foreground">YakRooms</h1>
+                          <YakRoomsText size="default" />
                           <p className="text-xs text-muted-foreground">Admin Panel</p>
                         </div>
                       </SheetTitle>

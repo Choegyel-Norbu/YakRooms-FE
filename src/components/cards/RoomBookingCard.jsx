@@ -26,8 +26,8 @@ import { CheckCircle, Users, Home } from "lucide-react";
 import LoginModal from "../LoginModal.jsx"; // Assuming this is your LoginModal component
 import { toast } from "sonner"; // Using sonner for toasts
 
-export default function RoomBookingCard({ room }) {
-  const { userId, isAuthenticated, hotelId } = useAuth();
+export default function RoomBookingCard({ room, hotelId }) {
+  const { userId, isAuthenticated } = useAuth();
   const [openBookingDialog, setOpenBookingDialog] = useState(false);
   const [openLoginModal, setOpenLoginModal] = useState(false);
   const [bookingDetails, setBookingDetails] = useState({
@@ -117,9 +117,9 @@ export default function RoomBookingCard({ room }) {
       const payload = {
         ...bookingDetails,
         roomId: room.id,
+        hotelId: hotelId,
         totalPrice: calculateTotalPrice(),
         userId,
-        hotelId,
         days: calculateDays(),
       };
       const res = await api.post("/bookings", payload);
@@ -155,10 +155,6 @@ export default function RoomBookingCard({ room }) {
     }
   };
 
-  const handleLoginSuccess = () => {
-    setOpenLoginModal(false); // Close login modal
-    setOpenBookingDialog(true); // Open booking dialog after successful login
-  };
   // --- End of core logic change ---
 
   const days = calculateDays();
@@ -265,10 +261,10 @@ export default function RoomBookingCard({ room }) {
                     }
                   >
                     <SelectTrigger>
-                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      {/* Removed Users icon */}
                       <SelectValue
                         placeholder="Select guests"
-                        className="pl-6"
+                        className="pl-2"
                       />
                     </SelectTrigger>
                     <SelectContent>
@@ -280,31 +276,7 @@ export default function RoomBookingCard({ room }) {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="numberOfRooms">Rooms</Label>
-                  <Select
-                    name="numberOfRooms"
-                    value={String(bookingDetails.numberOfRooms)}
-                    onValueChange={(value) =>
-                      handleSelectChange("numberOfRooms", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <Home className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <SelectValue
-                        placeholder="Select rooms"
-                        className="pl-6"
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5].map((num) => (
-                        <SelectItem key={num} value={String(num)}>
-                          {num} {num === 1 ? "room" : "rooms"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Removed numberOfRooms (room) field */}
               </div>
 
               <Separator className="my-2" />

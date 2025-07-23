@@ -430,16 +430,16 @@ const RoomManager = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          {/* <h3 className="text-lg font-semibold text-foreground">Room Management</h3> */}
-          <p className="text-sm text-muted-foreground">Manage your hotel rooms and availability</p>
-        </div>
-        <Button onClick={() => { setShowForm(true); setEditingRoom(null); }}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Room
+    <div className="space-y-6 py-4 sm:py-8">
+      {/* Responsive Header - Only Add Room button remains, with spacing */}
+      <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-3 sm:gap-0 mb-2 sm:mb-4">
+        <Button 
+          onClick={() => { setShowForm(true); setEditingRoom(null); }}
+          className="w-full sm:w-auto sm:text-base text-sm"
+        >
+          <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+          <span className="hidden sm:inline">Add Room</span>
+          <span className="sm:hidden">Add</span>
         </Button>
       </div>
 

@@ -336,8 +336,8 @@ const HotelDetailsPage = () => {
                   </Badge>
                 </div>
                 
-                {/* Rating Section - Smaller for mobile */}
-                <div className="flex items-center gap-1.5 sm:gap-2">
+                {/* Rating Section - Removed */}
+                {/* <div className="flex items-center gap-1.5 sm:gap-2">
                   <div className="flex items-center">
                     {[...Array(5)].map((_, i) => (
                       <Star
@@ -349,7 +349,7 @@ const HotelDetailsPage = () => {
                     ))}
                   </div>
                   <span className="text-xs sm:text-sm text-muted-foreground">(4.0)</span>
-                </div>
+                </div> */}
               </div>
 
               <Separator />
@@ -494,7 +494,7 @@ const HotelDetailsPage = () => {
 
                             {/* Restored margin and padding */}
                             <div className="mt-6 pt-4 border-t">
-                              <RoomBookingCard room={room} />
+                              <RoomBookingCard room={room} hotelId={id}/>
                             </div>
                           </div>
                         </div>
