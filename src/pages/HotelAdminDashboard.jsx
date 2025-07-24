@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   Home,
@@ -14,6 +14,7 @@ import {
   LogOut,
   Menu,
   X,
+  Bell,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,9 @@ import RoomManager from "../components/RoomManager.jsx";
 import BookingTable from "../components/hotel/BookingTable.jsx";
 import { useAuth } from "../services/AuthProvider.jsx";
 import api from "../services/Api.jsx";
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
+import API_BASE_URL from '../../config.js';
 
 // YakRooms Text Logo Component (copied from Navbar.jsx)
 const YakRoomsText = ({ size = "default" }) => {
@@ -62,6 +66,10 @@ const HotelAdminDashboard = () => {
   const [hotel, setHotel] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [newBookings, setNewBookings] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [hasNewBooking, setHasNewBooking] = useState(false);
+  const clientRef = useRef(null);
 
   useEffect(() => {
     console.log("Hotel id :" + localStorage.getItem("hotelId"));
@@ -86,6 +94,54 @@ const HotelAdminDashboard = () => {
 
     fetchHotelData();
   }, []);
+
+  // Real-time booking notification 
+  useEffect(() => {
+    if (!userId) return;
+    if (!clientRef.current) {
+      const client = new Client({
+        webSocketFactory: () => new SockJS(`${API_BASE_URL}/ws`),
+        reconnectDelay: 10000,
+        debug: (str) => console.log('STOMP: ' + str),
+      });
+      client.onConnect = () => {
+        const subscriptionTopic = `/topic/notifications/${userId}`;
+        client.subscribe(subscriptionTopic, (message) => {
+          try {
+            const newNotification = JSON.parse(message.body);
+            setNewBookings((prev) => [newNotification, ...prev]);
+            setHasNewBooking(true);
+          } catch (error) {
+            console.error("Could not parse notification message:", error);
+          }
+        });
+      };
+      client.onDisconnect = () => {
+        setHasNewBooking(false);
+      };
+      client.onStompError = (frame) => {
+        console.error('Broker reported error: ' + frame.headers['message']);
+        console.error('Additional details: ' + frame.body);
+      };
+      clientRef.current = client;
+    }
+    if (!clientRef.current.active) {
+      clientRef.current.activate();
+    }
+    return () => {
+      if (clientRef.current && clientRef.current.active) {
+        clientRef.current.deactivate();
+        clientRef.current = null;
+        setHasNewBooking(false);
+      }
+    };
+  }, [userId]);
+
+  // Example handler for receiving a new booking (call this from your real-time logic)
+  const handleNewBooking = (booking) => {
+    setNewBookings((prev) => [booking, ...prev]);
+    setHasNewBooking(true);
+  };
 
   const updateHotel = (updatedHotel) => {
     setHotel(updatedHotel);
@@ -203,122 +259,145 @@ const HotelAdminDashboard = () => {
         {/* Top Header */}
         <header className="bg-card shadow-sm border-b sticky top-0 z-10">
           {/* Reduced header padding for mobile - breathing room from edges */}
-          <div className="px-4 py-3 lg:px-6 lg:py-4">
-            <div className="flex justify-between items-center">
-              {/* Mobile-optimized typography hierarchy */}
-              <div className="space-y-0.5 flex-1 min-w-0">
-                {/* Optimized font size for mobile readability */}
-                <h2 className="text-xl sm:text-xl lg:text-2xl font-semibold text-foreground truncate">
-                  {getPageTitle()}
-                </h2>
-                {/* Hide description for dashboard tab to save space */}
-                {activeTab !== "dashboard" && (
-                  <p className="text-sm sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
-                    {getPageDescription()}
-                  </p>
+          <div className="px-4 py-3 lg:px-6 lg:py-4 flex justify-between items-center">
+            <div className="space-y-0.5 flex-1 min-w-0">
+              {/* Optimized font size for mobile readability */}
+              <h2 className="text-xl sm:text-xl lg:text-2xl font-semibold text-foreground truncate">
+                {getPageTitle()}
+              </h2>
+              {/* Hide description for dashboard tab to save space */}
+              {activeTab !== "dashboard" && (
+                <p className="text-sm sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
+                  {getPageDescription()}
+                </p>
+              )}
+            </div>
+            {/* Notification Bell */}
+            <div className="relative ml-4">
+              <Button variant="ghost" size="icon" onClick={() => { setShowNotifications((prev) => !prev); setHasNewBooking(false); }}>
+                <Bell className="h-6 w-6" />
+                {hasNewBooking && (
+                  <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white animate-ping" />
                 )}
-              </div>
-
-              {/* Adjusted spacing between header elements */}
-              <div className="flex items-center space-x-3 flex-shrink-0">
-                {/* Mobile Navigation Button */}
-                <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                  <SheetTrigger asChild>
-                    <Button variant="outline" size="sm" className="md:hidden p-2">
-                      <Menu className="h-4 w-4" />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
-                    {/* Mobile sidebar header with proper spacing */}
-                    <SheetHeader className="p-4 border-b">
-                      <SheetTitle className="flex items-center gap-3">
-                        {/* Removed home icon for mobile sidebar */}
-                        <div>
-                          <YakRoomsText size="default" />
-                          <p className="text-xs text-muted-foreground">Admin Panel</p>
+              </Button>
+              {/* Notification Dropdown */}
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+                  <div className="p-4 border-b font-semibold text-primary">New Bookings</div>
+                  <div className="max-h-60 overflow-y-auto">
+                    {newBookings.length === 0 ? (
+                      <div className="p-4 text-muted-foreground text-sm">No new bookings.</div>
+                    ) : (
+                      newBookings.map((booking) => (
+                        <div key={booking.id} className="p-4 border-b last:border-b-0">
+                          <div className="font-medium">Guest: {booking.guest}</div>
+                          <div className="text-xs text-muted-foreground">{booking.time}</div>
                         </div>
-                      </SheetTitle>
-                    </SheetHeader>
-                    
-                    {/* Mobile sidebar content with navigation */}
-                    <div className="flex-1 flex flex-col p-4">
-                      {/* Mobile navigation with tighter spacing */}
-                      <nav className="space-y-1 flex-1">
-                        {navigationItems.map((item) => (
-                          <NavigationButton
-                            key={item.id}
-                            item={item}
-                            isActive={activeTab === item.id}
-                            onClick={() => {
-                              setActiveTab(item.id);
-                              setMobileMenuOpen(false);
-                            }}
-                          />
-                        ))}
-                      </nav>
-
-                      {/* User info and home button moved to bottom */}
-                      <div className="space-y-3 mt-4 pt-4 border-t">
-                        {/* User Profile Section at bottom */}
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                          <Avatar className="h-9 w-9 border-2 border-primary/20">
-                            <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                              {userName?.charAt(0).toUpperCase() || "U"}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium leading-none truncate">{userName}</p>
-                            <p className="text-xs leading-none text-muted-foreground mt-1">
-                              Hotel Administrator
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Back to website button at bottom - made colorful */}
-                        <Link to="/" className="block">
-                          <Button variant="default" size="sm" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Website
-                          </Button>
-                        </Link>
-                      </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          {/* Adjusted spacing between header elements */}
+          <div className="flex items-center space-x-3 flex-shrink-0">
+            {/* Mobile Navigation Button */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="md:hidden p-2">
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
+                {/* Mobile sidebar header with proper spacing */}
+                <SheetHeader className="p-4 border-b">
+                  <SheetTitle className="flex items-center gap-3">
+                    {/* Removed home icon for mobile sidebar */}
+                    <div>
+                      <YakRoomsText size="default" />
+                      <p className="text-xs text-muted-foreground">Admin Panel</p>
                     </div>
-                  </SheetContent>
-                </Sheet>
+                  </SheetTitle>
+                </SheetHeader>
+                
+                {/* Mobile sidebar content with navigation */}
+                <div className="flex-1 flex flex-col p-4">
+                  {/* Mobile navigation with tighter spacing */}
+                  <nav className="space-y-1 flex-1">
+                    {navigationItems.map((item) => (
+                      <NavigationButton
+                        key={item.id}
+                        item={item}
+                        isActive={activeTab === item.id}
+                        onClick={() => {
+                          setActiveTab(item.id);
+                          setMobileMenuOpen(false);
+                        }}
+                      />
+                    ))}
+                  </nav>
 
-                <Separator orientation="vertical" className="h-4 sm:h-6 hidden sm:block" />
-
-                {/* Desktop User Menu - Hidden on mobile */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 hidden md:flex">
-                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-primary/20">
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
+                  {/* User info and home button moved to bottom */}
+                  <div className="space-y-3 mt-4 pt-4 border-t">
+                    {/* User Profile Section at bottom */}
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                      <Avatar className="h-9 w-9 border-2 border-primary/20">
+                        <AvatarFallback className="bg-primary/10 text-primary text-sm">
                           {userName?.charAt(0).toUpperCase() || "U"}
                         </AvatarFallback>
                       </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-48 sm:w-56" align="end">
-                    <DropdownMenuLabel className="font-normal">
-                      <div className="flex flex-col space-y-1">
+                      <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium leading-none truncate">{userName}</p>
-                        <p className="text-xs leading-none text-muted-foreground">
+                        <p className="text-xs leading-none text-muted-foreground mt-1">
                           Hotel Administrator
                         </p>
                       </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/" className="w-full">
-                        <Home className="mr-2 h-4 w-4" />
-                        <span>Return to Website</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
+                    </div>
+
+                    {/* Back to website button at bottom - made colorful */}
+                    <Link to="/" className="block">
+                      <Button variant="default" size="sm" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back to Website
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            <Separator orientation="vertical" className="h-4 sm:h-6 hidden sm:block" />
+
+            {/* Desktop User Menu - Hidden on mobile */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 hidden md:flex">
+                  <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-primary/20">
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
+                      {userName?.charAt(0).toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-48 sm:w-56" align="end">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none truncate">{userName}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      Hotel Administrator
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/" className="w-full">
+                    <Home className="mr-2 h-4 w-4" />
+                    <span>Return to Website</span>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 

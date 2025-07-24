@@ -14,9 +14,7 @@ import NotificationsComponent from "../components/NotificationsComponent";
 
 export default function () {
   return (
-    <Router> {/* Router should wrap everything that needs routing context */}
       <AuthProvider>
-        <NotificationsComponent /> {/* Place it here */}
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/about" element={<About />} />
@@ -29,6 +27,5 @@ export default function () {
           <Route path="/portfolio" element={<PortfolioPage />} />
         </Routes>
       </AuthProvider>
-    </Router>
   );
 }
