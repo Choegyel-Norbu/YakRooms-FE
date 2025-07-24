@@ -118,7 +118,7 @@ const HotelDetailsPage = () => {
   };
 
   // Subscribe to real-time room updates
-  useRoomSubscription(id, handleRoomUpdates);
+  const { testConnection } = useRoomSubscription(id, handleRoomUpdates);
 
   useEffect(() => {
     const fetchHotelData = async () => {
