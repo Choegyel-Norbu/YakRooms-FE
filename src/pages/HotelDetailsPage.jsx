@@ -97,6 +97,29 @@ const HotelDetailsPage = () => {
     return amenityIcons.default;
   };
 
+  // WebSocket callback to handle real-time room updates
+  const handleRoomUpdates = (updatedRooms) => {
+    console.log('Received real-time room updates:', updatedRooms);
+    
+    // Filter rooms based on current pagination
+    const startIndex = currentPage * 3;
+    const endIndex = startIndex + 3;
+    const paginatedRooms = updatedRooms.slice(startIndex, endIndex);
+    
+    setAvailableRooms(paginatedRooms);
+    
+    // Update pagination data
+    setPaginationData(prev => ({
+      ...prev,
+      content: paginatedRooms,
+      totalElements: updatedRooms.length,
+      totalPages: Math.ceil(updatedRooms.length / 3)
+    }));
+  };
+
+  // Subscribe to real-time room updates
+  useRoomSubscription(id, handleRoomUpdates);
+
   useEffect(() => {
     const fetchHotelData = async () => {
       try {
@@ -123,9 +146,6 @@ const HotelDetailsPage = () => {
       fetchHotelData();
     }
   }, [id, currentPage, hotel]);
-
-  // Subscribe to real-time room updates
-  useRoomSubscription(id, setAvailableRooms);
 
   useEffect(() => {
     if (isInitialLoad.current) {
