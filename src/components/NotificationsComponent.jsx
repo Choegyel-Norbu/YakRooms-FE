@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { useAuth } from '../../services/AuthProvider.jsx'; // <-- Using your AuthProvider
+import { useAuth } from '../../src/services/AuthProvider'
 
-import API_BASE_URL from 'config.js';
+import API_BASE_URL from '../../config.js';
 
 // The URL for the SockJS endpoint you configured in Spring Boot.
 const SOCKET_URL = API_BASE_URL + '/ws';
