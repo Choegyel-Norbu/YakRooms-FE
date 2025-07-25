@@ -4,7 +4,6 @@ import RoomBookingCard from "../components/cards/RoomBookingCard.jsx";
 import Footer from "../components/Footer";
 import YakRoomsAdCard from "../components/cards/YakRoomsAdCard";
 import api from "../services/Api";
-import { useRoomSubscription } from "../hooks/useRoomSubscription";
 
 import {
   ArrowLeft,
@@ -116,9 +115,6 @@ const HotelDetailsPage = () => {
       totalPages: Math.ceil(updatedRooms.length / 3)
     }));
   };
-
-  // Subscribe to real-time room updates
-  const { testConnection } = useRoomSubscription(id, handleRoomUpdates);
 
   useEffect(() => {
     const fetchHotelData = async () => {
