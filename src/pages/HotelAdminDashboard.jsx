@@ -468,7 +468,7 @@ const HotelAdminDashboard = () => {
                 
                 {/* Notification Dropdown */}
                 {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-80 sm:w-80 w-[calc(100vw-2rem)] max-w-sm bg-card border rounded-lg shadow-lg z-50">
+                  <div className="absolute -right-18 sm:right-0 mt-2 w-80 sm:w-80 w-[calc(100vw-2rem)] max-w-sm bg-card border rounded-lg shadow-lg z-50">
                     <div className="p-3 sm:p-4 border-b">
                       <div className="flex items-center justify-between">
                         <h3 className="font-semibold text-foreground text-sm sm:text-base">Notifications</h3>
@@ -484,7 +484,7 @@ const HotelAdminDashboard = () => {
                         )}
                       </div>
                     </div>
-                    <div className="max-h-80 sm:max-h-96 overflow-y-auto">
+                    <div className="max-h-80 sm:max-h-96">
                       {loadingNotifications ? (
                         <div className="p-6 sm:p-8 text-center">
                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
