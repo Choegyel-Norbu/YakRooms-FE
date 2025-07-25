@@ -76,7 +76,7 @@ const HotelListingPage = () => {
     try {
       setLoading(true);
       let endpoint = `/hotels?page=${page}&size=${pagination.size}`;
-      
+
       // Use search endpoint if filters are provided
       // Modified condition to check for "all" instead of empty string
       if (searchDistrict || (searchHotelType && searchHotelType !== "all")) {
@@ -84,10 +84,10 @@ const HotelListingPage = () => {
           page: page.toString(),
           size: pagination.size.toString(),
         });
-        
+
         if (searchDistrict.trim()) params.append("district", searchDistrict.trim());
         if (searchHotelType && searchHotelType !== "all") params.append("hotelType", searchHotelType);
-        
+
         endpoint = `/hotels/search?${params.toString()}`;
       } else {
         // Apply sorting for non-search queries
@@ -97,7 +97,7 @@ const HotelListingPage = () => {
           endpoint = `/hotels/sortedByLowestPrice?page=${page}&size=${pagination.size}`;
         }
       }
-      
+
       const response = await api.get(endpoint);
       setHotels(response.data.content);
       setPagination({
@@ -241,9 +241,9 @@ const HotelListingPage = () => {
               >
                 <YakRoomsText size="default" />
               </Link>
-              
+
               {/* Mobile Home Button */}
-            
+
             </div>
 
             {/* Center - Tagline (hidden on mobile) */}
@@ -267,80 +267,72 @@ const HotelListingPage = () => {
         {/* Main Content */}
         <main className="w-full">
           {/* Simple Search Section */}
-          <Card className="mb-6">
-            <CardContent className="pt-6">
-              <div className="flex flex-col sm:flex-row gap-4">
-                {/* District Search */}
-                <div className="flex-1">
-                  <Input
-                    placeholder="Search by district..."
-                    value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
-                    className="w-full"
-                  />
-                </div>
+          {/* <Card className="mb-6">
+            <CardContent className="pt-6"> */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* District Search */}
+            <div className="flex-1">
+              <Input
+                placeholder="Search by district..."
+                value={district}
+                onChange={(e) => setDistrict(e.target.value)}
+                className="w-full text-14"
 
-                {/* Hotel Type Filter */}
-                <div className="sm:w-48">
-                  <Select value={hotelType} onValueChange={setHotelType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Hotel type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="ONE_STAR">One Star</SelectItem>
-                      <SelectItem value="TWO_STAR">Two Star</SelectItem>
-                      <SelectItem value="THREE_STAR">Three Star</SelectItem>
-                      <SelectItem value="FOUR_STAR">Four Star</SelectItem>
-                      <SelectItem value="FIVE_STAR">Five Star</SelectItem>
-                      <SelectItem value="BUDGET">Budget</SelectItem>
-                      <SelectItem value="BOUTIQUE">Boutique</SelectItem>
-                      <SelectItem value="RESORT">Resort</SelectItem>
-                      <SelectItem value="HOMESTAY">Homestay</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              />
+            </div>
 
-                {/* Search Actions */}
-                <div className="flex gap-2">
-                  <Button onClick={handleSearch}>
-                    <Search className="h-4 w-4 mr-2" />
-                    Search
-                  </Button>
-                  {isSearchActive && (
-                    <Button variant="outline" onClick={handleClearSearch}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Hotel Type Filter */}
+            <div className="sm:w-48">
+              <Select value={hotelType} onValueChange={setHotelType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Hotel type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="ONE_STAR">One Star</SelectItem>
+                  <SelectItem value="TWO_STAR">Two Star</SelectItem>
+                  <SelectItem value="THREE_STAR">Three Star</SelectItem>
+                  <SelectItem value="FOUR_STAR">Four Star</SelectItem>
+                  <SelectItem value="FIVE_STAR">Five Star</SelectItem>
+                  <SelectItem value="BUDGET">Budget</SelectItem>
+                  <SelectItem value="BOUTIQUE">Boutique</SelectItem>
+                  <SelectItem value="RESORT">Resort</SelectItem>
+                  <SelectItem value="HOMESTAY">Homestay</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Search Actions */}
+            <div className="flex gap-2 mb-8">
+              <Button onClick={handleSearch}>
+                <Search className="h-4 w-4 mr-2" />
+                Search
+              </Button>
+              {isSearchActive && (
+                <Button variant="outline" onClick={handleClearSearch}>
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+          {/* </CardContent>
+          </Card> */}
 
           {/* Results Header */}
           <div className="mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-                  {isSearchActive ? "Search Results" : "All Hotels in Bhutan"}
+                <h1 className="text-2xl md:text-xl font-bold tracking-tight">
+                  {isSearchActive ? `Search Results for ${district}` : "All Hotels in Bhutan"}
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   {loading
                     ? "Searching..."
                     : `${pagination.totalElements} ${pagination.totalElements === 1 ? 'hotel' : 'hotels'} found`}
                 </p>
-                
+
                 {/* Active filters display */}
-                {isSearchActive && (
-                  <div className="flex gap-2 mt-2">
-                    {district && (
-                      <Badge variant="secondary">District: {district}</Badge>
-                    )}
-                    {hotelType && hotelType !== "all" && (
-                      <Badge variant="secondary">Type: {hotelType}</Badge>
-                    )}
-                  </div>
-                )}
+               
               </div>
 
               {/* Sort Controls - only show when not searching */}
@@ -425,10 +417,10 @@ const HotelListingPage = () => {
                             </>
                           ) : (
                             <>
-                            {/* Do not change this part of the code */}
+                              {/* Do not change this part of the code */}
                               <p className="text-sm text-primary">
                                 No specific price available
-                                
+
                               </p>
                             </>
                           )}

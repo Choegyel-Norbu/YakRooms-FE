@@ -3,6 +3,21 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react";
 
+// YakRooms Text Logo Component (copied from Navbar.jsx)
+const YakRoomsText = ({ size = "default" }) => {
+  const textSizes = {
+    small: "text-lg font-bold",
+    default: "text-2xl font-bold",
+    large: "text-3xl font-bold"
+  };
+  return (
+    <div className={`${textSizes[size]} font-sans tracking-tight`}>
+      <span className="text-blue-600">Yak</span>
+      <span className="text-yellow-500">Rooms</span>
+    </div>
+  );
+};
+
 const Footer = React.forwardRef((props, ref) => {
   return (
     <footer ref={ref} className="bg-background border-t">
@@ -12,9 +27,7 @@ const Footer = React.forwardRef((props, ref) => {
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <div className="mb-4">
-              <div className="text-2xl font-bold text-foreground mb-2">
-                YakRooms
-              </div>
+              <YakRoomsText size="default" />
               <p className="text-sm text-muted-foreground mb-4">
                 Travel Bhutan Smarter – Discover, Book, and Dine with YakRooms.
               </p>

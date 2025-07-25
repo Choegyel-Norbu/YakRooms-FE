@@ -676,7 +676,7 @@ const RoomManager = () => {
                   <TableCell className="font-medium">{room.roomNumber}</TableCell>
                   <TableCell>{room.roomType}</TableCell>
                   <TableCell className="max-w-xs truncate">{room.description}</TableCell>
-                  <TableCell>Nu {room.price?.toFixed(2)}</TableCell>
+                  <TableCell>Nu {typeof room.price === 'number' && !isNaN(room.price) ? room.price.toFixed(2) : '-'}</TableCell>
                   <TableCell className="max-w-xs truncate">
                     {Array.isArray(room.amenities)
                       ? room.amenities.join(", ")

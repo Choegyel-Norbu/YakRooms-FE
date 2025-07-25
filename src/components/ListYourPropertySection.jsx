@@ -48,7 +48,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
   ];
 
   const stats = [
-    { number: "500+", label: "Partner Properties" },
+    { number: "10+", label: "Partner Properties" },
     { number: "95%", label: "Customer Satisfaction" },
     { number: "24/7", label: "Support Available" },
   ];
@@ -84,10 +84,10 @@ const ListYourPropertySection = ({ onLoginClick }) => {
             {/* Left Side - Benefits */}
             <div className="space-y-8">
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {stats.map((stat, index) => (
                   <Card key={index} className="text-center hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
+                    <CardContent className="sm:p-6">
                       <div className="text-2xl md:text-3xl font-bold text-yellow-500 mb-1">
                         {stat.number}
                       </div>
@@ -176,7 +176,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                       ))}
                     </div>
                     <p className="text-sm  text-yelllow-500">
-                      Trusted by 500+ partners
+                      Listed 10+ partners
                     </p>
                   </div>
                 </CardContent>

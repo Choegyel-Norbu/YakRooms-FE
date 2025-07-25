@@ -96,26 +96,6 @@ const HotelDetailsPage = () => {
     return amenityIcons.default;
   };
 
-  // WebSocket callback to handle real-time room updates
-  const handleRoomUpdates = (updatedRooms) => {
-    console.log('Received real-time room updates:', updatedRooms);
-
-    // Filter rooms based on current pagination
-    const startIndex = currentPage * 3;
-    const endIndex = startIndex + 3;
-    const paginatedRooms = updatedRooms.slice(startIndex, endIndex);
-
-    setAvailableRooms(paginatedRooms);
-
-    // Update pagination data
-    setPaginationData(prev => ({
-      ...prev,
-      content: paginatedRooms,
-      totalElements: updatedRooms.length,
-      totalPages: Math.ceil(updatedRooms.length / 3)
-    }));
-  };
-
   useEffect(() => {
     const fetchHotelData = async () => {
       try {
@@ -242,6 +222,12 @@ const HotelDetailsPage = () => {
         <div className="mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
           {/* Left side - Navigation */}
           <div className="flex items-center gap-1 sm:gap-2">
+            {/* Home navigation icon */}
+            <Button asChild variant="ghost" className="p-2">
+              <Link to="/">
+                <Home className="h-5 w-5 " />
+              </Link>
+            </Button>
             {/* Back button: icon only on small screens, icon+text on sm+ */}
             <Button variant="ghost" onClick={() => navigate(-1)} className="p-2">
               <ArrowLeft className="h-4 w-4" />
