@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   MapPin,
   Loader2,
@@ -44,6 +44,7 @@ import api from "../services/Api";
 
 
 const HotelListingPage = () => {
+  const location = useLocation();
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState("default");
@@ -57,6 +58,15 @@ const HotelListingPage = () => {
   // Simple search state
   const [district, setDistrict] = useState("");
   const [hotelType, setHotelType] = useState("all"); // Changed from "" to "all"
+
+  // Set initial district from URL param on mount
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const districtParam = params.get("district");
+    if (districtParam) {
+      setDistrict(districtParam);
+    }
+  }, [location.search]);
 
   // Hotel types
   const hotelTypes = ["Resort", "Hotel", "Guesthouse", "Homestay", "Boutique Hotel"];
@@ -104,10 +114,11 @@ const HotelListingPage = () => {
     }
   }, [pagination.size, sortBy]);
 
-  // Initial load
+
+  // Trigger search when district or hotelType changes (including from URL param)
   useEffect(() => {
     fetchHotels(0, district, hotelType);
-  }, [fetchHotels, sortBy]);
+  }, [district, hotelType]);
 
   // Simple search handler
   const handleSearch = () => {

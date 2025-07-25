@@ -94,22 +94,22 @@ const HotelAdminDashboard = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       if (!userId) return;
-      
+
       try {
         setLoadingNotifications(true);
         const response = await api.get(`/notifications/user/${userId}`);
         const fetchedNotifications = response.data;
-        
+
         // Sort notifications by createdAt (newest first) and calculate unread count
         const sortedNotifications = fetchedNotifications.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
-        
+
         const unreadNotifications = sortedNotifications.filter(notif => !notif.isRead);
-        
+
         setNotifications(sortedNotifications);
         setUnreadCount(unreadNotifications.length);
-        
+
         console.log("[API] Fetched notifications:", sortedNotifications);
         console.log("[API] Unread count:", unreadNotifications.length);
       } catch (error) {
@@ -126,13 +126,13 @@ const HotelAdminDashboard = () => {
   const markAllNotificationsAsRead = async () => {
     try {
       await api.put(`/notifications/user/${userId}/markAllRead`);
-      
+
       // Update local state
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(notif => ({ ...notif, isRead: true }))
       );
       setUnreadCount(0);
-      
+
       console.log("[API] Successfully marked all notifications as read");
     } catch (error) {
       console.error("[API] Error marking notifications as read:", error);
@@ -143,11 +143,11 @@ const HotelAdminDashboard = () => {
   const deleteAllNotifications = async () => {
     try {
       await api.delete(`/notifications/user/${userId}`);
-      
+
       // Update local state
       setNotifications([]);
       setUnreadCount(0);
-      
+
       console.log("[API] Successfully deleted all notifications");
     } catch (error) {
       console.error("[API] Error deleting notifications:", error);
@@ -181,16 +181,16 @@ const HotelAdminDashboard = () => {
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
       debug: (str) => console.log('[WS] STOMP Debug:', str),
-      
+
       onConnect: (frame) => {
         console.log("[WS] ✅ WebSocket Connected Successfully!");
         console.log("[WS] Connection frame:", frame);
-        
+
         const subscriptionTopic = `/topic/notifications/${userId}`;
         console.log("[WS] Subscribing to topic:", subscriptionTopic);
-        
+
         const subscription = client.subscribe(
-          subscriptionTopic, 
+          subscriptionTopic,
           (message) => {
             console.log("=== [WS] 🔔 NOTIFICATION MESSAGE RECEIVED ===");
             console.log("[WS] Raw STOMP Frame:", message);
@@ -200,14 +200,14 @@ const HotelAdminDashboard = () => {
             try {
               const notification = JSON.parse(message.body);
               console.log("[WS] ✅ Successfully parsed notification:", notification);
-              
+
               // Add the notification to the state (it comes from backend with proper structure)
               const notificationWithTimestamp = {
                 ...notification,
                 // Convert backend createdAt to display format
                 displayTime: new Date(notification.createdAt).toLocaleString()
               };
-              
+
               console.log("[WS] Notification with timestamp:", notificationWithTimestamp);
 
               // Update state - add to beginning of array since it's newest
@@ -216,7 +216,7 @@ const HotelAdminDashboard = () => {
                 console.log("[WS] Updated notifications:", updated);
                 return updated;
               });
-              
+
               // Only increment unread count if the notification is unread
               if (!notification.isRead) {
                 setUnreadCount(prev => {
@@ -225,9 +225,9 @@ const HotelAdminDashboard = () => {
                   return updated;
                 });
               }
-              
+
               console.log("[WS] ✅ Notification processed successfully!");
-              
+
             } catch (error) {
               console.error("[WS] ❌ Failed to parse notification:", error);
               console.error("[WS] Invalid message body:", message.body);
@@ -238,9 +238,9 @@ const HotelAdminDashboard = () => {
             ack: 'auto'
           }
         );
-        
+
         console.log("[WS] ✅ Subscription created:", subscription);
-        
+
         // Test the connection by sending a test message to ourselves (optional)
         setTimeout(() => {
           console.log("[WS] 🧪 Testing WebSocket connection...");
@@ -256,22 +256,22 @@ const HotelAdminDashboard = () => {
           }
         }, 1000);
       },
-      
+
       onDisconnect: (frame) => {
         console.log("[WS] ❌ WebSocket Disconnected");
         console.log("[WS] Disconnect frame:", frame);
       },
-      
+
       onStompError: (frame) => {
         console.error('[WS] ❌ STOMP Error:', frame.headers['message']);
         console.error('[WS] Error body:', frame.body);
         console.error('[WS] Full error frame:', frame);
       },
-      
+
       onWebSocketError: (event) => {
         console.error('[WS] ❌ WebSocket Error:', event);
       },
-      
+
       onWebSocketClose: (event) => {
         console.log(`[WS] WebSocket Closed - Code: ${event.code}, Reason: ${event.reason}, Clean: ${event.wasClean}`);
       }
@@ -313,7 +313,7 @@ const HotelAdminDashboard = () => {
   // Handle notification dropdown click
   const handleNotificationClick = async () => {
     setShowNotifications((prev) => !prev);
-    
+
     // Mark all as read when opening dropdown (only if there are unread notifications)
     if (!showNotifications && unreadCount > 0) {
       await markAllNotificationsAsRead();
@@ -379,11 +379,10 @@ const HotelAdminDashboard = () => {
     return (
       <Button
         variant={isActive ? "secondary" : "ghost"}
-        className={`w-full justify-start transition-colors py-2 px-3 text-sm ${
-          isActive
+        className={`w-full justify-start transition-colors py-2 px-3 text-sm ${isActive
             ? "bg-primary/10 text-primary hover:bg-primary/10"
             : "hover:bg-accent"
-        }`}
+          }`}
         onClick={onClick}
       >
         <Icon className="mr-2 h-4 w-4" />
@@ -446,14 +445,14 @@ const HotelAdminDashboard = () => {
                 </p>
               )}
             </div>
-            
+
             {/* Right side actions */}
             <div className="flex items-center space-x-3 flex-shrink-0">
               {/* Notification Bell */}
               <div className="relative" ref={notificationRef}>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="relative"
                   onClick={handleNotificationClick}
                   disabled={loadingNotifications}
@@ -465,17 +464,17 @@ const HotelAdminDashboard = () => {
                     </span>
                   )}
                 </Button>
-                
+
                 {/* Notification Dropdown */}
                 {showNotifications && (
-                  <div className="absolute -right-18 sm:right-0 mt-2 w-80 sm:w-80 w-[calc(100vw-2rem)] max-w-sm bg-card border rounded-lg shadow-lg z-50">
+                  <div className="absolute right-0 sm:right-0 -right-4 mt-2 w-80 sm:w-80 w-[calc(100vw-2rem)] max-w-sm bg-card border rounded-lg shadow-lg z-50">
                     <div className="p-3 sm:p-4 border-b">
                       <div className="flex items-center justify-between">
                         <h3 className="font-semibold text-foreground text-sm sm:text-base">Notifications</h3>
                         {notifications.length > 0 && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="text-xs text-muted-foreground hover:text-foreground h-7 px-2"
                             onClick={clearAllNotifications}
                           >
@@ -484,7 +483,7 @@ const HotelAdminDashboard = () => {
                         )}
                       </div>
                     </div>
-                    <div className="max-h-80 sm:max-h-96">
+                    <div className="max-h-80 sm:max-h-96 overflow-y-auto">
                       {loadingNotifications ? (
                         <div className="p-6 sm:p-8 text-center">
                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
@@ -498,11 +497,10 @@ const HotelAdminDashboard = () => {
                       ) : (
                         <div className="divide-y">
                           {notifications.map((notification) => (
-                            <div 
-                              key={notification.id} 
-                              className={`p-3 sm:p-4 transition-colors ${
-                                notification.isRead ? 'hover:bg-muted/50' : 'bg-blue-50/50 dark:bg-blue-950/20 hover:bg-blue-50 dark:hover:bg-blue-950/30'
-                              }`}
+                            <div
+                              key={notification.id}
+                              className={`p-3 sm:p-4 transition-colors ${notification.isRead ? 'hover:bg-muted/50' : 'bg-blue-50/50 dark:bg-blue-950/20 hover:bg-blue-50 dark:hover:bg-blue-950/30'
+                                }`}
                             >
                               <div className="space-y-2">
                                 <div className="flex items-start justify-between gap-2">
@@ -511,11 +509,11 @@ const HotelAdminDashboard = () => {
                                       <p className="font-medium text-sm truncate">
                                         {notification.title}
                                       </p>
-                                      {/* {notification.type && (
+                                      {notification.type && (
                                         <Badge variant="secondary" className="text-xs shrink-0">
                                           {notification.type}
                                         </Badge>
-                                      )} */}
+                                      )}
                                       {!notification.isRead && (
                                         <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></div>
                                       )}
@@ -538,9 +536,9 @@ const HotelAdminDashboard = () => {
                     </div>
                     {notifications.length > 0 && (
                       <div className="p-3 border-t">
-                        <Button 
-                          variant="default" 
-                          size="sm" 
+                        <Button
+                          variant="default"
+                          size="sm"
                           className="w-full text-sm"
                           onClick={() => {
                             setActiveTab('bookings');
@@ -571,7 +569,7 @@ const HotelAdminDashboard = () => {
                       </div>
                     </SheetTitle>
                   </SheetHeader>
-                  
+
                   <div className="flex-1 flex flex-col p-4">
                     <nav className="space-y-1 flex-1">
                       {navigationItems.map((item) => (
@@ -675,7 +673,7 @@ const HotelAdminDashboard = () => {
 
               {/* Recent Bookings */}
               <Card>
-                <CardHeader className="p-4 md:p-6">
+                <CardHeader className="">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <Calendar className="h-4 w-4 text-primary" />
                     Recent Bookings
@@ -703,7 +701,7 @@ const HotelAdminDashboard = () => {
 
           {activeTab === "rooms" && (
             <Card>
-              <CardHeader className="p-4 md:p-6">
+              <CardHeader className="">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Bed className="h-4 w-4 text-primary" />
                   Room Management
@@ -744,8 +742,8 @@ const HotelAdminDashboard = () => {
 
           {activeTab === "bookings" && (
             <Card>
-              <CardHeader className="p-4 md:p-6">
-                <CardTitle className="flex items-center gap-2 text-lg">
+              <CardHeader className="">
+                <CardTitle className="flex items-center text-lg">
                   <Calendar className="h-4 w-4 text-primary" />
                   All Bookings
                 </CardTitle>

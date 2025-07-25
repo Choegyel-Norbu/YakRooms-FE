@@ -29,27 +29,20 @@ const HeroLG = () => {
   const navigate = useNavigate();
 
   const validateAndSearch = () => {
-    // Clear previous errors
     setSearchError("");
 
-    // Validate district input
     if (!searchDistrict || searchDistrict.trim() === "") {
       setSearchError("Please enter a district to search");
       return;
     }
 
-    // Check if district contains only letters and spaces
     if (!/^[a-zA-Z\s]+$/.test(searchDistrict.trim())) {
       setSearchError("District must contain only letters");
       return;
     }
 
-    // Navigate to hotel listing page with search parameters
     const searchParams = new URLSearchParams({
       district: searchDistrict.trim(),
-      // You can add more search parameters here if needed
-      // checkIn: format(date, "yyyy-MM-dd"),
-      // guests: "1",
     });
 
     navigate(`/hotel?${searchParams.toString()}`);

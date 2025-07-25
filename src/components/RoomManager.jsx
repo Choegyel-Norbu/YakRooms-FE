@@ -435,7 +435,7 @@ const RoomManager = () => {
       <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-3 sm:gap-0 mb-2 sm:mb-4">
         <Button 
           onClick={() => { setShowForm(true); setEditingRoom(null); }}
-          className="w-full sm:w-auto sm:text-base text-sm"
+          className="w-[90%] m-auto sm:w-auto sm:text-base text-sm"
         >
           <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
           <span className="hidden sm:inline">Add Room</span>
