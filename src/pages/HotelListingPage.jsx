@@ -42,7 +42,6 @@ import {
 
 import api from "../services/Api";
 
-
 const HotelListingPage = () => {
   const location = useLocation();
   const [hotels, setHotels] = useState([]);
@@ -69,51 +68,61 @@ const HotelListingPage = () => {
   }, [location.search]);
 
   // Hotel types
-  const hotelTypes = ["Resort", "Hotel", "Guesthouse", "Homestay", "Boutique Hotel"];
+  const hotelTypes = [
+    "Resort",
+    "Hotel",
+    "Guesthouse",
+    "Homestay",
+    "Boutique Hotel",
+  ];
 
   // Memoized fetch function for performance
-  const fetchHotels = useCallback(async (page = 0, searchDistrict = "", searchHotelType = "") => {
-    try {
-      setLoading(true);
-      let endpoint = `/hotels?page=${page}&size=${pagination.size}`;
+  const fetchHotels = useCallback(
+    async (page = 0, searchDistrict = "", searchHotelType = "") => {
+      try {
+        setLoading(true);
+        let endpoint = `/hotels?page=${page}&size=${pagination.size}`;
 
-      // Use search endpoint if filters are provided
-      // Modified condition to check for "all" instead of empty string
-      if (searchDistrict || (searchHotelType && searchHotelType !== "all")) {
-        const params = new URLSearchParams({
-          page: page.toString(),
-          size: pagination.size.toString(),
-        });
+        // Use search endpoint if filters are provided
+        // Modified condition to check for "all" instead of empty string
+        if (searchDistrict || (searchHotelType && searchHotelType !== "all")) {
+          const params = new URLSearchParams({
+            page: page.toString(),
+            size: pagination.size.toString(),
+          });
 
-        if (searchDistrict.trim()) params.append("district", searchDistrict.trim());
-        if (searchHotelType && searchHotelType !== "all") params.append("hotelType", searchHotelType);
+          if (searchDistrict.trim())
+            params.append("district", searchDistrict.trim());
+          if (searchHotelType && searchHotelType !== "all")
+            params.append("hotelType", searchHotelType);
 
-        endpoint = `/hotels/search?${params.toString()}`;
-      } else {
-        // Apply sorting for non-search queries
-        if (sortBy === "price-high") {
-          endpoint = `/hotels/sortedByHighestPrice?page=${page}&size=${pagination.size}`;
-        } else if (sortBy === "price-low") {
-          endpoint = `/hotels/sortedByLowestPrice?page=${page}&size=${pagination.size}`;
+          endpoint = `/hotels/search?${params.toString()}`;
+        } else {
+          // Apply sorting for non-search queries
+          if (sortBy === "price-high") {
+            endpoint = `/hotels/sortedByHighestPrice?page=${page}&size=${pagination.size}`;
+          } else if (sortBy === "price-low") {
+            endpoint = `/hotels/sortedByLowestPrice?page=${page}&size=${pagination.size}`;
+          }
         }
+
+        const response = await api.get(endpoint);
+        setHotels(response.data.content);
+        setPagination({
+          page: response.data.pageable.pageNumber,
+          size: response.data.size,
+          totalPages: response.data.totalPages,
+          totalElements: response.data.totalElements,
+        });
+      } catch (error) {
+        console.error("Error fetching hotels:", error);
+        setHotels([]);
+      } finally {
+        setLoading(false);
       }
-
-      const response = await api.get(endpoint);
-      setHotels(response.data.content);
-      setPagination({
-        page: response.data.pageable.pageNumber,
-        size: response.data.size,
-        totalPages: response.data.totalPages,
-        totalElements: response.data.totalElements,
-      });
-    } catch (error) {
-      console.error("Error fetching hotels:", error);
-      setHotels([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [pagination.size, sortBy]);
-
+    },
+    [pagination.size, sortBy]
+  );
 
   // Trigger search when district or hotelType changes (including from URL param)
   useEffect(() => {
@@ -149,6 +158,7 @@ const HotelListingPage = () => {
       `https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop&auto=format`,
     type: hotel.hotelType || "Hotel",
     amenities: hotel.amenities || [],
+    address: hotel.address, // Add address to transformed data
   });
 
   const transformedHotels = hotels.map(transformHotelData);
@@ -171,9 +181,12 @@ const HotelListingPage = () => {
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  if (pagination.page > 0) handlePageChange(pagination.page - 1);
+                  if (pagination.page > 0)
+                    handlePageChange(pagination.page - 1);
                 }}
-                className={pagination.page === 0 ? "pointer-events-none opacity-50" : ""}
+                className={
+                  pagination.page === 0 ? "pointer-events-none opacity-50" : ""
+                }
               />
             </PaginationItem>
             {[...Array(pagination.totalPages).keys()].map((pageNumber) => (
@@ -217,7 +230,7 @@ const HotelListingPage = () => {
     const textSizes = {
       small: "text-lg font-bold",
       default: "text-xl font-bold",
-      large: "text-2xl font-bold"
+      large: "text-2xl font-bold",
     };
     return (
       <div className={`${textSizes[size]} font-sans tracking-tight`}>
@@ -235,15 +248,11 @@ const HotelListingPage = () => {
           <div className="flex h-16 items-center justify-between">
             {/* Left side - Brand and Navigation */}
             <div className="flex items-center gap-4">
-              <Link
-                to="/"
-                className="flex items-center gap-2"
-              >
+              <Link to="/" className="flex items-center gap-2">
                 <YakRoomsText size="default" />
               </Link>
 
               {/* Mobile Home Button */}
-
             </div>
 
             {/* Center - Tagline (hidden on mobile) */}
@@ -277,7 +286,6 @@ const HotelListingPage = () => {
                 value={district}
                 onChange={(e) => setDistrict(e.target.value)}
                 className="w-full text-14"
-
               />
             </div>
 
@@ -323,16 +331,19 @@ const HotelListingPage = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h1 className="text-2xl md:text-xl font-bold tracking-tight">
-                  {isSearchActive ? `Search Results for ${district}` : "All Hotels in Bhutan"}
+                  {isSearchActive
+                    ? `Search Results for ${district}`
+                    : "All Hotels in Bhutan"}
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   {loading
                     ? "Searching..."
-                    : `${pagination.totalElements} ${pagination.totalElements === 1 ? 'hotel' : 'hotels'} found`}
+                    : `${pagination.totalElements} ${
+                        pagination.totalElements === 1 ? "hotel" : "hotels"
+                      } found`}
                 </p>
 
                 {/* Active filters display */}
-               
               </div>
 
               {/* Sort Controls - only show when not searching */}
@@ -345,8 +356,12 @@ const HotelListingPage = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="default">Default</SelectItem>
-                      <SelectItem value="price-low">Price: Low to High</SelectItem>
-                      <SelectItem value="price-high">Price: High to Low</SelectItem>
+                      <SelectItem value="price-low">
+                        Price: Low to High
+                      </SelectItem>
+                      <SelectItem value="price-high">
+                        Price: High to Low
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -358,7 +373,9 @@ const HotelListingPage = () => {
           {loading ? (
             <div className="flex flex-col items-center justify-center h-96 space-y-4">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="text-muted-foreground">Finding the best hotels for you...</p>
+              <p className="text-muted-foreground">
+                Finding the best hotels for you...
+              </p>
             </div>
           ) : transformedHotels.length > 0 ? (
             <>
@@ -381,7 +398,10 @@ const HotelListingPage = () => {
 
                       {/* Hotel Type Badge */}
                       <div className="absolute top-3 left-3">
-                        <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm">
+                        <Badge
+                          variant="secondary"
+                          className="bg-background/90 backdrop-blur-sm"
+                        >
                           {hotel.type}
                         </Badge>
                       </div>
@@ -390,7 +410,10 @@ const HotelListingPage = () => {
                     <CardHeader className="flex-1">
                       <div className="space-y-2">
                         <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors line-clamp-2">
-                          <Link to={`/hotel/${hotel.id}`} className="hover:underline">
+                          <Link
+                            to={`/hotel/${hotel.id}`}
+                            className="hover:underline"
+                          >
                             {hotel.name}
                           </Link>
                         </CardTitle>
@@ -404,31 +427,16 @@ const HotelListingPage = () => {
                     <CardFooter className="bg-muted/30 border-t px-6 py-4">
                       <div className="flex justify-between items-center w-full">
                         <div>
-                          {/* Fixed price display to properly use lowestPrice */}
-                          {hotel.lowestPrice ? (
-                            <>
-                              <p className="text-sm text-muted-foreground">From</p>
-                              <p className="text-xl font-bold text-primary">
-                                Nu. {new Intl.NumberFormat('en-IN').format(hotel.lowestPrice)}
-                                <span className="text-sm font-normal text-muted-foreground ml-1">
-                                  /night
-                                </span>
-                              </p>
-                            </>
-                          ) : (
-                            <>
-                              {/* Do not change this part of the code */}
-                              <p className="text-sm text-primary">
-                                No specific price available
-
-                              </p>
-                            </>
-                          )}
+                          {/* Hotel address display */}
+                          <p className="text-sm text-muted-foreground">
+                            Address
+                          </p>
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {hotel.address || "Address not available"}
+                          </p>
                         </div>
                         <Button asChild size="sm">
-                          <Link to={`/hotel/${hotel.id}`}>
-                            View Details
-                          </Link>
+                          <Link to={`/hotel/${hotel.id}`}>View Details</Link>
                         </Button>
                       </div>
                     </CardFooter>

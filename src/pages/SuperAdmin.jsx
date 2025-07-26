@@ -445,16 +445,16 @@ const SuperAdmin = () => {
     <div className="min-h-screen bg-muted/40 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Navigation Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <Link to="/">
               <Button variant="outline" className="flex items-center space-x-2">
                 <ArrowLeft className="h-4 w-4" />
                 <span>Back to Home</span>
               </Button>
             </Link>
-            <div className="h-6 w-px bg-border"></div>
-            <h1 className="text-3xl font-bold text-gray-800">
+            <div className="hidden sm:block h-6 w-px bg-border"></div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
               Hotel Verification Dashboard
             </h1>
           </div>

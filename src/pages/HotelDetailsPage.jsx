@@ -598,8 +598,12 @@ const HotelDetailsPage = () => {
                   <span className="font-medium">{hotel.hotelType || 'Hotel'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Location</span>
+                  <span className="text-muted-foreground">District</span>
                   <span className="font-medium">{hotel.district}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Address</span>
+                  <span className="font-medium">{hotel.address}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total Rooms</span>

@@ -78,6 +78,7 @@ const StaffManager = () => {
     email: "",
     phoneNumber: "",
     position: "Front Desk",
+    dateJoined: new Date().toISOString().split('T')[0], // Default to today's date
   });
   const [formErrors, setFormErrors] = useState({});
 
@@ -160,6 +161,7 @@ const StaffManager = () => {
         phoneNumber: formData.phoneNumber.trim(),
         hotelId,
         position: formData.position,
+        dateJoined: formData.dateJoined,
       };
 
       const { data: newStaff } = await api.post("/staff", payload);
@@ -222,7 +224,7 @@ const StaffManager = () => {
 
   // Reset form and close dialog
   const handleCloseDialog = useCallback(() => {
-    setFormData({ email: "", phoneNumber: "", position: "Front Desk" });
+    setFormData({ email: "", phoneNumber: "", position: "Front Desk", dateJoined: new Date().toISOString().split('T')[0] });
     setFormErrors({});
     setShowAddDialog(false);
   }, []);
@@ -544,6 +546,19 @@ const StaffManager = () => {
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dateJoined" className="text-sm font-medium">
+                  Date Joined
+                </Label>
+                <Input
+                  id="dateJoined"
+                  type="date"
+                  value={formData.dateJoined}
+                  onChange={(e) => handleInputChange("dateJoined", e.target.value)}
+                  className="h-11"
+                  disabled={submitting}
+                />
               </div>
             </div>
             <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 pt-2">
