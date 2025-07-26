@@ -112,11 +112,6 @@ const BookingTable = ({ hotelId }) => {
       }
     } catch (err) {
       setError(err.message);
-
-      const startIndex = page * pageSize;
-      const endIndex = startIndex + pageSize;
-      setBookings(mockData.slice(startIndex, endIndex));
-      setTotalPages(Math.ceil(mockData.length / pageSize));
     } finally {
       setLoading(false);
     }

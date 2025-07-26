@@ -8,7 +8,7 @@ import {
   Hotel,
   Bed,
   Package,
-  User,
+  Users,
   ArrowLeft,
   Building2,
   LogOut,
@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import StaffManager from "@/components/hotel/StaffManager.jsx";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -342,8 +343,8 @@ const HotelAdminDashboard = () => {
     { id: "dashboard", label: "Dashboard", icon: Home },
     { id: "hotel", label: "Hotel Details", icon: Hotel },
     { id: "rooms", label: "Room Management", icon: Bed },
+    { id: "staff", label: "Staff Management", icon: Users },
     { id: "inventory", label: "Inventory Tracker", icon: Package },
-    { id: "bookings", label: "Bookings", icon: Calendar },
     { id: "analytics", label: "Analytics", icon: PieChart },
     { id: "settings", label: "Settings", icon: Settings },
   ];
@@ -353,8 +354,8 @@ const HotelAdminDashboard = () => {
       dashboard: "Dashboard",
       hotel: "Hotel Details",
       rooms: "Room Management",
+      staff: "Staff Management",
       inventory: "Inventory Tracker",
-      bookings: "Booking Management",
       analytics: "Analytics & Reports",
       settings: "Settings",
     };
@@ -367,7 +368,7 @@ const HotelAdminDashboard = () => {
       hotel: "Manage your hotel information and details",
       rooms: "Add, edit, and manage your room inventory",
       inventory: "Track and monitor your hotel inventory",
-      bookings: "View and manage all customer bookings",
+      staff: "Manage your hotel staff and their roles",
       analytics: "Insights and reports about your business performance",
       settings: "Configure your account and system preferences",
     };
@@ -380,8 +381,8 @@ const HotelAdminDashboard = () => {
       <Button
         variant={isActive ? "secondary" : "ghost"}
         className={`w-full justify-start transition-colors py-2 px-3 text-sm ${isActive
-            ? "bg-primary/10 text-primary hover:bg-primary/10"
-            : "hover:bg-accent"
+          ? "bg-primary/10 text-primary hover:bg-primary/10"
+          : "hover:bg-accent"
           }`}
         onClick={onClick}
       >
@@ -740,23 +741,16 @@ const HotelAdminDashboard = () => {
             </Card>
           )}
 
-          {activeTab === "bookings" && (
+          {activeTab === "staff" && ( // Changed from "bookings" to "staff"
             <Card>
               <CardHeader className="">
-                <CardTitle className="flex items-center text-lg">
-                  <Calendar className="h-4 w-4 text-primary" />
-                  All Bookings
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Users className="h-4 w-4 text-primary" /> {/* Changed icon */}
+                  Staff Management {/* Changed title */}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0 md:px-6 md:pb-6">
-                <div className="overflow-x-auto">
-                  <BookingTable
-                    hotelId={hotelId}
-                    bookings={bookings}
-                    onStatusChange={updateBookingStatus}
-                    viewMode="full"
-                  />
-                </div>
+                <StaffManager /> {/* Changed component */}
               </CardContent>
             </Card>
           )}
