@@ -118,7 +118,7 @@ const StaffManager = () => {
   // Initial data fetch
   useEffect(() => {
     if (hotelId) {
-      fetchStaff();
+    fetchStaff();
     }
   }, [fetchStaff, hotelId]);
 
@@ -148,7 +148,7 @@ const StaffManager = () => {
   // Add new staff member
   const handleAddStaff = async (e) => {
     e?.preventDefault();
-
+    
     if (!validateForm()) {
       return;
     }
@@ -157,8 +157,8 @@ const StaffManager = () => {
       setSubmitting(true);
 
       const payload = {
-        email: formData.email.trim(),
-        phoneNumber: formData.phoneNumber.trim(),
+          email: formData.email.trim(),
+          phoneNumber: formData.phoneNumber.trim(),
         hotelId,
         position: formData.position,
         dateJoined: formData.dateJoined,
@@ -214,10 +214,10 @@ const StaffManager = () => {
   const handleInputChange = useCallback(
     (field, value) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
-      // Clear error when user starts typing
-      if (formErrors[field]) {
+    // Clear error when user starts typing
+    if (formErrors[field]) {
         setFormErrors((prev) => ({ ...prev, [field]: undefined }));
-      }
+    }
     },
     [formErrors]
   );
@@ -231,7 +231,7 @@ const StaffManager = () => {
 
   // Render loading state
   if (loading) {
-    return (
+  return (
       <div className="p-4 max-w-7xl mx-auto space-y-4">
         <div className="flex flex-col gap-4">
           <Skeleton className="h-8 w-48" />
@@ -247,7 +247,7 @@ const StaffManager = () => {
                 key={i}
                 className="flex items-center justify-between p-3 border rounded-lg"
               >
-                <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3">
                   <Skeleton className="h-10 w-10 rounded-full" />
                   <div className="space-y-2">
                     <Skeleton className="h-4 w-32" />
@@ -258,8 +258,8 @@ const StaffManager = () => {
                 <div className="flex items-center gap-2">
                   <Skeleton className="h-6 w-12 rounded-full" />
                   <Skeleton className="h-8 w-8" />
-                </div>
-              </div>
+          </div>
+        </div>
             ))}
           </CardContent>
         </Card>
@@ -303,19 +303,19 @@ const StaffManager = () => {
         {/* Mobile-optimized Header */}
         <div className="space-y-3">
           
-          <Button
-            onClick={() => setShowAddDialog(true)}
+        <Button 
+          onClick={() => setShowAddDialog(true)}
             className="w-full sm:w-auto flex items-center justify-center gap-2"
             size="default"
-          >
-            <Plus className="h-4 w-4" />
-            Add Staff Member
-          </Button>
-        </div>
+        >
+          <Plus className="h-4 w-4" />
+          Add Staff Member
+        </Button>
+      </div>
 
         {/* <Separator /> */}
 
-        {/* Staff List */}
+      {/* Staff List */}
         <Card className="border-0 sm:border shadow-sm">
           <CardHeader className="">
             <div className="flex items-center justify-between">
@@ -324,13 +324,13 @@ const StaffManager = () => {
                 <CardDescription className="text-sm">
                   {staff.length} {staff.length === 1 ? "member" : "members"}
                 </CardDescription>
-              </div>
+                    </div>
               {staff.length > 0 && (
                 <Badge variant="secondary" className="text-xs px-2 py-1">
                   {staff.length}
                 </Badge>
               )}
-            </div>
+                  </div>
           </CardHeader>
           <CardContent className="px-4">
             {staff.length === 0 ? (
@@ -344,10 +344,10 @@ const StaffManager = () => {
                 <p className="text-gray-600 mb-6 text-sm max-w-xs mx-auto">
                   Add your first team member to get started
                 </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {staff.map((member) => (
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {staff.map((member) => (
                   <div
                     key={member.id}
                     className="group relative flex items-center justify-between p-4 border rounded-xl hover:shadow-md transition-all duration-200 bg-white"
@@ -378,17 +378,17 @@ const StaffManager = () => {
                           >
                             {member.role || "STAFF"}
                           </Badge>
-                        </div>
+                    </div>
                         
                         {/* Contact Info - Stack on mobile */}
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
                             <Mail className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                             <span className="text-xs text-gray-600 truncate">
                               {member.staffEmail || "No email"}
                             </span>
-                          </div>
-                          <div className="flex items-center gap-2">
+                      </div>
+                      <div className="flex items-center gap-2">
                             <Phone className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                             <span className="text-xs text-gray-600">
                               {member.number || "No phone"}
@@ -399,17 +399,17 @@ const StaffManager = () => {
                     </div>
 
                     {/* Actions - Mobile-friendly dropdown */}
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
+                        <Button 
+                          variant="ghost" 
                             size="icon"
                             className="h-8 w-8"
-                            disabled={deletingId === member.id}
-                          >
+                          disabled={deletingId === member.id}
+                        >
                             <MoreVertical className="h-4 w-4" />
-                          </Button>
+                        </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40">
                           <AlertDialog>
@@ -421,9 +421,9 @@ const StaffManager = () => {
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Remove
                               </DropdownMenuItem>
-                            </AlertDialogTrigger>
+                      </AlertDialogTrigger>
                             <AlertDialogContent className="mx-4 max-w-md">
-                              <AlertDialogHeader>
+                        <AlertDialogHeader>
                                 <AlertDialogTitle className="text-base">
                                   Remove Staff Member
                                 </AlertDialogTitle>
@@ -435,17 +435,17 @@ const StaffManager = () => {
                                       member.email}
                                   </span>
                                   ? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
                               <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
                                 <AlertDialogCancel className="w-full sm:w-auto">
                                   Cancel
                                 </AlertDialogCancel>
-                                <AlertDialogAction
+                          <AlertDialogAction
                                   onClick={() => handleDeleteStaff(member)}
                                   className="w-full sm:w-auto bg-red-600 hover:bg-red-700 focus:ring-red-600"
-                                  disabled={deletingId === member.id}
-                                >
+                            disabled={deletingId === member.id}
+                          >
                                   {deletingId === member.id ? (
                                     <span className="flex items-center gap-2">
                                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -454,63 +454,63 @@ const StaffManager = () => {
                                   ) : (
                                     "Remove"
                                   )}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
         {/* Add Staff Dialog - Mobile optimized */}
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogContent className="mx-4 max-w-md w-[calc(100vw-2rem)]">
-            <DialogHeader>
+          <DialogContent className=" max-w-md w-[calc(100vw-2rem)] sm:mx-auto">
+          <DialogHeader>
               <DialogTitle className="text-lg">Add New Staff Member</DialogTitle>
               <DialogDescription className="text-sm">
                 Add a new member to your hotel team. They will receive an
                 invitation to join.
-              </DialogDescription>
-            </DialogHeader>
+            </DialogDescription>
+          </DialogHeader>
             <div className="space-y-4 py-2">
-              <div className="space-y-2">
+            <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
                   Email Address
                 </Label>
-                <Input
-                  id="email"
-                  type="email"
+              <Input
+                id="email"
+                type="email"
                   placeholder="staff@hotel.com"
-                  value={formData.email}
+                value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   className={`h-11 ${
                     formErrors.email ? "border-red-500 focus:ring-red-500" : ""
                   }`}
-                  disabled={submitting}
+                disabled={submitting}
                   autoComplete="email"
-                />
-                {formErrors.email && (
+              />
+              {formErrors.email && (
                   <p className="text-xs text-red-600 flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
                     {formErrors.email}
                   </p>
-                )}
-              </div>
-              <div className="space-y-2">
+              )}
+            </div>
+            <div className="space-y-2">
                 <Label htmlFor="phone" className="text-sm font-medium">
                   Phone Number
                 </Label>
-                <Input
-                  id="phone"
-                  type="tel"
+              <Input
+                id="phone"
+                type="tel"
                   placeholder="+975 17 123 456"
-                  value={formData.phoneNumber}
+                value={formData.phoneNumber}
                   onChange={(e) =>
                     handleInputChange("phoneNumber", e.target.value)
                   }
@@ -519,10 +519,10 @@ const StaffManager = () => {
                       ? "border-red-500 focus:ring-red-500"
                       : ""
                   }`}
-                  disabled={submitting}
+                disabled={submitting}
                   autoComplete="tel"
-                />
-                {formErrors.phoneNumber && (
+              />
+              {formErrors.phoneNumber && (
                   <p className="text-xs text-red-600 flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
                     {formErrors.phoneNumber}
@@ -562,16 +562,16 @@ const StaffManager = () => {
               </div>
             </div>
             <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 pt-2">
-              <Button
+              <Button 
                 type="button"
-                variant="outline"
+                variant="outline" 
                 onClick={handleCloseDialog}
                 className="w-full sm:w-auto"
                 disabled={submitting}
               >
                 Cancel
               </Button>
-              <Button
+              <Button 
                 onClick={handleAddStaff}
                 disabled={submitting}
                 className="w-full sm:w-auto"
@@ -589,8 +589,8 @@ const StaffManager = () => {
                 )}
               </Button>
             </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        </DialogContent>
+      </Dialog>
       </div>
     </div>
   );

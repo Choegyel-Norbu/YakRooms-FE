@@ -31,7 +31,6 @@ export default function RoomBookingCard({ room, hotelId }) {
   const [openBookingDialog, setOpenBookingDialog] = useState(false);
   const [openLoginModal, setOpenLoginModal] = useState(false);
   const [bookingDetails, setBookingDetails] = useState({
-    checkInDate: "",
     checkOutDate: "",
     guests: 1,
     numberOfRooms: 1,
@@ -40,12 +39,12 @@ export default function RoomBookingCard({ room, hotelId }) {
   const [errors, setErrors] = useState({});
 
   const calculateDays = () => {
-    if (!bookingDetails.checkInDate || !bookingDetails.checkOutDate) {
+    if (!bookingDetails.checkOutDate) {
       return 0;
     }
-    const checkIn = new Date(bookingDetails.checkInDate);
+    const today = new Date();
     const checkOut = new Date(bookingDetails.checkOutDate);
-    const timeDiff = checkOut.getTime() - checkIn.getTime();
+    const timeDiff = checkOut.getTime() - today.getTime();
     const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
     return daysDiff > 0 ? daysDiff : 0;
   };
@@ -72,17 +71,13 @@ export default function RoomBookingCard({ room, hotelId }) {
 
     const phoneError = validateBhutanesePhone(bookingDetails.phone);
     if (phoneError) newErrors.phone = phoneError;
-    if (!bookingDetails.checkInDate)
-      newErrors.checkInDate = "Check-in date is required";
     if (!bookingDetails.checkOutDate)
       newErrors.checkOutDate = "Check-out date is required";
     if (
-      bookingDetails.checkInDate &&
       bookingDetails.checkOutDate &&
-      new Date(bookingDetails.checkOutDate) <=
-        new Date(bookingDetails.checkInDate)
+      new Date(bookingDetails.checkOutDate) <= new Date()
     ) {
-      newErrors.checkOutDate = "Check-out must be after check-in date";
+      newErrors.checkOutDate = "Check-out must be after today";
     }
     if (!bookingDetails.guests)
       newErrors.guests = "Please select number of guests";
@@ -116,6 +111,7 @@ export default function RoomBookingCard({ room, hotelId }) {
     try {
       const payload = {
         ...bookingDetails,
+        checkInDate: new Date().toISOString().split('T')[0], // Today's date
         roomId: room.id,
         hotelId: hotelId,
         totalPrice: calculateTotalPrice(),
@@ -128,7 +124,6 @@ export default function RoomBookingCard({ room, hotelId }) {
           description: "Your room has been booked.",
         });
         setBookingDetails({
-          checkInDate: "",
           checkOutDate: "",
           guests: 1,
           numberOfRooms: 1,
@@ -206,48 +201,24 @@ export default function RoomBookingCard({ room, hotelId }) {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="checkInDate">
-                    Check-in <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="checkInDate"
-                    name="checkInDate"
-                    type="date"
-                    value={bookingDetails.checkInDate}
-                    onChange={handleInputChange}
-                    min={new Date().toISOString().split("T")[0]}
-                    className={errors.checkInDate ? "border-destructive" : ""}
-                  />
-                  {errors.checkInDate && (
-                    <p className="text-sm text-destructive">
-                      {errors.checkInDate}
-                    </p>
-                  )}
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="checkOutDate">
-                    Check-out <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="checkOutDate"
-                    name="checkOutDate"
-                    type="date"
-                    value={bookingDetails.checkOutDate}
-                    onChange={handleInputChange}
-                    min={
-                      bookingDetails.checkInDate ||
-                      new Date().toISOString().split("T")[0]
-                    }
-                    className={errors.checkOutDate ? "border-destructive" : ""}
-                  />
-                  {errors.checkOutDate && (
-                    <p className="text-sm text-destructive">
-                      {errors.checkOutDate}
-                    </p>
-                  )}
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="checkOutDate">
+                  Check-out <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="checkOutDate"
+                  name="checkOutDate"
+                  type="date"
+                  value={bookingDetails.checkOutDate}
+                  onChange={handleInputChange}
+                  min={new Date().toISOString().split("T")[0]}
+                  className={errors.checkOutDate ? "border-destructive" : ""}
+                />
+                {errors.checkOutDate && (
+                  <p className="text-sm text-destructive">
+                    {errors.checkOutDate}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -305,10 +276,9 @@ export default function RoomBookingCard({ room, hotelId }) {
                   <span>Nu {totalPrice.toFixed(2)}</span>
                 </div>
                 {days === 0 &&
-                  bookingDetails.checkInDate &&
                   bookingDetails.checkOutDate && (
                     <p className="text-sm text-amber-600">
-                      Please select valid check-in and check-out dates.
+                      Please select a valid check-out date.
                     </p>
                   )}
               </div>

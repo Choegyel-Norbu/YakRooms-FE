@@ -23,6 +23,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import StaffManager from "@/components/hotel/StaffManager.jsx";
 import StaffCardGrid from "@/components/StaffCardGrid.jsx";
+import RoomStatusTable from "@/components/hotel/RoomStatusTable.jsx";
+import BookingsTrendChart from "@/components/hotel/BookingsTrendChart.jsx";
 // import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import {
   DropdownMenu,
@@ -443,14 +445,14 @@ const HotelAdminDashboard = () => {
           <div className="px-4 py-3 lg:px-6 lg:py-4 flex justify-between items-center">
             <div className="space-y-0.5 flex-1 min-w-0">
               <h2 className="text-xl sm:text-xl lg:text-2xl font-semibold text-foreground truncate">
-                {getPageTitle()}
-              </h2>
+                  {getPageTitle()}
+                </h2>
               {activeTab !== "dashboard" && (
                 <p className="text-sm sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
                   {getPageDescription()}
                 </p>
               )}
-            </div>
+              </div>
 
             {/* Right side actions */}
             <div className="flex items-center space-x-3 flex-shrink-0">
@@ -546,12 +548,29 @@ const HotelAdminDashboard = () => {
                           variant="default"
                           size="sm"
                           className="w-full text-sm"
-                          onClick={() => {
-                            setActiveTab('bookings');
+                          onClick={async () => {
+                            // Close notification dialog
                             setShowNotifications(false);
+                            
+                            // Clear all notifications from backend
+                            await deleteAllNotifications();
+                            
+                            // Switch to bookings tab
+                            setActiveTab('bookings');
+                            
+                            // Scroll to booking table after a short delay to ensure tab switch
+                            // setTimeout(() => {
+                            //   const bookingTableElement = document.querySelector('[data-booking-table]');
+                            //   if (bookingTableElement) {
+                            //     bookingTableElement.scrollIntoView({ 
+                            //       behavior: 'smooth', 
+                            //       block: 'start' 
+                            //     });
+                            //   }
+                            // }, 100);
                           }}
                         >
-                          View all bookings
+                          Show all notifications
                         </Button>
                       </div>
                     )}
@@ -620,34 +639,34 @@ const HotelAdminDashboard = () => {
               <Separator orientation="vertical" className="h-4 sm:h-6 hidden sm:block" />
 
               {/* Desktop User Menu - Hidden on mobile */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 hidden md:flex">
                     <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-primary/20">
                       <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
-                        {userName?.charAt(0).toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
+                          {userName?.charAt(0).toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-48 sm:w-56" align="end">
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none truncate">{userName}</p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        Hotel Administrator
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/" className="w-full">
-                      <Home className="mr-2 h-4 w-4" />
-                      <span>Return to Website</span>
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          Hotel Administrator
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/" className="w-full">
+                        <Home className="mr-2 h-4 w-4" />
+                        <span>Return to Website</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
             </div>
           </div>
         </header>
@@ -677,6 +696,8 @@ const HotelAdminDashboard = () => {
                 </CardContent>
               </Card>
 
+              <RoomStatusTable hotelId={hotelId} />
+
               {/* Toggle for StaffCardGrid (visible on all screens) */}
               <div className="mb-2">
                 <Button
@@ -700,13 +721,13 @@ const HotelAdminDashboard = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0 md:px-6 md:pb-6">
-                  <div className="overflow-x-auto">
-                    <BookingTable
+                  <div className="overflow-x-auto" data-booking-table>
+                  <BookingTable
                       hotelId={hotelId}
-                      bookings={bookings}
-                      onStatusChange={updateBookingStatus}
-                      viewMode="compact"
-                    />
+                    bookings={bookings}
+                    onStatusChange={updateBookingStatus}
+                    viewMode="compact"
+                  />
                   </div>
                 </CardContent>
               </Card>
@@ -776,27 +797,8 @@ const HotelAdminDashboard = () => {
 
           {activeTab === "analytics" && (
             <Card>
-              <CardHeader className="p-4 md:p-6">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <PieChart className="h-4 w-4 text-primary" />
-                  Analytics & Reports
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 md:px-6 md:pb-6">
-                <div className="text-center py-8 lg:py-12">
-                  <div className="mx-auto w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
-                    <PieChart className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-medium text-foreground mb-2">
-                    Business Analytics
-                  </h3>
-                  <p className="text-sm text-muted-foreground max-w-sm mx-auto px-4">
-                    Comprehensive analytics dashboard with insights and reports is coming soon.
-                  </p>
-                  <Button variant="outline" className="mt-4 text-sm">
-                    Preview Analytics
-                  </Button>
-                </div>
+              <CardContent className="p-0 md:px-6 md:pb-6">
+                <BookingsTrendChart />
               </CardContent>
             </Card>
           )}

@@ -244,9 +244,9 @@ const StaffCardGrid = ({ hotelId, className = "" }) => {
     <div className={`w-full ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Staff Members</h2>
-          <p className="text-gray-600 mt-1">
+        <div className='pl-4'>
+          <h2 className="text-lg font-bold text-gray-900">Staff Members</h2>
+          <p className="text-sm text-gray-600 mt-1">
             {loading ? 'Loading...' : `${staff.length} staff member${staff.length !== 1 ? 's' : ''} found`}
           </p>
         </div>
