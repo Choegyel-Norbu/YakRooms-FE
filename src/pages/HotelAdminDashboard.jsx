@@ -444,11 +444,11 @@ const HotelAdminDashboard = () => {
         <header className="bg-card shadow-sm border-b sticky top-0 z-10">
           <div className="px-4 py-3 lg:px-6 lg:py-4 flex justify-between items-center">
             <div className="space-y-0.5 flex-1 min-w-0">
-              <h2 className="text-xl sm:text-xl lg:text-2xl font-semibold text-foreground truncate">
+              <h2 className="hidden md:block text-xl sm:text-xl lg:text-2xl font-semibold text-foreground truncate">
                   {getPageTitle()}
                 </h2>
               {activeTab !== "dashboard" && (
-                <p className="text-sm sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
+                <p className="hidden md:block text-sm sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
                   {getPageDescription()}
                 </p>
               )}
