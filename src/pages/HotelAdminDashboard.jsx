@@ -46,16 +46,16 @@ import RoomManager from "../components/RoomManager.jsx";
 import BookingTable from "../components/hotel/BookingTable.jsx";
 import { useAuth } from "../services/AuthProvider.jsx";
 import api from "../services/Api.jsx";
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
-import API_BASE_URL from '../../config.js';
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
+import API_BASE_URL from "../../config.js";
 
 // YakRooms Text Logo Component (copied from Navbar.jsx)
 const YakRoomsText = ({ size = "default" }) => {
   const textSizes = {
     small: "text-lg font-bold",
     default: "text-xl font-bold",
-    large: "text-2xl font-bold"
+    large: "text-2xl font-bold",
   };
   return (
     <div className={`${textSizes[size]} font-sans tracking-tight`}>
@@ -79,7 +79,10 @@ const HotelAdminDashboard = () => {
   const notificationRef = useRef(null);
   const [showStaffGrid, setShowStaffGrid] = useState(false);
   // Simple media query hook for small screens (max-width: 640px)
-  const isMobile = typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false;
+  const isMobile =
+    typeof window !== "undefined"
+      ? window.matchMedia("(max-width: 640px)").matches
+      : false;
 
   useEffect(() => {
     console.log("Hotel id :" + localStorage.getItem("hotelId"));
@@ -113,7 +116,9 @@ const HotelAdminDashboard = () => {
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
 
-        const unreadNotifications = sortedNotifications.filter(notif => !notif.isRead);
+        const unreadNotifications = sortedNotifications.filter(
+          (notif) => !notif.isRead
+        );
 
         setNotifications(sortedNotifications);
         setUnreadCount(unreadNotifications.length);
@@ -136,8 +141,8 @@ const HotelAdminDashboard = () => {
       await api.put(`/notifications/user/${userId}/markAllRead`);
 
       // Update local state
-      setNotifications(prev =>
-        prev.map(notif => ({ ...notif, isRead: true }))
+      setNotifications((prev) =>
+        prev.map((notif) => ({ ...notif, isRead: true }))
       );
       setUnreadCount(0);
 
@@ -162,7 +167,7 @@ const HotelAdminDashboard = () => {
     }
   };
 
-  // Real-time booking notification 
+  // Real-time booking notification
   useEffect(() => {
     console.log("[WS] Initializing WebSocket Effect - userId:", userId);
     if (!userId) {
@@ -172,7 +177,9 @@ const HotelAdminDashboard = () => {
 
     // Clean up any existing connection first
     if (clientRef.current) {
-      console.log("[WS] Cleaning up existing WebSocket connection before creating new one");
+      console.log(
+        "[WS] Cleaning up existing WebSocket connection before creating new one"
+      );
       if (clientRef.current.active) {
         clientRef.current.deactivate();
       }
@@ -188,7 +195,7 @@ const HotelAdminDashboard = () => {
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
-      debug: (str) => console.log('[WS] STOMP Debug:', str),
+      debug: (str) => console.log("[WS] STOMP Debug:", str),
 
       onConnect: (frame) => {
         console.log("[WS] ✅ WebSocket Connected Successfully!");
@@ -207,19 +214,25 @@ const HotelAdminDashboard = () => {
 
             try {
               const notification = JSON.parse(message.body);
-              console.log("[WS] ✅ Successfully parsed notification:", notification);
+              console.log(
+                "[WS] ✅ Successfully parsed notification:",
+                notification
+              );
 
               // Add the notification to the state (it comes from backend with proper structure)
               const notificationWithTimestamp = {
                 ...notification,
                 // Convert backend createdAt to display format
-                displayTime: new Date(notification.createdAt).toLocaleString()
+                displayTime: new Date(notification.createdAt).toLocaleString(),
               };
 
-              console.log("[WS] Notification with timestamp:", notificationWithTimestamp);
+              console.log(
+                "[WS] Notification with timestamp:",
+                notificationWithTimestamp
+              );
 
               // Update state - add to beginning of array since it's newest
-              setNotifications(prev => {
+              setNotifications((prev) => {
                 const updated = [notificationWithTimestamp, ...prev];
                 console.log("[WS] Updated notifications:", updated);
                 return updated;
@@ -227,7 +240,7 @@ const HotelAdminDashboard = () => {
 
               // Only increment unread count if the notification is unread
               if (!notification.isRead) {
-                setUnreadCount(prev => {
+                setUnreadCount((prev) => {
                   const updated = prev + 1;
                   console.log("[WS] Updated unread count:", updated);
                   return updated;
@@ -235,7 +248,6 @@ const HotelAdminDashboard = () => {
               }
 
               console.log("[WS] ✅ Notification processed successfully!");
-
             } catch (error) {
               console.error("[WS] ❌ Failed to parse notification:", error);
               console.error("[WS] Invalid message body:", message.body);
@@ -243,7 +255,7 @@ const HotelAdminDashboard = () => {
           },
           {
             id: `sub-${userId}-${Date.now()}`,
-            ack: 'auto'
+            ack: "auto",
           }
         );
 
@@ -255,8 +267,8 @@ const HotelAdminDashboard = () => {
           try {
             // Send a ping to verify connection
             client.publish({
-              destination: '/app/ping',
-              body: JSON.stringify({ userId, timestamp: Date.now() })
+              destination: "/app/ping",
+              body: JSON.stringify({ userId, timestamp: Date.now() }),
             });
             console.log("[WS] Test ping sent");
           } catch (e) {
@@ -271,18 +283,20 @@ const HotelAdminDashboard = () => {
       },
 
       onStompError: (frame) => {
-        console.error('[WS] ❌ STOMP Error:', frame.headers['message']);
-        console.error('[WS] Error body:', frame.body);
-        console.error('[WS] Full error frame:', frame);
+        console.error("[WS] ❌ STOMP Error:", frame.headers["message"]);
+        console.error("[WS] Error body:", frame.body);
+        console.error("[WS] Full error frame:", frame);
       },
 
       onWebSocketError: (event) => {
-        console.error('[WS] ❌ WebSocket Error:', event);
+        console.error("[WS] ❌ WebSocket Error:", event);
       },
 
       onWebSocketClose: (event) => {
-        console.log(`[WS] WebSocket Closed - Code: ${event.code}, Reason: ${event.reason}, Clean: ${event.wasClean}`);
-      }
+        console.log(
+          `[WS] WebSocket Closed - Code: ${event.code}, Reason: ${event.reason}, Clean: ${event.wasClean}`
+        );
+      },
     });
 
     // Activate the client
@@ -304,17 +318,20 @@ const HotelAdminDashboard = () => {
   // Close notification dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
         setShowNotifications(false);
       }
     };
 
     if (showNotifications) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showNotifications]);
 
@@ -387,10 +404,11 @@ const HotelAdminDashboard = () => {
     return (
       <Button
         variant={isActive ? "secondary" : "ghost"}
-        className={`w-full justify-start transition-colors py-2 px-3 text-sm ${isActive
-          ? "bg-primary/10 text-primary hover:bg-primary/10"
-          : "hover:bg-accent"
-          }`}
+        className={`w-full justify-start transition-colors py-2 px-3 text-sm ${
+          isActive
+            ? "bg-primary/10 text-primary hover:bg-primary/10"
+            : "hover:bg-accent"
+        }`}
         onClick={onClick}
       >
         <Icon className="mr-2 h-4 w-4" />
@@ -430,7 +448,11 @@ const HotelAdminDashboard = () => {
 
         <div className="p-3 lg:p-4 border-t">
           <Link to="/">
-            <Button variant="default" size="sm" className="w-full text-xs lg:text-sm bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button
+              variant="default"
+              size="sm"
+              className="w-full text-xs lg:text-sm bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
               <ArrowLeft className="mr-2 h-3 w-3 lg:h-4 lg:w-4" />
               Back to Website
             </Button>
@@ -445,14 +467,14 @@ const HotelAdminDashboard = () => {
           <div className="px-4 py-3 lg:px-6 lg:py-4 flex justify-between items-center">
             <div className="space-y-0.5 flex-1 min-w-0">
               <h2 className="hidden md:block text-xl sm:text-xl lg:text-2xl font-semibold text-foreground truncate">
-                  {getPageTitle()}
-                </h2>
+                {getPageTitle()}
+              </h2>
               {activeTab !== "dashboard" && (
                 <p className="hidden md:block text-sm sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
                   {getPageDescription()}
                 </p>
               )}
-              </div>
+            </div>
 
             {/* Right side actions */}
             <div className="flex items-center space-x-3 flex-shrink-0">
@@ -468,17 +490,20 @@ const HotelAdminDashboard = () => {
                   <Bell className="h-5 w-5" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-[10px] text-white flex items-center justify-center font-bold">
-                      {unreadCount > 99 ? '99+' : unreadCount}
+                      {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
                 </Button>
 
                 {/* Notification Dropdown */}
+
                 {showNotifications && (
-                  <div className="absolute right-0 sm:right-0 -right-4 mt-2 w-80 sm:w-80 w-[calc(100vw-2rem)] max-w-sm bg-card border rounded-lg shadow-lg z-50">
+                  <div className="fixed left-4 right-4 top-16 sm:absolute sm:right-0 sm:left-auto sm:top-auto sm:mt-2 w-auto sm:w-80 bg-card border rounded-lg shadow-lg z-50">
                     <div className="p-3 sm:p-4 border-b">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-foreground text-sm sm:text-base">Notifications</h3>
+                        <h3 className="font-semibold text-foreground text-sm sm:text-base">
+                          Notifications
+                        </h3>
                         {notifications.length > 0 && (
                           <Button
                             variant="ghost"
@@ -491,49 +516,62 @@ const HotelAdminDashboard = () => {
                         )}
                       </div>
                     </div>
-                    <div className="max-h-80 sm:max-h-96 overflow-y-auto">
+                    <div className="max-h-64 sm:max-h-96 overflow-y-auto">
                       {loadingNotifications ? (
-                        <div className="p-6 sm:p-8 text-center">
+                        <div className="p-4 sm:p-6 text-center">
                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
-                          <p className="text-sm text-muted-foreground">Loading notifications...</p>
+                          <p className="text-sm text-muted-foreground">
+                            Loading notifications...
+                          </p>
                         </div>
                       ) : notifications.length === 0 ? (
-                        <div className="p-6 sm:p-8 text-center">
+                        <div className="p-4 sm:p-6 text-center">
                           <Bell className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground/30 mx-auto mb-2" />
-                          <p className="text-sm text-muted-foreground">No notifications</p>
+                          <p className="text-sm text-muted-foreground">
+                            No notifications
+                          </p>
                         </div>
                       ) : (
                         <div className="divide-y">
                           {notifications.map((notification) => (
                             <div
                               key={notification.id}
-                              className={`p-3 sm:p-4 transition-colors ${notification.isRead ? 'hover:bg-muted/50' : 'bg-blue-50/50 dark:bg-blue-950/20 hover:bg-blue-50 dark:hover:bg-blue-950/30'
-                                }`}
+                              className={`p-3 sm:p-4 transition-colors ${
+                                notification.isRead
+                                  ? "hover:bg-muted/50"
+                                  : "bg-blue-50/50 dark:bg-blue-950/20 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                              }`}
                             >
                               <div className="space-y-2">
-                                <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-start gap-2">
                                   <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      <p className="font-medium text-sm truncate">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <p className="font-medium text-sm flex-1 line-clamp-2">
                                         {notification.title}
                                       </p>
-                                      {notification.type && (
-                                        <Badge variant="secondary" className="text-xs shrink-0">
-                                          {notification.type}
-                                        </Badge>
-                                      )}
                                       {!notification.isRead && (
-                                        <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></div>
+                                        <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0"></div>
                                       )}
                                     </div>
+                                    {notification.type && (
+                                      <Badge
+                                        variant="secondary"
+                                        className="text-xs mb-2"
+                                      >
+                                        {notification.type}
+                                      </Badge>
+                                    )}
                                   </div>
                                 </div>
-                                <p className="text-sm text-muted-foreground break-words">
+                                <p className="text-sm text-muted-foreground line-clamp-3">
                                   {notification.message}
                                 </p>
                                 <div className="flex justify-end">
                                   <span className="text-xs text-muted-foreground">
-                                    {notification.displayTime || new Date(notification.createdAt).toLocaleString()}
+                                    {notification.displayTime ||
+                                      new Date(
+                                        notification.createdAt
+                                      ).toLocaleString()}
                                   </span>
                                 </div>
                               </div>
@@ -547,27 +585,16 @@ const HotelAdminDashboard = () => {
                         <Button
                           variant="default"
                           size="sm"
-                          className="w-full text-sm"
+                          className="w-full text-sm h-10"
                           onClick={async () => {
                             // Close notification dialog
                             setShowNotifications(false);
-                            
+
                             // Clear all notifications from backend
                             await deleteAllNotifications();
-                            
+
                             // Switch to bookings tab
-                            setActiveTab('bookings');
-                            
-                            // Scroll to booking table after a short delay to ensure tab switch
-                            // setTimeout(() => {
-                            //   const bookingTableElement = document.querySelector('[data-booking-table]');
-                            //   if (bookingTableElement) {
-                            //     bookingTableElement.scrollIntoView({ 
-                            //       behavior: 'smooth', 
-                            //       block: 'start' 
-                            //     });
-                            //   }
-                            // }, 100);
+                            setActiveTab("bookings");
                           }}
                         >
                           Show all notifications
@@ -585,12 +612,17 @@ const HotelAdminDashboard = () => {
                     <Menu className="h-4 w-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
+                <SheetContent
+                  side="left"
+                  className="w-[280px] p-0 flex flex-col"
+                >
                   <SheetHeader className="p-4 border-b">
                     <SheetTitle className="flex items-center gap-3">
                       <div>
                         <YakRoomsText size="default" />
-                        <p className="text-xs text-muted-foreground">Admin Panel</p>
+                        <p className="text-xs text-muted-foreground">
+                          Admin Panel
+                        </p>
                       </div>
                     </SheetTitle>
                   </SheetHeader>
@@ -618,7 +650,9 @@ const HotelAdminDashboard = () => {
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium leading-none truncate">{userName}</p>
+                          <p className="text-sm font-medium leading-none truncate">
+                            {userName}
+                          </p>
                           <p className="text-xs leading-none text-muted-foreground mt-1">
                             Hotel Administrator
                           </p>
@@ -626,7 +660,11 @@ const HotelAdminDashboard = () => {
                       </div>
 
                       <Link to="/" className="block">
-                        <Button variant="default" size="sm" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                        >
                           <ArrowLeft className="mr-2 h-4 w-4" />
                           Back to Website
                         </Button>
@@ -636,37 +674,45 @@ const HotelAdminDashboard = () => {
                 </SheetContent>
               </Sheet>
 
-              <Separator orientation="vertical" className="h-4 sm:h-6 hidden sm:block" />
+              <Separator
+                orientation="vertical"
+                className="h-4 sm:h-6 hidden sm:block"
+              />
 
               {/* Desktop User Menu - Hidden on mobile */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 hidden md:flex">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 hidden md:flex"
+                  >
                     <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-primary/20">
                       <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
-                          {userName?.charAt(0).toUpperCase() || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
+                        {userName?.charAt(0).toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-48 sm:w-56" align="end">
-                    <DropdownMenuLabel className="font-normal">
-                      <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none truncate">{userName}</p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                          Hotel Administrator
-                        </p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/" className="w-full">
-                        <Home className="mr-2 h-4 w-4" />
-                        <span>Return to Website</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none truncate">
+                        {userName}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        Hotel Administrator
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/" className="w-full">
+                      <Home className="mr-2 h-4 w-4" />
+                      <span>Return to Website</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </header>
@@ -688,7 +734,10 @@ const HotelAdminDashboard = () => {
                       </p>
                     </div>
                     <div className="flex-shrink-0">
-                      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
+                      <Badge
+                        variant="secondary"
+                        className="bg-primary/10 text-primary border-primary/20 text-xs"
+                      >
                         Admin
                       </Badge>
                     </div>
@@ -705,12 +754,12 @@ const HotelAdminDashboard = () => {
                   className="w-full"
                   onClick={() => setShowStaffGrid((prev) => !prev)}
                 >
-                  {showStaffGrid ? "Hide Staff Overview" : "Show Staff Overview"}
+                  {showStaffGrid
+                    ? "Hide Staff Overview"
+                    : "Show Staff Overview"}
                 </Button>
               </div>
-              {showStaffGrid && (
-                <StaffCardGrid hotelId={hotelId} />
-              )}
+              {showStaffGrid && <StaffCardGrid hotelId={hotelId} />}
 
               {/* Recent Bookings */}
               <Card>
@@ -722,12 +771,12 @@ const HotelAdminDashboard = () => {
                 </CardHeader>
                 <CardContent className="p-0 md:px-6 md:pb-6">
                   <div className="overflow-x-auto" data-booking-table>
-                  <BookingTable
+                    <BookingTable
                       hotelId={hotelId}
-                    bookings={bookings}
-                    onStatusChange={updateBookingStatus}
-                    viewMode="compact"
-                  />
+                      bookings={bookings}
+                      onStatusChange={updateBookingStatus}
+                      viewMode="compact"
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -771,7 +820,8 @@ const HotelAdminDashboard = () => {
                     Inventory Tracking
                   </h3>
                   <p className="text-sm text-muted-foreground max-w-sm mx-auto px-4">
-                    Advanced inventory management features are being developed and will be available soon.
+                    Advanced inventory management features are being developed
+                    and will be available soon.
                   </p>
                   <Button variant="outline" className="mt-4 text-sm">
                     Request Early Access
@@ -785,7 +835,8 @@ const HotelAdminDashboard = () => {
             <Card>
               <CardHeader className="">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Users className="h-4 w-4 text-primary" /> {/* Changed icon */}
+                  <Users className="h-4 w-4 text-primary" />{" "}
+                  {/* Changed icon */}
                   Staff Management {/* Changed title */}
                 </CardTitle>
               </CardHeader>
@@ -820,7 +871,8 @@ const HotelAdminDashboard = () => {
                     System Settings
                   </h3>
                   <p className="text-sm text-muted-foreground max-w-sm mx-auto px-4">
-                    Configure your hotel management preferences and system settings.
+                    Configure your hotel management preferences and system
+                    settings.
                   </p>
                   <Button variant="outline" className="mt-4 text-sm">
                     Open Settings
