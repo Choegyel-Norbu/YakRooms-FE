@@ -25,6 +25,8 @@ import StaffManager from "@/components/hotel/StaffManager.jsx";
 import StaffCardGrid from "@/components/StaffCardGrid.jsx";
 import RoomStatusTable from "@/components/hotel/RoomStatusTable.jsx";
 import BookingsTrendChart from "@/components/hotel/BookingsTrendChart.jsx";
+import MonthlyPerformanceChart from "@/components/hotel/MonthlyPerformanceChart.jsx";
+import PasscodeVerification from "@/components/hotel/PasscodeVerification.jsx";
 // import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import {
   DropdownMenu,
@@ -77,7 +79,8 @@ const HotelAdminDashboard = () => {
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const clientRef = useRef(null);
   const notificationRef = useRef(null);
-  const [showStaffGrid, setShowStaffGrid] = useState(false);
+  const [showStaffGrid, setShowStaffGrid] = useState(true);
+  const [showPasscodeVerification, setShowPasscodeVerification] = useState(false);
   // Simple media query hook for small screens (max-width: 640px)
   const isMobile =
     typeof window !== "undefined"
@@ -745,21 +748,20 @@ const HotelAdminDashboard = () => {
                 </CardContent>
               </Card>
 
-              <RoomStatusTable hotelId={hotelId} />
-
-              {/* Toggle for StaffCardGrid (visible on all screens) */}
+              {/* Toggle for PasscodeVerification */}
               <div className="mb-2">
                 <Button
-                  variant={showStaffGrid ? "secondary" : "outline"}
+                  variant={showPasscodeVerification ? "secondary" : "outline"}
                   className="w-full"
-                  onClick={() => setShowStaffGrid((prev) => !prev)}
+                  onClick={() => setShowPasscodeVerification((prev) => !prev)}
                 >
-                  {showStaffGrid
-                    ? "Hide Staff Overview"
-                    : "Show Staff Overview"}
+                  {showPasscodeVerification
+                    ? "Hide Passcode Verification"
+                    : "Show Passcode Verification"}
                 </Button>
               </div>
-              {showStaffGrid && <StaffCardGrid hotelId={hotelId} />}
+              
+              {showPasscodeVerification && <PasscodeVerification />}
 
               {/* Recent Bookings */}
               <Card>
@@ -780,6 +782,22 @@ const HotelAdminDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
+              
+              {/* Toggle for StaffCardGrid (visible on all screens) */}
+              <div className="mb-2">
+                <Button
+                  variant={showStaffGrid ? "secondary" : "outline"}
+                  className="w-full"
+                  onClick={() => setShowStaffGrid((prev) => !prev)}
+                >
+                  {showStaffGrid
+                    ? "Hide Staff Overview"
+                    : "Show Staff Overview"}
+                </Button>
+              </div>
+              
+              {showStaffGrid && <StaffCardGrid hotelId={hotelId} />}
+              <RoomStatusTable hotelId={hotelId} />
             </div>
           )}
 
@@ -849,7 +867,10 @@ const HotelAdminDashboard = () => {
           {activeTab === "analytics" && (
             <Card>
               <CardContent className="p-0 md:px-6 md:pb-6">
-                <BookingsTrendChart />
+                <div className="space-y-8">
+                  <BookingsTrendChart />
+                  <MonthlyPerformanceChart />
+                </div>
               </CardContent>
             </Card>
           )}

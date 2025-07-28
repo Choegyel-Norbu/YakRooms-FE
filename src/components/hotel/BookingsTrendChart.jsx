@@ -17,59 +17,12 @@ import {
   BarChart3,
   LineChart as LineChartIcon,
 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "@/services/Api";
-// Assuming you have these shadcn/ui components available
-const Skeleton = ({ className }) => (
-  <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
-);
-
-const Button = ({
-  variant = "default",
-  size = "sm",
-  onClick,
-  children,
-  className = "",
-}) => {
-  const baseClasses =
-    "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50";
-  const variants = {
-    default: "bg-primary text-primary-foreground hover:bg-primary/90",
-    outline:
-      "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-    ghost: "hover:bg-accent hover:text-accent-foreground",
-  };
-  const sizes = {
-    sm: "h-9 px-3 text-xs",
-    default: "h-10 px-4 py-2",
-  };
-
-  return (
-    <button
-      className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  );
-};
-
-const Card = ({ children}) => <div className="p-0">{children}</div>;
-
-const CardHeader = ({ children }) => (
-  <div className="flex flex-col space-y-1.5 p-6">{children}</div>
-);
-
-const CardTitle = ({ children }) => (
-  <h3 className="text-lg md:text-2xl font-semibold leading-none tracking-tight">
-    {children}
-  </h3>
-);
-
-const CardContent = ({ children }) => (
-  <div className="p-0">{children}</div>
-);
+import { useAuth } from "@/services/AuthProvider";
 
 const BookingsTrendChart = () => {
+  const { hotelId } = useAuth();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -87,12 +40,17 @@ const BookingsTrendChart = () => {
 
   // Fetch data from API
   const fetchBookingsData = async () => {
+    if (!hotelId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
       const res = await api.get(
-        `/booking-statistics/monthly/hotel/1?startDate=${selectedDate}`
+        `/booking-statistics/monthly/hotel/${hotelId}?startDate=${selectedDate}`
       );
 
       console.log("Fetching from:", res.config.url);
@@ -129,14 +87,14 @@ const BookingsTrendChart = () => {
       setLoading(false);
     } catch (err) {
       console.error("Error fetching bookings data:", err);
-
+      setError(err.message);
       setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchBookingsData();
-  }, [selectedDate]);
+  }, [selectedDate, hotelId]);
 
   // Custom tooltip component
   const CustomTooltip = ({ active, payload, label }) => {
@@ -160,20 +118,18 @@ const BookingsTrendChart = () => {
   if (loading) {
     return (
       <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-blue-600" />
             Monthly Booking Trends
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <Skeleton className="h-10 w-32" />
-              <Skeleton className="h-10 w-32" />
-              <Skeleton className="h-10 w-32" />
+        <CardContent className="p-0">
+          <div className="flex items-center justify-center h-96">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading booking data...</p>
             </div>
-            <Skeleton className="w-full aspect-[16/9]" />
           </div>
         </CardContent>
       </Card>
@@ -184,18 +140,23 @@ const BookingsTrendChart = () => {
   if (error) {
     return (
       <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-600">
-            <TrendingUp className="h-5 w-5" />
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-blue-600" />
             Monthly Booking Trends
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <div className="text-center py-8">
             <p className="text-red-600 mb-4">
               Error loading booking data: {error}
             </p>
-            <Button onClick={fetchBookingsData}>Retry</Button>
+            <button
+              onClick={fetchBookingsData}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Retry
+            </button>
           </div>
         </CardContent>
       </Card>
@@ -204,37 +165,41 @@ const BookingsTrendChart = () => {
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-blue-600" />
           Monthly Booking Trends
-          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-            Real time data
-          </span>
         </CardTitle>
+        <p className="text-sm text-gray-500 mt-1">
+          Track monthly booking patterns and trends
+        </p>
 
         {/* Controls */}
         <div className="flex flex-wrap items-center gap-4 mt-4">
           {/* Chart Type Toggle */}
           <div className="flex items-center gap-2">
-            <Button
-              variant={chartType === "bar" ? "default" : "outline"}
-              size="sm"
+            <button
+              className={`px-3 py-2 text-sm rounded-md transition-colors ${
+                chartType === "bar"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
               onClick={() => setChartType("bar")}
-              className="flex items-center gap-1"
             >
-              <BarChart3 className="h-4 w-4" />
+              <BarChart3 className="h-4 w-4 inline mr-1" />
               Bar
-            </Button>
-            <Button
-              variant={chartType === "line" ? "default" : "outline"}
-              size="sm"
+            </button>
+            <button
+              className={`px-3 py-2 text-sm rounded-md transition-colors ${
+                chartType === "line"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
               onClick={() => setChartType("line")}
-              className="flex items-center gap-1"
             >
-              <LineChartIcon className="h-4 w-4" />
+              <LineChartIcon className="h-4 w-4 inline mr-1" />
               Line
-            </Button>
+            </button>
           </div>
 
           {/* Date Picker */}
@@ -251,7 +216,7 @@ const BookingsTrendChart = () => {
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="p-0">
         <div className="w-full h-80 md:h-96 lg:h-[500px]">
           <ResponsiveContainer width="100%" height="100%">
             {chartType === "bar" ? (
@@ -314,7 +279,7 @@ const BookingsTrendChart = () => {
         </div>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 md:mt-6 pt-4 md:pt-6 border-t">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t">
           <div className="text-center">
             <p className="text-xl md:text-2xl font-bold text-blue-600">
               {data.reduce((sum, item) => sum + item.bookings, 0)}

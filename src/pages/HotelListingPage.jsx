@@ -276,8 +276,6 @@ const HotelListingPage = () => {
         {/* Main Content */}
         <main className="w-full">
           {/* Simple Search Section */}
-          {/* <Card className="mb-6">
-            <CardContent className="pt-6"> */}
           <div className="flex flex-col sm:flex-row gap-4">
             {/* District Search */}
             <div className="flex-1">
@@ -323,8 +321,6 @@ const HotelListingPage = () => {
               )}
             </div>
           </div>
-          {/* </CardContent>
-          </Card> */}
 
           {/* Results Header */}
           <div className="mb-6">
@@ -383,59 +379,100 @@ const HotelListingPage = () => {
                 {transformedHotels.map((hotel) => (
                   <Card
                     key={hotel.id}
-                    className="overflow-hidden flex flex-col group transition-all hover:shadow-xl border-0 shadow-md"
+                    className="overflow-hidden flex flex-col group transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 border border-border/50 shadow-lg rounded-lg bg-card"
                   >
-                    <div className="relative overflow-hidden">
+                    <div className="relative overflow-hidden rounded-t-lg">
                       <Link to={`/hotel/${hotel.id}`}>
                         <img
                           src={hotel.image}
                           alt={hotel.name}
-                          className="h-48 w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                          className="h-40 w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                           loading="lazy"
                         />
                       </Link>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                       {/* Hotel Type Badge */}
                       <div className="absolute top-3 left-3">
                         <Badge
                           variant="secondary"
-                          className="bg-background/90 backdrop-blur-sm"
+                          className="bg-background/95 backdrop-blur-md shadow-lg border border-border/20 text-xs font-medium px-2 py-0.5"
                         >
                           {hotel.type}
                         </Badge>
                       </div>
+
+                      {/* Price Badge - Compact positioning */}
+                      {hotel.lowestPrice && (
+                        <div className="absolute top-3 right-3">
+                          <div className="bg-primary text-primary-foreground px-2 py-1.5 rounded-md shadow-lg backdrop-blur-md border border-primary/20">
+                          <span className="text-14 text-yellow-500">From</span>
+                            <div className="text-xs font-bold leading-none">
+                              Nu. {hotel.lowestPrice.toLocaleString()}
+                            </div>
+                            <div className="text-xs opacity-90 leading-none">per night</div>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
-                    <CardHeader className="flex-1">
+                    <CardHeader className="flex-1 p-4 pb-3">
                       <div className="space-y-2">
-                        <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors line-clamp-2">
+                        <CardTitle className="text-lg font-semibold leading-tight group-hover:text-primary transition-colors duration-200 line-clamp-2">
                           <Link
                             to={`/hotel/${hotel.id}`}
-                            className="hover:underline"
+                            className="hover:underline decoration-2 underline-offset-2"
                           >
                             {hotel.name}
                           </Link>
                         </CardTitle>
-                        <CardDescription className="flex items-center">
-                          <MapPin className="mr-1.5 h-4 w-4 flex-shrink-0" />
-                          <span>{hotel.district}, Bhutan</span>
+                        
+                        <CardDescription className="flex items-center gap-1.5 text-sm">
+                          <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                          <span className="font-medium">{hotel.district}, Bhutan</span>
                         </CardDescription>
-                      </div>
-                    </CardHeader>
 
-                    <CardFooter className="bg-muted/30 border-t px-6 py-4">
-                      <div className="flex justify-between items-center w-full">
-                        <div>
-                          {/* Hotel address display */}
-                          <p className="text-sm text-muted-foreground">
+                        {/* Address Section - Compact */}
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
                             Address
                           </p>
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm text-foreground line-clamp-2">
                             {hotel.address || "Address not available"}
                           </p>
                         </div>
-                        <Button asChild size="sm">
+                      </div>
+                    </CardHeader>
+
+                    <CardFooter className="bg-muted/30 border-t border-border/50 p-4 pt-3 mt-auto">
+                      <div className="flex justify-between items-center w-full">
+                        <div className="flex items-center gap-3">
+                          {/* Price Section */}
+                          {!hotel.lowestPrice && (
+                            <div className="flex flex-col">
+                              <span className="text-xs text-muted-foreground">From</span>
+                              <span className="text-base font-bold text-foreground">
+                                Nu. {hotel.price.toLocaleString()}
+                              </span>
+                              <span className="text-xs text-muted-foreground">per night</span>
+                            </div>
+                          )}
+                          
+                          {/* Verified Badge */}
+                          <Badge 
+                            variant="outline" 
+                            className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100 transition-colors duration-200 px-2 py-1 text-xs font-medium flex items-center gap-1"
+                          >
+                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                            Verified
+                          </Badge>
+                        </div>
+                        
+                        <Button 
+                          asChild 
+                          size="sm" 
+                          className="ml-3 shadow-sm hover:shadow-md transition-shadow duration-200 px-4 py-1.5 font-medium text-sm bg-yellow-500 hover:bg-yellow-600 text-black rounded-[20px]"
+                        >
                           <Link to={`/hotel/${hotel.id}`}>View Details</Link>
                         </Button>
                       </div>
@@ -446,7 +483,7 @@ const HotelListingPage = () => {
               {renderPagination()}
             </>
           ) : (
-            <Card className="text-center py-16 px-6 bg-muted/20 border-dashed border-2">
+            <Card className="text-center py-16 px-6 bg-muted/20 border-dashed border-2 rounded-xl">
               <CardContent className="space-y-4">
                 <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
                   <Building2 className="h-8 w-8 text-muted-foreground" />
