@@ -168,11 +168,11 @@ const GoogleMapsModal = ({ booking, isOpen, onClose }) => {
   const openInGoogleMaps = () => {
     if (userLocation && booking) {
       // Open Google Maps with directions from user location to hotel
-      const url = `https://www.google.com/maps/dir/${userLocation.lat},${userLocation.lng}/${booking.latitude},${booking.longitude}`;
+      const url = `https://www.google.com/maps/dir/${userLocation.lat},${userLocation.lng}/${booking.hotelLatitude},${booking.hotelLongitude}`;
       window.open(url, '_blank');
     } else if (booking) {
       // Open Google Maps with just the hotel location
-      const url = `https://www.google.com/maps/search/?api=1&query=${booking.latitude},${booking.longitude}`;
+      const url = `https://www.google.com/maps/search/?api=1&query=${booking.hotelLatitude},${booking.hotelLongitude}`;
       window.open(url, '_blank');
     }
   };
@@ -214,7 +214,7 @@ const GoogleMapsModal = ({ booking, isOpen, onClose }) => {
                 <h3 className="font-medium text-foreground">{booking.hotelName}</h3>
                 <p className="text-sm text-muted-foreground mt-1">{booking.address}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Coordinates: {booking.latitude}, {booking.longitude}
+                  Coordinates: {booking.hotelLatitude}, {booking.hotelLongitude}
                 </p>
               </div>
             </div>
@@ -261,7 +261,7 @@ const GoogleMapsModal = ({ booking, isOpen, onClose }) => {
 
             <button
               onClick={() => {
-                const url = `https://www.google.com/maps/search/?api=1&query=${booking.latitude},${booking.longitude}`;
+                const url = `https://www.google.com/maps/search/?api=1&query=${booking.hotelLatitude},${booking.hotelLongitude}`;
                 window.open(url, '_blank');
               }}
               className="w-full flex items-center justify-center gap-2 border border-input bg-background hover:bg-accent px-4 py-2 rounded-md transition-colors text-sm"
@@ -645,7 +645,7 @@ const EmptyState = ({ onRetry }) => (
 // Error state component
 const ErrorState = ({ error, onRetry }) => (
   <div className="text-center py-12">
-    <AlertTriangle className="mx-auto h-12 w-12 text-red-500" />
+    <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
     <h3 className="mt-4 text-lg font-medium text-foreground">Failed to load bookings</h3>
     <p className="mt-2 text-sm text-muted-foreground">
       {error?.message || 'Something went wrong while fetching your bookings.'}
