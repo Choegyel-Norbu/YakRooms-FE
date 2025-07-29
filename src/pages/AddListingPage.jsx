@@ -62,7 +62,8 @@ const AddListingPage = () => {
     idProof: null,
     notes: "",
     hotelType: "",
-    coordinates: { lat: "", lng: "" },
+    latitude: "",
+    longitude: "",
     numberOfRooms: "",
     roomTypesDescription: "",
   });
@@ -177,10 +178,8 @@ const AddListingPage = () => {
           // Update form data with coordinates
           setFormData(prev => ({
             ...prev,
-            coordinates: {
-              lat: latitude.toFixed(6), // Limit to 6 decimal places
-              lng: longitude.toFixed(6)
-            }
+            latitude: latitude.toFixed(6), // Limit to 6 decimal places
+            longitude: longitude.toFixed(6)
           }));
 
           // Update location state
@@ -255,9 +254,9 @@ const AddListingPage = () => {
    * Check if coordinates are valid
    */
   const areCoordinatesValid = () => {
-    const { lat, lng } = formData.coordinates;
-    return lat && lng && !isNaN(lat) && !isNaN(lng) && 
-           lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    const { latitude, longitude } = formData;
+    return latitude && longitude && !isNaN(latitude) && !isNaN(longitude) && 
+           latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
   };
 
   const handleFileUpload = (e, field) => {
@@ -394,10 +393,7 @@ const AddListingPage = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      coordinates: {
-        ...prev.coordinates,
-        [name]: value,
-      },
+      [name]: value,
     }));
 
     // Clear location messages when manually editing
@@ -545,7 +541,8 @@ const AddListingPage = () => {
                   license: null,
                   idProof: null,
                   notes: "",
-                  coordinates: { lat: "", lng: "" },
+                  latitude: "",
+                  longitude: "",
                   numberOfRooms: "",
                   roomTypesDescription: "",
                 });
@@ -875,36 +872,36 @@ const AddListingPage = () => {
                   {/* Coordinate Input Fields */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="lat">
+                      <Label htmlFor="latitude">
                         Latitude
                         <span className="text-muted-foreground text-xs ml-1">(Auto-filled)</span>
                       </Label>
                       <Input
-                        id="lat"
-                        name="lat"
+                        id="latitude"
+                        name="latitude"
                         type="number"
                         step="any"
-                        value={formData.coordinates.lat}
+                        value={formData.latitude}
                         onChange={handleCoordinateChange}
                         placeholder="e.g., 27.4728"
-                        className={formData.coordinates.lat ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : ""}
+                        className={formData.latitude ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : ""}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="lng">
+                      <Label htmlFor="longitude">
                         Longitude
                         <span className="text-muted-foreground text-xs ml-1">(Auto-filled)</span>
                       </Label>
                       <Input
-                        id="lng"
-                        name="lng"
+                        id="longitude"
+                        name="longitude"
                         type="number"
                         step="any"
-                        value={formData.coordinates.lng}
+                        value={formData.longitude}
                         onChange={handleCoordinateChange}
                         placeholder="e.g., 89.6386"
-                        className={formData.coordinates.lng ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : ""}
+                        className={formData.longitude ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : ""}
                       />
                     </div>
                   </div>
@@ -917,7 +914,7 @@ const AddListingPage = () => {
                         <div className="text-sm">
                           <p className="text-primary font-medium">Location Coordinates:</p>
                           <p className="text-muted-foreground">
-                            {formData.coordinates.lat}, {formData.coordinates.lng}
+                            {formData.latitude}, {formData.longitude}
                           </p>
                         </div>
                       </div>
@@ -1222,10 +1219,10 @@ const AddListingPage = () => {
                               <div className="text-sm">
                                 <p className="text-primary font-medium">GPS Coordinates:</p>
                                 <p className="text-muted-foreground">
-                                  Latitude: {formData.coordinates.lat}
+                                  Latitude: {formData.latitude}
                                 </p>
                                 <p className="text-muted-foreground">
-                                  Longitude: {formData.coordinates.lng}
+                                  Longitude: {formData.longitude}
                                 </p>
                               </div>
                             </div>
