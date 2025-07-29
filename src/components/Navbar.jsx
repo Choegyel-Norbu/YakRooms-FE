@@ -143,9 +143,13 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {(role === "HOTEL_ADMIN" || role === "SUPER_ADMIN") && (
+          {(role === "HOTEL_ADMIN" || role === "SUPER_ADMIN" || role === "GUEST") && (
             <DropdownMenuItem asChild>
-              <Link to={role === "HOTEL_ADMIN" ? "/hotelAdmin" : "/adminDashboard"}>
+              <Link to={
+                role === "HOTEL_ADMIN" ? "/hotelAdmin" : 
+                role === "SUPER_ADMIN" ? "/adminDashboard" : 
+                "/guestDashboard"
+              }>
                 <LayoutDashboard className="mr-2 h-4 w-4" />
                 <span>Dashboard</span>
               </Link>
@@ -341,11 +345,15 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
 
         {/* Fixed uniform left padding */}
         <div className="space-y-0.5 px-6">
-          {(role === "HOTEL_ADMIN" || role === "SUPER_ADMIN") && (
+          {(role === "HOTEL_ADMIN" || role === "SUPER_ADMIN" || role === "GUEST") && (
             <>
               <SheetClose asChild>
                 <Link
-                  to={role === "HOTEL_ADMIN" ? "/hotelAdmin" : "/adminDashboard"}
+                  to={
+                    role === "HOTEL_ADMIN" ? "/hotelAdmin" : 
+                    role === "SUPER_ADMIN" ? "/adminDashboard" : 
+                    "/guestDashboard"
+                  }
                   // Reduced vertical padding for mobile
                   className="flex items-center justify-between px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group"
                 >

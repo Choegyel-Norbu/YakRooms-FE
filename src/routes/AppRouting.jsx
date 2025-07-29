@@ -15,6 +15,7 @@ import AddListingPage from "../pages/AddListingPage";
 import RoomManagement from "../pages/RoomManagement";
 import HotelAdminDashboard from "../pages/HotelAdminDashboard";
 import SuperAdmin from "../pages/SuperAdmin";
+import GuestDashboard from "../pages/GuestDashboard";
 import PortfolioPage from "../pages/PortfolioPage";
 import UnauthorizedPage from "../components/UnAuthorizedPage";
 import NotificationsComponent from "../components/NotificationsComponent";
@@ -51,6 +52,14 @@ export default function () {
           element={
             <ProtectedRoute allowedRoles={["HOTEL_ADMIN"]}>
               <HotelAdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/guestDashboard"
+          element={
+            <ProtectedRoute allowedRoles={["GUEST"]}>
+              <GuestDashboard />
             </ProtectedRoute>
           }
         />

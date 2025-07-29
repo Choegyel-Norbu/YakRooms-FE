@@ -694,7 +694,7 @@ const AddListingPage = () => {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="name">
                       Business Name <span className="text-destructive">*</span>
@@ -749,7 +749,7 @@ const AddListingPage = () => {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="district">
                       District <span className="text-destructive">*</span>
@@ -817,7 +817,6 @@ const AddListingPage = () => {
                 {/* Location Coordinates Section */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <Label className="text-base font-medium">Location Coordinates</Label>
                     
                     {/* Use Current Location Button */}
                     <Button
@@ -835,7 +834,7 @@ const AddListingPage = () => {
                         </>
                       ) : (
                         <>
-                          <Navigation className="h-4 w-4" />
+                          <Navigation className="text-sm h-4 w-4" />
                           Use Current Location
                         </>
                       )}
@@ -874,7 +873,7 @@ const AddListingPage = () => {
                   )}
 
                   {/* Coordinate Input Fields */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="lat">
                         Latitude
