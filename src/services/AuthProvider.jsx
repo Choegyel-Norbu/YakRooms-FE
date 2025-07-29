@@ -99,6 +99,11 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
+  const [lastLogin, setLastLogin] = useState(() => {
+    const stored = localStorage.getItem("lastLogin");
+    return stored ? new Date(stored) : null;
+  });
+
   // === LOGOUT (memoized) ===
   const logout = useCallback(() => {
     try {
@@ -200,6 +205,11 @@ export const AuthProvider = ({ children }) => {
       if (!authData.flag) {
         navigate("/");
       }
+
+      const now = new Date();
+      setLastLogin(now);
+      localStorage.setItem("lastLogin", now.toISOString());
+
     } catch (error) {
       console.error("Failed to login", error);
       throw error; // Re-throw to allow handling in the calling component
@@ -265,7 +275,9 @@ export const AuthProvider = ({ children }) => {
     setHotelId,
     setRole,
     updateUserProfile,
-  }), [authState, login, logout, setHotelId, setRole, updateUserProfile]);
+    lastLogin,
+    setLastLogin,
+  }), [authState, login, logout, setHotelId, setRole, updateUserProfile, lastLogin, setLastLogin]);
 
   return (
     <AuthContext.Provider value={contextValue}>

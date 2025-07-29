@@ -48,14 +48,9 @@ export default function YakRoomsAdCard() {
         {/* Header Section */}
         <div className="p-6 pb-4 border-b bg-gradient-to-r from-primary/5 to-primary/10">
           <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Building2 className="w-6 h-6 text-primary" />
-            </div>
+            
             <div>
               <YakRoomsText size="default" />
-              <Badge variant="secondary" className="text-xs">
-                Bhutan's #1 Platform
-              </Badge>
             </div>
           </div>
           
@@ -86,27 +81,6 @@ export default function YakRoomsAdCard() {
           })}
         </div>
 
-        {/* Visual Section */}
-        
-
-        {/* Footer */}
-        <div className="p-4 border-t bg-muted/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">
-                🇧🇹 Made in Bhutan
-              </Badge>
-              <span className="text-xs text-muted-foreground">
-                Trusted by thousands
-              </span>
-            </div>
-            
-            <Button size="sm" className="h-8 px-3 text-xs">
-              Explore Now
-              <ArrowRight className="w-3 h-3 ml-1" />
-            </Button>
-          </div>
-        </div>
 
         {/* Bottom Tagline */}
         <div className="px-6 py-3 bg-primary/5 border-t">

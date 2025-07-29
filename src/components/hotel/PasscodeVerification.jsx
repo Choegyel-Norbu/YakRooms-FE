@@ -82,7 +82,7 @@ const PasscodeVerification = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-6">
+    <div className="h-auto w-full flex items-center justify-center p-6">
       <div className="w-full max-w-2xl space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">

@@ -150,7 +150,7 @@ const HotelListingPage = () => {
     name: hotel.name,
     district: hotel.district,
     // Use lowestPrice from API response, fallback to random if null
-    price: hotel.lowestPrice || Math.floor(Math.random() * 400) + 80,
+    price: hotel.lowestPrice,
     // Include lowestPrice for conditional display
     lowestPrice: hotel.lowestPrice,
     image:
@@ -447,16 +447,7 @@ const HotelListingPage = () => {
                     <CardFooter className="bg-muted/30 border-t border-border/50 p-4 pt-3 mt-auto">
                       <div className="flex justify-between items-center w-full">
                         <div className="flex items-center gap-3">
-                          {/* Price Section */}
-                          {!hotel.lowestPrice && (
-                            <div className="flex flex-col">
-                              <span className="text-xs text-muted-foreground">From</span>
-                              <span className="text-base font-bold text-foreground">
-                                Nu. {hotel.price.toLocaleString()}
-                              </span>
-                              <span className="text-xs text-muted-foreground">per night</span>
-                            </div>
-                          )}
+                         
                           
                           {/* Verified Badge */}
                           <Badge 

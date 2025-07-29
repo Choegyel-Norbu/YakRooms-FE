@@ -68,7 +68,7 @@ const YakRoomsText = ({ size = "default" }) => {
 };
 
 const HotelAdminDashboard = () => {
-  const { userId, userName, logout, hotelId } = useAuth();
+  const { userId, userName, hotelId, lastLogin } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [hotel, setHotel] = useState(null);
   const [bookings, setBookings] = useState([]);
@@ -80,7 +80,8 @@ const HotelAdminDashboard = () => {
   const clientRef = useRef(null);
   const notificationRef = useRef(null);
   const [showStaffGrid, setShowStaffGrid] = useState(true);
-  const [showPasscodeVerification, setShowPasscodeVerification] = useState(false);
+  const [showPasscodeVerification, setShowPasscodeVerification] =
+    useState(false);
   // Simple media query hook for small screens (max-width: 640px)
   const isMobile =
     typeof window !== "undefined"
@@ -366,6 +367,19 @@ const HotelAdminDashboard = () => {
     );
   };
 
+  const formatLoginTime = (date) => {
+    if (!date) return "Never";
+    const d = typeof date === "string" ? new Date(date) : date;
+    return d.toLocaleString(undefined, {
+      weekday: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   const navigationItems = [
     { id: "dashboard", label: "Dashboard", icon: Home },
     { id: "hotel", label: "Hotel Details", icon: Hotel },
@@ -595,12 +609,9 @@ const HotelAdminDashboard = () => {
 
                             // Clear all notifications from backend
                             await deleteAllNotifications();
-
-                            // Switch to bookings tab
-                            setActiveTab("bookings");
                           }}
                         >
-                          Show all notifications
+                          Clear all notifications
                         </Button>
                       </div>
                     )}
@@ -725,24 +736,53 @@ const HotelAdminDashboard = () => {
           {activeTab === "dashboard" && (
             <div className="space-y-4">
               {/* Welcome Card */}
-              <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+              <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <CardContent className="p-4 md:p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-6">
+                    {/* Left Content */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg sm:text-lg font-semibold text-foreground mb-1 truncate">
-                        Welcome back, {userName}!
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        Here's what's happening with your hotel today.
-                      </p>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <svg
+                            className="w-5 h-5 text-primary"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="text-lg sm:text-lg font-semibold text-foreground mb-1 truncate">
+                            Welcome back, {userName}!
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            Here's what's happening with your hotel today.
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-shrink-0">
+
+                    {/* Right Content */}
+                    <div className="hidden md:block flex-shrink-0 flex flex-col items-end gap-8">
                       <Badge
                         variant="secondary"
-                        className="bg-primary/10 text-primary border-primary/20 text-xs"
+                        className="bg-primary/10 text-primary border-primary/20 text-xs font-medium px-3 py-1"
                       >
                         Admin
                       </Badge>
+
+                      <div className="text-left">
+                        <p className="text-xs text-muted-foreground">Last login</p>
+                        <p className="text-xs font-medium text-foreground">
+                          {formatLoginTime(lastLogin)}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -760,7 +800,7 @@ const HotelAdminDashboard = () => {
                     : "Show Passcode Verification"}
                 </Button>
               </div>
-              
+
               {showPasscodeVerification && <PasscodeVerification />}
 
               {/* Recent Bookings */}
@@ -782,7 +822,7 @@ const HotelAdminDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               {/* Toggle for StaffCardGrid (visible on all screens) */}
               <div className="mb-2">
                 <Button
@@ -795,7 +835,7 @@ const HotelAdminDashboard = () => {
                     : "Show Staff Overview"}
                 </Button>
               </div>
-              
+
               {showStaffGrid && <StaffCardGrid hotelId={hotelId} />}
               <RoomStatusTable hotelId={hotelId} />
             </div>

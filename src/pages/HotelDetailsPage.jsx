@@ -24,6 +24,7 @@ import {
   Utensils,
   Bath,
   AirVent,
+  Phone,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -87,12 +88,18 @@ const HotelDetailsPage = () => {
 
   const getAmenityIcon = (amenity) => {
     const amenityLower = amenity.toLowerCase();
-    if (amenityLower.includes('wifi') || amenityLower.includes('internet')) return amenityIcons.wifi;
-    if (amenityLower.includes('parking') || amenityLower.includes('park')) return amenityIcons.parking;
-    if (amenityLower.includes('breakfast') || amenityLower.includes('coffee')) return amenityIcons.breakfast;
-    if (amenityLower.includes('restaurant') || amenityLower.includes('dining')) return amenityIcons.restaurant;
-    if (amenityLower.includes('bathroom') || amenityLower.includes('bath')) return amenityIcons.bathroom;
-    if (amenityLower.includes('air') || amenityLower.includes('ac')) return amenityIcons.ac;
+    if (amenityLower.includes("wifi") || amenityLower.includes("internet"))
+      return amenityIcons.wifi;
+    if (amenityLower.includes("parking") || amenityLower.includes("park"))
+      return amenityIcons.parking;
+    if (amenityLower.includes("breakfast") || amenityLower.includes("coffee"))
+      return amenityIcons.breakfast;
+    if (amenityLower.includes("restaurant") || amenityLower.includes("dining"))
+      return amenityIcons.restaurant;
+    if (amenityLower.includes("bathroom") || amenityLower.includes("bath"))
+      return amenityIcons.bathroom;
+    if (amenityLower.includes("air") || amenityLower.includes("ac"))
+      return amenityIcons.ac;
     return amenityIcons.default;
   };
 
@@ -163,7 +170,7 @@ const HotelDetailsPage = () => {
           url: window.location.href,
         });
       } catch (err) {
-        console.log('Error sharing:', err);
+        console.log("Error sharing:", err);
       }
     } else {
       // Fallback to clipboard
@@ -188,7 +195,9 @@ const HotelDetailsPage = () => {
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
         <Card className="w-full max-w-md text-center">
           <CardHeader>
-            <CardTitle className="text-destructive">Something went wrong</CardTitle>
+            <CardTitle className="text-destructive">
+              Something went wrong
+            </CardTitle>
             <CardDescription>{error || "Hotel not found"}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -229,7 +238,11 @@ const HotelDetailsPage = () => {
               </Link>
             </Button>
             {/* Back button: icon only on small screens, icon+text on sm+ */}
-            <Button variant="ghost" onClick={() => navigate(-1)} className="p-2">
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="p-2"
+            >
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline ml-2">Back</span>
             </Button>
@@ -255,10 +268,14 @@ const HotelDetailsPage = () => {
 
           {/* Right side - Actions */}
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={handleShare} className="h-8 w-8 sm:h-10 sm:w-10">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleShare}
+              className="h-8 w-8 sm:h-10 sm:w-10"
+            >
               <Share2 className="h-4 w-4" />
             </Button>
-            {/* Removed Heart (love sign) button */}
           </div>
         </div>
       </header>
@@ -306,10 +323,11 @@ const HotelDetailsPage = () => {
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full transition-all ${currentImageIndex === index
-                    ? "bg-white scale-125"
-                    : "bg-white/50 hover:bg-white/75"
-                    }`}
+                  className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full transition-all ${
+                    currentImageIndex === index
+                      ? "bg-white scale-125"
+                      : "bg-white/50 hover:bg-white/75"
+                  }`}
                   aria-label={`Go to image ${index + 1}`}
                 />
               ))}
@@ -322,48 +340,75 @@ const HotelDetailsPage = () => {
           </div>
 
           {/* Reduced card content padding for mobile */}
-          <CardContent className="p-4 sm:p-6">
-            {/* Reduced spacing between elements */}
-            <div className="space-y-3 sm:space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-                {/* Reduced spacing for mobile */}
-                <div className="space-y-1.5 sm:space-y-2">
-                  {/* Mobile-optimized font sizes */}
-                  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight">
-                    {transformedHotel.name}
-                  </h1>
-                  <div className="flex items-center text-muted-foreground">
-                    <MapPin className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                    <span className="text-sm sm:text-base">{transformedHotel.district}, Bhutan</span>
-                  </div>
-                  <Badge variant="secondary" className="w-fit text-xs sm:text-sm">
-                    {transformedHotel.hotelType || 'Hotel'}
-                  </Badge>
-                </div>
+          <CardContent className="px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8 bg-gradient-to-br from-white to-slate-50/50">
+            <div className="space-y-4 sm:space-y-6">
+              {/* Hotel Header Section */}
+              <div className="flex sm:flex-col">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+                  <div className="space-y-2 sm:space-y-3">
+                    {/* Hotel Name with Uniform Typography */}
+                    <h1 className="text-base sm:text-base md:text-base font-semibold tracking-tight text-slate-800 leading-tight">
+                      {transformedHotel.name}
+                    </h1>
 
-                {/* Rating Section - Removed */}
-                {/* <div className="flex items-center gap-1.5 sm:gap-2">
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${
-                          i < 4 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                        }`}
-                      />
-                    ))}
+                    {/* Location and Contact Info */}
+                    <div className="flex flex-col sm:flex-row sm:items-center md:gap-3 sm:gap-6">
+                      {/* Location */}
+                      <div className="flex items-center group">
+                        <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 mr-3 group-hover:shadow-md transition-all duration-200">
+                          <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
+                        </div>
+                        <span className="text-sm sm:text-base text-slate-600 font-normal group-hover:text-slate-700 transition-colors duration-200">
+                          {transformedHotel.district}, Bhutan
+                        </span>
+                      </div>
+
+                      {/* Phone */}
+                      <div className="flex items-center group">
+                        <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 mr-3 group-hover:shadow-md transition-all duration-200">
+                          <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600 flex-shrink-0" />
+                        </div>
+                        <a
+                          href={`tel:${transformedHotel.phone}`}
+                          className="text-sm sm:text-base text-slate-600 font-normal hover:text-emerald-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 rounded-md px-1 py-0.5"
+                          aria-label={`Call ${transformedHotel.name} at ${transformedHotel.phone}`}
+                        >
+                          {transformedHotel.phone}
+                        </a>
+                      </div>
+                    </div>
                   </div>
-                  <span className="text-xs sm:text-sm text-muted-foreground">(4.0)</span>
-                </div> */}
+
+                  <div className="flex items-start justify-start">
+                    <div className="relative group">
+                      <div className="absolute -inset-1 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg blur opacity-25 group-hover:opacity-40 transition duration-200"></div>
+                      <div className="relative px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+                        <span className="text-sm font-normal text-slate-600 tracking-wide uppercase">
+                          {transformedHotel.hotelType || "Hotel"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <Separator />
+              {/* Elegant Separator */}
+              <div className="relative">
+                <Separator className="bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent blur-sm"></div>
+              </div>
 
-              <div className="prose prose-sm max-w-none">
-                {/* Mobile-optimized text size */}
-                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                  {transformedHotel.description}
-                </p>
+              {/* Description Section */}
+              <div className="relative">
+                <div className="prose prose-slate prose-sm sm:prose-base max-w-none">
+                  <p className="text-slate-600 leading-relaxed text-sm sm:text-base font-normal tracking-wide">
+                    {transformedHotel.description}
+                  </p>
+                </div>
+
+                {/* Subtle background decoration */}
+                <div className="absolute -top-2 -left-2 w-16 h-16 bg-gradient-to-br from-blue-100/30 to-purple-100/30 rounded-full blur-xl -z-10"></div>
+                <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-br from-purple-100/30 to-pink-100/30 rounded-full blur-xl -z-10"></div>
               </div>
             </div>
           </CardContent>
@@ -373,29 +418,28 @@ const HotelDetailsPage = () => {
           <div className="lg:col-span-2 space-y-8">
             {/* Enhanced Amenities Section */}
             <Card>
-              {/* Restored card header padding */}
               <CardHeader className="pb-6">
-                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
                   <CheckCircle className="h-5 w-5 text-primary" />
                   Hotel Amenities
                 </CardTitle>
-                <CardDescription className="text-sm sm:text-base">
+                <CardDescription className="text-sm">
                   Everything you need for a comfortable stay
                 </CardDescription>
               </CardHeader>
-              {/* Restored card content padding */}
               <CardContent className="pt-0">
                 <div className="flex flex-row gap-1 flex-wrap">
                   {hotel.amenities?.map((amenity, index) => {
                     const IconComponent = getAmenityIcon(amenity);
                     return (
-                      <div key={index} className="flex items-center p-3 rounded-lg">
+                      <div
+                        key={index}
+                        className="flex items-center p-3 rounded-lg"
+                      >
                         {/* <IconComponent className="h-5 w-5 mr-3 text-primary flex-shrink-0" /> */}
-                        <span className="text-sm font-medium border border-gray-300 rounded-[20px] px-3 py-1">
+                        <span className="text-sm font-normal border border-gray-300 rounded-[20px] px-2 py-1">
                           {amenity}
                         </span>
-
-
                       </div>
                     );
                   })}
@@ -408,10 +452,10 @@ const HotelDetailsPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   {/* Heading size */}
-                  <h2 className="text-2xl font-bold tracking-tight">
+                  <h2 className="text-base font-semibold tracking-tight">
                     Available Rooms
                   </h2>
-                  <p className="text-base text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Choose from our selection of comfortable rooms
                   </p>
                 </div>
@@ -420,109 +464,125 @@ const HotelDetailsPage = () => {
                 )}
               </div>
 
-              {/* Restored minimum height */}
               <div className="space-y-6 min-h-[400px]">
                 {availableRooms.length > 0
                   ? availableRooms.map((room) => (
-                    <Card
-                      key={room.id}
-                      className="overflow-hidden transition-all hover:shadow-lg border-0 shadow-md"
-                    >
-                      <div className="flex flex-col lg:flex-row">
-                        <div className="lg:w-1/3 relative flex-shrink-0">
-                          <img
-                            src={
-                              room.imageUrl?.[0] ||
-                              `https://via.placeholder.com/500x300?text=Room+${room.roomNumber}`
-                            }
-                            alt={`Room ${room.roomNumber}`}
-                            className="h-64 w-full object-cover lg:h-full"
-                          />
-                          {room.available && (
-                            <Badge
-                              variant="default"
-                              className="absolute left-3 top-3 bg-green-600 hover:bg-green-700"
-                            >
-                              <CheckCircle className="mr-1 h-3.5 w-3.5" />
-                              Available
-                            </Badge>
-                          )}
-                        </div>
-
-                        {/* Restored padding */}
-                        <div className="flex flex-1 flex-col justify-between p-6">
-                          {/* Restored spacing */}
-                          <div className="space-y-4">
-                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                              {/* Restored spacing */}
-                              <div className="space-y-2">
-                                {/* Text sizes */}
-                                <CardTitle className="text-xl">
-                                  {room.roomType} - Room {room.roomNumber}
-                                </CardTitle>
-                                <CardDescription className="text-base">
-                                  {room.description}
-                                </CardDescription>
-                              </div>
-                              <div className="text-right flex-shrink-0">
-                                {/* Price display with "From" label */}
-                                <div className="text-2xl font-bold text-primary">
-                                  {hotel.lowestPrice ? (
-                                    <>
-                                      <span className="text-base font-normal text-muted-foreground">From </span>
-                                      Nu. {new Intl.NumberFormat("en-IN").format(hotel.lowestPrice)}
-                                    </>
-                                  ) : (
-                                    <>Nu. {new Intl.NumberFormat("en-IN").format(room.price)}</>
-                                  )}
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                  per night
-                                </p>
-                              </div>
-                            </div>
-
-                            {room.amenities?.length > 0 && (
-                              <div>
-                                {/* Subtitle */}
-                                <h4 className="font-medium text-sm mb-3 text-muted-foreground">
-                                  Room Amenities
-                                </h4>
-                                {/* Gap spacing */}
-                                <div className="flex flex-wrap gap-2">
-                                  {room.amenities.map((amenity, index) => (
-                                    <Badge key={index} variant="outline" className="text-xs">
-                                      {amenity}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
+                      <Card
+                        key={room.id}
+                        className="overflow-hidden transition-all hover:shadow-lg border-0 shadow-md"
+                      >
+                        <div className="flex flex-col lg:flex-row">
+                          <div className="lg:w-1/3 relative flex-shrink-0">
+                            <img
+                              src={
+                                room.imageUrl?.[0] ||
+                                `https://via.placeholder.com/500x300?text=Room+${room.roomNumber}`
+                              }
+                              alt={`Room ${room.roomNumber}`}
+                              className="h-64 w-full object-cover lg:h-full"
+                            />
+                            {room.available && (
+                              <Badge
+                                variant="default"
+                                className="absolute left-3 top-3 bg-green-600 hover:bg-green-700"
+                              >
+                                <CheckCircle className="mr-1 h-3.5 w-3.5" />
+                                Available
+                              </Badge>
                             )}
                           </div>
 
-                          {/* Restored margin and padding */}
-                          <div className="mt-6 pt-4 border-t">
-                            <RoomBookingCard room={room} hotelId={id} />
+                          {/* Restored padding */}
+                          <div className="flex flex-1 flex-col justify-between p-6">
+                            {/* Restored spacing */}
+                            <div className="space-y-4">
+                              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                                {/* Restored spacing */}
+                                <div className="space-y-2">
+                                  {/* Text sizes */}
+                                  <CardTitle className="text-xl">
+                                    {room.roomType} - Room {room.roomNumber}
+                                  </CardTitle>
+                                  <CardDescription className="text-base">
+                                    {room.description}
+                                  </CardDescription>
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                  {/* Price display with "From" label */}
+                                  <div className="text-2xl font-bold text-primary">
+                                    {hotel.lowestPrice ? (
+                                      <>
+                                        <span className="text-base font-normal text-muted-foreground">
+                                          From{" "}
+                                        </span>
+                                        Nu.{" "}
+                                        {new Intl.NumberFormat("en-IN").format(
+                                          hotel.lowestPrice
+                                        )}
+                                      </>
+                                    ) : (
+                                      <>
+                                        Nu.{" "}
+                                        {new Intl.NumberFormat("en-IN").format(
+                                          room.price
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">
+                                    per night
+                                  </p>
+                                </div>
+                              </div>
+
+                              {room.amenities?.length > 0 && (
+                                <div>
+                                  {/* Subtitle */}
+                                  <h4 className="font-medium text-sm mb-3 text-muted-foreground">
+                                    Room Amenities
+                                  </h4>
+                                  {/* Gap spacing */}
+                                  <div className="flex flex-wrap gap-2">
+                                    {room.amenities.map((amenity, index) => (
+                                      <Badge
+                                        key={index}
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        {amenity}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Restored margin and padding */}
+                            <div className="mt-6 pt-4 border-t">
+                              <RoomBookingCard room={room} hotelId={id} />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </Card>
-                  ))
+                      </Card>
+                    ))
                   : !loading && (
-                    <Card>
-                      {/* Restored padding */}
-                      <CardContent className="pt-6">
-                        {/* Restored padding for empty state */}
-                        <div className="text-center py-12">
-                          <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                          <h3 className="text-lg font-medium mb-2">No rooms available</h3>
-                          <p className="text-base text-muted-foreground">
-                            Please try different dates or contact the hotel directly.
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
+                      <Card>
+                        {/* Restored padding */}
+                        <CardContent className="pt-6">
+                          {/* Restored padding for empty state */}
+                          <div className="text-center py-12">
+                            <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                            <h3 className="text-lg font-medium mb-2">
+                              No rooms available
+                            </h3>
+                            <p className="text-base text-muted-foreground">
+                              Please try different dates or contact the hotel
+                              directly.
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
               </div>
 
               {/* Enhanced Pagination */}
@@ -535,7 +595,8 @@ const HotelDetailsPage = () => {
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-                            if (currentPage > 0) handlePageChange(currentPage - 1);
+                            if (currentPage > 0)
+                              handlePageChange(currentPage - 1);
                           }}
                           className={
                             currentPage === 0
@@ -594,20 +655,24 @@ const HotelDetailsPage = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Hotel Type</span>
-                  <span className="font-medium">{hotel.hotelType || 'Hotel'}</span>
+                  <span className="text-sm">Hotel Type</span>
+                  <span className="text-sm">
+                    {hotel.hotelType || "Hotel"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">District</span>
-                  <span className="font-medium">{hotel.district}</span>
+                  <span className="text-sm">District</span>
+                  <span className="text-sm">{hotel.district}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Address</span>
-                  <span className="font-medium">{hotel.address}</span>
+                  <span className="text-sm">Address</span>
+                  <span className="text-sm">{hotel.address}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Rooms</span>
-                  <span className="font-medium">{availableRooms.length}+ available</span>
+                  <span className="text-sm">Total Rooms</span>
+                  <span className="text-sm">
+                    {availableRooms.length}+ available
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -635,10 +700,11 @@ const HotelDetailsPage = () => {
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`h-2 w-2 rounded-full transition-all ${currentImageIndex === index
-                      ? "bg-primary scale-125"
-                      : "bg-muted-foreground/50"
-                      }`}
+                    className={`h-2 w-2 rounded-full transition-all ${
+                      currentImageIndex === index
+                        ? "bg-primary scale-125"
+                        : "bg-muted-foreground/50"
+                    }`}
                   />
                 ))}
               </div>

@@ -361,24 +361,6 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                   </Label>
                 )}
               </div>
-
-              <div className="md:col-span-2">
-                <Label className="block text-sm font-medium text-gray-700 mb-1">
-                  Documents
-                </Label>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">{formData.license}</span>
-                  {isEditing && (
-                    <Button
-                      variant="link"
-                      className="p-0 h-auto text-amber-600 hover:text-amber-700"
-                      disabled={isLoading}
-                    >
-                      <Upload className="inline mr-1 w-4 h-4" /> Replace
-                    </Button>
-                  )}
-                </div>
-              </div>
             </div>
           </form>
         </Form>

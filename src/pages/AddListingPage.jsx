@@ -19,7 +19,10 @@ import {
   Utensils,
   FileText,
   Camera,
-  Shield
+  Shield,
+  Navigation,
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -30,6 +33,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -65,6 +69,14 @@ const AddListingPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
+  
+  // Geolocation state
+  const [locationState, setLocationState] = useState({
+    isGettingLocation: false,
+    locationError: null,
+    locationSuccess: false
+  });
+  
   const navigate = useNavigate();
 
   const listingTypes = [
@@ -130,6 +142,122 @@ const AddListingPage = () => {
       "Snacks & Pastries",
       "Parking",
     ],
+  };
+
+  /**
+   * Handle getting user's current location using Geolocation API
+   */
+  const getCurrentLocation = () => {
+    // Check if geolocation is supported
+    if (!navigator.geolocation) {
+      setLocationState({
+        isGettingLocation: false,
+        locationError: "Geolocation is not supported by this browser.",
+        locationSuccess: false
+      });
+      return;
+    }
+
+    // Start loading state
+    setLocationState({
+      isGettingLocation: true,
+      locationError: null,
+      locationSuccess: false
+    });
+
+    // First try with high accuracy but shorter timeout
+    const tryGetLocation = (useHighAccuracy = true, timeout = 15000) => {
+      navigator.geolocation.getCurrentPosition(
+        // Success callback
+        (position) => {
+          const { latitude, longitude, accuracy } = position.coords;
+          
+          console.log(`Location found: ${latitude}, ${longitude} (accuracy: ${accuracy}m)`);
+          
+          // Update form data with coordinates
+          setFormData(prev => ({
+            ...prev,
+            coordinates: {
+              lat: latitude.toFixed(6), // Limit to 6 decimal places
+              lng: longitude.toFixed(6)
+            }
+          }));
+
+          // Update location state
+          setLocationState({
+            isGettingLocation: false,
+            locationError: null,
+            locationSuccess: true
+          });
+
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            setLocationState(prev => ({
+              ...prev,
+              locationSuccess: false
+            }));
+          }, 3000);
+        },
+        // Error callback
+        (error) => {
+          console.log(`Geolocation error: ${error.code} - ${error.message}`);
+          
+          // If high accuracy failed due to timeout, try with lower accuracy
+          if (error.code === error.TIMEOUT && useHighAccuracy) {
+            console.log("High accuracy timed out, trying with lower accuracy...");
+            setLocationState(prev => ({
+              ...prev,
+              locationError: "High accuracy location timed out, trying approximate location..."
+            }));
+            
+            // Retry with lower accuracy and longer timeout
+            setTimeout(() => tryGetLocation(false, 30000), 1000);
+            return;
+          }
+          
+          let errorMessage = "Failed to get location.";
+          
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = "Location access denied. Please enable location permissions in your browser settings and try again.";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = "Location information is unavailable. Please check your internet connection and GPS settings.";
+              break;
+            case error.TIMEOUT:
+              errorMessage = `Location request timed out after ${timeout/1000} seconds. Please ensure you have a stable internet connection and GPS is enabled.`;
+              break;
+            default:
+              errorMessage = `An unknown error occurred while getting location (Code: ${error.code}).`;
+              break;
+          }
+
+          setLocationState({
+            isGettingLocation: false,
+            locationError: errorMessage,
+            locationSuccess: false
+          });
+        },
+        // Options
+        {
+          enableHighAccuracy: useHighAccuracy,
+          timeout: timeout,
+          maximumAge: useHighAccuracy ? 60000 : 600000 // Use fresher cache for high accuracy
+        }
+      );
+    };
+
+    // Start the location request
+    tryGetLocation();
+  };
+
+  /**
+   * Check if coordinates are valid
+   */
+  const areCoordinatesValid = () => {
+    const { lat, lng } = formData.coordinates;
+    return lat && lng && !isNaN(lat) && !isNaN(lng) && 
+           lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
   };
 
   const handleFileUpload = (e, field) => {
@@ -271,6 +399,15 @@ const AddListingPage = () => {
         [name]: value,
       },
     }));
+
+    // Clear location messages when manually editing
+    if (locationState.locationError || locationState.locationSuccess) {
+      setLocationState({
+        isGettingLocation: false,
+        locationError: null,
+        locationSuccess: false
+      });
+    }
   };
 
   const validateStep = () => {
@@ -677,6 +814,118 @@ const AddListingPage = () => {
                   </div>
                 </div>
 
+                {/* Location Coordinates Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-medium">Location Coordinates</Label>
+                    
+                    {/* Use Current Location Button */}
+                    <Button
+                      type="button"
+                      onClick={getCurrentLocation}
+                      disabled={locationState.isGettingLocation}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      {locationState.isGettingLocation ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Getting location...
+                        </>
+                      ) : (
+                        <>
+                          <Navigation className="h-4 w-4" />
+                          Use Current Location
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Location Status Messages */}
+                  {locationState.locationError && (
+                    <Alert className="border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        <div className="space-y-2">
+                          <p>{locationState.locationError}</p>
+                          <div className="text-xs text-destructive/80">
+                            <p><strong>Troubleshooting tips:</strong></p>
+                            <ul className="list-disc list-inside space-y-1 mt-1">
+                              <li>Make sure location/GPS is enabled on your device</li>
+                              <li>Check that your browser has location permissions</li>
+                              <li>Try refreshing the page and allowing location access</li>
+                              <li>If indoors, try moving closer to a window</li>
+                              <li>On mobile, ensure location services are enabled</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {locationState.locationSuccess && (
+                    <Alert className="border-green-500/50 text-green-700 dark:border-green-500 [&>svg]:text-green-600">
+                      <CheckCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Location captured successfully!
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {/* Coordinate Input Fields */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="lat">
+                        Latitude
+                        <span className="text-muted-foreground text-xs ml-1">(Auto-filled)</span>
+                      </Label>
+                      <Input
+                        id="lat"
+                        name="lat"
+                        type="number"
+                        step="any"
+                        value={formData.coordinates.lat}
+                        onChange={handleCoordinateChange}
+                        placeholder="e.g., 27.4728"
+                        className={formData.coordinates.lat ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : ""}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="lng">
+                        Longitude
+                        <span className="text-muted-foreground text-xs ml-1">(Auto-filled)</span>
+                      </Label>
+                      <Input
+                        id="lng"
+                        name="lng"
+                        type="number"
+                        step="any"
+                        value={formData.coordinates.lng}
+                        onChange={handleCoordinateChange}
+                        placeholder="e.g., 89.6386"
+                        className={formData.coordinates.lng ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : ""}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Coordinates Display */}
+                  {areCoordinatesValid() && (
+                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
+                      <div className="flex items-start gap-2">
+                        <MapPin className="h-4 w-4 text-primary mt-0.5" />
+                        <div className="text-sm">
+                          <p className="text-primary font-medium">Location Coordinates:</p>
+                          <p className="text-muted-foreground">
+                            {formData.coordinates.lat}, {formData.coordinates.lng}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="hotelType">
                     Hotel Type <span className="text-destructive">*</span>
@@ -963,6 +1212,27 @@ const AddListingPage = () => {
                         <Label className="text-muted-foreground">Description</Label>
                         <p className="font-medium">{formData.description}</p>
                       </div>
+
+                      {/* Location Coordinates in Review */}
+                      {areCoordinatesValid() && (
+                        <div>
+                          <Label className="text-muted-foreground">Location Coordinates</Label>
+                          <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mt-2">
+                            <div className="flex items-start gap-2">
+                              <MapPin className="h-4 w-4 text-primary mt-0.5" />
+                              <div className="text-sm">
+                                <p className="text-primary font-medium">GPS Coordinates:</p>
+                                <p className="text-muted-foreground">
+                                  Latitude: {formData.coordinates.lat}
+                                </p>
+                                <p className="text-muted-foreground">
+                                  Longitude: {formData.coordinates.lng}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {formData.amenities.length > 0 && (
                         <div>

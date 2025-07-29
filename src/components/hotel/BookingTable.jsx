@@ -217,27 +217,33 @@ const BookingTable = ({ hotelId }) => {
 
   // --- Status Badge Styling ---
   const getStatusBadge = (status) => {
-    let variant = "default";
+    let colorClass = "bg-slate-100 text-slate-700 border border-slate-200";
+    
     switch (status) {
       case "CONFIRMED":
-        variant = "success";
+        colorClass = "bg-emerald-50 text-emerald-700 border border-emerald-200";
         break;
       case "PENDING":
-        variant = "warning";
+        colorClass = "bg-amber-50 text-amber-700 border border-amber-200";
         break;
       case "CHECKED_IN":
-        variant = "info";
+        colorClass = "bg-blue-50 text-blue-700 border border-blue-200";
         break;
       case "CHECKED_OUT":
-        variant = "secondary";
+        colorClass = "bg-slate-50 text-slate-600 border border-slate-200";
         break;
       case "CANCELLED":
-        variant = "destructive";
+        colorClass = "bg-red-50 text-red-700 border border-red-200";
         break;
       default:
-        variant = "default";
+        colorClass = "bg-slate-50 text-slate-600 border border-slate-200";
     }
-    return <Badge variant={variant}>{status.replace("_", " ")}</Badge>;
+    
+    return (
+      <Badge className={`${colorClass} px-3 py-1 rounded-full text-xs font-medium shadow-sm`}>
+        {status.replace("_", " ")}
+      </Badge>
+    );
   };
 
   if (!hotelId) {
