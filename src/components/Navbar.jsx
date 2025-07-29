@@ -143,10 +143,10 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {(role === "HOTEL_ADMIN" || role === "SUPER_ADMIN" || role === "GUEST") && (
+          {(role === "HOTEL_ADMIN" || role === "SUPER_ADMIN" || role === "GUEST" || role === "STAFF") && (
             <DropdownMenuItem asChild>
               <Link to={
-                role === "HOTEL_ADMIN" ? "/hotelAdmin" : 
+                role === "HOTEL_ADMIN" || role === "STAFF" ? "/hotelAdmin" : 
                 role === "SUPER_ADMIN" ? "/adminDashboard" : 
                 "/guestDashboard"
               }>
@@ -345,12 +345,12 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
 
         {/* Fixed uniform left padding */}
         <div className="space-y-0.5 px-6">
-          {(role === "HOTEL_ADMIN" || role === "SUPER_ADMIN" || role === "GUEST") && (
+          {(role === "HOTEL_ADMIN" || role === "SUPER_ADMIN" || role === "GUEST" || role === "STAFF") && (
             <>
               <SheetClose asChild>
                 <Link
                   to={
-                    role === "HOTEL_ADMIN" ? "/hotelAdmin" : 
+                    role === "HOTEL_ADMIN" || role === "STAFF" ? "/hotelAdmin" : 
                     role === "SUPER_ADMIN" ? "/adminDashboard" : 
                     "/guestDashboard"
                   }

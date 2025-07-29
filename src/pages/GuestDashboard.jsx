@@ -624,22 +624,21 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
 const EmptyState = ({ onRetry }) => (
   <div className="text-center py-12">
     <Hotel className="mx-auto h-12 w-12 text-muted-foreground" />
-    <h3 className="mt-4 text-lg font-medium text-foreground">No bookings found</h3>
+    <h3 className="mt-4 text-lg font-medium text-foreground">No bookings yet</h3>
     <p className="mt-2 text-sm text-muted-foreground">
-      You haven't made any hotel bookings yet. Start exploring and book your next stay!
+      Welcome to YakRooms! You haven't made any hotel bookings yet.<br />
+      Start exploring and book your first stay to see your reservations here.
     </p>
-    <div className="mt-4 space-x-2">
-      <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors">
-        Browse Hotels
-      </button>
-      <button 
-        onClick={onRetry}
-        className="border border-input bg-background hover:bg-accent px-4 py-2 rounded-md transition-colors"
-      >
-        <RefreshCw size={16} className="inline mr-1" />
-        Refresh
-      </button>
-    </div>
+    <Button className="mt-4" asChild>
+      <Link to="/hotel">Browse Hotels</Link>
+    </Button>
+    {onRetry && (
+      <div className="mt-4">
+        <Button variant="outline" size="sm" onClick={onRetry}>
+          Refresh
+        </Button>
+      </div>
+    )}
   </div>
 );
 
