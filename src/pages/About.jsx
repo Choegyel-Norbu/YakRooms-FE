@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 export default function () {
   return (
     // Main container with responsive padding and background
-    <div className="min-h-screen bg-gray-50 font-inter text-gray-800 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-800 flex items-center justify-center p-4 sm:p-6 lg:p-8">
       {/* Central content card */}
       <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10 max-w-4xl w-full">
         {/* Header Section: Introduction and Profile Image */}
@@ -22,10 +22,10 @@ export default function () {
               className="w-full h-full object-cover rounded-full"
             />
           </div>
-          <h1 className="text-2xl  font-extrabold text-gray-900 mb-3">
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">
             Hello, I'm Chogyal.
           </h1>
-          <p className="text-16 text-gray-600 max-w-2xl">
+          <p className="text-base text-gray-600 max-w-2xl">
             - A passionate self-taught developer transforming ideas into
             impactful digital experiences.
           </p>
@@ -33,10 +33,10 @@ export default function () {
 
         {/* About Me Section */}
         <section className="mb-10">
-          <h2 className="text-20 font-bold text-gray-800 mb-5 text-center">
+          <h2 className="text-xl font-semibold text-gray-800 mb-5 text-center">
             My Journey in Code
           </h2>
-          <p className="text-16 text-gray-700 leading-relaxed mb-4">
+          <p className="text-base text-gray-700 leading-relaxed mb-4">
             My path into the world of development is fueled by an insatiable
             curiosity and a drive to create. Without a traditional degree, I've
             embraced a self-paced learning model, diving deep into technologies
@@ -45,7 +45,7 @@ export default function () {
             problem-solving mindset, allowing me to adapt quickly to new
             challenges.
           </p>
-          <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
+          <p className="text-base text-gray-700 leading-relaxed">
             I believe in the power of continuous learning and the endless
             possibilities that technology offers. Every line of code is an
             opportunity to learn, innovate, and contribute to something
@@ -55,10 +55,10 @@ export default function () {
 
         {/* Continuous Learning Mindset Section */}
         <section className="mb-10 text-center">
-          <h2 className="text-20 font-bold text-gray-800 mb-5">
+          <h2 className="text-xl font-semibold text-gray-800 mb-5">
             A Commitment to Growth
           </h2>
-          <p className="text-16 text-gray-700 leading-relaxed">
+          <p className="text-base text-gray-700 leading-relaxed">
             The tech landscape is ever-evolving, and so am I. My approach to
             development is rooted in a continuous learning mindset, always
             seeking out new technologies, best practices, and innovative

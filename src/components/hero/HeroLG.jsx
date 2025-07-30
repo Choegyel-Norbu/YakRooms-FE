@@ -56,7 +56,7 @@ const HeroLG = () => {
 
   const handleStartExploring = () => {
     // Navigate to hotel listing page without filters
-    navigate("/hotel");
+    navigate("/hotels");
   };
 
   return (
@@ -71,7 +71,7 @@ const HeroLG = () => {
             </Badge>
           </div>
 
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl">
             Discover Authentic Stays in
             <span className="block text-primary">Bhutan with YakRooms</span>
           </h1>

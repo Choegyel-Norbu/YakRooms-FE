@@ -3,6 +3,23 @@ import useOutsideClick from "../hooks/useOutsideClick";
 import GoogleSignInButton from "./GoogleSignInButton";
 import { useAuth } from "../services/AuthProvider";
 
+// YakRooms Text Logo Component
+const YakRoomsText = ({ size = "default" }) => {
+  const textSizes = {
+    // Optimized mobile-first text sizes
+    small: "text-lg font-semibold",
+    default: "text-xl font-semibold",
+    large: "text-2xl font-semibold"
+  };
+
+  return (
+    <div className={`${textSizes[size]} font-heading tracking-tight`}>
+      <span className="text-blue-600">Yak</span>
+      <span className="text-yellow-500">Rooms</span>
+    </div>
+  );
+};
+
 const LoginModal = ({ onClose, flag }) => {
   const modalRef = useRef(null);
   const { login } = useAuth();
@@ -27,7 +44,9 @@ const LoginModal = ({ onClose, flag }) => {
 
         {/* Logo and Title */}
         <div className="text-center mb-6">
-          <h2 className="text-xl font-semibold text-black mb-4">YakRooms</h2>
+          <div className="mb-4">
+            <YakRoomsText size="default" />
+          </div>
           <p className="text-gray-500 mt-1 text-sm">
             We'll sign you in or create an account if you don't have one yet.
           </p>

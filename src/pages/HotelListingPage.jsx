@@ -2,13 +2,13 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   MapPin,
-  Loader2,
   Home,
   Building2,
   ChevronDown,
   Search,
   X,
 } from "lucide-react";
+import YakRoomsLoader from "../components/loader/YakRoomsLoader";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -228,9 +228,9 @@ const HotelListingPage = () => {
   // YakRooms Text Logo Component (copied from Navbar.jsx)
   const YakRoomsText = ({ size = "default" }) => {
     const textSizes = {
-      small: "text-lg font-bold",
-      default: "text-xl font-bold",
-      large: "text-2xl font-bold",
+          small: "text-lg font-semibold",
+    default: "text-xl font-semibold",
+    large: "text-2xl font-semibold",
     };
     return (
       <div className={`${textSizes[size]} font-sans tracking-tight`}>
@@ -326,7 +326,7 @@ const HotelListingPage = () => {
           <div className="mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl md:text-xl font-bold tracking-tight">
+                <h1 className="text-2xl md:text-xl font-semibold tracking-tight">
                   {isSearchActive
                     ? `Search Results for ${district}`
                     : "All Hotels in Bhutan"}
@@ -367,11 +367,13 @@ const HotelListingPage = () => {
 
           {/* Results */}
           {loading ? (
-            <div className="flex flex-col items-center justify-center h-96 space-y-4">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="text-muted-foreground">
-                Finding the best hotels for you...
-              </p>
+            <div className="flex flex-col items-center justify-center h-96">
+              <YakRoomsLoader 
+                size={112} 
+                showTagline={false} 
+                loadingText=""
+                className="mb-4"
+              />
             </div>
           ) : transformedHotels.length > 0 ? (
             <>

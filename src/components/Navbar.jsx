@@ -16,6 +16,7 @@ import {
   Phone,
   MessageCircle,
   AlertTriangle,
+  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -250,52 +251,34 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
       
       {/* Contact Card */}
       {/* Fixed uniform horizontal margin for mobile edge breathing room */}
-      <div className="mx-6 p-3 rounded-lg bg-gradient-to-br from-blue-50 to-yellow-50 border border-blue-100 dark:from-blue-950/20 dark:to-yellow-950/20 dark:border-blue-800/30">
-        {/* Reduced spacing between avatar and content */}
-        <div className="flex items-start space-x-2">
-          <div className="flex-shrink-0">
-            {/* Slightly smaller avatar for mobile */}
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-yellow-500 flex items-center justify-center">
-              <span className="text-white font-semibold text-xs">C</span>
-            </div>
-          </div>
-          <div className="flex-1 min-w-0">
-            {/* Mobile-optimized text size */}
-            <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Chogyal Norbu
-            </h4>
-            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
-              chogyalnorbu973@gmail.com
-            </p>
-            {/* Reduced gap and margin for mobile */}
-            <div className="flex items-center gap-1.5 mt-1.5">
-              <Button
-                size="sm"
-                variant="outline"
-                // Smaller button height for mobile
-                className="h-6 px-2 text-xs border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950/30"
-                onClick={() => {
-                  window.location.href = 'mailto:chogyalnorbu973@gmail.com';
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                <Mail className="h-3 w-3 mr-1" />
-                Email
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-6 px-2 text-xs border-yellow-200 text-yellow-600 hover:bg-yellow-50 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-950/30"
-                onClick={() => {
-                  onContactClick && onContactClick();
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                <MessageCircle className="h-3 w-3 mr-1" />
-                Info
-              </Button>
-            </div>
-          </div>
+      <div className="mx-6 p-3 rounded-lg">
+        {/* Reduced gap and margin for mobile */}
+        <div className="flex items-center gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            // Smaller button height for mobile
+            className="h-6 px-2 text-xs border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950/30"
+            onClick={() => {
+              window.location.href = 'mailto:chogyalnorbu973@gmail.com';
+              setIsMobileMenuOpen(false);
+            }}
+          >
+            <Mail className="h-3 w-3 mr-1" />
+            Email
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-6 px-2 text-xs border-yellow-200 text-yellow-600 hover:bg-yellow-50 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-950/30"
+            onClick={() => {
+              onContactClick && onContactClick();
+              setIsMobileMenuOpen(false);
+            }}
+          >
+            <Info className="h-3 w-3 mr-1" />
+            Info
+          </Button>
         </div>
       </div>
 
@@ -390,7 +373,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
         </div>
         
         {/* Fixed uniform horizontal margin for mobile breathing room */}
-        <div className="flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-muted/50 mx-6">
+        <div className="flex items-center space-x-3 px-3 py-2.5 mx-6">
           {/* Slightly smaller avatar for mobile */}
           <Avatar className="h-9 w-9 border-2 border-primary">
             <AvatarImage src={pictureURL} alt={userName} />
@@ -589,8 +572,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                     <div className="px-3 py-2 bg-muted/30 rounded-lg mx-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-xs font-medium">YakRooms v2.0</p>
-                          <p className="text-xs text-muted-foreground">Made in Bhutan 🇧🇹</p>
+                          <p className="text-xs font-medium">YakRooms v1.0 🇧🇹</p>
                         </div>
                         <Badge variant="secondary" className="text-xs">
                           Beta

@@ -48,7 +48,7 @@ const FeatureSection = () => {
             <Badge variant="secondary" className="px-4 py-1.5">
               🏔️ Authentic Bhutanese Experience
             </Badge>
-            <h2 className="text-4xl md:text-3xl font-bold tracking-tight text-foreground">
+            <h2 className="text-4xl md:text-3xl font-semibold tracking-tight text-foreground">
               Why Choose{" "}
               <span className="text-primary">
                 YakRooms
@@ -103,7 +103,7 @@ const FeatureSection = () => {
                         <feature.icon className="w-8 h-8" />
                       </div>
                       <div className="flex-1">
-                        <CardTitle className="text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors duration-300">
+                        <CardTitle className="text-2xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors duration-300">
                           {feature.title}
                         </CardTitle>
                         <CardDescription className="text-base text-sm text-muted-foreground leading-relaxed">
@@ -264,7 +264,7 @@ const FeatureSection = () => {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                  <Link to="/hotel">
+                  <Link to="/hotels">
                     <Button size="lg" className="bg-primary hover:bg-primary/90 group">
                       <span>Start Exploring</span>
                       <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
