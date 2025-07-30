@@ -20,8 +20,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   // Check if user has any of the allowed roles
-  const hasAllowedRole = allowedRoles.some(role => hasRole(role));
-  
+  const hasAllowedRole = allowedRoles.some((role) => hasRole(role));
+
   if (!hasAllowedRole) {
     return <Navigate to="/unauthorized" replace />;
   }
@@ -83,21 +83,16 @@ const AppRouting = () => {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute allowedRoles={["HOTEL_ADMIN", "SUPER_ADMIN", "STAFF", "GUEST"]}>
+          <ProtectedRoute
+            allowedRoles={["HOTEL_ADMIN", "SUPER_ADMIN", "STAFF", "GUEST"]}
+          >
             <DashboardRoute />
           </ProtectedRoute>
         }
       />
+      <Route path="/addListing" element={<AddListingPage />} />
 
       {/* Protected Routes */}
-      <Route
-        path="/addListing"
-        element={
-          <ProtectedRoute allowedRoles={["HOTEL_ADMIN", "SUPER_ADMIN"]}>
-            <AddListingPage />
-          </ProtectedRoute>
-        }
-      />
 
       <Route
         path="/hotelAdmin"

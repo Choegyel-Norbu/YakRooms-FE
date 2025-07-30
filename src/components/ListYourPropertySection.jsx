@@ -163,25 +163,36 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                         <ArrowUpRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />
                       </Button>
                     ) : isGuest ? (
-                      // User is authenticated as Guest - show guest dashboard
-                      <div className="text-center space-y-3">
-                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                          <div className="flex items-center justify-center space-x-2 text-blue-700">
-                            <Users className="h-5 w-5" />
-                            <span className="font-medium">Guest Account</span>
+                      // User is authenticated as Guest
+                      hasHotelRegistered ? (
+                        // Guest has hotel registered - show guest dashboard option
+                        <div className="text-center space-y-3">
+                          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center justify-center space-x-2 text-green-700">
+                              <Shield className="h-5 w-5" />
+                              <span className="font-medium">Property Already Listed</span>
+                            </div>
+                            <p className="text-sm text-green-600 mt-1">
+                              You already have a property listed with YakRooms. 
+                              Access your guest dashboard to manage your bookings.
+                            </p>
                           </div>
-                          <p className="text-sm text-blue-600 mt-1">
-                            You are currently logged in as a guest. 
-                            Switch to Hotel Admin role to list your property.
-                          </p>
+                          <Link to="/guestDashboard" className="block">
+                            <Button size="lg" className="w-full bg-white hover:bg-white cursor-pointer text-yellow-500">
+                              <span>Go to Guest Dashboard</span>
+                              <ChevronRight className="ml-2 h-5 w-5" />
+                            </Button>
+                          </Link>
                         </div>
-                        <Link to="/guestDashboard" className="block">
-                          <Button size="lg" className="w-full bg-white hover:bg-white cursor-pointer text-yellow-500">
-                            <span>Go to Guest Dashboard</span>
-                            <ChevronRight className="ml-2 h-5 w-5" />
+                      ) : (
+                        // Guest without hotel - show add property option
+                        <Link to="/addListing" className="block">
+                          <Button size="lg" className="w-full bg-yellow-500 hover:bg-yellow-600 text-primary cursor-pointer">
+                            <span>Add Your Property</span>
+                            <ArrowUpRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />
                           </Button>
                         </Link>
-                      </div>
+                      )
                     ) : hasHotelRegistered ? (
                       // User already has a hotel registered
                       <div className="text-center space-y-3">

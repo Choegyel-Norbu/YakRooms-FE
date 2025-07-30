@@ -479,8 +479,8 @@ const AddListingPage = () => {
 
       if (res.status === 200) {
         setHotelId(res.data.id);
-        setRoles('HOTEL_ADMIN');
-        toast.success("Hotel Verified", {
+        setRoles(['GUEST', 'HOTEL_ADMIN']);
+        toast.success("Hotel submitted for verification", {
           description: "The hotel has been successfully verified.",
         });
       }

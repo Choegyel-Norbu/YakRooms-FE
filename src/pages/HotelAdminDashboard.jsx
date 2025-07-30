@@ -903,13 +903,13 @@ const HotelAdminDashboard = () => {
               {showPasscodeVerification && <PasscodeVerification />}
 
               {/* Booking Table */}
-              <Card>
+            <Card>
                 <CardHeader className="">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <Calendar className="h-4 w-4 text-primary" />
                     Recent Bookings
-                  </CardTitle>
-                </CardHeader>
+                </CardTitle>
+              </CardHeader>
                 <CardContent className="p-0 md:px-6 md:pb-6">
                   <div className="overflow-x-auto" data-booking-table>
                     <BookingTable
@@ -918,9 +918,9 @@ const HotelAdminDashboard = () => {
                       onStatusChange={updateBookingStatus}
                       viewMode="compact"
                     />
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
             </div>
           )}
         </main>
