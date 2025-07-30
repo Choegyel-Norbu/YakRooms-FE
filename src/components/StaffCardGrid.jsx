@@ -198,29 +198,38 @@ const StaffCardGrid = ({ hotelId, className = "" }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Mock API call - replace with your actual API implementation
+  // API call to fetch staff data
   const fetchStaff = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       const res = await api.get(`/staff/hotel/${hotelId}`);
-      setStaff(res.data);
+      
+      // Handle different response structures
+      const staffData = res.data?.content || res.data || [];
+      setStaff(staffData);
      
-    
     } catch (err) {
-      setError('Failed to load staff members. Please try again.');
       console.error('Error fetching staff:', err);
+      if (err.response?.status === 404) {
+        setError('No staff members found for this hotel.');
+      } else {
+        setError('Failed to load staff members. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log('StaffCardGrid: hotelId =', hotelId);
     if (hotelId) {
+      console.log('StaffCardGrid: Fetching staff for hotelId =', hotelId);
       fetchStaff();
+    } else {
+      console.log('StaffCardGrid: No hotelId provided, not fetching staff');
+      setLoading(false);
     }
   }, [hotelId]);
 

@@ -22,14 +22,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, Users, Home } from "lucide-react";
+import { CheckCircle, Users, Home, AlertTriangle, UserCheck } from "lucide-react";
 import LoginModal from "../LoginModal.jsx"; // Assuming this is your LoginModal component
 import { toast } from "sonner"; // Using sonner for toasts
 
 export default function RoomBookingCard({ room, hotelId }) {
-  const { userId, isAuthenticated } = useAuth();
+  const { userId, isAuthenticated, getCurrentActiveRole, switchToRole, hasRole } = useAuth();
   const [openBookingDialog, setOpenBookingDialog] = useState(false);
   const [openLoginModal, setOpenLoginModal] = useState(false);
+  const [openRoleSwitchDialog, setOpenRoleSwitchDialog] = useState(false);
   const [bookingDetails, setBookingDetails] = useState({
     checkOutDate: "",
     guests: 1,
@@ -143,10 +144,41 @@ export default function RoomBookingCard({ room, hotelId }) {
 
   // --- Core logic change: Handle opening of modals ---
   const handleBookNowClick = () => {
-    if (isAuthenticated) {
-      setOpenBookingDialog(true);
-    } else {
+    if (!isAuthenticated) {
       setOpenLoginModal(true);
+      return;
+    }
+
+    const currentRole = getCurrentActiveRole();
+    
+    // Check if user is Admin (SUPER_ADMIN) - prevent booking
+    if (currentRole === "SUPER_ADMIN") {
+      setOpenRoleSwitchDialog(true);
+      return;
+    }
+
+    // Check if user has Guest role available
+    if (hasRole("GUEST")) {
+      setOpenRoleSwitchDialog(true);
+      return;
+    }
+
+    // Allow booking for other roles (HOTEL_ADMIN, STAFF, GUEST)
+    setOpenBookingDialog(true);
+  };
+
+  // Handle role switching to Guest
+  const handleSwitchToGuest = () => {
+    if (hasRole("GUEST")) {
+      switchToRole("GUEST");
+      setOpenRoleSwitchDialog(false);
+      toast.success("Switched to Guest role", {
+        description: "You can now book rooms.",
+      });
+      // Open booking dialog after role switch
+      setTimeout(() => {
+        setOpenBookingDialog(true);
+      }, 500);
     }
   };
 
@@ -302,6 +334,39 @@ export default function RoomBookingCard({ room, hotelId }) {
           onClose={() => setOpenLoginModal(false)} // Allows LoginModal to close itself and update parent state
         />
       )}
+
+      {/* Role Switch Dialog */}
+      <Dialog open={openRoleSwitchDialog} onOpenChange={setOpenRoleSwitchDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Switch to Guest Role
+            </DialogTitle>
+            <DialogDescription>
+              {getCurrentActiveRole() === "SUPER_ADMIN" 
+                ? "Admin users cannot book rooms. Please switch to Guest role to enable booking functionality."
+                : "To book rooms, you need to be in Guest role. Would you like to switch to Guest role now?"
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setOpenRoleSwitchDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSwitchToGuest}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              <UserCheck className="mr-2 h-4 w-4" />
+              Switch to Guest
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -107,9 +107,9 @@ const HeroLG = () => {
               <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search district (e.g., Thimphu, Paro, Punakha)"
+                placeholder="Search district (e.g., Mongar, Samdrup Jongkhar, Trashigang)"
                 className={cn(
-                  "h-12 pl-10 text-base",
+                  "h-10 sm:h-12 pl-10 text-sm sm:text-base",
                   searchError && "border-red-500 focus:border-red-500"
                 )}
                 value={searchDistrict}
@@ -126,7 +126,7 @@ const HeroLG = () => {
 
             <Button
               size="lg"
-              className="h-12 text-base bg-yellow-500 hover:bg-yellow-600 text-slate-900 cursor-pointer"
+              className="h-10 sm:h-12 text-sm sm:text-base bg-yellow-500 hover:bg-yellow-600 text-slate-900 cursor-pointer"
               onClick={validateAndSearch}
             >
               <Search className="mr-2 h-4 w-4" />
@@ -139,7 +139,7 @@ const HeroLG = () => {
 
         {/* Call to Action */}
         <div className="space-y-4">
-          <p className="text-base text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Ready to explore Bhutan's cultural heart?
           </p>
           <Button 

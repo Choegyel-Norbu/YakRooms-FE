@@ -32,7 +32,7 @@ const Footer = React.forwardRef((props, ref) => {
                 Travel Bhutan Smarter – Discover, Book, and Dine with YakRooms.
               </p>
             </div>
-            <div className="flex space-x-4">
+            <div className="hidden md:flex space-x-4">
               <Button
                 variant="ghost"
                 size="icon"
@@ -53,7 +53,7 @@ const Footer = React.forwardRef((props, ref) => {
           </div>
 
           {/* Quick Links */}
-          <nav className="space-y-4">
+          <nav className="hidden md:block space-y-4">
             <h3 className="text-sm font-semibold text-foreground">
               Quick Links
             </h3>

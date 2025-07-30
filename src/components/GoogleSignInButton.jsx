@@ -28,9 +28,9 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag }) => {
           token: res.data.token,
           email: res.data.user.email,
           userid: res.data.user.id,
-          role: res.data.user.role,
+          roles: res.data.user.roles || [res.data.user.role], // Handle both roles array and single role
           userName: res.data.user.name,
-          pictureURL: res.data.user.pictureURL,
+          pictureURL: res.data.user.profilePicUrl,
           flag: res.data.user.registerFlag,
           detailSet: res.data.user.detailSet,
           hotelId: res.data.user.hotelId,

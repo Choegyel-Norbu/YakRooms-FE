@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Phone,
   MessageCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/services/AuthProvider";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 // YakRooms Text Logo Component
 const YakRoomsText = ({ size = "default" }) => {
@@ -57,11 +67,12 @@ const YakRoomsText = ({ size = "default" }) => {
 };
 
 const Navbar = ({ onLoginClick, onContactClick }) => {
-  const { isAuthenticated, logout, userName, email, role } = useAuth();
+  const { isAuthenticated, logout, userName, email, roles, pictureURL, hasRole, getPrimaryRole, getCurrentActiveRole, switchToRole } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [theme, setTheme] = useState("light");
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
+  const [isLogoutConfirmationOpen, setIsLogoutConfirmationOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -91,10 +102,21 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
 
   const navLinks = [
     { name: "Home", path: "/", icon: Home, description: "Back to homepage" },
-    { name: "Hotels", path: "/hotel", icon: Hotel, description: "Find accommodations" },
+    { name: "Hotels", path: "/hotels", icon: Hotel, description: "Find accommodations" },
     { name: "Restaurants", path: "/restaurants", icon: UtensilsCrossed, description: "Discover local dining" },
     { name: "Contact", path: "/contact", icon: Mail, description: "Get in touch", isContact: true },
   ];
+
+  // Helper function to get role display info
+  const getRoleDisplayInfo = (role) => {
+    const roleInfo = {
+      'SUPER_ADMIN': { label: 'Admin', color: 'bg-red-100 text-red-800 border-red-200' },
+      'HOTEL_ADMIN': { label: 'Hotel Admin', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+      'STAFF': { label: 'Staff', color: 'bg-green-100 text-green-800 border-green-200' },
+      'GUEST': { label: 'Guest', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+    };
+    return roleInfo[role] || { label: role, color: 'bg-gray-100 text-gray-800 border-gray-200' };
+  };
 
   const UserNav = () => {
     if (!isAuthenticated) {
@@ -113,12 +135,16 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
       );
     }
 
+    const currentActiveRole = getCurrentActiveRole();
+    const roleDisplayInfo = getRoleDisplayInfo(currentActiveRole);
+    const availableRoles = roles.filter(role => role !== currentActiveRole);
+
     return (
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
             <Avatar className="h-10 w-10 border-2 border-yellow-500">
-              <AvatarImage src={""} alt={userName} />
+              <AvatarImage src={pictureURL} alt={userName} />
               <AvatarFallback className="bg-slate-700 text-yellow-500">
                 {userName?.charAt(0).toUpperCase()}
               </AvatarFallback>
@@ -126,7 +152,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          className="w-56"
+          className="w-64"
           align="end"
           forceMount
           side="bottom"
@@ -140,23 +166,58 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
               <p className="text-xs leading-none text-muted-foreground">
                 {email}
               </p>
+              {/* Current Role Badge */}
+              <div className="mt-2">
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${roleDisplayInfo.color}`}>
+                  {roleDisplayInfo.label}
+                </span>
+              </div>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {(role === "HOTEL_ADMIN" || role === "SUPER_ADMIN" || role === "GUEST" || role === "STAFF") && (
+          
+          {/* Dashboard Navigation */}
+          {(hasRole("HOTEL_ADMIN") || hasRole("SUPER_ADMIN") || hasRole("GUEST") || hasRole("STAFF")) && (
             <DropdownMenuItem asChild>
-              <Link to={
-                role === "HOTEL_ADMIN" || role === "STAFF" ? "/hotelAdmin" : 
-                role === "SUPER_ADMIN" ? "/adminDashboard" : 
-                "/guestDashboard"
-              }>
+              <Link to="/dashboard">
                 <LayoutDashboard className="mr-2 h-4 w-4" />
                 <span>Dashboard</span>
               </Link>
             </DropdownMenuItem>
           )}
+
+          {/* Role Switching Section */}
+          {availableRoles.length > 0 && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+                Switch Role
+              </DropdownMenuLabel>
+              {availableRoles.map((role) => {
+                const roleInfo = getRoleDisplayInfo(role);
+                return (
+                  <DropdownMenuItem
+                    key={role}
+                    onClick={() => switchToRole(role)}
+                    className="cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-sm">{roleInfo.label}</span>
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium border ${roleInfo.color}`}>
+                        {roleInfo.label}
+                      </span>
+                    </div>
+                  </DropdownMenuItem>
+                );
+              })}
+            </>
+          )}
+
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={logout}>
+          <DropdownMenuItem 
+            onClick={() => setIsLogoutConfirmationOpen(true)}
+            className="text-destructive focus:text-destructive"
+          >
             <LogOut className="mr-2 h-4 w-4" />
             <span>Log out</span>
           </DropdownMenuItem>
@@ -266,13 +327,10 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
             <Button
               variant="ghost"
               className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={() => {
-                logout();
-                setIsMobileMenuOpen(false);
-              }}
+              onClick={() => setIsLogoutConfirmationOpen(true)}
             >
               <LogOut className="mr-3 h-4 w-4" />
-              Log out
+              Log Out
             </Button>
           </div>
         </>
@@ -283,8 +341,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
   const MobileUserSection = () => {
     if (!isAuthenticated) {
       return (
-        // Reduced vertical spacing
-        <div className="space-y-2">
+        <div className="space-y-3">
           {/* Fixed uniform left padding */}
           <div className="px-6 pb-1">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -318,6 +375,10 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
       );
     }
 
+    const currentActiveRole = getCurrentActiveRole();
+    const roleDisplayInfo = getRoleDisplayInfo(currentActiveRole);
+    const availableRoles = roles.filter(role => role !== currentActiveRole);
+
     return (
       // Reduced vertical spacing
       <div className="space-y-3">
@@ -332,7 +393,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
         <div className="flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-muted/50 mx-6">
           {/* Slightly smaller avatar for mobile */}
           <Avatar className="h-9 w-9 border-2 border-primary">
-            <AvatarImage src={""} alt={userName} />
+            <AvatarImage src={pictureURL} alt={userName} />
             <AvatarFallback className="bg-primary text-primary-foreground">
               {userName?.charAt(0).toUpperCase()}
             </AvatarFallback>
@@ -340,20 +401,23 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{userName}</p>
             <p className="text-xs text-muted-foreground truncate">{email}</p>
+            {/* Current Role Badge */}
+            <div className="mt-1">
+              <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium border ${roleDisplayInfo.color}`}>
+                {roleDisplayInfo.label}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Fixed uniform left padding */}
         <div className="space-y-0.5 px-6">
-          {(role === "HOTEL_ADMIN" || role === "SUPER_ADMIN" || role === "GUEST" || role === "STAFF") && (
+          {/* Dashboard Navigation */}
+          {(hasRole("HOTEL_ADMIN") || hasRole("SUPER_ADMIN") || hasRole("GUEST") || hasRole("STAFF")) && (
             <>
               <SheetClose asChild>
                 <Link
-                  to={
-                    role === "HOTEL_ADMIN" || role === "STAFF" ? "/hotelAdmin" : 
-                    role === "SUPER_ADMIN" ? "/adminDashboard" : 
-                    "/guestDashboard"
-                  }
+                  to="/dashboard"
                   // Reduced vertical padding for mobile
                   className="flex items-center justify-between px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group"
                 >
@@ -365,6 +429,38 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                 </Link>
               </SheetClose>
               {/* Reduced margin */}
+              <Separator className="my-1.5" />
+            </>
+          )}
+
+          {/* Role Switching Section */}
+          {availableRoles.length > 0 && (
+            <>
+              <div className="px-3 py-1.5">
+                <p className="text-xs font-medium text-muted-foreground">
+                  Switch Role
+                </p>
+              </div>
+              {availableRoles.map((role) => {
+                const roleInfo = getRoleDisplayInfo(role);
+                return (
+                  <SheetClose asChild key={role}>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-between px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
+                      onClick={() => {
+                        switchToRole(role);
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      <span>{roleInfo.label}</span>
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium border ${roleInfo.color}`}>
+                        {roleInfo.label}
+                      </span>
+                    </Button>
+                  </SheetClose>
+                );
+              })}
               <Separator className="my-1.5" />
             </>
           )}
@@ -508,6 +604,39 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           </div>
         </div>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={isLogoutConfirmationOpen} onOpenChange={setIsLogoutConfirmationOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Confirm Logout
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to log out? You will need to sign in again to access your account.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsLogoutConfirmationOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => {
+                logout();
+                setIsLogoutConfirmationOpen(false);
+                setIsMobileMenuOpen(false);
+              }}
+            >
+              Log Out
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 };

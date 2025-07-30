@@ -12,9 +12,6 @@ import {
   ArrowRight, 
   ArrowLeft, 
   Check,
-  Home,
-  Coffee,
-  Users,
   Hotel,
   Utensils,
   FileText,
@@ -31,7 +28,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -45,7 +41,7 @@ import { useAuth } from "../services/AuthProvider.jsx";
 
 const AddListingPage = () => {
   const [step, setStep] = useState(1);
-  const { email, userId, setHotelId, setRole } = useAuth();
+  const { email, userId, setHotelId, setRoles } = useAuth();
   const [listingType, setListingType] = useState("");
   const [formData, setFormData] = useState({
     name: "",
@@ -483,7 +479,7 @@ const AddListingPage = () => {
 
       if (res.status === 200) {
         setHotelId(res.data.id);
-        setRole('HOTEL_ADMIN');
+        setRoles('HOTEL_ADMIN');
         toast.success("Hotel Verified", {
           description: "The hotel has been successfully verified.",
         });

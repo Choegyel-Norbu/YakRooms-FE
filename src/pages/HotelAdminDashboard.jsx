@@ -387,7 +387,7 @@ const HotelAdminDashboard = () => {
     { id: "staff", label: "Staff Management", icon: Users },
     { id: "inventory", label: "Inventory Tracker", icon: Package },
     { id: "analytics", label: "Analytics", icon: PieChart },
-    { id: "settings", label: "Settings", icon: Settings },
+    { id: "booking", label: "Booking", icon: Calendar },
   ];
 
   const getPageTitle = () => {
@@ -398,7 +398,7 @@ const HotelAdminDashboard = () => {
       staff: "Staff Management",
       inventory: "Inventory Tracker",
       analytics: "Analytics & Reports",
-      settings: "Settings",
+      booking: "Booking Management",
     };
     return titles[activeTab] || "Dashboard";
   };
@@ -411,7 +411,7 @@ const HotelAdminDashboard = () => {
       inventory: "Track and monitor your hotel inventory",
       staff: "Manage your hotel staff and their roles",
       analytics: "Insights and reports about your business performance",
-      settings: "Configure your account and system preferences",
+      booking: "Manage and view your hotel bookings",
     };
     return descriptions[activeTab] || "Manage your hotel operations";
   };
@@ -484,14 +484,14 @@ const HotelAdminDashboard = () => {
           <div className="px-4 py-3 lg:px-6 lg:py-4 flex justify-between items-center">
             <div className="space-y-0.5 flex-1 min-w-0">
               <h2 className="hidden md:block text-xl sm:text-xl lg:text-2xl font-semibold text-foreground truncate">
-                {getPageTitle()}
-              </h2>
+                  {getPageTitle()}
+                </h2>
               {activeTab !== "dashboard" && (
                 <p className="hidden md:block text-sm sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
                   {getPageDescription()}
                 </p>
               )}
-            </div>
+              </div>
 
             {/* Right side actions */}
             <div className="flex items-center space-x-3 flex-shrink-0">
@@ -694,39 +694,39 @@ const HotelAdminDashboard = () => {
               />
 
               {/* Desktop User Menu - Hidden on mobile */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 hidden md:flex"
                   >
                     <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-primary/20">
                       <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
-                        {userName?.charAt(0).toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
+                          {userName?.charAt(0).toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-48 sm:w-56" align="end">
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none truncate">
                         {userName}
                       </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        Hotel Administrator
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/" className="w-full">
-                      <Home className="mr-2 h-4 w-4" />
-                      <span>Return to Website</span>
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          Hotel Administrator
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/" className="w-full">
+                        <Home className="mr-2 h-4 w-4" />
+                        <span>Return to Website</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
             </div>
           </div>
         </header>
@@ -757,13 +757,13 @@ const HotelAdminDashboard = () => {
                             />
                           </svg>
                         </div>
-                        <div>
+                    <div>
                           <h3 className="text-lg sm:text-lg font-semibold text-foreground mb-1 truncate">
-                            Welcome back, {userName}!
-                          </h3>
+                        Welcome back, {userName}!
+                      </h3>
                           <p className="text-sm text-muted-foreground">
-                            Here's what's happening with your hotel today.
-                          </p>
+                        Here's what's happening with your hotel today.
+                      </p>
                         </div>
                       </div>
                     </div>
@@ -788,41 +788,6 @@ const HotelAdminDashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Toggle for PasscodeVerification */}
-              <div className="mb-2">
-                <Button
-                  variant={showPasscodeVerification ? "secondary" : "outline"}
-                  className="w-full"
-                  onClick={() => setShowPasscodeVerification((prev) => !prev)}
-                >
-                  {showPasscodeVerification
-                    ? "Hide Passcode Verification"
-                    : "Show Passcode Verification"}
-                </Button>
-              </div>
-
-              {showPasscodeVerification && <PasscodeVerification />}
-
-              {/* Recent Bookings */}
-              <Card>
-                <CardHeader className="">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Calendar className="h-4 w-4 text-primary" />
-                    Recent Bookings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 md:px-6 md:pb-6">
-                  <div className="overflow-x-auto" data-booking-table>
-                    <BookingTable
-                      hotelId={hotelId}
-                      bookings={bookings}
-                      onStatusChange={updateBookingStatus}
-                      viewMode="compact"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Toggle for StaffCardGrid (visible on all screens) */}
               <div className="mb-2">
                 <Button
@@ -837,7 +802,12 @@ const HotelAdminDashboard = () => {
               </div>
 
               {showStaffGrid && <StaffCardGrid hotelId={hotelId} />}
-              <RoomStatusTable hotelId={hotelId} />
+
+              {/* Charts Section */}
+              <div className="space-y-8">
+                <BookingsTrendChart />
+                <MonthlyPerformanceChart />
+              </div>
             </div>
           )}
 
@@ -915,32 +885,43 @@ const HotelAdminDashboard = () => {
             </Card>
           )}
 
-          {activeTab === "settings" && (
-            <Card>
-              <CardHeader className="p-4 md:p-6">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Settings className="h-4 w-4 text-primary" />
-                  Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 md:px-6 md:pb-6">
-                <div className="text-center py-8 lg:py-12">
-                  <div className="mx-auto w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
-                    <Settings className="h-6 w-6 text-muted-foreground" />
+          {activeTab === "booking" && (
+            <div className="space-y-4">
+              {/* Passcode Verification Toggle */}
+              <div className="mb-2">
+                <Button
+                  variant={showPasscodeVerification ? "secondary" : "outline"}
+                  className="w-full"
+                  onClick={() => setShowPasscodeVerification((prev) => !prev)}
+                >
+                  {showPasscodeVerification
+                    ? "Hide Passcode Verification"
+                    : "Show Passcode Verification"}
+                </Button>
+              </div>
+
+              {showPasscodeVerification && <PasscodeVerification />}
+
+              {/* Booking Table */}
+              <Card>
+                <CardHeader className="">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    Recent Bookings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 md:px-6 md:pb-6">
+                  <div className="overflow-x-auto" data-booking-table>
+                    <BookingTable
+                      hotelId={hotelId}
+                      bookings={bookings}
+                      onStatusChange={updateBookingStatus}
+                      viewMode="compact"
+                    />
                   </div>
-                  <h3 className="text-lg font-medium text-foreground mb-2">
-                    System Settings
-                  </h3>
-                  <p className="text-sm text-muted-foreground max-w-sm mx-auto px-4">
-                    Configure your hotel management preferences and system
-                    settings.
-                  </p>
-                  <Button variant="outline" className="mt-4 text-sm">
-                    Open Settings
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           )}
         </main>
       </div>

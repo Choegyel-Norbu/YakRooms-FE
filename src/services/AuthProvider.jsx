@@ -6,7 +6,8 @@ const AUTH_STORAGE_KEYS = {
   TOKEN: 'token',
   USER_ID: 'userId',
   EMAIL: 'email',
-  ROLE: 'role',
+  ROLES: 'roles', 
+  ACTIVE_ROLE: 'activeRole', // New key for active role
   USER_NAME: 'userName',
   PICTURE_URL: 'pictureURL',
   REGISTER_FLAG: 'registerFlag',
@@ -50,6 +51,28 @@ const setStorageItem = (key, value) => {
   }
 };
 
+// === Utility to parse roles from storage ===
+const parseRolesFromStorage = (rolesString) => {
+  try {
+    if (!rolesString) return [];
+    return JSON.parse(rolesString);
+  } catch (error) {
+    console.error("Failed to parse roles from storage", error);
+    return [];
+  }
+};
+
+// === Utility to stringify roles for storage ===
+const stringifyRolesForStorage = (roles) => {
+  try {
+    if (!Array.isArray(roles)) return '[]';
+    return JSON.stringify(roles);
+  } catch (error) {
+    console.error("Failed to stringify roles for storage", error);
+    return '[]';
+  }
+};
+
 // === Context Setup ===
 const AuthContext = createContext(null);
 
@@ -57,7 +80,8 @@ const defaultAuthState = {
   isAuthenticated: false,
   token: null,
   email: "",
-  role: "",
+  roles: [], // Changed from role to roles array
+  activeRole: null, // New active role state
   clientDetailSet: false,
   userName: "",
   registerFlag: false,
@@ -84,7 +108,8 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: true,
         token,
         email: getStorageItem(AUTH_STORAGE_KEYS.EMAIL),
-        role: getStorageItem(AUTH_STORAGE_KEYS.ROLE),
+        roles: parseRolesFromStorage(getStorageItem(AUTH_STORAGE_KEYS.ROLES)), // Parse roles array
+        activeRole: getStorageItem(AUTH_STORAGE_KEYS.ACTIVE_ROLE), // Set active role
         clientDetailSet: getStorageItem(AUTH_STORAGE_KEYS.CLIENT_DETAIL_SET) === "true",
         userName: getStorageItem(AUTH_STORAGE_KEYS.USER_NAME),
         registerFlag: getStorageItem(AUTH_STORAGE_KEYS.REGISTER_FLAG) === "true",
@@ -139,7 +164,8 @@ export const AuthProvider = ({ children }) => {
             isAuthenticated: true,
             token,
             email: getStorageItem(AUTH_STORAGE_KEYS.EMAIL),
-            role: getStorageItem(AUTH_STORAGE_KEYS.ROLE),
+            roles: parseRolesFromStorage(getStorageItem(AUTH_STORAGE_KEYS.ROLES)), // Parse roles array
+            activeRole: getStorageItem(AUTH_STORAGE_KEYS.ACTIVE_ROLE), // Sync active role
             userName: getStorageItem(AUTH_STORAGE_KEYS.USER_NAME),
             userId: getStorageItem(AUTH_STORAGE_KEYS.USER_ID),
             pictureURL: getStorageItem(AUTH_STORAGE_KEYS.PICTURE_URL),
@@ -170,11 +196,26 @@ export const AuthProvider = ({ children }) => {
         throw new Error("Token is already expired");
       }
 
+      // Handle roles - convert to array if it's a single role or already an array
+      const roles = Array.isArray(authData.roles) ? authData.roles : 
+                   Array.isArray(authData.role) ? authData.role :
+                   authData.roles ? [authData.roles] :
+                   authData.role ? [authData.role] : [];
+
+      // Determine initial active role
+      const initialActiveRole = authData.activeRole || 
+                               (roles.includes('HOTEL_ADMIN') ? 'HOTEL_ADMIN' :
+                                roles.includes('SUPER_ADMIN') ? 'SUPER_ADMIN' :
+                                roles.includes('STAFF') ? 'STAFF' :
+                                roles.includes('GUEST') ? 'GUEST' :
+                                roles[0] || null);
+
       // Store auth data
       setStorageItem(AUTH_STORAGE_KEYS.TOKEN, authData.token);
       setStorageItem(AUTH_STORAGE_KEYS.USER_ID, authData.userid);
       setStorageItem(AUTH_STORAGE_KEYS.EMAIL, authData.email);
-      setStorageItem(AUTH_STORAGE_KEYS.ROLE, authData.role || "");
+      setStorageItem(AUTH_STORAGE_KEYS.ROLES, stringifyRolesForStorage(roles)); // Store roles array
+      setStorageItem(AUTH_STORAGE_KEYS.ACTIVE_ROLE, initialActiveRole); // Store initial active role
       setStorageItem(AUTH_STORAGE_KEYS.USER_NAME, authData.userName || "");
       setStorageItem(AUTH_STORAGE_KEYS.PICTURE_URL, authData.pictureURL || "");
       setStorageItem(AUTH_STORAGE_KEYS.REGISTER_FLAG, Boolean(authData.flag).toString());
@@ -193,7 +234,8 @@ export const AuthProvider = ({ children }) => {
         email: authData.email,
         userId: authData.userid,
         userName: authData.userName || "",
-        role: authData.role || "",
+        roles: roles, // Store roles array
+        activeRole: initialActiveRole, // Store initial active role
         pictureURL: authData.pictureURL || "",
         registerFlag: Boolean(authData.flag),
         clientDetailSet: Boolean(authData.detailSet),
@@ -230,18 +272,110 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // === SET ROLE (memoized) ===
-  const setRole = useCallback((role) => {
+  // === SET ROLES (memoized) ===
+  const setRoles = useCallback((roles) => {
     try {
-      setStorageItem(AUTH_STORAGE_KEYS.ROLE, role);
+      const rolesArray = Array.isArray(roles) ? roles : [roles];
+      setStorageItem(AUTH_STORAGE_KEYS.ROLES, stringifyRolesForStorage(rolesArray));
       setAuthState(prev => ({
         ...prev,
-        role,
+        roles: rolesArray,
       }));
     } catch (error) {
-      console.error("Failed to set role", error);
+      console.error("Failed to set roles", error);
     }
   }, []);
+
+  // === ADD ROLE (memoized) ===
+  const addRole = useCallback((role) => {
+    try {
+      setAuthState(prev => {
+        const newRoles = [...prev.roles];
+        if (!newRoles.includes(role)) {
+          newRoles.push(role);
+          setStorageItem(AUTH_STORAGE_KEYS.ROLES, stringifyRolesForStorage(newRoles));
+        }
+        return { ...prev, roles: newRoles };
+      });
+    } catch (error) {
+      console.error("Failed to add role", error);
+    }
+  }, []);
+
+  // === REMOVE ROLE (memoized) ===
+  const removeRole = useCallback((role) => {
+    try {
+      setAuthState(prev => {
+        const newRoles = prev.roles.filter(r => r !== role);
+        setStorageItem(AUTH_STORAGE_KEYS.ROLES, stringifyRolesForStorage(newRoles));
+        return { ...prev, roles: newRoles };
+      });
+    } catch (error) {
+      console.error("Failed to remove role", error);
+    }
+  }, []);
+
+  // === CHECK IF USER HAS ROLE (memoized) ===
+  const hasRole = useCallback((role) => {
+    return authState.roles.includes(role);
+  }, [authState.roles]);
+
+  // === GET PRIMARY ROLE (memoized) ===
+  const getPrimaryRole = useCallback(() => {
+    // Priority order: SUPER_ADMIN > HOTEL_ADMIN > STAFF > GUEST
+    const priorityOrder = ['SUPER_ADMIN', 'HOTEL_ADMIN', 'STAFF', 'GUEST'];
+    for (const role of priorityOrder) {
+      if (authState.roles.includes(role)) {
+        return role;
+      }
+    }
+    return authState.roles[0] || null;
+  }, [authState.roles]);
+
+  // === SET ACTIVE ROLE (memoized) ===
+  const setActiveRole = useCallback((role) => {
+    try {
+      // Validate that the role exists in user's roles
+      if (!authState.roles.includes(role)) {
+        console.error(`Role ${role} not found in user's roles:`, authState.roles);
+        return;
+      }
+      
+      setStorageItem(AUTH_STORAGE_KEYS.ACTIVE_ROLE, role);
+      setAuthState(prev => ({
+        ...prev,
+        activeRole: role,
+      }));
+    } catch (error) {
+      console.error("Failed to set active role", error);
+    }
+  }, [authState.roles]);
+
+  // === GET CURRENT ACTIVE ROLE (memoized) ===
+  const getCurrentActiveRole = useCallback(() => {
+    // If no active role is set, use the primary role
+    if (!authState.activeRole) {
+      const primaryRole = getPrimaryRole();
+      if (primaryRole) {
+        setActiveRole(primaryRole);
+        return primaryRole;
+      }
+      return null;
+    }
+    return authState.activeRole;
+  }, [authState.activeRole, getPrimaryRole, setActiveRole]);
+
+  // === SWITCH TO ROLE (memoized) ===
+  const switchToRole = useCallback((role) => {
+    if (authState.roles.includes(role)) {
+      setActiveRole(role);
+      return true;
+    }
+    return false;
+  }, [authState.roles, setActiveRole]);
+
+  // === BACKWARD COMPATIBILITY: Get primary role as 'role' ===
+  const role = getCurrentActiveRole();
 
   // === UPDATE USER PROFILE (new method) ===
   const updateUserProfile = useCallback((updates) => {
@@ -270,14 +404,22 @@ export const AuthProvider = ({ children }) => {
   // === Memoize context value to prevent unnecessary re-renders ===
   const contextValue = useMemo(() => ({
     ...authState,
+    role, // Backward compatibility
     login,
     logout,
     setHotelId,
-    setRole,
+    setRoles, // Changed from setRole
+    addRole,
+    removeRole,
+    hasRole,
+    getPrimaryRole,
+    setActiveRole,
+    getCurrentActiveRole,
+    switchToRole,
     updateUserProfile,
     lastLogin,
     setLastLogin,
-  }), [authState, login, logout, setHotelId, setRole, updateUserProfile, lastLogin, setLastLogin]);
+  }), [authState, role, login, logout, setHotelId, setRoles, addRole, removeRole, hasRole, getPrimaryRole, setActiveRole, getCurrentActiveRole, switchToRole, updateUserProfile, lastLogin, setLastLogin]);
 
   return (
     <AuthContext.Provider value={contextValue}>
