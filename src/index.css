@@ -185,9 +185,7 @@
   .font-primary {
     font-family: var(--font-family-primary);
   }
-  .font-heading {
-    font-family: var(--font-family-heading);
-  }
+
   .font-mono {
     font-family: var(--font-family-mono);
   }
@@ -518,7 +516,7 @@
   
   /* Ensure consistent typography */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading;
+    @apply font-sans;
   }
   
   /* Standardize font weights */

@@ -13,7 +13,7 @@ const YakRoomsText = ({ size = "default" }) => {
   };
 
   return (
-    <div className={`${textSizes[size]} font-heading tracking-tight`}>
+    <div className={`${textSizes[size]} font-sans tracking-tight`}>
       <span className="text-blue-600">Yak</span>
       <span className="text-yellow-500">Rooms</span>
     </div>
