@@ -251,51 +251,33 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
       {/* Contact Card */}
       {/* Fixed uniform horizontal margin for mobile edge breathing room */}
       <div className="mx-6 p-3 rounded-lg bg-gradient-to-br from-blue-50 to-yellow-50 border border-blue-100 dark:from-blue-950/20 dark:to-yellow-950/20 dark:border-blue-800/30">
-        {/* Reduced spacing between avatar and content */}
-        <div className="flex items-start space-x-2">
-          <div className="flex-shrink-0">
-            {/* Slightly smaller avatar for mobile */}
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-yellow-500 flex items-center justify-center">
-              <span className="text-white font-semibold text-xs">C</span>
-            </div>
-          </div>
-          <div className="flex-1 min-w-0">
-            {/* Mobile-optimized text size */}
-            <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Chogyal Norbu
-            </h4>
-            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
-              chogyalnorbu973@gmail.com
-            </p>
-            {/* Reduced gap and margin for mobile */}
-            <div className="flex items-center gap-1.5 mt-1.5">
-              <Button
-                size="sm"
-                variant="outline"
-                // Smaller button height for mobile
-                className="h-6 px-2 text-xs border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950/30"
-                onClick={() => {
-                  window.location.href = 'mailto:chogyalnorbu973@gmail.com';
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                <Mail className="h-3 w-3 mr-1" />
-                Email
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-6 px-2 text-xs border-yellow-200 text-yellow-600 hover:bg-yellow-50 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-950/30"
-                onClick={() => {
-                  onContactClick && onContactClick();
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                <MessageCircle className="h-3 w-3 mr-1" />
-                Info
-              </Button>
-            </div>
-          </div>
+        {/* Reduced gap and margin for mobile */}
+        <div className="flex items-center gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            // Smaller button height for mobile
+            className="h-6 px-2 text-xs border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950/30"
+            onClick={() => {
+              window.location.href = 'mailto:choegyell@gmail.com';
+              setIsMobileMenuOpen(false);
+            }}
+          >
+            <Mail className="h-3 w-3 mr-1" />
+            Email
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-6 px-2 text-xs border-yellow-200 text-yellow-600 hover:bg-yellow-50 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-950/30"
+            onClick={() => {
+              onContactClick && onContactClick();
+              setIsMobileMenuOpen(false);
+            }}
+          >
+            <MessageCircle className="h-3 w-3 mr-1" />
+            Info
+          </Button>
         </div>
       </div>
 
