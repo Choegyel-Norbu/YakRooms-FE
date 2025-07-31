@@ -4,14 +4,19 @@ import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 
 import { AuthProvider } from "./services/AuthProvider";
+import PWARegistration from "./components/PWARegistration";
+import OfflineWrapper from "./components/OfflineWrapper";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRouting />
-        <ToastContainer />
-        <Toaster />
+        <OfflineWrapper>
+          <AppRouting />
+          <PWARegistration />
+          <ToastContainer />
+          <Toaster />
+        </OfflineWrapper>
       </AuthProvider>
     </BrowserRouter>
   );
