@@ -15,7 +15,12 @@ function App() {
           <AppRouting />
           <PWARegistration />
           <ToastContainer />
-          <Toaster />
+          <Toaster 
+            position="bottom-left"
+            closeButton={true}
+            duration={Infinity}
+            richColors={true}
+          />
         </OfflineWrapper>
       </AuthProvider>
     </BrowserRouter>

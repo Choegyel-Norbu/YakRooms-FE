@@ -1,22 +1,39 @@
 import { useEffect, useState } from 'react';
 import { registerSW } from 'virtual:pwa-register';
 import { Button } from '@/components/ui/button';
-import Toast from '@/components/Toast';
+import { toast } from 'sonner';
+import useMediaQuery from '@/hooks/useMediaQuery';
+
+// Helper function to detect iOS
+const isIOS = () => {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+};
 
 const PWARegistration = () => {
-  const [needRefresh, setNeedRefresh] = useState(false);
-  const [offlineReady, setOfflineReady] = useState(false);
-  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     // Register service worker
     const updateSW = registerSW({
       onNeedRefresh() {
-        setNeedRefresh(true);
+        if (isMobile) {
+          toast.info("New version available! Click to update.", {
+            action: {
+              label: "Update",
+              onClick: () => window.location.reload()
+            },
+            cancel: {
+              label: "Later"
+            }
+          });
+        }
       },
       onOfflineReady() {
-        setOfflineReady(true);
+        if (isMobile) {
+          toast.success("App is ready for offline use!");
+        }
       },
       onRegistered(swRegistration) {
         console.log('SW registered: ', swRegistration);
@@ -26,11 +43,37 @@ const PWARegistration = () => {
       },
     });
 
-    // Handle install prompt
+    // Handle install prompt for Android
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowInstallPrompt(true);
+      if (isMobile && !isIOS()) {
+        toast.info("Install YakRooms for a better experience!", {
+          action: {
+            label: "Install",
+            onClick: handleInstall
+          },
+          cancel: {
+            label: "Later"
+          }
+        });
+      }
+    };
+
+    // Handle iOS install prompt (manual instructions)
+    const showIOSInstallInstructions = () => {
+      if (isMobile && isIOS()) {
+        toast.info("To install YakRooms on your iPhone/iPad:", {
+          description: "1. Tap the Share button (📤) in Safari\n2. Scroll down and tap 'Add to Home Screen'\n3. Tap 'Add' to install",
+          action: {
+            label: "Got it",
+            onClick: () => {}
+          },
+          cancel: {
+            label: "Later"
+          }
+        });
+      }
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -40,65 +83,43 @@ const PWARegistration = () => {
       console.log('App is running in standalone mode');
     }
 
+    // Show iOS install instructions after a delay if on iOS mobile
+    if (isMobile && isIOS()) {
+      setTimeout(() => {
+        showIOSInstallInstructions();
+      }, 3000); // Show after 3 seconds
+    }
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
 
-  const handleRefresh = () => {
-    setNeedRefresh(false);
-    window.location.reload();
-  };
+
 
   const handleInstall = async () => {
     if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        console.log('User accepted the install prompt');
-      } else {
-        console.log('User dismissed the install prompt');
+      try {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+          toast.success("YakRooms is being installed!");
+        } else {
+          console.log('User dismissed the install prompt');
+          toast.info("Installation cancelled. You can install later from your browser menu.");
+        }
+      } catch (error) {
+        console.error('Install prompt error:', error);
+        toast.error("Installation failed. Please try again or install manually from your browser menu.");
       }
       setDeferredPrompt(null);
-      setShowInstallPrompt(false);
     }
   };
 
-  const handleDismissInstall = () => {
-    setShowInstallPrompt(false);
-    setDeferredPrompt(null);
-  };
 
-  return (
-    <>
-      {/* Update Available Toast */}
-      {needRefresh && (
-        <Toast
-          type="info"
-          message="New version available! Click to update."
-          onClose={() => setNeedRefresh(false)}
-        />
-      )}
 
-      {/* Offline Ready Toast */}
-      {offlineReady && (
-        <Toast
-          type="success"
-          message="App is ready for offline use!"
-          onClose={() => setOfflineReady(false)}
-        />
-      )}
-
-      {/* Install Prompt */}
-      {showInstallPrompt && (
-        <Toast
-          type="info"
-          message="Install YakRooms for a better experience!"
-          onClose={() => setShowInstallPrompt(false)}
-        />
-      )}
-    </>
-  );
+  return null;
 };
 
 export default PWARegistration; 

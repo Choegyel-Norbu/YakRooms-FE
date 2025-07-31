@@ -1,0 +1,37 @@
+{
+    "hotel": {
+      "basic": [
+        "WiFi",
+        "Parking",
+        "Room Service",
+        "Daily Housekeeping"
+      ],
+      "comfort": [
+        "Mountain View",
+        "Balcony"
+      ],
+      "luxury": [
+        "Spa Services",
+        "Restaurant",
+        "Bar/Lounge",
+        "Conference Room"
+      ],
+      "outdoor": [
+        "Outdoor Seating"
+      ],
+      "cultural": [
+        "Traditional Bhutanese Decor",
+        "Bhutanese Cuisine"
+      ],
+      "business": [
+        "High-Speed Internet"
+      ],
+      "accessibility": [
+        "Ground Floor Rooms",
+        "Wide Doorways",
+        "Assistance Available",
+        "Accessible Parking"
+      ]
+    }
+  }
+  

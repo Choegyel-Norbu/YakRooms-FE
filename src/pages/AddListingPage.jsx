@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "../services/AuthProvider.jsx";
+import { getAmenitiesForType, getCategorizedAmenities } from "../utils/amenitiesHelper.js";
 
 const AddListingPage = () => {
   const [step, setStep] = useState(1);
@@ -103,43 +104,9 @@ const AddListingPage = () => {
     // },
   ];
 
-  const amenitiesOptions = {
-    hotel: [
-      "WiFi",
-      "Parking",
-      "Air Conditioning",
-      "Room Service",
-      "TV",
-      "Heater",
-      "Hot Water",
-      "Mountain View",
-    ],
-    homestay: [
-      "WiFi",
-      "Parking",
-      "Home-cooked Meals",
-      "Hot Water",
-      "Heater",
-      "Garden",
-      "Traditional Decor",
-    ],
-    restaurant: [
-      "Bhutanese Cuisine",
-      "Western Food",
-      "Vegetarian Options",
-      "Vegan Options",
-      "Outdoor Seating",
-      "Parking",
-      "WiFi",
-    ],
-    cafe: [
-      "WiFi",
-      "Outdoor Seating",
-      "Coffee & Tea",
-      "Snacks & Pastries",
-      "Parking",
-    ],
-  };
+  // Get amenities from JSON file based on listing type
+  const currentAmenities = getAmenitiesForType(listingType);
+  const categorizedAmenities = getCategorizedAmenities(listingType);
 
   /**
    * Handle getting user's current location using Geolocation API
@@ -313,7 +280,6 @@ const AddListingPage = () => {
     }));
   };
 
-  const currentAmenities = amenitiesOptions[listingType] || [];
   const districts = [
     "Thimphu",
     "Paro",
@@ -558,11 +524,11 @@ const AddListingPage = () => {
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">
+        <div className="text-left mb-8">
+          <h1 className="text-2xl font-semibold text-foreground mb-2 font-sans">
             Add Your Listing
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-sm font-sans">
             Share your business with travelers in Bhutan
           </p>
         </div>
@@ -590,10 +556,10 @@ const AddListingPage = () => {
                     {isCompleted ? <Check className="h-5 w-5" /> : <StepIcon className="h-5 w-5" />}
                   </div>
                   <div className="text-center">
-                    <div className={`text-sm font-medium ${isActive || isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    <div className={`text-sm font-medium font-sans ${isActive || isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
                       {info.title}
                     </div>
-                    <div className="text-xs text-muted-foreground hidden sm:block">
+                    <div className="text-xs text-muted-foreground hidden sm:block font-sans">
                       {info.description}
                     </div>
                   </div>
@@ -621,10 +587,10 @@ const AddListingPage = () => {
             {step === 1 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl font-semibold text-foreground mb-2">
+                  <h2 className="text-xl font-semibold text-foreground mb-2 font-sans">
                     What type of listing are you adding?
                   </h2>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground text-sm font-sans">
                     Choose the category that best describes your business
                   </p>
                 </div>
@@ -679,10 +645,10 @@ const AddListingPage = () => {
             {step === 2 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl font-semibold text-foreground mb-2">
+                  <h2 className="text-xl font-semibold text-foreground mb-2 font-sans">
                     Business Information
                   </h2>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground text-sm font-sans">
                     Provide details about your {listingType}
                   </p>
                 </div>
@@ -1046,10 +1012,10 @@ const AddListingPage = () => {
             {step === 3 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl font-semibold text-foreground mb-2">
+                  <h2 className="text-xl font-semibold text-foreground mb-2 font-sans">
                     Verification Documents
                   </h2>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground text-sm font-sans">
                     Upload required documents for verification. Your listing will be reviewed within 2-3 business days.
                   </p>
                 </div>
@@ -1135,10 +1101,10 @@ const AddListingPage = () => {
             {step === 4 && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-2xl font-semibold text-foreground mb-2">
+                  <h2 className="text-xl font-semibold text-foreground mb-2 font-sans">
                     Review Your Listing
                   </h2>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground text-sm font-sans">
                     Please review all information before submitting
                   </p>
                 </div>

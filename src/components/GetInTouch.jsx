@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import api from "../services/Api.jsx";
-import Toast from "../components/Toast";
+import { toast } from "sonner";
 
 const GetInTouch = React.forwardRef((props, ref) => {
   const [formData, setFormData] = useState({
@@ -12,7 +12,6 @@ const GetInTouch = React.forwardRef((props, ref) => {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -41,30 +40,19 @@ const GetInTouch = React.forwardRef((props, ref) => {
           message: "",
           consent: false,
         });
-        setSubmitStatus("success");
+        toast.success("SUCCESS! Your information was submitted successfully.");
       } else {
         throw new Error("Submission failed");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      setSubmitStatus("error");
+      toast.error("ERROR! There was a problem submitting your information.");
     } finally {
       setIsSubmitting(false);
     }
   };
   return (
     <section ref={ref} class="py-16 sm:px-6 lg:px-8 ">
-      {submitStatus && (
-        <Toast
-          type={submitStatus}
-          message={
-            submitStatus === "success"
-              ? "SUCCESS! Your information was submitted successfully."
-              : "ERROR! There was a problem submitting your information."
-          }
-          onClose={() => setSubmitStatus(null)}
-        />
-      )}
       <div class="max-w-4xl mx-auto">
         <div class="text-center mb-4">
           <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
