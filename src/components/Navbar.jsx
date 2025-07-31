@@ -193,7 +193,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
             <>
               <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-                Switch Role
+                Switch User
               </DropdownMenuLabel>
               {availableRoles.map((role) => {
                 const roleInfo = getRoleDisplayInfo(role);

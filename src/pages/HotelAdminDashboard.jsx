@@ -597,24 +597,7 @@ const HotelAdminDashboard = () => {
                         </div>
                       )}
                     </div>
-                    {notifications.length > 0 && (
-                      <div className="p-3 border-t">
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="w-full text-sm h-10"
-                          onClick={async () => {
-                            // Close notification dialog
-                            setShowNotifications(false);
-
-                            // Clear all notifications from backend
-                            await deleteAllNotifications();
-                          }}
-                        >
-                          Clear all notifications
-                        </Button>
-                      </div>
-                    )}
+                    
                   </div>
                 )}
               </div>

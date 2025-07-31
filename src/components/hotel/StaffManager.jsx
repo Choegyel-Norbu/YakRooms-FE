@@ -17,17 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -72,7 +62,7 @@ const StaffManager = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
+
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -192,23 +182,7 @@ const StaffManager = () => {
   };
 
   // Delete staff member
-  const handleDeleteStaff = async (staffMember) => {
-    try {
-      setDeletingId(staffMember.id);
 
-      await api.delete(`/staff/${staffMember.staffId}`);
-
-      setStaff((prev) => prev.filter((member) => member.id !== staffMember.id));
-      toast.success("Staff member removed successfully!");
-    } catch (error) {
-      console.error("Error deleting staff:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to delete staff member"
-      );
-    } finally {
-      setDeletingId(null);
-    }
-  };
 
   // Handle input changes
   const handleInputChange = useCallback(
@@ -412,52 +386,7 @@ const StaffManager = () => {
                         </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40">
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <DropdownMenuItem
-                                className="text-red-600 focus:text-red-600"
-                                onSelect={(e) => e.preventDefault()}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Remove
-                              </DropdownMenuItem>
-                      </AlertDialogTrigger>
-                            <AlertDialogContent className="mx-4 max-w-md">
-                        <AlertDialogHeader>
-                                <AlertDialogTitle className="text-base">
-                                  Remove Staff Member
-                                </AlertDialogTitle>
-                                <AlertDialogDescription className="text-sm">
-                                  Are you sure you want to remove{" "}
-                                  <span className="font-semibold text-gray-900">
-                                    {member.fullName ||
-                                      member.staffEmail ||
-                                      member.email}
-                                  </span>
-                                  ? This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                              <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
-                                <AlertDialogCancel className="w-full sm:w-auto">
-                                  Cancel
-                                </AlertDialogCancel>
-                          <AlertDialogAction
-                                  onClick={() => handleDeleteStaff(member)}
-                                  className="w-full sm:w-auto bg-red-600 hover:bg-red-700 focus:ring-red-600"
-                            disabled={deletingId === member.id}
-                          >
-                                  {deletingId === member.id ? (
-                                    <span className="flex items-center gap-2">
-                                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                                      Removing...
-                                    </span>
-                                  ) : (
-                                    "Remove"
-                                  )}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                          
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>

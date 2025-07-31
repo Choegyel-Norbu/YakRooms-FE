@@ -74,7 +74,6 @@ const AppRouting = () => {
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Landing />} />
-      <Route path="/about" element={<About />} />
       <Route path="/aboutus" element={<AboutUs />} />
       <Route path="/hotels" element={<HotelListingPage />} />
       <Route path="/hotel/:id" element={<HotelDetailsPage />} />
