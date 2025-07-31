@@ -30,6 +30,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import YakRoomsLoader from "@/components/loader/YakRoomsLoader";
 
 const SuperAdmin = () => {
   const [hotels, setHotels] = useState([]);
@@ -123,7 +124,12 @@ const SuperAdmin = () => {
 
   const LoadingSpinner = () => (
     <div className="flex justify-center items-center py-12">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <YakRoomsLoader 
+        size={80} 
+        showTagline={false} 
+        loadingText=""
+        className="mb-4"
+      />
     </div>
   );
 

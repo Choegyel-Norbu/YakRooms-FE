@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import api from "@/services/Api";
+import YakRoomsLoader from "@/components/loader/YakRoomsLoader";
 
 const TopHighlightsSection = () => {
   const [hotelsData, setHotelsData] = useState([]);
@@ -65,7 +66,16 @@ const TopHighlightsSection = () => {
             Top Listed Hotels
           </h3>
 
-          {loading && <p className="text-center text-gray-600">Loading...</p>}
+          {loading && (
+            <div className="flex justify-center items-center py-8">
+              <YakRoomsLoader 
+                size={80} 
+                showTagline={false} 
+                loadingText=""
+                className="mb-4"
+              />
+            </div>
+          )}
           {error && <p className="text-center text-red-500">{error}</p>}
           {!loading && !error && hotelsData.length === 0 && (
             <p className="text-center text-gray-600">

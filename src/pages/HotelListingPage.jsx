@@ -83,8 +83,6 @@ const HotelListingPage = () => {
         setLoading(true);
         let endpoint = `/hotels?page=${page}&size=${pagination.size}`;
 
-        // Use search endpoint if filters are provided
-        // Modified condition to check for "all" instead of empty string
         if (searchDistrict || (searchHotelType && searchHotelType !== "all")) {
           const params = new URLSearchParams({
             page: page.toString(),
@@ -98,7 +96,6 @@ const HotelListingPage = () => {
 
           endpoint = `/hotels/search?${params.toString()}`;
         } else {
-          // Apply sorting for non-search queries
           if (sortBy === "price-high") {
             endpoint = `/hotels/sortedByHighestPrice?page=${page}&size=${pagination.size}`;
           } else if (sortBy === "price-low") {

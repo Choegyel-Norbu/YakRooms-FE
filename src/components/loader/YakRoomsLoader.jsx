@@ -21,6 +21,8 @@ const YakRoomsLoader = ({
   return (
     <div className={`yakrooms-loader-container ${className}`}>
       <div className="yakrooms-circular-loader" style={sizeStyle}>
+        <div className="yakrooms-spinning-ring-outer"></div>
+        <div className="yakrooms-spinning-ring"></div>
         <div className="yakrooms-glow-ring-outer"></div>
         <div className="yakrooms-glow-ring-inner"></div>
         <div className="yakrooms-shimmer-effect"></div>

@@ -45,7 +45,7 @@ const HeroLG = () => {
       district: searchDistrict.trim(),
     });
 
-    navigate(`/hotel?${searchParams.toString()}`);
+    navigate(`/hotels?${searchParams.toString()}`);
   };
 
   const handleKeyPress = (e) => {

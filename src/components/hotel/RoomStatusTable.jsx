@@ -7,8 +7,9 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, ChevronDown, ChevronUp, Search, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, X } from 'lucide-react';
 import api from '@/services/Api';
+import YakRoomsLoader from '@/components/loader/YakRoomsLoader';
 
 const RoomStatusTable = ({ hotelId }) => {
   const [data, setData] = useState(null);
@@ -202,7 +203,12 @@ const RoomStatusTable = ({ hotelId }) => {
             >
               {searchLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <YakRoomsLoader 
+                    size={20} 
+                    showTagline={false} 
+                    loadingText=""
+                    className="mr-2"
+                  />
                   Searching...
                 </>
               ) : (

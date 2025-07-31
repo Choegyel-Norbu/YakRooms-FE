@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import RoomBookingCard from "../components/cards/RoomBookingCard.jsx";
 import Footer from "../components/Footer";
 import YakRoomsAdCard from "../components/cards/YakRoomsAdCard";
+import YakRoomsLoader from "@/components/loader/YakRoomsLoader";
 import api from "../services/Api";
 
 import {
@@ -183,7 +184,12 @@ const HotelDetailsPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <YakRoomsLoader 
+            size={80} 
+            showTagline={false} 
+            loadingText=""
+            className="mb-4"
+          />
           <p className="text-muted-foreground">Loading hotel details...</p>
         </div>
       </div>
@@ -460,7 +466,12 @@ const HotelDetailsPage = () => {
                   </p>
                 </div>
                 {loading && (
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <YakRoomsLoader 
+                    size={40} 
+                    showTagline={false} 
+                    loadingText=""
+                    className="mb-2"
+                  />
                 )}
               </div>
 

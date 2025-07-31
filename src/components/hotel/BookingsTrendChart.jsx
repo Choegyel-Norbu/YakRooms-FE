@@ -20,6 +20,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "@/services/Api";
 import { useAuth } from "@/services/AuthProvider";
+import YakRoomsLoader from "@/components/loader/YakRoomsLoader";
 
 const BookingsTrendChart = () => {
   const { hotelId } = useAuth();
@@ -127,7 +128,12 @@ const BookingsTrendChart = () => {
         <CardContent className="p-0">
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <YakRoomsLoader 
+                size={60} 
+                showTagline={false} 
+                loadingText=""
+                className="mb-4"
+              />
               <p className="text-gray-600">Loading booking data...</p>
             </div>
           </div>

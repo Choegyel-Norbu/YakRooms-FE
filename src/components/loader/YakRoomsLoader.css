@@ -41,7 +41,35 @@
     rgba(212, 175, 55, 0.6) 270deg,
     transparent 360deg
   );
-  animation: yakrooms-rotate-ring 3s linear infinite;
+  animation: yakrooms-rotate-ring 2s linear infinite;
+}
+
+.yakrooms-spinning-ring {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: calc(100% + 16px);
+  height: calc(100% + 16px);
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top: 2px solid #D4AF37;
+  border-right: 2px solid rgba(212, 175, 55, 0.6);
+  animation: yakrooms-spin-ring 1.5s linear infinite;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+.yakrooms-spinning-ring-outer {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  width: calc(100% + 24px);
+  height: calc(100% + 24px);
+  border-radius: 50%;
+  border: 1px solid transparent;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.4);
+  border-left: 1px solid rgba(212, 175, 55, 0.2);
+  animation: yakrooms-spin-ring-reverse 2s linear infinite;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.2);
 }
 
 .yakrooms-glow-ring-inner {
@@ -189,6 +217,24 @@
   }
 }
 
+@keyframes yakrooms-spin-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes yakrooms-spin-ring-reverse {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+
 @keyframes yakrooms-shimmer-rotate {
   0% {
     transform: rotate(0deg);
@@ -285,12 +331,12 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .yakrooms-circular-loader {
-    width: 196px !important;
-    height: 196px !important;
+    width: 140px !important;
+    height: 140px !important;
   }
 
   .yakrooms-brand-name {
-    font-size: 1rem;
+    font-size: 1.2rem;
     text-shadow: 0 0 15px rgba(212, 175, 55, 0.8), 0 0 25px rgba(255, 215, 0, 0.4);
   }
 
@@ -313,23 +359,23 @@
   }
 
   .yakrooms-circular-loader {
-    width: 168px !important;
-    height: 168px !important;
+    width: 120px !important;
+    height: 120px !important;
   }
 
   .yakrooms-brand-name {
-    font-size: 0.9rem;
+    font-size: 1.2rem;
     text-shadow: 0 0 12px rgba(212, 175, 55, 0.8), 0 0 20px rgba(255, 215, 0, 0.4);
   }
 
   .yakrooms-tagline {
-    font-size: 0.3rem;
+    font-size: 0.35rem;
     letter-spacing: 1.5px;
     text-shadow: 0 0 6px rgba(212, 175, 55, 0.6);
   }
 
   .yakrooms-loading-text {
-    font-size: 0.25rem;
+    font-size: 0.3rem;
     letter-spacing: 1px;
     text-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
   }
