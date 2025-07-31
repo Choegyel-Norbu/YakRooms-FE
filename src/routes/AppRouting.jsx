@@ -10,6 +10,7 @@ import AddListingPage from "../pages/AddListingPage";
 import HotelAdminDashboard from "../pages/HotelAdminDashboard";
 import SuperAdmin from "../pages/SuperAdmin";
 import GuestDashboard from "../pages/GuestDashboard";
+import PrivacyPolicy from "../pages/PrivacyPolicy";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -77,6 +78,7 @@ const AppRouting = () => {
       <Route path="/aboutus" element={<AboutUs />} />
       <Route path="/hotels" element={<HotelListingPage />} />
       <Route path="/hotel/:id" element={<HotelDetailsPage />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
       {/* Dashboard Route - Redirects based on active role */}

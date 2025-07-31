@@ -105,6 +105,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
     { name: "Home", path: "/", icon: Home, description: "Back to homepage" },
     { name: "Hotels", path: "/hotels", icon: Hotel, description: "Find accommodations" },
     { name: "Restaurants", path: "/restaurants", icon: UtensilsCrossed, description: "Discover local dining" },
+    { name: "About", path: "/aboutus", icon: Info, description: "Learn about us" },
     { name: "Contact", path: "/contact", icon: Mail, description: "Get in touch", isContact: true },
   ];
 
