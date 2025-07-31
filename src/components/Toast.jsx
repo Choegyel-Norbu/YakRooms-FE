@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { HiCheckCircle } from "react-icons/hi";
-import { BiErrorCircle } from "react-icons/bi"; // Boxicons
+import { BiErrorCircle } from "react-icons/bi";
+import { HiInformationCircle } from "react-icons/hi";
 
 const Toast = ({ type, message, onClose }) => {
   useEffect(() => {
@@ -10,29 +11,45 @@ const Toast = ({ type, message, onClose }) => {
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  const bgColor =
-    type === "success"
-      ? "bg-[#adebad]"
-      : type === "error"
-      ? "bg-[#ff9999]"
-      : "bg-gray-700";
+  const getToastStyles = () => {
+    switch (type) {
+      case "success":
+        return {
+          bgColor: "bg-yellow-50 border border-yellow-200",
+          textColor: "text-yellow-800",
+          icon: <HiCheckCircle className="text-yellow-500 w-5 h-5" />
+        };
+      case "error":
+        return {
+          bgColor: "bg-yellow-50 border border-yellow-200",
+          textColor: "text-yellow-800",
+          icon: <BiErrorCircle className="text-yellow-500 w-5 h-5" />
+        };
+      case "warning":
+        return {
+          bgColor: "bg-yellow-50 border border-yellow-200",
+          textColor: "text-yellow-800",
+          icon: <HiInformationCircle className="text-yellow-500 w-5 h-5" />
+        };
+      case "info":
+      default:
+        return {
+          bgColor: "bg-yellow-50 border border-yellow-200",
+          textColor: "text-yellow-800",
+          icon: <HiInformationCircle className="text-yellow-500 w-5 h-5" />
+        };
+    }
+  };
 
-  const icon =
-    type === "success" ? (
-      <HiCheckCircle className="text-green-500 w-6 h-6" />
-    ) : (
-      <BiErrorCircle className="text-red-500 w-6 h-6" />
-    );
+  const { bgColor, textColor, icon } = getToastStyles();
 
   return (
     <div
-      className={`fixed w-full m-auto top-5 z-50 shadow-lg text-[#4d4d4d] text-14 px-6 py-3 rounded-lg transition-transform duration-300 ${bgColor}`}
+      className={`fixed top-5 left-1/2 transform -translate-x-1/2 z-50 shadow-lg px-6 py-4 rounded-lg transition-all duration-300 max-w-md w-full mx-4 ${bgColor} ${textColor}`}
     >
-      <div className="flex items-center justify-between space-x-4">
-        <div className="flex flex-row gap-2 items-center">
-          {icon}
-          <span>{message}</span>
-        </div>
+      <div className="flex items-center gap-3">
+        {icon}
+        <span className="text-sm font-medium">{message}</span>
       </div>
     </div>
   );
