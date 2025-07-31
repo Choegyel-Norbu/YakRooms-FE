@@ -372,16 +372,10 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           </h3>
         </div>
         
-        {/* Fixed uniform horizontal margin for mobile breathing room */}
-        <div className="flex items-center space-x-3 px-3 py-2.5 mx-6">
-          {/* Slightly smaller avatar for mobile */}
-          <Avatar className="h-9 w-9 border-2 border-primary">
-            <AvatarImage src={pictureURL} alt={userName} />
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              {userName?.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
+        {/* Updated layout: Avatar on extreme right, user info on left */}
+        <div className="flex items-center justify-between px-6 py-3">
+          {/* User info on the left */}
+          <div className="flex-1 min-w-0 pr-4">
             <p className="text-sm font-medium truncate">{userName}</p>
             <p className="text-xs text-muted-foreground truncate">{email}</p>
             {/* Current Role Badge */}
@@ -391,6 +385,14 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
               </span>
             </div>
           </div>
+          
+          {/* Bigger avatar on the extreme right */}
+          <Avatar className="h-14 w-14 border-2 border-primary flex-shrink-0">
+            <AvatarImage src={pictureURL} alt={userName} />
+            <AvatarFallback className="bg-primary text-primary-foreground text-lg font-semibold">
+              {userName?.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
         </div>
 
         {/* Fixed uniform left padding */}
