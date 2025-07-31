@@ -55,7 +55,7 @@ export default defineConfig({
         name: 'YakRooms',
         short_name: 'YakRooms',
         description: 'Discover Authentic Stays in Bhutan with YakRooms - Your convenient way to book locally',
-        theme_color: '#4B5563',
+        theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait-primary',
