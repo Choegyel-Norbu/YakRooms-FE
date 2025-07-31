@@ -35,11 +35,32 @@ const LoginModal = ({ onClose, flag }) => {
   const { login } = useAuth();
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  useOutsideClick(modalRef, onClose);
+  useOutsideClick(modalRef, isLoggingIn ? () => {} : onClose);
+
+  const handleLoginStart = () => {
+    setIsLoggingIn(true);
+    setError("");
+    setMessage("");
+  };
+
+  const handleLoginComplete = () => {
+    setIsLoggingIn(false);
+  };
+
+  const handleLoginSuccess = async (authData) => {
+    try {
+      await login(authData);
+      setMessage("Login successful! Redirecting...");
+    } catch (error) {
+      setError("Login failed. Please try again.");
+      console.error("Login error:", error);
+    }
+  };
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
+    <Dialog open={true} onOpenChange={isLoggingIn ? () => {} : onClose}>
       <DialogContent 
         ref={modalRef}
         className="sm:max-w-md w-full p-0 gap-0"
@@ -47,9 +68,12 @@ const LoginModal = ({ onClose, flag }) => {
         {/* Custom close button to match original design */}
         <Button
           onClick={onClose}
+          disabled={isLoggingIn}
           variant="ghost"
           size="icon"
-          className="absolute right-2 top-2 h-8 w-8 rounded-full"
+          className={`absolute right-2 top-2 h-8 w-8 rounded-full ${
+            isLoggingIn ? "opacity-50 cursor-not-allowed" : ""
+          }`}
         >
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
@@ -84,7 +108,9 @@ const LoginModal = ({ onClose, flag }) => {
 
             <GoogleSignInButton 
               onClose={onClose} 
-              onLoginSuccess={login} 
+              onLoginSuccess={handleLoginSuccess}
+              onLoginStart={handleLoginStart}
+              onLoginComplete={handleLoginComplete}
               flag={flag}
             />
 

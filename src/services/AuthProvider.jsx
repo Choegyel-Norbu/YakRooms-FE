@@ -182,7 +182,7 @@ export const AuthProvider = ({ children }) => {
   }, [logout]);
 
   // === LOGIN (memoized) ===
-  const login = useCallback((authData) => {
+  const login = useCallback(async (authData) => {
     try {
       console.log("Logging in...");
 
