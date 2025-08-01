@@ -157,14 +157,14 @@ export default function RoomBookingCard({ room, hotelId }) {
       return;
     }
 
-    // Check if user has Guest role available
-    if (hasRole("GUEST")) {
-      setOpenRoleSwitchDialog(true);
+    // If user is already in GUEST role, allow direct booking
+    if (currentRole === "GUEST") {
+      setOpenBookingDialog(true);
       return;
     }
 
-    // Allow booking for other roles (HOTEL_ADMIN, STAFF, GUEST)
-    setOpenBookingDialog(true);
+    // For all other roles, show role switch dialog to switch to GUEST
+    setOpenRoleSwitchDialog(true);
   };
 
   // Handle role switching to Guest

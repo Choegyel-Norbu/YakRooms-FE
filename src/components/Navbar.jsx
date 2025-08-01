@@ -222,7 +222,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                     onClick={() => {
                       switchToRole(role);
                       const roleInfo = getRoleDisplayInfo(role);
-                      toast(`Switched to ${roleInfo.label} role`, {
+                      toast(`Switched to ${roleInfo.label} user`, {
                         description: `You are now viewing the application as ${roleInfo.label}`,
                         duration: 3000,
                       });
@@ -448,7 +448,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                         switchToRole(role);
                         setIsMobileMenuOpen(false);
                         const roleInfo = getRoleDisplayInfo(role);
-                        toast(`Switched to ${roleInfo.label} role`, {
+                        toast(`Switched to ${roleInfo.label} user`, {
                           description: `You are now viewing the application as ${roleInfo.label}`,
                           duration: 3000,
                         });

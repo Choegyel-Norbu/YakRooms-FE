@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPinIcon, HeartIcon } from "lucide-react"; // Using lucide-react for icons
+import { MapPinIcon } from "lucide-react"; // Using lucide-react for icons
 import { Link } from "react-router-dom";
 // ShadCN UI Components
 import {
@@ -136,8 +136,6 @@ const TopHighlightsSection = () => {
 };
 
 const ListingCard = ({ item }) => {
-  const [isFavorite, setIsFavorite] = useState(false);
-
   // Determine image URL based on the item structure
   const imageUrl =
     item.photoUrls && item.photoUrls.length > 0
@@ -178,21 +176,6 @@ const ListingCard = ({ item }) => {
             alt={title}
             className="h-full w-full object-cover rounded-t-xl"
           />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsFavorite(!isFavorite)}
-            // Adjusted positioning and padding of favorite button for consistency
-            className="absolute top-3 right-3 p-1.5 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
-          >
-            <HeartIcon
-              className={`h-4 w-4 ${
-                isFavorite
-                  ? "fill-red-500 text-red-500"
-                  : "fill-gray-400 text-gray-400"
-              }`}
-            />
-          </Button>
           {item.tag && (
             // Adjusted positioning and padding of tag for consistency
             <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-md bg-yellow-500 text-slate-900 text-xs font-bold">

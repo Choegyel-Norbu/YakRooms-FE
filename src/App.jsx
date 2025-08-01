@@ -16,7 +16,7 @@ function App() {
           <PWARegistration />
           <ToastContainer />
           <Toaster 
-            position="bottom-left"
+            position="bottom-right"
             closeButton={true}
             duration={Infinity}
             richColors={true}
