@@ -75,6 +75,25 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const [isLogoutConfirmationOpen, setIsLogoutConfirmationOpen] = useState(false);
 
+  // Add CSS for hiding scrollbar
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .scrollbar-hide {
+        -ms-overflow-style: none;  /* Internet Explorer 10+ */
+        scrollbar-width: none;  /* Firefox */
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;  /* Safari and Chrome */
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -515,7 +534,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                 {/* Reduced mobile sheet width for better mobile experience */}
                 <SheetContent side="right" className="w-[300px] sm:w-[320px] flex flex-col">
                   {/* Reduced header padding */}
-                  <SheetHeader className="border-b pb-3">
+                  <SheetHeader className="border-b pb-3 flex-shrink-0">
                     <SheetTitle>
                       <Link
                         to="/"
@@ -527,46 +546,48 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                     </SheetTitle>
                   </SheetHeader>
 
-                  {/* Removed main content padding to eliminate space between header and account section */}
-                  <div className="flex-1">
-                    <MobileUserSection />
-                    
-                    {/* Reduced navigation spacing */}
-                    <nav className="space-y-1.5 pt-4">
-                      {/* Fixed uniform left padding */}
-                      <div className="px-6 pb-1">
-                        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                          Navigation
-                        </h3>
-                      </div>
-                      {navLinks.filter(link => !link.isContact).map((link) => (
-                        <SheetClose key={link.name} asChild>
-                          <Link
-                            to={link.path}
-                            // Fixed uniform horizontal margin for mobile
-                            className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group mx-6"
-                          >
-                            <div className="flex items-center">
-                              {/* Reduced icon container padding */}
-                              <div className="p-1.5 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
-                                <link.icon className="h-4 w-4 group-hover:text-primary transition-colors" />
+                  {/* Scrollable main content area */}
+                  <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
+                    <div className="py-4">
+                      <MobileUserSection />
+                      
+                      {/* Reduced navigation spacing */}
+                      <nav className="space-y-1.5 pt-4">
+                        {/* Fixed uniform left padding */}
+                        <div className="px-6 pb-1">
+                          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Navigation
+                          </h3>
+                        </div>
+                        {navLinks.filter(link => !link.isContact).map((link) => (
+                          <SheetClose key={link.name} asChild>
+                            <Link
+                              to={link.path}
+                              // Fixed uniform horizontal margin for mobile
+                              className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group mx-6"
+                            >
+                              <div className="flex items-center">
+                                {/* Reduced icon container padding */}
+                                <div className="p-1.5 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
+                                  <link.icon className="h-4 w-4 group-hover:text-primary transition-colors" />
+                                </div>
+                                <div>
+                                  <div className="font-medium">{link.name}</div>
+                                  <div className="text-xs text-muted-foreground">{link.description}</div>
+                                </div>
                               </div>
-                              <div>
-                                <div className="font-medium">{link.name}</div>
-                                <div className="text-xs text-muted-foreground">{link.description}</div>
-                              </div>
-                            </div>
-                            <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                          </Link>
-                        </SheetClose>
-                      ))}
-                    </nav>
+                              <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                          </SheetClose>
+                        ))}
+                      </nav>
 
-                    <ContactSection />
+                      <ContactSection />
+                    </div>
                   </div>
 
                   {/* Reduced footer padding */}
-                  <div className="border-t pt-3">
+                  <div className="border-t pt-3 flex-shrink-0">
                     {/* Reduced padding and margin for mobile */}
                     <div className="px-3 py-2 bg-muted/30 rounded-lg mx-3">
                       <div className="flex items-center justify-between">
