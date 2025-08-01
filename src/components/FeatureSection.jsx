@@ -21,7 +21,7 @@ const FeatureSection = () => {
       icon: Hotel,
       title: "Real-time Hotel Booking",
       description: "Instantly book verified rooms across Bhutan with real-time availability and instant confirmation.",
-      to: "/hotel",
+      to: "/hotels",
       badge: "Popular",
       highlights: ["Instant Confirmation", "24/7 Support", "Best Price Guarantee"],
       iconBg: "text-blue-600 group-hover:text-white",

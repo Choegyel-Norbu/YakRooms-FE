@@ -119,6 +119,16 @@ const TopHighlightsSection = () => {
               ))}
             </div>
           </div>
+
+          {/* View All Hotels Button - Responsive */}
+          <div className="flex justify-center mt-6 md:mt-8">
+            <Link 
+              to="/hotels"
+              className="text-blue-600 hover:text-blue-800 text-sm font-small transition-colors duration-200 hover:underline"
+            >
+              View more hotels →
+            </Link>
+          </div>
         </div>
       </section>
     </>

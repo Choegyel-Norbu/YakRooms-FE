@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
+import { toast } from "sonner";
 import {
   Menu,
   X,
@@ -13,7 +14,6 @@ import {
   UtensilsCrossed,
   Mail,
   ChevronRight,
-  Phone,
   MessageCircle,
   AlertTriangle,
   Info,
@@ -200,7 +200,14 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                 return (
                   <DropdownMenuItem
                     key={role}
-                    onClick={() => switchToRole(role)}
+                    onClick={() => {
+                      switchToRole(role);
+                      const roleInfo = getRoleDisplayInfo(role);
+                      toast(`Switched to ${roleInfo.label} role`, {
+                        description: `You are now viewing the application as ${roleInfo.label}`,
+                        duration: 3000,
+                      });
+                    }}
                     className="cursor-pointer"
                   >
                     <div className="flex items-center justify-between w-full">
@@ -252,7 +259,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
       
       {/* Contact Card */}
       {/* Fixed uniform horizontal margin for mobile edge breathing room */}
-      <div className="mx-6 p-3 rounded-lg">
+      <div className="mx-6 p-3 mb-0 rounded-lg">
         {/* Reduced gap and margin for mobile */}
         <div className="flex items-center gap-1.5">
           <Button
@@ -283,23 +290,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
         </div>
       </div>
 
-      {/* Quick Contact Options */}
-      {/* Fixed uniform left padding */}
-      <div className="space-y-0.5 px-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          // Smaller button height for mobile
-          className="w-full justify-start h-7 text-xs text-muted-foreground hover:text-primary"
-          onClick={() => {
-            window.location.href = 'tel:+97517123456'; // Add actual phone number
-            setIsMobileMenuOpen(false);
-          }}
-        >
-          <Phone className="mr-2 h-3 w-3" />
-          Call Support
-        </Button>
-      </div>
+
 
       {/* Logout Button */}
       {isAuthenticated && (
@@ -313,7 +304,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
               className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => setIsLogoutConfirmationOpen(true)}
             >
-              <LogOut className="mr-3 h-4 w-4" />
+              <LogOut className="h-4 w-4" />
               Log Out
             </Button>
           </div>
@@ -437,6 +428,11 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                       onClick={() => {
                         switchToRole(role);
                         setIsMobileMenuOpen(false);
+                        const roleInfo = getRoleDisplayInfo(role);
+                        toast(`Switched to ${roleInfo.label} role`, {
+                          description: `You are now viewing the application as ${roleInfo.label}`,
+                          duration: 3000,
+                        });
                       }}
                     >
                       <span>{roleInfo.label}</span>
