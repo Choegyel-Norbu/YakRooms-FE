@@ -384,6 +384,8 @@ const AddListingPage = () => {
       if (!formData.phone) newErrors.phone = "Phone is required";
       if (formData.photos.length === 0)
         newErrors.photos = "At least one photo is required";
+      if (listingType === "hotel" && !formData.hotelType) 
+        newErrors.hotelType = "Hotel type is required";
     }
 
     if (step === 3) {
@@ -884,32 +886,44 @@ const AddListingPage = () => {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="hotelType">
-                    Hotel Type <span className="text-destructive">*</span>
-                  </Label>
-                  <Select
-                    value={formData.hotelType}
-                    onValueChange={(value) => {
-                      setFormData(prev => ({ ...prev, hotelType: value }));
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Hotel Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ONE_STAR">One Star</SelectItem>
-                      <SelectItem value="TWO_STAR">Two Star</SelectItem>
-                      <SelectItem value="THREE_STAR">Three Star</SelectItem>
-                      <SelectItem value="FOUR_STAR">Four Star</SelectItem>
-                      <SelectItem value="FIVE_STAR">Five Star</SelectItem>
-                      <SelectItem value="BUDGET">Budget</SelectItem>
-                      <SelectItem value="BOUTIQUE">Boutique</SelectItem>
-                      <SelectItem value="RESORT">Resort</SelectItem>
-                      <SelectItem value="HOMESTAY">Homestay</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {listingType === "hotel" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="hotelType">
+                      Hotel Type <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={formData.hotelType}
+                      onValueChange={(value) => {
+                        setFormData(prev => ({ ...prev, hotelType: value }));
+                        if (errors.hotelType) {
+                          setErrors(prev => {
+                            const newErrors = { ...prev };
+                            delete newErrors.hotelType;
+                            return newErrors;
+                          });
+                        }
+                      }}
+                    >
+                      <SelectTrigger className={errors.hotelType ? "border-destructive" : ""}>
+                        <SelectValue placeholder="Select Hotel Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ONE_STAR">One Star</SelectItem>
+                        <SelectItem value="TWO_STAR">Two Star</SelectItem>
+                        <SelectItem value="THREE_STAR">Three Star</SelectItem>
+                        <SelectItem value="FOUR_STAR">Four Star</SelectItem>
+                        <SelectItem value="FIVE_STAR">Five Star</SelectItem>
+                        <SelectItem value="BUDGET">Budget</SelectItem>
+                        <SelectItem value="BOUTIQUE">Boutique</SelectItem>
+                        <SelectItem value="RESORT">Resort</SelectItem>
+                        <SelectItem value="HOMESTAY">Homestay</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.hotelType && (
+                      <p className="text-destructive text-sm">{errors.hotelType}</p>
+                    )}
+                  </div>
+                )}
 
                 {currentAmenities.length > 0 && (
                   <div className="space-y-4">
