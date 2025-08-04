@@ -82,8 +82,15 @@ const YakRoomsText = ({ size = "default" }) => {
 };
 
 const HotelAdminDashboard = () => {
-  const { userId, userName, hotelId, lastLogin } = useAuth();
+  const { userId, userName, hotelId, lastLogin, roles } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
+  
+  // Redirect to dashboard if user doesn't have access to current tab
+  useEffect(() => {
+    if (activeTab === "staff" && roles && roles.includes("STAFF")) {
+      setActiveTab("dashboard");
+    }
+  }, [activeTab, roles]);
   const [hotel, setHotel] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -434,7 +441,8 @@ const HotelAdminDashboard = () => {
     { id: "dashboard", label: "Dashboard", icon: Home },
     { id: "hotel", label: "Hotel Details", icon: Hotel },
     { id: "rooms", label: "Room Management", icon: Bed },
-    { id: "staff", label: "Staff Management", icon: Users },
+    // Hide Staff Management for users with STAFF role
+    ...(roles && !roles.includes("STAFF") ? [{ id: "staff", label: "Staff Management", icon: Users }] : []),
     { id: "inventory", label: "Inventory Tracker", icon: Package },
     { id: "analytics", label: "Analytics", icon: PieChart },
     { id: "booking", label: "Booking", icon: Calendar },

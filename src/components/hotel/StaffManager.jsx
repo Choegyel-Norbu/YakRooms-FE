@@ -164,6 +164,7 @@ const StaffManager = () => {
         hotelId,
         position: formData.position,
         dateJoined: formData.dateJoined,
+        roles: ["STAFF"]
       };
 
       const { data: newStaff } = await api.post("/staff", payload);

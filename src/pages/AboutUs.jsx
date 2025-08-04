@@ -42,46 +42,32 @@ const YakRoomsText = ({ size = "default" }) => {
 
 const AboutUs = () => {
   return (
-    <div className="min-h-screen bg-background">
-      {/* Home Navigation */}
+    <div className="min-h-screen">
+      {/* Header */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <Button variant="ghost" size="sm" asChild className="mb-6">
-          <Link to="/" className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Home
-          </Link>
-        </Button>
+        <div className="relative flex items-center justify-center mb-6">
+          {/* Navigation Button - Left Corner */}
+          <Button variant="ghost" size="sm" asChild className="absolute -left-4 sm:-left-8 lg:-left-12">
+            <Link to="/" className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Back to Home</span>
+            </Link>
+          </Button>
+          
+          {/* YakRooms Title - Centered */}
+          <div className="text-center">
+            <YakRoomsText size="large" />
+          </div>
+        </div>
       </div>
 
       {/* Hero Section */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-primary/5 to-background border-b">
-        <div className="max-w-4xl mx-auto text-center">
-          <Badge className="mb-4" variant="secondary">
-            <MapPin className="w-3 h-3 mr-1" />
-            Made in Bhutan
-          </Badge>
-          
-          {/* YakRooms Title */}
-          <div className="mb-6">
-            <YakRoomsText size="large" />
-          </div>
-          
-          <h1 className="text-4xl sm:text-5xl font-heading font-bold tracking-tight mb-4">
-            Empowering Local Stays.
-            <br />
-            <span className="text-primary">Simplifying Hotel Discovery.</span>
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            YakRooms is Bhutan's premier hotel discovery and booking platform, 
-            connecting travelers with authentic local accommodations across the Kingdom.
-          </p>
-        </div>
-      </section>
+     
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
         {/* Why YakRooms */}
         <section>
-          <h2 className="text-2xl font-bold font-heading mb-6 text-center">Why YakRooms?</h2>
+          <h2 className="hidden md:block text-2xl font-bold font-heading mb-6 text-center">About us</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <Card>
               <CardHeader>
