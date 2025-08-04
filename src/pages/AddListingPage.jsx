@@ -547,7 +547,7 @@ const AddListingPage = () => {
               return (
                 <div key={stepNumber} className="flex-1 flex flex-col items-center">
                   <div className={`
-                    w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 mb-2
+                    w-8 h-8 lg:w-12 lg:h-12 rounded-full flex items-center justify-center transition-all duration-200 mb-2
                     ${isCompleted 
                       ? 'bg-primary text-primary-foreground' 
                       : isActive 
@@ -555,10 +555,10 @@ const AddListingPage = () => {
                         : 'bg-muted text-muted-foreground'
                     }
                   `}>
-                    {isCompleted ? <Check className="h-5 w-5" /> : <StepIcon className="h-5 w-5" />}
+                    {isCompleted ? <Check className="h-4 w-4 lg:h-5 lg:w-5" /> : <StepIcon className="h-4 w-4 lg:h-5 lg:w-5" />}
                   </div>
                   <div className="text-center">
-                    <div className={`text-sm font-medium font-sans ${isActive || isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    <div className={`text-xs lg:text-sm font-medium font-sans ${isActive || isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
                       {info.title}
                     </div>
                     <div className="text-xs text-muted-foreground hidden sm:block font-sans">
@@ -584,8 +584,8 @@ const AddListingPage = () => {
         </div>
 
         {/* Form Content */}
-        <Card>
-          <CardContent className="p-8">
+        {/* <Card> */}
+          <CardContent className="p-0 md:p-8">
             {step === 1 && (
               <div className="space-y-6">
                 <div>
@@ -1152,29 +1152,29 @@ const AddListingPage = () => {
                         <div className="space-y-3">
                           <div>
                             <Label className="text-muted-foreground">Business Name</Label>
-                            <p className="font-medium">{formData.name}</p>
+                            <p className="font-bold text-sm lg:text-base">{formData.name}</p>
                           </div>
                           <div>
                             <Label className="text-muted-foreground">Location</Label>
-                            <p className="font-medium">{formData.village}, {formData.district}</p>
+                            <p className="font-bold text-sm lg:text-base">{formData.village}, {formData.district}</p>
                           </div>
                           {formData.address && (
                             <div>
                               <Label className="text-muted-foreground">Address</Label>
-                              <p className="font-medium">{formData.address}</p>
+                              <p className="font-bold text-sm lg:text-base">{formData.address}</p>
                             </div>
                           )}
                         </div>
                         <div className="space-y-3">
                           <div>
                             <Label className="text-muted-foreground">Contact</Label>
-                            <p className="font-medium">{email}</p>
-                            <p className="font-medium">{formData.phone}</p>
+                            <p className="font-bold text-sm lg:text-base">{email}</p>
+                            <p className="font-bold text-sm lg:text-base">{formData.phone}</p>
                           </div>
                           {formData.hotelType && (
                             <div>
                               <Label className="text-muted-foreground">Hotel Type</Label>
-                              <p className="font-medium">{formData.hotelType.replace('_', ' ')}</p>
+                              <p className="font-bold text-sm lg:text-base">{formData.hotelType.replace('_', ' ')}</p>
                             </div>
                           )}
                         </div>
@@ -1182,7 +1182,7 @@ const AddListingPage = () => {
                       
                       <div>
                         <Label className="text-muted-foreground">Description</Label>
-                        <p className="font-medium">{formData.description}</p>
+                        <p className="font-bold text-sm lg:text-base">{formData.description}</p>
                       </div>
 
                       {/* Location Coordinates in Review */}
@@ -1249,13 +1249,13 @@ const AddListingPage = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label className="text-muted-foreground">Trade License</Label>
-                          <p className="font-medium">
+                          <p className="font-bold text-sm lg:text-base">
                             {formData.license?.name || "Not uploaded"}
                           </p>
                         </div>
                         <div>
                           <Label className="text-muted-foreground">ID Proof</Label>
-                          <p className="font-medium">
+                          <p className="font-bold text-sm lg:text-base">
                             {formData.idProof?.name || "Not uploaded"}
                           </p>
                         </div>
@@ -1264,7 +1264,7 @@ const AddListingPage = () => {
                       {formData.notes && (
                         <div>
                           <Label className="text-muted-foreground">Additional Notes</Label>
-                          <p className="font-medium">{formData.notes}</p>
+                          <p className="font-bold text-sm lg:text-base">{formData.notes}</p>
                         </div>
                       )}
                     </CardContent>
@@ -1321,7 +1321,7 @@ const AddListingPage = () => {
               </Button>
             )}
           </div>
-        </Card>
+        {/* </Card> */}
       </div>
     </div>
   );

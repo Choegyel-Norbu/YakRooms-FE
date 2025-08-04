@@ -942,12 +942,6 @@ const HotelAdminDashboard = () => {
               
               {showStaffGrid && <StaffCardGrid hotelId={hotelId} />}
               
-
-              {/* Charts Section */}
-              {/* <div className="space-y-8">
-                <BookingsTrendChart />
-                <MonthlyPerformanceChart />
-              </div> */}
             </div>
           )}
 
