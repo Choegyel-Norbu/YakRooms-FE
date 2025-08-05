@@ -196,25 +196,25 @@ const RoomStatusTable = ({ hotelId }) => {
                 </button>
               )}
             </div>
-            <Button
-              onClick={handleSearch}
-              disabled={searchLoading}
-              className="w-full sm:w-auto"
-            >
-              {searchLoading ? (
-                <>
-                  <YakRoomsLoader 
-                    size={20} 
-                    showTagline={false} 
-                    loadingText=""
-                    className="mr-2"
-                  />
-                  Searching...
-                </>
-              ) : (
-                'Search'
-              )}
-            </Button>
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSearch}
+                disabled={searchLoading}
+                className="flex items-center justify-center gap-2"
+              >
+                {searchLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4" />
+                    Search
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           {/* Search Error Message */}

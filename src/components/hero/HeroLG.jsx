@@ -60,10 +60,10 @@ const HeroLG = () => {
   };
 
   return (
-    <section className="relative flex min-h-screen w-full items-center justify-center bg-background px-4 py-16">
+    <section className="relative flex min-h-screen w-full items-center justify-center bg-background px-4">
       <div className="relative z-10 flex w-full max-w-4xl flex-col items-center justify-center space-y-8 text-center">
         {/* Header Section */}
-        <div className="space-y-4">
+        <div className="space-y-2">
           <div className="flex items-center justify-center space-x-2">
             <Badge variant="secondary" className="px-3 py-1">
               <MapPin className="mr-1 h-3 w-3" />
@@ -71,10 +71,11 @@ const HeroLG = () => {
             </Badge>
           </div>
 
-          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl">
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             Discover Authentic Stays in
             <span className="block text-primary">Bhutan with YakRooms</span>
           </h1>
+
 
           <p className="mx-auto max-w-2xl text-14 text-muted-foreground sm:text-xl">
             Your convenient way to book locally. Discover hotels and restaurants

@@ -56,16 +56,10 @@ const HotelListingPage = () => {
 
   // Simple search state
   const [district, setDistrict] = useState("");
-  const [hotelType, setHotelType] = useState("all"); // Changed from "" to "all"
+  const [hotelType, setHotelType] = useState("all");
 
-  // Set initial district from URL param on mount
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const districtParam = params.get("district");
-    if (districtParam) {
-      setDistrict(districtParam);
-    }
-  }, [location.search]);
+  // Track if initial load from URL params has been done
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
 
   // Hotel types
   const hotelTypes = [
@@ -78,12 +72,13 @@ const HotelListingPage = () => {
 
   // Memoized fetch function for performance
   const fetchHotels = useCallback(
-    async (page = 0, searchDistrict = "", searchHotelType = "") => {
+    async (page = 0, searchDistrict = "", searchHotelType = "", forceSearch = false) => {
       try {
         setLoading(true);
         let endpoint = `/hotels?page=${page}&size=${pagination.size}`;
 
-        if (searchDistrict || (searchHotelType && searchHotelType !== "all")) {
+        // Use search endpoint if there's a search district, hotel type filter, or if forceSearch is true
+        if (searchDistrict || (searchHotelType && searchHotelType !== "all") || forceSearch) {
           const params = new URLSearchParams({
             page: page.toString(),
             size: pagination.size.toString(),
@@ -121,25 +116,62 @@ const HotelListingPage = () => {
     [pagination.size, sortBy]
   );
 
-  // Trigger search when district or hotelType changes (including from URL param)
+  // Handle URL parameters on initial load
   useEffect(() => {
-    fetchHotels(0, district, hotelType);
-  }, [district, hotelType]);
+    const params = new URLSearchParams(location.search);
+    const districtParam = params.get("district");
+    const hotelTypeParam = params.get("hotelType");
+    
+    // Set initial values from URL params
+    if (districtParam) {
+      setDistrict(districtParam);
+    }
+    
+    if (hotelTypeParam) {
+      setHotelType(hotelTypeParam);
+    }
+    
+    // Mark initial load as done
+    setInitialLoadDone(true);
+    
+    // Trigger search with URL parameters
+    if (districtParam || hotelTypeParam) {
+      fetchHotels(0, districtParam || "", hotelTypeParam || "all", true);
+    } else {
+      // If no search params, fetch all hotels
+      fetchHotels(0, "", "all", false);
+    }
+  }, []); // Only run once on mount
+
+  // Handle subsequent changes to district or hotelType (after initial load)
+  useEffect(() => {
+    if (initialLoadDone) {
+      // Skip the first run since we handle it in the initial load effect
+      const timer = setTimeout(() => {
+        fetchHotels(0, district, hotelType, district || (hotelType && hotelType !== "all"));
+      }, 300); // Small debounce to avoid too many API calls
+      
+      return () => clearTimeout(timer);
+    }
+  }, [district, hotelType, fetchHotels, initialLoadDone]);
 
   // Simple search handler
   const handleSearch = () => {
-    fetchHotels(0, district, hotelType);
+    fetchHotels(0, district, hotelType, true);
   };
 
   // Clear search handler
   const handleClearSearch = () => {
     setDistrict("");
-    setHotelType("all"); // Changed from "" to "all"
-    fetchHotels(0, "", "");
+    setHotelType("all");
+    // Clear URL parameters and fetch all hotels
+    window.history.replaceState({}, "", "/hotels");
+    // Explicitly fetch all hotels when user clears search
+    fetchHotels(0, "", "all", false);
   };
 
   // Check if search is active
-  const isSearchActive = district.trim() || (hotelType && hotelType !== "all"); // Modified condition
+  const isSearchActive = district.trim() || (hotelType && hotelType !== "all");
 
   // Updated transform function without rating data
   const transformHotelData = (hotel) => ({
@@ -162,7 +194,7 @@ const HotelListingPage = () => {
 
   const handlePageChange = (newPage) => {
     if (newPage >= 0 && newPage < pagination.totalPages) {
-      fetchHotels(newPage, district, hotelType);
+      fetchHotels(newPage, district, hotelType, isSearchActive);
     }
   };
 
@@ -225,9 +257,9 @@ const HotelListingPage = () => {
   // YakRooms Text Logo Component (copied from Navbar.jsx)
   const YakRoomsText = ({ size = "default" }) => {
     const textSizes = {
-          small: "text-lg font-semibold",
-    default: "text-xl font-semibold",
-    large: "text-2xl font-semibold",
+      small: "text-lg font-semibold",
+      default: "text-xl font-semibold",
+      large: "text-2xl font-semibold",
     };
     return (
       <div className={`${textSizes[size]} font-sans tracking-tight`}>
@@ -235,6 +267,22 @@ const HotelListingPage = () => {
         <span className="text-yellow-500">Rooms</span>
       </div>
     );
+  };
+
+  // Generate dynamic title based on search
+  const getPageTitle = () => {
+    if (!isSearchActive) return "All Hotels in Bhutan";
+    
+    const parts = [];
+    if (district) parts.push(`Hotels in ${district}`);
+    if (hotelType && hotelType !== "all") {
+      const typeLabel = hotelType.split('_').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      ).join(' ');
+      parts.push(typeLabel);
+    }
+    
+    return parts.join(' - ') || "Search Results";
   };
 
   return (
@@ -273,13 +321,18 @@ const HotelListingPage = () => {
         {/* Main Content */}
         <main className="w-full">
           {/* Simple Search Section */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
             {/* District Search */}
             <div className="flex-1">
               <Input
                 placeholder="Search by district..."
                 value={district}
                 onChange={(e) => setDistrict(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch();
+                  }
+                }}
                 className="w-full text-14"
               />
             </div>
@@ -306,13 +359,13 @@ const HotelListingPage = () => {
             </div>
 
             {/* Search Actions */}
-            <div className="flex gap-2 mb-8">
-              <Button onClick={handleSearch}>
+            <div className="flex gap-2">
+              <Button onClick={handleSearch} disabled={loading}>
                 <Search className="h-4 w-4 mr-2" />
                 Search
               </Button>
               {isSearchActive && (
-                <Button variant="outline" onClick={handleClearSearch}>
+                <Button variant="outline" onClick={handleClearSearch} disabled={loading}>
                   <X className="h-4 w-4" />
                 </Button>
               )}
@@ -324,23 +377,37 @@ const HotelListingPage = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h1 className="text-2xl md:text-xl font-semibold tracking-tight">
-                  {isSearchActive
-                    ? `Search Results for ${district}`
-                    : "All Hotels in Bhutan"}
+                  {getPageTitle()}
                 </h1>
                 <p className="text-muted-foreground mt-1">
                   {loading
                     ? "Searching..."
+                    : isSearchActive && pagination.totalElements === 0
+                    ? "No hotels found for this search"
                     : `${pagination.totalElements} ${
                         pagination.totalElements === 1 ? "hotel" : "hotels"
                       } found`}
                 </p>
 
                 {/* Active filters display */}
+                {isSearchActive && !loading && (
+                  <div className="flex gap-2 mt-2">
+                    {district && (
+                      <Badge variant="secondary" className="text-xs">
+                        District: {district}
+                      </Badge>
+                    )}
+                    {hotelType && hotelType !== "all" && (
+                      <Badge variant="secondary" className="text-xs">
+                        Type: {hotelType.split('_').join(' ')}
+                      </Badge>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Sort Controls - only show when not searching */}
-              {!isSearchActive && (
+              {!isSearchActive && !loading && (
                 <div className="flex items-center gap-3">
                   <Label className="text-sm font-medium">Sort by</Label>
                   <Select value={sortBy} onValueChange={setSortBy}>
@@ -405,7 +472,7 @@ const HotelListingPage = () => {
                       {hotel.lowestPrice && (
                         <div className="absolute top-3 right-3">
                           <div className="bg-primary text-primary-foreground px-2 py-1.5 rounded-md shadow-lg backdrop-blur-md border border-primary/20">
-                          <span className="text-14 text-yellow-500">From</span>
+                            <span className="text-14 text-yellow-500">From</span>
                             <div className="text-xs font-bold leading-none">
                               Nu. {hotel.lowestPrice.toLocaleString()}
                             </div>
@@ -446,8 +513,6 @@ const HotelListingPage = () => {
                     <CardFooter className="bg-muted/30 border-t border-border/50 p-4 pt-3 mt-auto">
                       <div className="flex justify-between items-center w-full">
                         <div className="flex items-center gap-3">
-                         
-                          
                           {/* Verified Badge */}
                           <Badge 
                             variant="outline" 
@@ -478,11 +543,22 @@ const HotelListingPage = () => {
                 <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
                   <Building2 className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <CardTitle className="text-2xl">No Hotels Found</CardTitle>
+                <CardTitle className="text-2xl">
+                  {isSearchActive ? "No Hotels Found" : "No Hotels Available"}
+                </CardTitle>
                 <CardDescription className="max-w-md mx-auto">
-                  We couldn't find any hotels. Please try again later.
+                  {isSearchActive 
+                    ? `We couldn't find any hotels matching your search criteria. Try adjusting your filters or search terms.`
+                    : "We couldn't find any hotels. Please try again later."
+                  }
                 </CardDescription>
-                <div className="flex justify-center mt-6">
+                <div className="flex justify-center gap-3 mt-6">
+                  {isSearchActive && (
+                    <Button variant="outline" onClick={handleClearSearch}>
+                      <X className="mr-2 h-4 w-4" />
+                      Clear Search
+                    </Button>
+                  )}
                   <Button asChild>
                     <Link to="/">
                       <Home className="mr-2 h-4 w-4" />

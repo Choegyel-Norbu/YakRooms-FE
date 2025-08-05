@@ -432,14 +432,12 @@ const RoomManager = () => {
   return (
     <div className="space-y-6 py-4 sm:py-8">
       {/* Responsive Header - Only Add Room button remains, with spacing */}
-      <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-3 sm:gap-0 mb-2 sm:mb-4">
+      <div className="flex justify-end items-center mb-2 sm:mb-4">
         <Button 
           onClick={() => { setShowForm(true); setEditingRoom(null); }}
-          className="w-[90%] m-auto sm:w-auto sm:text-base text-sm"
+          className="text-sm sm:text-base w-fit mr-2"
         >
-          <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-          <span className="hidden sm:inline">Add Room</span>
-          <span className="sm:hidden">Add</span>
+          Add Room
         </Button>
       </div>
 
