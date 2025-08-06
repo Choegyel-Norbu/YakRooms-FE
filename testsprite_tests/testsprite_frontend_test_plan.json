@@ -1,0 +1,81 @@
+{
+  "project_name": "YakRooms-FE",
+  "test_plan": [
+    {
+      "id": "auth_001",
+      "title": "User Authentication - Google OAuth",
+      "description": "Test Google OAuth authentication flow for users",
+      "steps": [
+        "Navigate to the landing page",
+        "Click on 'Login' or 'Sign In' button",
+        "Verify Google OAuth popup appears",
+        "Complete Google authentication",
+        "Verify successful login and redirect to appropriate dashboard"
+      ],
+      "expected_result": "User should be able to authenticate using Google OAuth and be redirected to the appropriate dashboard based on their role"
+    },
+    {
+      "id": "booking_001",
+      "title": "Hotel Search and Discovery",
+      "description": "Test hotel search functionality with rural context",
+      "steps": [
+        "Navigate to hotel listing page",
+        "Test search by location (rural areas)",
+        "Apply filters for price, amenities, and availability",
+        "Verify search results show local accommodations",
+        "Test offline search with cached data"
+      ],
+      "expected_result": "Users should be able to search for hotels in rural areas with appropriate filters and offline support"
+    },
+    {
+      "id": "pwa_001",
+      "title": "PWA Installation and Offline Support",
+      "description": "Test Progressive Web App installation and offline functionality",
+      "steps": [
+        "Open the application in a supported browser",
+        "Verify PWA install prompt appears",
+        "Install the PWA to home screen",
+        "Test offline functionality after installation",
+        "Verify service worker caching works properly"
+      ],
+      "expected_result": "PWA should install successfully and provide offline functionality"
+    },
+    {
+      "id": "dashboard_001",
+      "title": "Hotel Admin Dashboard",
+      "description": "Test hotel management dashboard features",
+      "steps": [
+        "Login as HOTEL_ADMIN",
+        "Navigate to hotel admin dashboard",
+        "Test room management (add, edit, delete rooms)",
+        "View booking analytics and trends",
+        "Test staff management features",
+        "Verify offline mode for basic management functions"
+      ],
+      "expected_result": "Hotel admins should have full access to management features with offline support"
+    },
+    {
+      "id": "ui_001",
+      "title": "Responsive Design and Mobile Experience",
+      "description": "Test responsive design and mobile user experience",
+      "steps": [
+        "Test application on different screen sizes",
+        "Verify mobile-first design works properly",
+        "Test touch interactions and large touch targets",
+        "Verify simplified interface for rural users",
+        "Test loading states and animations"
+      ],
+      "expected_result": "Application should be fully responsive and optimized for mobile devices"
+    }
+  ],
+  "test_environment": {
+    "browsers": ["Chrome", "Firefox", "Safari", "Edge"],
+    "devices": ["Desktop", "Tablet", "Mobile"],
+    "network_conditions": ["Fast 3G", "Slow 3G", "Offline"],
+    "special_considerations": [
+      "Rural connectivity scenarios",
+      "Local user behavior patterns",
+      "Cultural context and language preferences"
+    ]
+  }
+} 

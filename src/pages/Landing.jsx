@@ -4,22 +4,18 @@ import LoginModal from "../components/LoginModal";
 import "../assets/css/custom.css";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import { motion, AnimatePresence } from "framer-motion";
 import Footer from "../components/Footer";
 import { useInView } from "react-intersection-observer";
 import HeroLG from "../components/hero/HeroLG";
-import RatingWidget from "../components/RatingWidget";
 import { Link, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
 import FeatureSection from "../components/FeatureSection";
-import HowItWorksSection from "../components/HowItWorksSection";
 import TopHighlightsSection from "../components/TopHighlightsSection";
-import TestimonialsSection from "../components/TestimonialsSection";
-import CTASection from "../components/CTASection";
 import ListYourPropertySection from "../components/ListYourPropertySection";
-import TrustIndicatorsSection from "../components/TrustIndicatorsSection";
+import { useAuth } from "../services/AuthProvider";
 
 const Landing = () => {
+  const { userId, hotelId } = useAuth();
   const [loginShow, setLoginShow] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [certModalOpen, setCertModalOpen] = useState(false);
@@ -56,6 +52,7 @@ const Landing = () => {
 
   const toggleLogin = () => {
     setLoginShow(!loginShow);
+    
   };
 
   useEffect(() => {
@@ -169,6 +166,8 @@ const Landing = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [certiRef]);
+
+
 
   return (
     <>

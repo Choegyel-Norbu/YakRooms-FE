@@ -12,6 +12,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import StarRating from "@/components/ui/star-rating";
 import api from "@/services/Api";
 import YakRoomsLoader from "@/components/loader/YakRoomsLoader";
 
@@ -199,6 +200,21 @@ const ListingCard = ({ item }) => {
           <MapPinIcon className="h-3.5 w-3.5 mr-1" /> {/* Increased icon size */}
           <p className="text-sm line-clamp-1">{location}</p> {/* Increased text size */}
         </div>
+
+        {/* Rating Section */}
+        {item.avgRating > 0 && (
+          <div className="flex items-center gap-2 mb-1">
+            <StarRating 
+              rating={item.avgRating} 
+              size={12} 
+              showRating={true}
+              className="flex-shrink-0"
+            />
+            <span className="text-xs text-gray-500">
+              ({item.avgRating.toFixed(1)} Avg)
+            </span>
+          </div>
+        )}
       </CardContent>
       {/* Adjusted footer padding for consistent spacing */}
       <CardFooter className="p-3 border-t bg-gray-50">

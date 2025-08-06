@@ -4,24 +4,29 @@ import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 
 import { AuthProvider } from "./services/AuthProvider";
+import { BookingProvider } from "./context/BookingContext";
 import PWARegistration from "./components/PWARegistration";
 import OfflineWrapper from "./components/OfflineWrapper";
+import GlobalReviewSheet from "./components/GlobalReviewSheet";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <OfflineWrapper>
-          <AppRouting />
-          <PWARegistration />
-          <ToastContainer />
-          <Toaster 
-            position="bottom-right"
-            closeButton={true}
-            duration={Infinity}
-            richColors={true}
-          />
-        </OfflineWrapper>
+        <BookingProvider>
+          <OfflineWrapper>
+            <AppRouting />
+            <PWARegistration />
+            <GlobalReviewSheet />
+            <ToastContainer />
+            <Toaster 
+              position="bottom-right"
+              closeButton={true}
+              duration={Infinity}
+              richColors={true}
+            />
+          </OfflineWrapper>
+        </BookingProvider>
       </AuthProvider>
     </BrowserRouter>
   );

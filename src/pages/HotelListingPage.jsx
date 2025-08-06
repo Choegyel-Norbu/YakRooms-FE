@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import YakRoomsLoader from "../components/loader/YakRoomsLoader";
+import StarRating from "@/components/ui/star-rating";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -188,6 +189,7 @@ const HotelListingPage = () => {
     type: hotel.hotelType || "Hotel",
     amenities: hotel.amenities || [],
     address: hotel.address, // Add address to transformed data
+    averageRating: hotel.averageRating || 0, // Include average rating from API
   });
 
   const transformedHotels = hotels.map(transformHotelData);
@@ -498,15 +500,21 @@ const HotelListingPage = () => {
                           <span className="font-medium">{hotel.district}, Bhutan</span>
                         </CardDescription>
 
-                        {/* Address Section - Compact */}
-                        <div className="space-y-1">
-                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-                            Address
-                          </p>
-                          <p className="text-sm text-foreground line-clamp-2">
-                            {hotel.address || "Address not available"}
-                          </p>
-                        </div>
+                        {/* Rating Section */}
+                        {hotel.averageRating > 0 && (
+                          <div className="flex items-center gap-2 pt-1">
+                            <StarRating 
+                              rating={hotel.averageRating} 
+                              size={14} 
+                              showRating={true}
+                              className="flex-shrink-0"
+                            />
+                            <span className="text-xs text-muted-foreground">
+                              ({hotel.averageRating.toFixed(1)} Avg)
+                            </span>
+                          </div>
+                        )}
+
                       </div>
                     </CardHeader>
 

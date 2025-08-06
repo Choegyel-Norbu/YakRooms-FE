@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5173",
+  "loginUser": "YakRoom Test",
+  "loginPassword": "yakrooms",
+  "executionArgs": {
+    "projectName": "YakRooms-FE",
+    "projectPath": "/Users/mac/Documents/Projects/YakRooms/YakRooms-FE",
+    "testIds": [],
+    "additionalInstruction": "Focus on testing the rural context features, offline functionality, local guest booking flows, and PWA capabilities. Include tests for multi-language support, local payment methods, and simplified user interfaces for users with limited tech experience.",
+    "envs": {
+      "API_KEY": "sk-user-SeogugBqEazjVMguk9QRjXqKim8KFoK3AygXn32eGdVdIOOyVuGpxK2p_0qgfDFTAj2ST0YKhQvNiXWcvgkBK4bCqBHEbaHL5ys8c9-ACW0rLQrrBKBmwsE9vw1luu2EFI8"
+    }
+  },
+  "proxy": "http://4af053ff-8e75-4e52-932d-b30b8113ee6d:LwSJtyFchqny4hY7J5cJ3QQWPxKuVsiw@tun.testsprite.com:8080"
+}

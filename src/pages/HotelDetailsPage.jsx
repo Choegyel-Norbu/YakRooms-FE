@@ -4,6 +4,8 @@ import RoomBookingCard from "../components/cards/RoomBookingCard.jsx";
 import Footer from "../components/Footer";
 import YakRoomsAdCard from "../components/cards/YakRoomsAdCard";
 import YakRoomsLoader from "@/components/loader/YakRoomsLoader";
+import StarRating from "@/components/ui/star-rating";
+import HotelReviewSheet from "../components/HotelReviewSheet";
 import api from "../services/Api";
 
 import {
@@ -57,7 +59,7 @@ import {
 import { useAuth } from "@/services/AuthProvider.jsx";
 
 const HotelDetailsPage = () => {
-  // const { isAuthenticated, hotelId } = useAuth();
+  const { userId, isAuthenticated } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [hotel, setHotel] = useState(null);
@@ -66,11 +68,19 @@ const HotelDetailsPage = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [reviewSheetOpen, setReviewSheetOpen] = useState(false);
 
   // State for rooms and pagination
   const [availableRooms, setAvailableRooms] = useState([]);
   const [paginationData, setPaginationData] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
+
+  // State for testimonials
+  const [testimonials, setTestimonials] = useState([]);
+  const [testimonialsLoading, setTestimonialsLoading] = useState(false);
+  const [testimonialsError, setTestimonialsError] = useState(null);
+  const [testimonialsPagination, setTestimonialsPagination] = useState(null);
+  const [currentTestimonialPage, setCurrentTestimonialPage] = useState(0);
 
   // Refs for scrolling
   const roomsSectionRef = useRef(null);
@@ -131,6 +141,29 @@ const HotelDetailsPage = () => {
     }
   }, [id, currentPage, hotel]);
 
+  // Fetch testimonials
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        setTestimonialsLoading(true);
+        setTestimonialsError(null);
+        const response = await api.get(`/reviews/hotel/${id}/testimonials/paginated?page=${currentTestimonialPage}&size=3`);
+        setTestimonials(response.data.content || []);
+        setTestimonialsPagination(response.data);
+      } catch (err) {
+        console.error("Error fetching testimonials:", err);
+        setTestimonialsError("Failed to load testimonials");
+        setTestimonials([]);
+      } finally {
+        setTestimonialsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchTestimonials();
+    }
+  }, [id, currentTestimonialPage]);
+
   useEffect(() => {
     if (isInitialLoad.current) {
       isInitialLoad.current = false;
@@ -177,6 +210,37 @@ const HotelDetailsPage = () => {
       // Fallback to clipboard
       navigator.clipboard.writeText(window.location.href);
       // You could show a toast notification here
+    }
+  };
+
+  const openReviewSheet = () => {
+    setReviewSheetOpen(true);
+  };
+
+  const closeReviewSheet = () => {
+    setReviewSheetOpen(false);
+  };
+
+  const handleReviewSubmitSuccess = () => {
+    setReviewSheetOpen(false);
+    // Refresh testimonials after successful review submission
+    const fetchTestimonials = async () => {
+      try {
+        setTestimonialsLoading(true);
+        setTestimonialsError(null);
+        const response = await api.get(`/reviews/hotel/${id}/testimonials/paginated?page=${currentTestimonialPage}&size=3`);
+        setTestimonials(response.data.content || []);
+        setTestimonialsPagination(response.data);
+      } catch (err) {
+        console.error("Error fetching testimonials:", err);
+        setTestimonialsError("Failed to load testimonials");
+      } finally {
+        setTestimonialsLoading(false);
+      }
+    };
+    
+    if (id) {
+      fetchTestimonials();
     }
   };
 
@@ -345,7 +409,6 @@ const HotelDetailsPage = () => {
             </div>
           </div>
 
-          {/* Reduced card content padding for mobile */}
           <CardContent className="px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8 bg-gradient-to-br from-white to-slate-50/50">
             <div className="space-y-4 sm:space-y-6">
               {/* Hotel Header Section */}
@@ -353,7 +416,7 @@ const HotelDetailsPage = () => {
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                   <div className="space-y-2 sm:space-y-3">
                     {/* Hotel Name with Uniform Typography */}
-                    <h1 className="text-base sm:text-base md:text-base font-semibold tracking-tight text-slate-800 leading-tight">
+                    <h1 className="text-base sm:text-base md:text-sm font-semibold tracking-tight text-slate-800 leading-tight">
                       {transformedHotel.name}
                     </h1>
 
@@ -364,7 +427,7 @@ const HotelDetailsPage = () => {
                         <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 mr-3 group-hover:shadow-md transition-all duration-200">
                           <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
                         </div>
-                        <span className="text-sm sm:text-base text-slate-600 font-normal group-hover:text-slate-700 transition-colors duration-200">
+                        <span className="text-sm text-slate-600 font-normal group-hover:text-slate-700 transition-colors duration-200">
                           {transformedHotel.district}, Bhutan
                         </span>
                       </div>
@@ -376,7 +439,7 @@ const HotelDetailsPage = () => {
                         </div>
                         <a
                           href={`tel:${transformedHotel.phone}`}
-                          className="text-sm sm:text-base text-slate-600 font-normal hover:text-emerald-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 rounded-md px-1 py-0.5"
+                          className="text-sm text-slate-600 font-normal hover:text-emerald-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 rounded-md px-1 py-0.5"
                           aria-label={`Call ${transformedHotel.name} at ${transformedHotel.phone}`}
                         >
                           {transformedHotel.phone}
@@ -385,7 +448,7 @@ const HotelDetailsPage = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-start justify-start">
+                  <div className="flex items-start justify-start flex-col gap-3">
                     <div className="relative group">
                       <div className="absolute -inset-1 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg blur opacity-25 group-hover:opacity-40 transition duration-200"></div>
                       <div className="relative px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
@@ -394,6 +457,34 @@ const HotelDetailsPage = () => {
                         </span>
                       </div>
                     </div>
+
+                    {/* Rating Section */}
+                    {transformedHotel.averageRating > 0 && (
+                      <div className="flex items-center gap-2">
+                        <StarRating 
+                          rating={transformedHotel.averageRating} 
+                          size={16} 
+                          showRating={true}
+                          className="flex-shrink-0"
+                        />
+                        <span className="text-sm text-slate-600">
+                          Avg
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Review Button - Only show for authenticated users */}
+                    {isAuthenticated && (
+                      <Button
+                        onClick={openReviewSheet}
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2 text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-colors duration-200 cursor-pointer"
+                      >
+                        <Star className="h-4 w-4" />
+                        Help Others Choose — Leave Feedback
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -407,7 +498,7 @@ const HotelDetailsPage = () => {
               {/* Description Section */}
               <div className="relative">
                 <div className="prose prose-slate prose-sm sm:prose-base max-w-none">
-                  <p className="text-slate-600 leading-relaxed text-sm sm:text-base font-normal tracking-wide">
+                  <p className="text-slate-600 leading-relaxed text-sm font-normal tracking-wide">
                     {transformedHotel.description}
                   </p>
                 </div>
@@ -452,6 +543,122 @@ const HotelDetailsPage = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Testimonials Section */}
+            {/* <Card> */}
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                  <Star className="h-5 w-5 text-yellow-500" />
+                  Guest Reviews
+                </CardTitle>
+                <CardDescription className="text-sm">
+                  What our guests say about their stay
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {testimonialsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <YakRoomsLoader 
+                      size={40} 
+                      showTagline={false} 
+                      loadingText=""
+                      className="mb-2"
+                    />
+                  </div>
+                ) : testimonialsError ? (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-muted-foreground">
+                      {testimonialsError}
+                    </p>
+                  </div>
+                ) : testimonials.length > 0 ? (
+                  <div className="space-y-4">
+                    {testimonials.map((testimonial) => (
+                      <div
+                        key={testimonial.id}
+                        className="sm:border sm:border-gray-100 sm:rounded-lg p-4 sm:hover:shadow-sm transition-shadow duration-200"
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* User Avatar */}
+                          <div className="flex-shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                              {testimonial.userProfilePicUrl ? (
+                                <img
+                                  src={testimonial.userProfilePicUrl}
+                                  alt={testimonial.userName}
+                                  className="w-10 h-10 rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-sm font-medium text-blue-600">
+                                  {testimonial.userName?.charAt(0)?.toUpperCase() || 'G'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Review Content */}
+                          <div className="flex-1 min-w-0">
+                            {/* Header with name, rating, and date - responsive layout */}
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                              {/* Left side: Name and rating */}
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {testimonial.userName}
+                                </span>
+                                <StarRating 
+                                  rating={testimonial.rating} 
+                                  size={14} 
+                                  showRating={false}
+                                  className="flex-shrink-0"
+                                />
+                              </div>
+                              
+                              {/* Right side: Date - positioned at top right on larger screens */}
+                              <span className="text-xs text-gray-500 sm:text-right">
+                                {new Date(testimonial.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            
+                            {testimonial.comment && (
+                              <p className="text-sm text-gray-700 leading-relaxed">
+                                "{testimonial.comment}"
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    
+                    {/* Load More Button */}
+                    {testimonialsPagination && testimonialsPagination.totalPages > 1 && (
+                      <div className="flex justify-center pt-6 pb-2">
+                        {currentTestimonialPage < testimonialsPagination.totalPages - 1 ? (
+                          <Button
+                            variant="outline"
+                            onClick={() => setCurrentTestimonialPage(currentTestimonialPage + 1)}
+                            className="flex items-center gap-2 px-6 py-2"
+                          >
+                            Load More...
+                          </Button>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Star className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      No reviews yet. Be the first to share your experience!
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            {/* </Card> */}
 
             {/* Enhanced Rooms Section */}
             <div ref={roomsSectionRef} className="space-y-6 scroll-mt-24">
@@ -723,6 +930,14 @@ const HotelDetailsPage = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Hotel Review Sheet */}
+      <HotelReviewSheet
+        isOpen={reviewSheetOpen}
+        userId={userId}
+        hotelId={id}
+        onSubmitSuccess={handleReviewSubmitSuccess}
+      />
     </div>
   );
 };
