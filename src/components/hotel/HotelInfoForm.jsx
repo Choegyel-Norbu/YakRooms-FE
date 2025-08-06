@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../../services/AuthProvider";
 import api from "../../services/Api";
 import { uploadFile } from "../../lib/uploadService.jsx";
-import { CheckCircle, XCircle, Upload } from "lucide-react";
+import { CheckCircle, XCircle, Upload, Plus, X } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -28,10 +28,12 @@ import {
   FormLabel,
   FormMessage,
 } from "../../components/ui/form";
+import { Badge } from "../../components/ui/badge";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { getCategorizedAmenities } from "../../utils/amenitiesHelper";
 
 const formSchema = z.object({
   name: z.string().min(1, "Hotel name is required"),
@@ -42,6 +44,7 @@ const formSchema = z.object({
   description: z.string().min(1, "Description is required"),
   photoUrls: z.array(z.string()).optional(),
   license: z.string().optional(),
+  amenities: z.array(z.string()).optional(),
 });
 
 const HotelInfoForm = ({ hotel, onUpdate }) => {
@@ -49,6 +52,8 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
   const [formData, setFormData] = useState(hotel);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedAmenities, setSelectedAmenities] = useState(hotel.amenities || []);
+  const [availableAmenities] = useState(getCategorizedAmenities("hotel"));
 
   const districts = [
     "Thimphu",
@@ -84,11 +89,13 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       description: hotel.description || "",
       photoUrls: hotel.photoUrls || [],
       license: hotel.license || "",
+      amenities: hotel.amenities || [],
     },
   });
 
   useEffect(() => {
     setFormData(hotel);
+    setSelectedAmenities(hotel.amenities || []);
     form.reset({
       name: hotel.name || "",
       hotelType: hotel.hotelType || "",
@@ -98,6 +105,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       description: hotel.description || "",
       photoUrls: hotel.photoUrls || [],
       license: hotel.license || "",
+      amenities: hotel.amenities || [],
     });
   }, [hotel, form]);
 
@@ -134,6 +142,15 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
     form.setValue("photoUrls", updatedPhotoUrls);
   };
 
+  const handleAmenityToggle = (amenity) => {
+    const updatedAmenities = selectedAmenities.includes(amenity)
+      ? selectedAmenities.filter((a) => a !== amenity)
+      : [...selectedAmenities, amenity];
+    
+    setSelectedAmenities(updatedAmenities);
+    form.setValue("amenities", updatedAmenities);
+  };
+
   const onSubmit = async (values) => {
     setIsLoading(true);
 
@@ -141,6 +158,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       const updateData = {
         ...values,
         contact: values.phone,
+        amenities: selectedAmenities,
         id: formData.id,
       };
 
@@ -174,6 +192,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                 setIsEditing(false);
                 form.reset(hotel);
                 setFormData(hotel);
+                setSelectedAmenities(hotel.amenities || []);
               }}
               disabled={isLoading}
             >
@@ -311,6 +330,81 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                   </FormItem>
                 )}
               />
+
+              {/* Amenities Section */}
+              <div className="md:col-span-2">
+                <Label className="block text-sm font-medium text-gray-700 mb-3">
+                  Hotel Amenities
+                </Label>
+                
+                {/* Selected Amenities Display */}
+                {selectedAmenities.length > 0 && (
+                  <div className="mb-4">
+                    <h5 className="text-sm font-medium text-gray-600 mb-2">Selected Amenities:</h5>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedAmenities.map((amenity) => (
+                        <Badge
+                          key={amenity}
+                          variant="secondary"
+                          className="flex items-center gap-1"
+                        >
+                          {amenity}
+                          {isEditing && (
+                            <button
+                              type="button"
+                              onClick={() => handleAmenityToggle(amenity)}
+                              className="ml-1 hover:text-destructive"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          )}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Amenities Selection */}
+                {isEditing && (
+                  <div className="space-y-4">
+                    {Object.entries(availableAmenities).map(([category, amenities]) => (
+                      <div key={category} className="border rounded-lg p-4">
+                        <h6 className="text-sm font-medium text-gray-700 mb-3 capitalize">
+                          {category.replace(/([A-Z])/g, ' $1').trim()}
+                        </h6>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                          {amenities.map((amenity) => (
+                            <button
+                              key={amenity}
+                              type="button"
+                              onClick={() => handleAmenityToggle(amenity)}
+                              className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md border transition-colors ${
+                                selectedAmenities.includes(amenity)
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-background hover:bg-accent border-border"
+                              }`}
+                            >
+                              {selectedAmenities.includes(amenity) ? (
+                                <CheckCircle className="h-4 w-4" />
+                              ) : (
+                                <Plus className="h-4 w-4" />
+                              )}
+                              {amenity}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Read-only view when not editing */}
+                {!isEditing && selectedAmenities.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No amenities selected
+                  </p>
+                )}
+              </div>
 
               <div className="md:col-span-2">
                 <Label className="block text-sm font-medium text-gray-700 mb-1">
