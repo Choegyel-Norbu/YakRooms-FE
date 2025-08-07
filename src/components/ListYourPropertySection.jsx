@@ -49,11 +49,11 @@ const ListYourPropertySection = ({ onLoginClick }) => {
       title: "Reach More Travelers",
       description: "Access thousands of potential guests",
     },
-    {
-      icon: Shield,
-      title: "Secure Payments",
-      description: "Guaranteed payments with fraud protection",
-    },
+    // {
+    //   icon: Shield,
+    //   title: "Secure Payments",
+    //   description: "Guaranteed payments with fraud protection",
+    // },
   ];
 
   const stats = [
@@ -110,7 +110,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold mb-4">Why Partner with Us?</h3>
                 {benefits.map((benefit, index) => (
-                  <Card key={index} className="hover:shadow-md transition-all duration-200 group">
+                  // <Card key={index} className="hover:shadow-md transition-all duration-200 group">
                     <CardContent className="p-6">
                       <div className="flex items-start space-x-4">
                         <div className="p-3 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
@@ -126,7 +126,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                         </div>
                       </div>
                     </CardContent>
-                  </Card>
+                  // </Card>
                 ))}
               </div>
             </div>
@@ -223,9 +223,9 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                       </Link>
                     )}
                     
-                    <Button variant="outline" size="lg" className="w-full">
+                    {/* <Button variant="outline" size="lg" className="w-full">
                       Learn More About Partnership
-                    </Button>
+                    </Button> */}
                   </div>
 
                   <Separator />

@@ -200,6 +200,7 @@ export default function RoomBookingCard({ room, hotelId }) {
         <Button onClick={handleBookNowClick}>Book Now</Button>
       </div>
 
+
       {/* Booking Dialog */}
       {/* This Dialog's `open` state is completely independent */}
       <Dialog open={openBookingDialog} onOpenChange={setOpenBookingDialog}>

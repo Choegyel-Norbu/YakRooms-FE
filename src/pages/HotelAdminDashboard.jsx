@@ -59,6 +59,7 @@ import {
 import HotelInfoForm from "../components/hotel/HotelInfoForm.jsx";
 import RoomManager from "../components/RoomManager.jsx";
 import BookingTable from "../components/hotel/BookingTable.jsx";
+import AdminBookingForm from "../components/hotel/AdminBookingForm.jsx";
 import { useAuth } from "../services/AuthProvider.jsx";
 import api from "../services/Api.jsx";
 import { Client } from "@stomp/stompjs";
@@ -388,6 +389,11 @@ const HotelAdminDashboard = () => {
         booking.id === id ? { ...booking, status } : booking
       )
     );
+  };
+
+  const handleBookingSuccess = () => {
+    // Refresh bookings when a new booking is created
+    fetchHotelData();
   };
 
   // Delete account/hotel function
@@ -1029,6 +1035,22 @@ const HotelAdminDashboard = () => {
 
           {activeTab === "booking" && (
             <div className="space-y-4">
+              {/* Admin Booking Form */}
+              <Card>
+                <CardHeader className="">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    Create New Booking
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 md:px-6 md:pb-6">
+                  <AdminBookingForm 
+                    hotelId={hotelId} 
+                    onBookingSuccess={handleBookingSuccess}
+                  />
+                </CardContent>
+              </Card>
+
               {/* Passcode Verification Toggle */}
               <div className="mb-2">
                 <Button
