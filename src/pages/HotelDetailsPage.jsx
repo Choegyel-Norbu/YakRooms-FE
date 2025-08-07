@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import RoomBookingCard from "../components/cards/RoomBookingCard.jsx";
 import Footer from "../components/Footer";
@@ -62,29 +62,43 @@ const HotelDetailsPage = () => {
   const { userId, isAuthenticated } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
-  const [hotel, setHotel] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [reviewSheetOpen, setReviewSheetOpen] = useState(false);
+  
+  // Combined state for better performance
+  const [appState, setAppState] = useState({
+    hotel: null,
+    loading: true,
+    error: null,
+    dataLoaded: false, // Track if initial data is loaded
+  });
+  
+  const [uiState, setUiState] = useState({
+    currentImageIndex: 0,
+    isFavorite: false,
+    showImageModal: false,
+    reviewSheetOpen: false,
+  });
 
-  // State for rooms and pagination
-  const [availableRooms, setAvailableRooms] = useState([]);
-  const [paginationData, setPaginationData] = useState(null);
-  const [currentPage, setCurrentPage] = useState(0);
+  // Rooms state
+  const [roomsState, setRoomsState] = useState({
+    availableRooms: [],
+    paginationData: null,
+    currentPage: 0,
+    loading: false,
+  });
 
-  // State for testimonials
-  const [testimonials, setTestimonials] = useState([]);
-  const [testimonialsLoading, setTestimonialsLoading] = useState(false);
-  const [testimonialsError, setTestimonialsError] = useState(null);
-  const [testimonialsPagination, setTestimonialsPagination] = useState(null);
-  const [currentTestimonialPage, setCurrentTestimonialPage] = useState(0);
+  // Testimonials state
+  // const [testimonialsState, setTestimonialsState] = useState({
+  //   testimonials: [],
+  //   loading: false,
+  //   error: null,
+  //   pagination: null,
+  //   currentPage: 0,
+  // });
 
-  // Refs for scrolling
+  // Refs
   const roomsSectionRef = useRef(null);
   const isInitialLoad = useRef(true);
+  const abortControllerRef = useRef(null);
 
   // Amenity icons mapping
   const amenityIcons = {
@@ -97,7 +111,7 @@ const HotelDetailsPage = () => {
     default: CheckCircle,
   };
 
-  const getAmenityIcon = (amenity) => {
+  const getAmenityIcon = useCallback((amenity) => {
     const amenityLower = amenity.toLowerCase();
     if (amenityLower.includes("wifi") || amenityLower.includes("internet"))
       return amenityIcons.wifi;
@@ -112,95 +126,183 @@ const HotelDetailsPage = () => {
     if (amenityLower.includes("air") || amenityLower.includes("ac"))
       return amenityIcons.ac;
     return amenityIcons.default;
-  };
+  }, []);
 
+  // Optimized data fetching with single API call for initial load
+  const fetchInitialData = useCallback(async () => {
+    if (!id || appState.dataLoaded) return;
+
+    // Cancel previous request if exists
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
+    try {
+      setAppState(prev => ({ ...prev, loading: true, error: null }));
+      setRoomsState(prev => ({ ...prev, loading: true }));
+      // setTestimonialsState(prev => ({ ...prev, loading: true, error: null }));
+
+      // Fetch all data in parallel to reduce sequential API calls
+      const [hotelResponse, roomsResponse] = await Promise.all([
+        api.get(`/hotels/details/${id}`, { signal: abortControllerRef.current.signal }),
+        api.get(`/rooms/available/${id}?page=0&size=3`, { signal: abortControllerRef.current.signal }),
+        // api.get(`/reviews/hotel/${id}/testimonials/paginated?page=0&size=3`, { signal: abortControllerRef.current.signal })
+      ]);
+
+      // Update all states together
+      setAppState(prev => ({
+        ...prev,
+        hotel: hotelResponse.data,
+        loading: false,
+        dataLoaded: true,
+      }));
+
+      setRoomsState(prev => ({
+        ...prev,
+        availableRooms: roomsResponse.data.content || [],
+        paginationData: roomsResponse.data,
+        loading: false,
+      }));
+
+      // setTestimonialsState(prev => ({
+      //   ...prev,
+      //   testimonials: testimonialsResponse.data.content || [],
+      //   pagination: testimonialsResponse.data,
+      //   loading: false,
+      // }));
+
+    } catch (err) {
+      if (err.name === 'AbortError') return; // Ignore aborted requests
+      
+      console.error("Error fetching initial data:", err);
+      setAppState(prev => ({
+        ...prev,
+        error: "Failed to load hotel details",
+        loading: false,
+      }));
+      setRoomsState(prev => ({ ...prev, loading: false }));
+      // setTestimonialsState(prev => ({ ...prev, loading: false, error: "Failed to load testimonials" }));
+    }
+  }, [id, appState.dataLoaded]);
+
+  // Separate function for rooms pagination
+  const fetchRooms = useCallback(async (page) => {
+    if (!id) return;
+
+    try {
+      setRoomsState(prev => ({ ...prev, loading: true }));
+      const response = await api.get(`/rooms/available/${id}?page=${page}&size=3`);
+      
+      setRoomsState(prev => ({
+        ...prev,
+        availableRooms: response.data.content || [],
+        paginationData: response.data,
+        currentPage: page,
+        loading: false,
+      }));
+    } catch (err) {
+      console.error("Error fetching rooms:", err);
+      setRoomsState(prev => ({ ...prev, loading: false }));
+    }
+  }, [id]);
+
+  // Separate function for testimonials pagination
+  // const fetchTestimonials = useCallback(async (page) => {
+  //   if (!id) return;
+
+  //   try {
+  //     setTestimonialsState(prev => ({ ...prev, loading: true, error: null }));
+  //     const response = await api.get(`/reviews/hotel/${id}/testimonials/paginated?page=${page}&size=3`);
+      
+  //     setTestimonialsState(prev => ({
+  //       ...prev,
+  //       testimonials: response.data.content || [],
+  //       pagination: response.data,
+  //       currentPage: page,
+  //       loading: false,
+  //     }));
+  //   } catch (err) {
+  //     console.error("Error fetching testimonials:", err);
+  //     setTestimonialsState(prev => ({
+  //       ...prev,
+  //       error: "Failed to load testimonials",
+  //       loading: false,
+  //     }));
+  //   }
+  // }, [id]);
+
+  // Initial data load effect
   useEffect(() => {
-    const fetchHotelData = async () => {
-      try {
-        setLoading(true);
-        if (!hotel) {
-          const response = await api.get(`/hotels/details/${id}`);
-          setHotel(response.data);
-        }
-
-        const res = await api.get(
-          `/rooms/available/${id}?page=${currentPage}&size=3`
-        );
-        setAvailableRooms(res.data.content);
-        setPaginationData(res.data);
-      } catch (err) {
-        setError("Failed to load hotel details");
-        console.error("Error fetching hotel data:", err);
-      } finally {
-        setLoading(false);
+    fetchInitialData();
+    
+    // Cleanup function
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
+  }, [fetchInitialData]);
 
-    if (id) {
-      fetchHotelData();
-    }
-  }, [id, currentPage, hotel]);
-
-  // Fetch testimonials
+  // Room pagination effect - only when page changes, not on initial load
   useEffect(() => {
-    const fetchTestimonials = async () => {
-      try {
-        setTestimonialsLoading(true);
-        setTestimonialsError(null);
-        const response = await api.get(`/reviews/hotel/${id}/testimonials/paginated?page=${currentTestimonialPage}&size=3`);
-        setTestimonials(response.data.content || []);
-        setTestimonialsPagination(response.data);
-      } catch (err) {
-        console.error("Error fetching testimonials:", err);
-        setTestimonialsError("Failed to load testimonials");
-        setTestimonials([]);
-      } finally {
-        setTestimonialsLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchTestimonials();
+    if (appState.dataLoaded && roomsState.currentPage > 0) {
+      fetchRooms(roomsState.currentPage);
     }
-  }, [id, currentTestimonialPage]);
+  }, [roomsState.currentPage, fetchRooms, appState.dataLoaded]);
 
+  // Testimonials pagination effect - only when page changes, not on initial load
+  // useEffect(() => {
+  //   if (appState.dataLoaded && testimonialsState.currentPage > 0) {
+  //     fetchTestimonials(testimonialsState.currentPage);
+  //   }
+  // }, [testimonialsState.currentPage, fetchTestimonials, appState.dataLoaded]);
+
+  // Scroll effect for rooms
   useEffect(() => {
     if (isInitialLoad.current) {
       isInitialLoad.current = false;
-    } else {
+    } else if (roomsState.availableRooms.length > 0) {
       roomsSectionRef.current?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
     }
-  }, [availableRooms]);
+  }, [roomsState.availableRooms]);
 
-  const nextImage = () => {
-    if (hotel?.photoUrls?.length) {
-      setCurrentImageIndex((prev) =>
-        prev === hotel.photoUrls.length - 1 ? 0 : prev + 1
-      );
+  // Memoized UI handlers
+  const nextImage = useCallback(() => {
+    if (appState.hotel?.photoUrls?.length) {
+      setUiState(prev => ({
+        ...prev,
+        currentImageIndex: prev.currentImageIndex === appState.hotel.photoUrls.length - 1 
+          ? 0 
+          : prev.currentImageIndex + 1
+      }));
     }
-  };
+  }, [appState.hotel?.photoUrls?.length]);
 
-  const prevImage = () => {
-    if (hotel?.photoUrls?.length) {
-      setCurrentImageIndex((prev) =>
-        prev === 0 ? hotel.photoUrls.length - 1 : prev - 1
-      );
+  const prevImage = useCallback(() => {
+    if (appState.hotel?.photoUrls?.length) {
+      setUiState(prev => ({
+        ...prev,
+        currentImageIndex: prev.currentImageIndex === 0 
+          ? appState.hotel.photoUrls.length - 1 
+          : prev.currentImageIndex - 1
+      }));
     }
-  };
+  }, [appState.hotel?.photoUrls?.length]);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
+  const handlePageChange = useCallback((page) => {
+    setRoomsState(prev => ({ ...prev, currentPage: page }));
+  }, []);
 
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: hotel.name,
-          text: `Check out ${hotel.name} in ${hotel.district}, Bhutan`,
+          title: appState.hotel.name,
+          text: `Check out ${appState.hotel.name} in ${appState.hotel.district}, Bhutan`,
           url: window.location.href,
         });
       } catch (err) {
@@ -209,42 +311,25 @@ const HotelDetailsPage = () => {
     } else {
       // Fallback to clipboard
       navigator.clipboard.writeText(window.location.href);
-      // You could show a toast notification here
     }
-  };
+  }, [appState.hotel?.name, appState.hotel?.district]);
 
-  const openReviewSheet = () => {
-    setReviewSheetOpen(true);
-  };
+  const openReviewSheet = useCallback(() => {
+    setUiState(prev => ({ ...prev, reviewSheetOpen: true }));
+  }, []);
 
-  const closeReviewSheet = () => {
-    setReviewSheetOpen(false);
-  };
+  const closeReviewSheet = useCallback(() => {
+    setUiState(prev => ({ ...prev, reviewSheetOpen: false }));
+  }, []);
 
-  const handleReviewSubmitSuccess = () => {
-    setReviewSheetOpen(false);
+  const handleReviewSubmitSuccess = useCallback(() => {
+    setUiState(prev => ({ ...prev, reviewSheetOpen: false }));
     // Refresh testimonials after successful review submission
-    const fetchTestimonials = async () => {
-      try {
-        setTestimonialsLoading(true);
-        setTestimonialsError(null);
-        const response = await api.get(`/reviews/hotel/${id}/testimonials/paginated?page=${currentTestimonialPage}&size=3`);
-        setTestimonials(response.data.content || []);
-        setTestimonialsPagination(response.data);
-      } catch (err) {
-        console.error("Error fetching testimonials:", err);
-        setTestimonialsError("Failed to load testimonials");
-      } finally {
-        setTestimonialsLoading(false);
-      }
-    };
-    
-    if (id) {
-      fetchTestimonials();
-    }
-  };
+    // fetchTestimonials(testimonialsState.currentPage);
+  }, []);
 
-  if (loading && isInitialLoad.current) {
+  // Loading state
+  if (appState.loading && isInitialLoad.current) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
@@ -260,7 +345,8 @@ const HotelDetailsPage = () => {
     );
   }
 
-  if (error || !hotel) {
+  // Error state
+  if (appState.error || !appState.hotel) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
         <Card className="w-full max-w-md text-center">
@@ -268,7 +354,7 @@ const HotelDetailsPage = () => {
             <CardTitle className="text-destructive">
               Something went wrong
             </CardTitle>
-            <CardDescription>{error || "Hotel not found"}</CardDescription>
+            <CardDescription>{appState.error || "Hotel not found"}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button onClick={() => navigate(-1)} variant="outline">
@@ -286,10 +372,10 @@ const HotelDetailsPage = () => {
   }
 
   const transformedHotel = {
-    ...hotel,
+    ...appState.hotel,
     images:
-      hotel.photoUrls?.length > 0
-        ? hotel.photoUrls
+      appState.hotel.photoUrls?.length > 0
+        ? appState.hotel.photoUrls
         : ["https://via.placeholder.com/1000x600?text=No+Hotel+Image"],
   };
 
@@ -297,17 +383,14 @@ const HotelDetailsPage = () => {
     <div className="min-h-screen bg-background">
       {/* Optimized header for mobile */}
       <header className="sticky top-0 z-20 border-b bg-background/95">
-        {/* Removed container class to avoid automatic horizontal padding */}
         <div className="mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
           {/* Left side - Navigation */}
           <div className="flex items-center gap-1 sm:gap-2">
-            {/* Home navigation icon */}
             <Button asChild variant="ghost" className="p-2">
               <Link to="/">
                 <Home className="h-5 w-5 " />
               </Link>
             </Button>
-            {/* Back button: icon only on small screens, icon+text on sm+ */}
             <Button
               variant="ghost"
               onClick={() => navigate(-1)}
@@ -316,24 +399,11 @@ const HotelDetailsPage = () => {
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline ml-2">Back</span>
             </Button>
-            {/* Removed Home and YakRooms navigation */}
-            {/* <Button asChild variant="ghost" className="sm:hidden p-2">
-              <Link to="/">
-                <Home className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Separator orientation="vertical" className="h-6 hidden sm:block" />
-            <Button asChild variant="ghost" className="hidden sm:flex">
-              <Link to="/">
-                <Building2 className="mr-2 h-4 w-4" />
-                YakRooms
-              </Link>
-            </Button> */}
           </div>
 
           {/* Center - Optimized title for mobile */}
           <h1 className="text-base sm:text-lg font-bold truncate px-2">
-            {hotel.name}
+            {appState.hotel.name}
           </h1>
 
           {/* Right side - Actions */}
@@ -350,17 +420,16 @@ const HotelDetailsPage = () => {
         </div>
       </header>
 
-      {/* Restored container with proper padding */}
+      {/* Main content */}
       <main className="container mx-auto px-4 sm:px-6 py-6 lg:py-8 space-y-6 sm:space-y-8">
         {/* Enhanced Hero Section */}
         <Card className="overflow-hidden">
-          {/* Optimized image height for mobile */}
           <div className="relative h-48 sm:h-64 md:h-96 lg:h-[500px]">
             <img
-              src={transformedHotel.images[currentImageIndex]}
+              src={transformedHotel.images[uiState.currentImageIndex]}
               alt={transformedHotel.name}
               className="h-full w-full object-cover cursor-pointer"
-              onClick={() => setShowImageModal(true)}
+              onClick={() => setUiState(prev => ({ ...prev, showImageModal: true }))}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
@@ -371,7 +440,6 @@ const HotelDetailsPage = () => {
                   variant="secondary"
                   size="icon"
                   onClick={prevImage}
-                  // Smaller navigation buttons for mobile
                   className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 rounded-full bg-background/80 hover:bg-background h-8 w-8 sm:h-10 sm:w-10"
                 >
                   <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
@@ -392,9 +460,9 @@ const HotelDetailsPage = () => {
               {transformedHotel.images.map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => setCurrentImageIndex(index)}
+                  onClick={() => setUiState(prev => ({ ...prev, currentImageIndex: index }))}
                   className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full transition-all ${
-                    currentImageIndex === index
+                    uiState.currentImageIndex === index
                       ? "bg-white scale-125"
                       : "bg-white/50 hover:bg-white/75"
                   }`}
@@ -405,7 +473,7 @@ const HotelDetailsPage = () => {
 
             {/* Image Counter */}
             <div className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-black/50 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
-              {currentImageIndex + 1} / {transformedHotel.images.length}
+              {uiState.currentImageIndex + 1} / {transformedHotel.images.length}
             </div>
           </div>
 
@@ -415,14 +483,11 @@ const HotelDetailsPage = () => {
               <div className="flex sm:flex-col">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                   <div className="space-y-2 sm:space-y-3">
-                    {/* Hotel Name with Uniform Typography */}
                     <h1 className="text-base sm:text-base md:text-sm font-semibold tracking-tight text-slate-800 leading-tight">
                       {transformedHotel.name}
                     </h1>
 
-                    {/* Location and Contact Info */}
                     <div className="flex flex-col sm:flex-row sm:items-center md:gap-3 sm:gap-6">
-                      {/* Location */}
                       <div className="flex items-center group">
                         <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 mr-3 group-hover:shadow-md transition-all duration-200">
                           <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
@@ -432,7 +497,6 @@ const HotelDetailsPage = () => {
                         </span>
                       </div>
 
-                      {/* Phone */}
                       <div className="flex items-center group">
                         <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 mr-3 group-hover:shadow-md transition-all duration-200">
                           <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600 flex-shrink-0" />
@@ -458,7 +522,6 @@ const HotelDetailsPage = () => {
                       </div>
                     </div>
 
-                    {/* Rating Section */}
                     {transformedHotel.averageRating > 0 && (
                       <div className="flex items-center gap-2">
                         <StarRating 
@@ -473,7 +536,6 @@ const HotelDetailsPage = () => {
                       </div>
                     )}
 
-                    {/* Review Button - Only show for authenticated users */}
                     {isAuthenticated && (
                       <Button
                         onClick={openReviewSheet}
@@ -489,13 +551,11 @@ const HotelDetailsPage = () => {
                 </div>
               </div>
 
-              {/* Elegant Separator */}
               <div className="relative">
                 <Separator className="bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent blur-sm"></div>
               </div>
 
-              {/* Description Section */}
               <div className="relative">
                 <div className="prose prose-slate prose-sm sm:prose-base max-w-none">
                   <p className="text-slate-600 leading-relaxed text-sm font-normal tracking-wide">
@@ -503,7 +563,6 @@ const HotelDetailsPage = () => {
                   </p>
                 </div>
 
-                {/* Subtle background decoration */}
                 <div className="absolute -top-2 -left-2 w-16 h-16 bg-gradient-to-br from-blue-100/30 to-purple-100/30 rounded-full blur-xl -z-10"></div>
                 <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-br from-purple-100/30 to-pink-100/30 rounded-full blur-xl -z-10"></div>
               </div>
@@ -526,145 +585,132 @@ const HotelDetailsPage = () => {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="flex flex-row gap-1 flex-wrap">
-                  {hotel.amenities?.map((amenity, index) => {
-                    const IconComponent = getAmenityIcon(amenity);
-                    return (
-                      <div
-                        key={index}
-                        className="flex items-center p-3 rounded-lg"
-                      >
-                        {/* <IconComponent className="h-5 w-5 mr-3 text-primary flex-shrink-0" /> */}
-                        <span className="text-sm font-normal border border-gray-300 rounded-[20px] px-2 py-1">
-                          {amenity}
-                        </span>
-                      </div>
-                    );
-                  })}
+                  {appState.hotel.amenities?.map((amenity, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center p-3 rounded-lg"
+                    >
+                      <span className="text-sm font-normal border border-gray-300 rounded-[20px] px-2 py-1">
+                        {amenity}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
 
             {/* Testimonials Section */}
-            {/* <Card> */}
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                  <Star className="h-5 w-5 text-yellow-500" />
-                  Guest Reviews
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  What our guests say about their stay
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                {testimonialsLoading ? (
-                  <div className="flex justify-center py-8">
-                    <YakRoomsLoader 
-                      size={40} 
-                      showTagline={false} 
-                      loadingText=""
-                      className="mb-2"
-                    />
-                  </div>
-                ) : testimonialsError ? (
-                  <div className="text-center py-8">
-                    <p className="text-sm text-muted-foreground">
-                      {testimonialsError}
-                    </p>
-                  </div>
-                ) : testimonials.length > 0 ? (
-                  <div className="space-y-4">
-                    {testimonials.map((testimonial) => (
-                      <div
-                        key={testimonial.id}
-                        className="sm:border sm:border-gray-100 sm:rounded-lg p-4 sm:hover:shadow-sm transition-shadow duration-200"
-                      >
-                        <div className="flex items-start gap-3">
-                          {/* User Avatar */}
-                          <div className="flex-shrink-0">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-                              {testimonial.userProfilePicUrl ? (
-                                <img
-                                  src={testimonial.userProfilePicUrl}
-                                  alt={testimonial.userName}
-                                  className="w-10 h-10 rounded-full object-cover"
-                                />
-                              ) : (
-                                <span className="text-sm font-medium text-blue-600">
-                                  {testimonial.userName?.charAt(0)?.toUpperCase() || 'G'}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Review Content */}
-                          <div className="flex-1 min-w-0">
-                            {/* Header with name, rating, and date - responsive layout */}
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                              {/* Left side: Name and rating */}
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                <span className="text-sm font-medium text-gray-900">
-                                  {testimonial.userName}
-                                </span>
-                                <StarRating 
-                                  rating={testimonial.rating} 
-                                  size={14} 
-                                  showRating={false}
-                                  className="flex-shrink-0"
-                                />
-                              </div>
-                              
-                              {/* Right side: Date - positioned at top right on larger screens */}
-                              <span className="text-xs text-gray-500 sm:text-right">
-                                {new Date(testimonial.createdAt).toLocaleDateString()}
+            {/* <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                <Star className="h-5 w-5 text-yellow-500" />
+                Guest Reviews
+              </CardTitle>
+              <CardDescription className="text-sm">
+                What our guests say about their stay
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {testimonialsState.loading ? (
+                <div className="flex justify-center py-8">
+                  <YakRoomsLoader 
+                    size={40} 
+                    showTagline={false} 
+                    loadingText=""
+                    className="mb-2"
+                  />
+                </div>
+              ) : testimonialsState.error ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground">
+                    {testimonialsState.error}
+                  </p>
+                </div>
+              ) : testimonialsState.testimonials.length > 0 ? (
+                <div className="space-y-4">
+                  {testimonialsState.testimonials.map((testimonial) => (
+                    <div
+                      key={testimonial.id}
+                      className="sm:border sm:border-gray-100 sm:rounded-lg p-4 sm:hover:shadow-sm transition-shadow duration-200"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                            {testimonial.userProfilePicUrl ? (
+                              <img
+                                src={testimonial.userProfilePicUrl}
+                                alt={testimonial.userName}
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-sm font-medium text-blue-600">
+                                {testimonial.userName?.charAt(0)?.toUpperCase() || 'G'}
                               </span>
-                            </div>
-                            
-                            {testimonial.comment && (
-                              <p className="text-sm text-gray-700 leading-relaxed">
-                                "{testimonial.comment}"
-                              </p>
                             )}
                           </div>
                         </div>
-                      </div>
-                    ))}
-                    
-                    
-                    {/* Load More Button */}
-                    {testimonialsPagination && testimonialsPagination.totalPages > 1 && (
-                      <div className="flex justify-center pt-6 pb-2">
-                        {currentTestimonialPage < testimonialsPagination.totalPages - 1 ? (
-                          <Button
-                            variant="outline"
-                            onClick={() => setCurrentTestimonialPage(currentTestimonialPage + 1)}
-                            className="flex items-center gap-2 px-6 py-2"
-                          >
-                            Load More...
-                          </Button>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                              <span className="text-sm font-medium text-gray-900">
+                                {testimonial.userName}
+                              </span>
+                              <StarRating 
+                                rating={testimonial.rating} 
+                                size={14} 
+                                showRating={false}
+                                className="flex-shrink-0"
+                              />
+                            </div>
                             
-                          </p>
-                        )}
+                            <span className="text-xs text-gray-500 sm:text-right">
+                              {new Date(testimonial.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          
+                          {testimonial.comment && (
+                            <p className="text-sm text-gray-700 leading-relaxed">
+                              "{testimonial.comment}"
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Star className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      No reviews yet. Be the first to share your experience!
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            {/* </Card> */}
+                    </div>
+                  ))}
+                  
+                  {testimonialsState.pagination && testimonialsState.pagination.totalPages > 1 && (
+                    <div className="flex justify-center pt-6 pb-2">
+                      {testimonialsState.currentPage < testimonialsState.pagination.totalPages - 1 ? (
+                        <Button
+                          variant="outline"
+                          onClick={() => setTestimonialsState(prev => ({ 
+                            ...prev, 
+                            currentPage: prev.currentPage + 1 
+                          }))}
+                          className="flex items-center gap-2 px-6 py-2"
+                        >
+                          Load More...
+                        </Button>
+                      ) : (
+                        <p className="text-sm text-muted-foreground"></p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Star className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    No reviews yet. Be the first to share your experience!
+                  </p>
+                </div>
+              )}
+            </CardContent> */}
 
             {/* Enhanced Rooms Section */}
             <div ref={roomsSectionRef} className="space-y-6 scroll-mt-24">
               <div className="flex items-center justify-between">
                 <div>
-                  {/* Heading size */}
                   <h2 className="text-base font-semibold tracking-tight">
                     Available Rooms
                   </h2>
@@ -672,7 +718,7 @@ const HotelDetailsPage = () => {
                     Choose from our selection of comfortable rooms
                   </p>
                 </div>
-                {loading && (
+                {roomsState.loading && (
                   <YakRoomsLoader 
                     size={40} 
                     showTagline={false} 
@@ -683,8 +729,8 @@ const HotelDetailsPage = () => {
               </div>
 
               <div className="space-y-6 min-h-[400px]">
-                {availableRooms.length > 0
-                  ? availableRooms.map((room) => (
+                {roomsState.availableRooms.length > 0
+                  ? roomsState.availableRooms.map((room) => (
                       <Card
                         key={room.id}
                         className="overflow-hidden transition-all hover:shadow-lg border-0 shadow-md"
@@ -710,14 +756,10 @@ const HotelDetailsPage = () => {
                             )}
                           </div>
 
-                          {/* Restored padding */}
                           <div className="flex flex-1 flex-col justify-between p-6">
-                            {/* Restored spacing */}
                             <div className="space-y-4">
                               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                                {/* Restored spacing */}
                                 <div className="space-y-2">
-                                  {/* Text sizes */}
                                   <CardTitle className="text-xl">
                                     {room.roomType} - Room {room.roomNumber}
                                   </CardTitle>
@@ -726,16 +768,15 @@ const HotelDetailsPage = () => {
                                   </CardDescription>
                                 </div>
                                 <div className="text-right flex-shrink-0">
-                                  {/* Price display with "From" label */}
                                   <div className="text-2xl font-bold text-primary">
-                                    {hotel.lowestPrice ? (
+                                    {appState.hotel.lowestPrice ? (
                                       <>
                                         <span className="text-base font-normal text-muted-foreground">
                                           From{" "}
                                         </span>
                                         Nu.{" "}
                                         {new Intl.NumberFormat("en-IN").format(
-                                          hotel.lowestPrice
+                                          appState.hotel.lowestPrice
                                         )}
                                       </>
                                     ) : (
@@ -755,11 +796,9 @@ const HotelDetailsPage = () => {
 
                               {room.amenities?.length > 0 && (
                                 <div>
-                                  {/* Subtitle */}
                                   <h4 className="font-medium text-sm mb-3 text-muted-foreground">
                                     Room Amenities
                                   </h4>
-                                  {/* Gap spacing */}
                                   <div className="flex flex-wrap gap-2">
                                     {room.amenities.map((amenity, index) => (
                                       <Badge
@@ -775,7 +814,6 @@ const HotelDetailsPage = () => {
                               )}
                             </div>
 
-                            {/* Restored margin and padding */}
                             <div className="mt-6 pt-4 border-t">
                               <RoomBookingCard room={room} hotelId={id} />
                             </div>
@@ -783,11 +821,9 @@ const HotelDetailsPage = () => {
                         </div>
                       </Card>
                     ))
-                  : !loading && (
+                  : !roomsState.loading && (
                       <Card>
-                        {/* Restored padding */}
                         <CardContent className="pt-6">
-                          {/* Restored padding for empty state */}
                           <div className="text-center py-12">
                             <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                             <h3 className="text-lg font-medium mb-2">
@@ -804,7 +840,7 @@ const HotelDetailsPage = () => {
               </div>
 
               {/* Enhanced Pagination */}
-              {paginationData && paginationData.totalPages > 1 && (
+              {roomsState.paginationData && roomsState.paginationData.totalPages > 1 && (
                 <div className="flex justify-center pt-4">
                   <Pagination>
                     <PaginationContent>
@@ -813,22 +849,22 @@ const HotelDetailsPage = () => {
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-                            if (currentPage > 0)
-                              handlePageChange(currentPage - 1);
+                            if (roomsState.currentPage > 0)
+                              handlePageChange(roomsState.currentPage - 1);
                           }}
                           className={
-                            currentPage === 0
+                            roomsState.currentPage === 0
                               ? "pointer-events-none opacity-50"
                               : undefined
                           }
                         />
                       </PaginationItem>
-                      {[...Array(paginationData.totalPages).keys()].map(
+                      {[...Array(roomsState.paginationData.totalPages).keys()].map(
                         (page) => (
                           <PaginationItem key={page}>
                             <PaginationLink
                               href="#"
-                              isActive={currentPage === page}
+                              isActive={roomsState.currentPage === page}
                               onClick={(e) => {
                                 e.preventDefault();
                                 handlePageChange(page);
@@ -844,12 +880,12 @@ const HotelDetailsPage = () => {
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-                            if (currentPage < paginationData.totalPages - 1) {
-                              handlePageChange(currentPage + 1);
+                            if (roomsState.currentPage < roomsState.paginationData.totalPages - 1) {
+                              handlePageChange(roomsState.currentPage + 1);
                             }
                           }}
                           className={
-                            currentPage >= paginationData.totalPages - 1
+                            roomsState.currentPage >= roomsState.paginationData.totalPages - 1
                               ? "pointer-events-none opacity-50"
                               : undefined
                           }
@@ -875,21 +911,21 @@ const HotelDetailsPage = () => {
                 <div className="flex justify-between">
                   <span className="text-sm">Hotel Type</span>
                   <span className="text-sm">
-                    {hotel.hotelType || "Hotel"}
+                    {appState.hotel.hotelType || "Hotel"}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">District</span>
-                  <span className="text-sm">{hotel.district}</span>
+                  <span className="text-sm">{appState.hotel.district}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Address</span>
-                  <span className="text-sm">{hotel.address}</span>
+                  <span className="text-sm">{appState.hotel.address}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Total Rooms</span>
                   <span className="text-sm">
-                    {availableRooms.length}+ available
+                    {roomsState.availableRooms.length}+ available
                   </span>
                 </div>
               </CardContent>
@@ -901,14 +937,16 @@ const HotelDetailsPage = () => {
       <Footer />
 
       {/* Image Modal for mobile */}
-      <Sheet open={showImageModal} onOpenChange={setShowImageModal}>
+      <Sheet open={uiState.showImageModal} onOpenChange={(open) => 
+        setUiState(prev => ({ ...prev, showImageModal: open }))
+      }>
         <SheetContent side="bottom" className="h-[90vh]">
           <SheetHeader>
-            <SheetTitle>{hotel.name} - Images</SheetTitle>
+            <SheetTitle>{appState.hotel.name} - Images</SheetTitle>
           </SheetHeader>
           <div className="mt-6 relative h-full">
             <img
-              src={transformedHotel.images[currentImageIndex]}
+              src={transformedHotel.images[uiState.currentImageIndex]}
               alt={transformedHotel.name}
               className="h-full w-full object-contain"
             />
@@ -917,9 +955,9 @@ const HotelDetailsPage = () => {
                 {transformedHotel.images.map((_, index) => (
                   <button
                     key={index}
-                    onClick={() => setCurrentImageIndex(index)}
+                    onClick={() => setUiState(prev => ({ ...prev, currentImageIndex: index }))}
                     className={`h-2 w-2 rounded-full transition-all ${
-                      currentImageIndex === index
+                      uiState.currentImageIndex === index
                         ? "bg-primary scale-125"
                         : "bg-muted-foreground/50"
                     }`}
@@ -933,7 +971,7 @@ const HotelDetailsPage = () => {
 
       {/* Hotel Review Sheet */}
       <HotelReviewSheet
-        isOpen={reviewSheetOpen}
+        isOpen={uiState.reviewSheetOpen}
         userId={userId}
         hotelId={id}
         onSubmitSuccess={handleReviewSubmitSuccess}
