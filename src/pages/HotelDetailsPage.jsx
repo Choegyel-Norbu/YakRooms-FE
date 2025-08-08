@@ -69,6 +69,7 @@ const HotelDetailsPage = () => {
     loading: true,
     error: null,
     dataLoaded: false, // Track if initial data is loaded
+    criticalDataLoaded: false, // Track if critical hotel data is loaded
   });
   
   const [uiState, setUiState] = useState({
@@ -99,6 +100,7 @@ const HotelDetailsPage = () => {
   const roomsSectionRef = useRef(null);
   const isInitialLoad = useRef(true);
   const abortControllerRef = useRef(null);
+  const hasInitialDataLoaded = useRef(false);
 
   // Amenity icons mapping
   const amenityIcons = {
@@ -111,26 +113,10 @@ const HotelDetailsPage = () => {
     default: CheckCircle,
   };
 
-  const getAmenityIcon = useCallback((amenity) => {
-    const amenityLower = amenity.toLowerCase();
-    if (amenityLower.includes("wifi") || amenityLower.includes("internet"))
-      return amenityIcons.wifi;
-    if (amenityLower.includes("parking") || amenityLower.includes("park"))
-      return amenityIcons.parking;
-    if (amenityLower.includes("breakfast") || amenityLower.includes("coffee"))
-      return amenityIcons.breakfast;
-    if (amenityLower.includes("restaurant") || amenityLower.includes("dining"))
-      return amenityIcons.restaurant;
-    if (amenityLower.includes("bathroom") || amenityLower.includes("bath"))
-      return amenityIcons.bathroom;
-    if (amenityLower.includes("air") || amenityLower.includes("ac"))
-      return amenityIcons.ac;
-    return amenityIcons.default;
-  }, []);
 
   // Optimized data fetching with single API call for initial load
   const fetchInitialData = useCallback(async () => {
-    if (!id || appState.dataLoaded) return;
+    if (!id || hasInitialDataLoaded.current) return;
 
     // Cancel previous request if exists
     if (abortControllerRef.current) {
@@ -143,48 +129,81 @@ const HotelDetailsPage = () => {
       setRoomsState(prev => ({ ...prev, loading: true }));
       setTestimonialsState(prev => ({ ...prev, loading: true, error: null }));
 
-      // Fetch all data in parallel to reduce sequential API calls
-      const [hotelResponse, roomsResponse, testimonialsResponse] = await Promise.all([
-        api.get(`/hotels/details/${id}`, { signal: abortControllerRef.current.signal }),
+      // Fetch hotel data first (critical for page to function)
+      const hotelResponse = await api.get(`/hotels/details/${id}`, { 
+        signal: abortControllerRef.current.signal 
+      });
+      
+      // Update hotel state immediately once we have the critical data
+      setAppState(prev => ({
+        ...prev,
+        hotel: hotelResponse.data,
+        criticalDataLoaded: true,
+      }));
+      
+      // Mark that we've loaded initial data to prevent re-fetching
+      hasInitialDataLoaded.current = true;
+
+      // Fetch secondary data in parallel (rooms and testimonials)
+      // These can fail without breaking the page
+      const [roomsResult, testimonialsResult] = await Promise.allSettled([
         api.get(`/rooms/available/${id}?page=0&size=3`, { signal: abortControllerRef.current.signal }),
         api.get(`/reviews/hotel/${id}/testimonials/paginated?page=0&size=3`, { signal: abortControllerRef.current.signal })
       ]);
 
-      // Update all states together
+      // Handle rooms data
+      if (roomsResult.status === 'fulfilled') {
+        setRoomsState(prev => ({
+          ...prev,
+          availableRooms: roomsResult.value.data.content || [],
+          paginationData: roomsResult.value.data,
+          loading: false,
+        }));
+      } else {
+        console.error("Error fetching rooms:", roomsResult.reason);
+        setRoomsState(prev => ({ ...prev, loading: false }));
+      }
+
+      // Handle testimonials data
+      if (testimonialsResult.status === 'fulfilled') {
+        setTestimonialsState(prev => ({
+          ...prev,
+          testimonials: testimonialsResult.value.data.content || [],
+          pagination: testimonialsResult.value.data,
+          loading: false,
+        }));
+      } else {
+        console.error("Error fetching testimonials:", testimonialsResult.reason);
+        setTestimonialsState(prev => ({ 
+          ...prev, 
+          loading: false, 
+          error: "Failed to load reviews" 
+        }));
+      }
+      // Set loading to false only after all data fetching attempts are complete
       setAppState(prev => ({
         ...prev,
-        hotel: hotelResponse.data,
         loading: false,
         dataLoaded: true,
       }));
 
-      setRoomsState(prev => ({
-        ...prev,
-        availableRooms: roomsResponse.data.content || [],
-        paginationData: roomsResponse.data,
-        loading: false,
-      }));
-
-      setTestimonialsState(prev => ({
-        ...prev,
-        testimonials: testimonialsResponse.data.content || [],
-        pagination: testimonialsResponse.data,
-        loading: false,
-      }));
-
     } catch (err) {
-      if (err.name === 'AbortError') return; // Ignore aborted requests
+      if (err.name === 'AbortError') {
+        return; // Ignore aborted requests
+      }
       
-      console.error("Error fetching initial data:", err);
+      console.error("Error fetching hotel details:", err);
+      
+      // Only set hotel error when hotel details specifically fail
       setAppState(prev => ({
         ...prev,
         error: "Failed to load hotel details",
         loading: false,
       }));
       setRoomsState(prev => ({ ...prev, loading: false }));
-      setTestimonialsState(prev => ({ ...prev, loading: false, error: "Failed to load testimonials" }));
+      setTestimonialsState(prev => ({ ...prev, loading: false }));
     }
-  }, [id, appState.dataLoaded]);
+  }, [id]);
 
   // Separate function for rooms pagination
   const fetchRooms = useCallback(async (page) => {
@@ -232,6 +251,31 @@ const HotelDetailsPage = () => {
     }
   }, [id]);
 
+  // Reset state when hotel ID changes
+  useEffect(() => {
+    hasInitialDataLoaded.current = false;
+    setAppState({
+      hotel: null,
+      loading: true,
+      error: null,
+      dataLoaded: false,
+      criticalDataLoaded: false,
+    });
+    setRoomsState({
+      availableRooms: [],
+      paginationData: null,
+      currentPage: 0,
+      loading: false,
+    });
+    setTestimonialsState({
+      testimonials: [],
+      loading: false,
+      error: null,
+      pagination: null,
+      currentPage: 0,
+    });
+  }, [id]);
+
   // Initial data load effect
   useEffect(() => {
     fetchInitialData();
@@ -246,17 +290,17 @@ const HotelDetailsPage = () => {
 
   // Room pagination effect - only when page changes, not on initial load
   useEffect(() => {
-    if (appState.dataLoaded && roomsState.currentPage > 0) {
+    if (appState.criticalDataLoaded && roomsState.currentPage > 0) {
       fetchRooms(roomsState.currentPage);
     }
-  }, [roomsState.currentPage, fetchRooms, appState.dataLoaded]);
+  }, [roomsState.currentPage, fetchRooms, appState.criticalDataLoaded]);
 
   // Testimonials pagination effect - only when page changes, not on initial load
   useEffect(() => {
-    if (appState.dataLoaded && testimonialsState.currentPage > 0) {
+    if (appState.criticalDataLoaded && testimonialsState.currentPage > 0) {
       fetchTestimonials(testimonialsState.currentPage);
     }
-  }, [testimonialsState.currentPage, fetchTestimonials, appState.dataLoaded]);
+  }, [testimonialsState.currentPage, fetchTestimonials, appState.criticalDataLoaded]);
 
   // Scroll effect for rooms
   useEffect(() => {
@@ -328,8 +372,8 @@ const HotelDetailsPage = () => {
     fetchTestimonials(testimonialsState.currentPage);
   }, [fetchTestimonials, testimonialsState.currentPage]);
 
-  // Loading state
-  if (appState.loading && isInitialLoad.current) {
+  // Loading state - show YakRooms loader while fetching critical hotel data
+  if (appState.loading && !appState.criticalDataLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
@@ -344,8 +388,8 @@ const HotelDetailsPage = () => {
     );
   }
 
-  // Error state
-  if (appState.error || !appState.hotel) {
+  // Error state - only show when hotel details fetch fails (not secondary data)
+  if (appState.error && !appState.criticalDataLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-background">
         <Card className="w-full max-w-md text-center">

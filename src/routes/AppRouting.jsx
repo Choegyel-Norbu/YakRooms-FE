@@ -68,7 +68,6 @@ const UnauthorizedPage = () => (
 );
 
 const AppRouting = () => {
-  const { isAuthenticated, hasRole } = useAuth();
 
   return (
     <Routes>
