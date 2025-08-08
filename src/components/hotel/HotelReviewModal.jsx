@@ -30,15 +30,15 @@ const HotelReviewModal = ({
   const getAmenityIcon = (amenity) => {
     switch (amenity.toLowerCase()) {
       case "wifi":
-        return <FaWifi className="text-blue-500" />;
+        return <FaWifi className="h-3 w-3 text-blue-500" />;
       case "tv":
-        return <FaTv className="text-purple-500" />;
+        return <FaTv className="h-3 w-3 text-purple-500" />;
       case "ac":
-        return <FaSnowflake className="text-teal-500" />;
+        return <FaSnowflake className="h-3 w-3 text-teal-500" />;
       case "pool":
-        return <FaSwimmingPool className="text-blue-400" />;
+        return <FaSwimmingPool className="h-3 w-3 text-blue-400" />;
       default:
-        return <FaBed className="text-amber-500" />;
+        return <FaBed className="h-3 w-3 text-amber-500" />;
     }
   };
 

@@ -28,6 +28,17 @@ import {
   Bath,
   AirVent,
   Phone,
+  BedSingle,
+  BedDouble,
+  Tv,
+  Snowflake,
+  ParkingCircle,
+  Fan,
+  Mountain,
+  Leaf,
+  Flame,
+  ShieldCheck,
+  Landmark,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -110,7 +121,71 @@ const HotelDetailsPage = () => {
     restaurant: Utensils,
     bathroom: Bath,
     ac: AirVent,
+    "single bed": BedSingle,
+    "double bed": BedDouble,
+    "smart tv": Tv,
+    "air conditioning": Snowflake,
+    "room heater": Snowflake,
+    "private bathroom": Bath,
+    "free parking": ParkingCircle,
+    "complimentary tea/coffee": Coffee,
+    "traditional bhutanese cuisine": Utensils,
+    "room fan": Fan,
+    "ventilation": Fan,
+    "scenic mountain view": Mountain,
+    "eco-friendly amenities": Leaf,
+    "in-room fire extinguisher": Flame,
+    "local travel assistance": MapPin,
+    "24/7 security": ShieldCheck,
+    "balcony": Landmark,
     default: CheckCircle,
+  };
+
+  // Function to get amenity icon
+  const getAmenityIcon = (amenityName) => {
+    if (!amenityName) return amenityIcons.default;
+    
+    // Try exact match first
+    if (amenityIcons[amenityName]) {
+      return amenityIcons[amenityName];
+    }
+    
+    // Try lowercase match
+    const normalizedName = amenityName.toLowerCase().trim();
+    if (amenityIcons[normalizedName]) {
+      return amenityIcons[normalizedName];
+    }
+    
+    // Try partial matches for common patterns
+    const partialMatches = {
+      'bed': BedSingle,
+      'wifi': Wifi,
+      'tv': Tv,
+      'ac': Snowflake,
+      'heater': Snowflake,
+      'bathroom': Bath,
+      'parking': ParkingCircle,
+      'coffee': Coffee,
+      'tea': Coffee,
+      'cuisine': Utensils,
+      'fan': Fan,
+      'mountain': Mountain,
+      'eco': Leaf,
+      'fire': Flame,
+      'security': ShieldCheck,
+      'travel': MapPin,
+      'balcony': Landmark,
+      'view': Mountain,
+    };
+    
+    // Check for partial matches
+    for (const [key, icon] of Object.entries(partialMatches)) {
+      if (normalizedName.includes(key)) {
+        return icon;
+      }
+    }
+    
+    return amenityIcons.default;
   };
 
 
@@ -806,12 +881,12 @@ const HotelDetailsPage = () => {
                                   <CardTitle className="text-xl">
                                     {room.roomType} - Room {room.roomNumber}
                                   </CardTitle>
-                                  <CardDescription className="text-base">
-                                    {room.description}
+                                  <CardDescription className="text-sm">
+                                    - {room.description}
                                   </CardDescription>
                                 </div>
                                 <div className="text-right flex-shrink-0">
-                                  <div className="text-2xl font-bold text-primary">
+                                  <div className="text-2xl font-bold text-yellow-500">
                                     {appState.hotel.lowestPrice ? (
                                       <>
                                         <span className="text-base font-normal text-muted-foreground">
@@ -843,15 +918,19 @@ const HotelDetailsPage = () => {
                                     Room Amenities
                                   </h4>
                                   <div className="flex flex-wrap gap-2">
-                                    {room.amenities.map((amenity, index) => (
-                                      <Badge
-                                        key={index}
-                                        variant="outline"
-                                        className="text-xs"
-                                      >
-                                        {amenity}
-                                      </Badge>
-                                    ))}
+                                    {room.amenities.map((amenity, index) => {
+                                      const AmenityIcon = getAmenityIcon(amenity);
+                                      return (
+                                        <Badge
+                                          key={index}
+                                          variant="outline"
+                                          className="text-xs flex items-center gap-1"
+                                        >
+                                          <AmenityIcon className="h-3 w-3" />
+                                          {amenity}
+                                        </Badge>
+                                      );
+                                    })}
                                   </div>
                                 </div>
                               )}

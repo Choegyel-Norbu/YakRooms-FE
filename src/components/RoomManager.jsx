@@ -1,5 +1,30 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Edit, Trash2, Check, X, Upload, Bed, Wifi, Tv, Snowflake, Waves } from "lucide-react";
+import { 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Check, 
+  X, 
+  Upload, 
+  Bed, 
+  Wifi, 
+  Tv, 
+  Snowflake, 
+  Waves,
+  BedSingle,
+  BedDouble,
+  Bath,
+  ParkingCircle,
+  Coffee,
+  Utensils,
+  Fan,
+  Mountain,
+  Leaf,
+  Flame,
+  MapPin,
+  ShieldCheck,
+  Landmark
+} from "lucide-react";
 import { uploadFile } from "../lib/uploadService";
 import { toast } from "sonner";
 import { useAuth } from "../services/AuthProvider";
@@ -73,15 +98,22 @@ const RoomManager = () => {
 
   // Constants
   const standardAmenities = [
-    { id: 1, name: "Single Bed", icon: Bed },
-    { id: 2, name: "Double Bed", icon: Bed },
-    { id: 3, name: "Queen Bed", icon: Bed },
-    { id: 4, name: "King Bed", icon: Bed },
-    { id: 5, name: "Smart TV", icon: Tv },
-    { id: 6, name: "Normal TV", icon: Tv },
-    { id: 7, name: "Wi-Fi", icon: Wifi },
-    { id: 8, name: "Air Conditioning", icon: Snowflake },
-    { id: 9, name: "Swimming Pool Access", icon: Waves },
+    { id: 1, name: "Single Bed", icon: BedSingle },
+    { id: 2, name: "Double Bed", icon: BedDouble },
+    { id: 3, name: "Wi-Fi", icon: Wifi },
+    { id: 4, name: "Smart TV", icon: Tv },
+    { id: 5, name: "Air Conditioning / Room Heater", icon: Snowflake },
+    { id: 6, name: "Private Bathroom", icon: Bath },
+    { id: 7, name: "Free Parking", icon: ParkingCircle },
+    { id: 8, name: "Complimentary Tea/Coffee", icon: Coffee },
+    { id: 9, name: "Traditional Bhutanese Cuisine (on request)", icon: Utensils },
+    { id: 10, name: "Room Fan / Ventilation", icon: Fan },
+    { id: 11, name: "Scenic Mountain View", icon: Mountain },
+    { id: 12, name: "Eco-Friendly Amenities", icon: Leaf },
+    { id: 13, name: "In-room Fire Extinguisher", icon: Flame },
+    { id: 14, name: "Local Travel Assistance", icon: MapPin },
+    { id: 15, name: "24/7 Security", icon: ShieldCheck },
+    { id: 16, name: "Balcony", icon: Landmark }, 
   ];
 
   const roomTypeOptions = [
@@ -454,9 +486,9 @@ const RoomManager = () => {
           </DialogHeader>
 
           <form onSubmit={handleSubmit} ref={formRef} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-4">
               {/* Room Type */}
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1 min-w-[250px]">
                 <Label htmlFor="roomType">
                   Room Type <span className="text-destructive">*</span>
                 </Label>
@@ -481,7 +513,7 @@ const RoomManager = () => {
               </div>
 
               {/* Price */}
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1 min-w-[250px]">
                 <Label htmlFor="price">
                   Price per night (Nu.) <span className="text-destructive">*</span>
                 </Label>
@@ -501,7 +533,7 @@ const RoomManager = () => {
               </div>
 
               {/* Room Number */}
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1 min-w-[250px]">
                 <Label htmlFor="roomNumber">
                   Room Number <span className="text-destructive">*</span>
                 </Label>
@@ -518,7 +550,7 @@ const RoomManager = () => {
               </div>
 
               {/* Availability */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 flex-1 min-w-[250px]">
                 <Checkbox
                   id="available"
                   checked={roomForm.available}
@@ -556,13 +588,13 @@ const RoomManager = () => {
 
               {/* Image Preview */}
               {roomForm.images.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="flex flex-wrap gap-4">
                   {roomForm.images.map((image, index) => (
-                    <div key={index} className="relative group">
+                    <div key={index} className="relative group flex-shrink-0">
                       <img
                         src={image.url}
                         alt={`Room ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-lg border"
+                        className="w-24 h-24 sm:w-32 sm:h-24 object-cover rounded-lg border"
                       />
                       <Button
                         type="button"
@@ -605,7 +637,7 @@ const RoomManager = () => {
             {/* Amenities */}
             <div className="space-y-4">
               <Label>Amenities</Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="flex flex-row flex-wrap gap-3">
                 {standardAmenities.map((amenity) => {
                   const Icon = amenity.icon;
                   const isSelected = roomForm.amenities.some((a) => a.id === amenity.id);
@@ -619,8 +651,8 @@ const RoomManager = () => {
                       }`}
                       onClick={() => toggleAmenity(amenity)}
                     >
-                      <CardContent className="flex items-center p-3">
-                        <Icon className={`h-4 w-4 mr-2 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                      <CardContent className="flex items-center">
+                        <Icon className={`h-4 w-4 mr-1 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
                         <span className="text-sm">{amenity.name}</span>
                       </CardContent>
                     </Card>
