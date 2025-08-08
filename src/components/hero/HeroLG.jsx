@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import YakRoomHero from "@/assets/images/YakRoomHero.png";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,43 +60,50 @@ const HeroLG = () => {
     navigate("/hotels");
   };
 
-  return (
-    <section className="relative flex min-h-screen w-full items-center justify-center bg-background px-4">
+      return (
+      <section 
+        className="relative flex min-h-screen w-full items-center justify-center px-4 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url(${YakRoomHero})`,
+        }}
+      >
+      {/* Dark overlay for better text readability */}
+      <div className="absolute inset-0 bg-black/40"></div>
+      
       <div className="relative z-10 flex w-full max-w-4xl flex-col items-center justify-center space-y-8 text-center">
         {/* Header Section */}
         <div className="space-y-2">
           <div className="flex items-center justify-center space-x-2">
-            <Badge variant="secondary" className="px-3 py-1">
+            <Badge variant="secondary" className="px-3 py-1 bg-white/90 text-slate-900 border-white/20">
               <MapPin className="mr-1 h-3 w-3" />
               Gateway to Bhutan
             </Badge>
           </div>
 
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl text-white">
             Discover Authentic Stays in
-            <span className="block text-primary">Bhutan with YakRooms</span>
+            <span className="block text-yellow-400">Bhutan with YakRooms</span>
           </h1>
 
-
-          <p className="mx-auto max-w-2xl text-14 text-muted-foreground sm:text-xl">
+          <p className="mx-auto max-w-2xl text-14 text-white/90 sm:text-xl">
             Your convenient way to book locally. Discover hotels and restaurants
             in Bhutan with just a few taps.
           </p>
         </div>
 
-        <Separator className="w-24" />
+        <Separator className="w-24 bg-white/30" />
 
         {/* Features Section */}
         <div className="grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3 hidden sm:grid">
-          <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+          <div className="flex items-center justify-center space-x-2 text-sm text-white/80">
             <Clock className="h-4 w-4" />
             <span>Real-time availability</span>
           </div>
-          <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+          <div className="flex items-center justify-center space-x-2 text-sm text-white/80">
             <Shield className="h-4 w-4" />
             <span>Verified accommodations</span>
           </div>
-          <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+          <div className="flex items-center justify-center space-x-2 text-sm text-white/80">
             <MapPin className="h-4 w-4" />
             <span>Local recommendations</span>
           </div>
@@ -110,7 +118,7 @@ const HeroLG = () => {
                 type="text"
                 placeholder="Search district (e.g., Mongar, Samdrup Jongkhar, Trashigang)"
                 className={cn(
-                  "h-10 sm:h-12 pl-10 text-sm sm:text-base",
+                  "h-10 sm:h-12 pl-10 text-sm sm:text-base text-white",
                   searchError && "border-red-500 focus:border-red-500"
                 )}
                 value={searchDistrict}
@@ -136,17 +144,17 @@ const HeroLG = () => {
           </div>
         </div>
 
-        <Separator className="w-full max-w-2xl" />
+        <Separator className="w-full max-w-2xl bg-white/30" />
 
         {/* Call to Action */}
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-white/90">
             Ready to explore Bhutan's cultural heart?
           </p>
           <Button 
             variant="outline" 
             size="lg" 
-            className="group"
+            className="group border-white/30 text-black hover:bg-white/10 hover:text-white hover:border-white/50 cursor-pointer"
             onClick={handleStartExploring}
           >
             Start Exploring
