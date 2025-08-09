@@ -140,8 +140,8 @@ const ListingCard = ({ item }) => {
   // Determine image URL based on the item structure
   const imageUrl =
     item.photoUrls && item.photoUrls.length > 0
-      ? item.photoUrls
-      : "https://via.placeholder.com/400x300?text=No+Image";
+      ? item.photoUrl
+      : "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop&auto=format&q=80";
 
   // Hotel-specific data
   const id = item.id;

@@ -425,7 +425,7 @@ const HotelListingPage = () => {
       district: hotel.district,
       price: hotel.lowestPrice,
       lowestPrice: hotel.lowestPrice,
-      image: hotel.photoUrls?.[0] || 
+      image: hotel.photoUrl || 
         `https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop&auto=format`,
       type: hotel.hotelType || "Hotel",
       amenities: hotel.amenities || [],
