@@ -58,6 +58,219 @@ import {
 } from "@/components/ui/sheet";
 import { useAuth } from "@/services/AuthProvider.jsx";
 
+// Room Image Carousel Component
+const RoomImageCarousel = ({ images, roomNumber, roomType }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === images.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === 0 ? images.length - 1 : prev - 1
+    );
+  };
+
+  const goToImage = (index) => {
+    setCurrentImageIndex(index);
+  };
+
+  // Auto-advance images every 5 seconds
+  useEffect(() => {
+    if (images.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      nextImage();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (images.length <= 1) return;
+      
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault();
+          prevImage();
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          nextImage();
+          break;
+        case ' ':
+          e.preventDefault();
+          setShowImageModal(true);
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [images.length]);
+
+  if (!images || images.length === 0) {
+    return (
+      <div className="h-64 w-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+        <div className="text-center text-slate-500">
+          <Building2 className="h-12 w-12 mx-auto mb-2" />
+          <p className="text-sm">No images available</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="relative h-64 w-full overflow-hidden rounded-t-lg lg:rounded-l-lg lg:rounded-t-none group">
+        {/* Main Image */}
+        <img
+          key={currentImageIndex}
+          src={images[currentImageIndex]}
+          alt={`${roomType} - Room ${roomNumber}`}
+          className={`h-full w-full object-cover cursor-pointer transition-all duration-500 ease-in-out hover:scale-105 ${
+            imageLoading ? 'blur-sm' : 'blur-0'
+          }`}
+          onClick={() => setShowImageModal(true)}
+          onLoad={() => setImageLoading(false)}
+          onError={() => setImageLoading(false)}
+        />
+
+        {/* Loading Overlay */}
+        {imageLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
+            <div className="flex items-center gap-2 text-slate-600">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="text-sm">Loading...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+
+        {/* Navigation Arrows - Only show if multiple images */}
+        {images.length > 1 && (
+          <>
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={prevImage}
+              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-background/90 hover:bg-background h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={nextImage}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-background/90 hover:bg-background h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </>
+        )}
+
+        {/* Image Indicators */}
+        {images.length > 1 && (
+          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+            {images.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToImage(index)}
+                className={`h-2.5 w-2.5 rounded-full transition-all duration-200 ${
+                  currentImageIndex === index
+                    ? "bg-white scale-125 shadow-lg ring-2 ring-white/50"
+                    : "bg-white/50 hover:bg-white/75 hover:scale-110"
+                }`}
+                aria-label={`Go to image ${index + 1}`}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Image Counter */}
+        {images.length > 1 && (
+          <div className="absolute top-3 right-3 bg-black/60 text-white px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
+            {currentImageIndex + 1} / {images.length}
+          </div>
+        )}
+
+        {/* Availability Badge */}
+        <Badge
+          variant="default"
+          className="absolute left-3 top-3 bg-green-600 hover:bg-green-700 shadow-lg"
+        >
+          <CheckCircle className="mr-1 h-3.5 w-3.5" />
+          Available
+        </Badge>
+      </div>
+
+      
+
+      {/* Image Modal */}
+      <Sheet open={showImageModal} onOpenChange={setShowImageModal}>
+        <SheetContent side="bottom" className="h-[90vh]">
+          <SheetHeader>
+            <SheetTitle>{roomType} - Room {roomNumber}</SheetTitle>
+          </SheetHeader>
+          <div className="mt-6 relative h-full">
+            <img
+              src={images[currentImageIndex]}
+              alt={`${roomType} - Room ${roomNumber}`}
+              className="h-full w-full object-contain"
+            />
+            {images.length > 1 && (
+              <>
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                  {images.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => goToImage(index)}
+                      className={`h-2 w-2 rounded-full transition-all ${
+                        currentImageIndex === index
+                          ? "bg-primary scale-125"
+                          : "bg-muted-foreground/50"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <div className="absolute top-4 left-4 right-4 flex justify-between">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    onClick={prevImage}
+                    className="rounded-full bg-background/90 hover:bg-background h-10 w-10"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    onClick={nextImage}
+                    className="rounded-full bg-background/90 hover:bg-background h-10 w-10"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
+  );
+};
+
 const HotelDetailsPage = () => {
   const { userId, isAuthenticated } = useAuth();
   const { id } = useParams();
@@ -617,7 +830,7 @@ const HotelDetailsPage = () => {
           <div className="lg:col-span-2 space-y-8">
             {/* Enhanced Amenities Section */}
             <Card>
-              <CardHeader className="pb-6">
+              <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
                   <CheckCircle className="h-5 w-5 text-primary" />
                   Hotel Amenities
@@ -627,11 +840,11 @@ const HotelDetailsPage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="flex flex-row gap-1 flex-wrap">
+                <div className="flex flex-row flex-wrap">
                   {appState.hotel.amenities?.map((amenity, index) => (
                     <div
                       key={index}
-                      className="flex items-center p-3 rounded-lg"
+                      className="flex items-center p-1 rounded-lg"
                     >
                       <span className="text-sm font-normal border border-gray-300 rounded-[20px] px-2 py-1">
                         {amenity}
@@ -776,27 +989,19 @@ const HotelDetailsPage = () => {
                   ? roomsState.availableRooms.map((room) => (
                       <Card
                         key={room.id}
-                        className="overflow-hidden transition-all hover:shadow-lg border-0 shadow-md"
+                        className="overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-slate-200/50 shadow-md group bg-gradient-to-br from-white to-slate-50/30"
                       >
                         <div className="flex flex-col lg:flex-row">
-                          <div className="lg:w-1/3 relative flex-shrink-0">
-                            <img
-                              src={
-                                room.imageUrl?.[0] ||
-                                `https://via.placeholder.com/500x300?text=Room+${room.roomNumber}`
+                          <div className="lg:w-1/3 relative flex-shrink-0 overflow-hidden">
+                            <RoomImageCarousel
+                              images={
+                                room.imageUrl && Array.isArray(room.imageUrl) && room.imageUrl.length > 0
+                                  ? room.imageUrl
+                                  : [`https://via.placeholder.com/500x300?text=Room+${room.roomNumber}`]
                               }
-                              alt={`Room ${room.roomNumber}`}
-                              className="h-64 w-full object-cover lg:h-full"
+                              roomNumber={room.roomNumber}
+                              roomType={room.roomType}
                             />
-                            {room.available && (
-                              <Badge
-                                variant="default"
-                                className="absolute left-3 top-3 bg-green-600 hover:bg-green-700"
-                              >
-                                <CheckCircle className="mr-1 h-3.5 w-3.5" />
-                                Available
-                              </Badge>
-                            )}
                           </div>
 
                           <div className="flex flex-1 flex-col justify-between p-6">

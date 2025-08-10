@@ -220,7 +220,7 @@ const HotelListingPage = () => {
         setAppState(prev => ({ 
           ...prev, 
           loading: true, 
-          lastFetchKey: fetchKey 
+          lastFetchKey: fetchKey
         }));
 
         let endpoint = `/hotels?page=${page}&size=${pagination.size}`;
@@ -275,7 +275,7 @@ const HotelListingPage = () => {
           setAppState(prev => ({
             ...prev,
             hotels: [],
-            loading: false,
+            loading: true, // Keep loading to show YakRoomsLoader
           }));
         }
       }
@@ -388,8 +388,6 @@ const HotelListingPage = () => {
   const handleSortChange = useCallback((value) => {
     setSearchState(prev => ({ ...prev, sortBy: value }));
   }, []);
-
-
 
   const handleKeyPress = useCallback((e) => {
     if (e.key === 'Enter') {
@@ -633,46 +631,66 @@ const HotelListingPage = () => {
                 className="mb-4"
               />
             </div>
-          ) : transformedHotels.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-                {transformedHotels.map((hotel) => (
-                  <HotelCard key={hotel.id} hotel={hotel} />
-                ))}
-              </div>
-              {renderPagination}
-            </>
           ) : (
-            <Card className="text-center py-16 px-6 bg-muted/20 border-dashed border-2 rounded-xl">
-              <CardContent className="space-y-4">
-                <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                  <Building2 className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <CardTitle className="text-2xl">
-                  {isSearchActive ? "No Hotels Found" : "No Hotels Available"}
-                </CardTitle>
-                <CardDescription className="max-w-md mx-auto">
-                  {isSearchActive 
-                    ? `We couldn't find any hotels matching your search criteria. Try adjusting your filters or search terms.`
-                    : "We couldn't find any hotels. Please try again later."
-                  }
-                </CardDescription>
-                <div className="flex justify-center gap-3 mt-6">
-                  {isSearchActive && (
-                    <Button variant="outline" onClick={handleClearSearch}>
-                      <X className="mr-2 h-4 w-4" />
-                      Clear Search
-                    </Button>
-                  )}
-                  <Button asChild>
-                    <Link to="/">
-                      <Home className="mr-2 h-4 w-4" />
-                      Back to Home
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <>
+              {transformedHotels.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                    {transformedHotels.map((hotel) => (
+                      <HotelCard key={hotel.id} hotel={hotel} />
+                    ))}
+                  </div>
+                  {renderPagination}
+                </>
+              ) : (
+                // Only show no results if we're not loading and have confirmed empty results
+                !appState.loading && appState.initialLoadDone && (
+                  <Card className="text-center py-16 px-6 bg-muted/20 border-dashed border-2 rounded-xl">
+                    <CardContent className="space-y-4">
+                      <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                        <Building2 className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <CardTitle className="text-2xl">
+                        {isSearchActive 
+                          ? "No Hotels Found" 
+                          : (
+                            <div className="flex flex-col items-center justify-center">
+                              <YakRoomsLoader 
+                                size={64} 
+                                showTagline={false} 
+                                loadingText=""
+                                className="mb-2"
+                              />
+                              <span>Loading Hotels...</span>
+                            </div>
+                          )
+                        }
+                      </CardTitle>
+                      <CardDescription className="max-w-md mx-auto">
+                        {isSearchActive 
+                          ? `We couldn't find any hotels matching your search criteria. Try adjusting your filters or search terms.`
+                          : "We couldn't find any hotels. Please try again later."
+                        }
+                      </CardDescription>
+                      <div className="flex justify-center gap-3 mt-6">
+                        {isSearchActive && (
+                          <Button variant="outline" onClick={handleClearSearch}>
+                            <X className="mr-2 h-4 w-4" />
+                            Clear Search
+                          </Button>
+                        )}
+                        <Button asChild>
+                          <Link to="/">
+                            <Home className="mr-2 h-4 w-4" />
+                            Back to Home
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              )}
+            </>
           )}
         </main>
       </div>
