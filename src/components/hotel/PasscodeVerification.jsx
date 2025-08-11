@@ -11,8 +11,10 @@ import api from '@/services/Api';
 const PasscodeVerification = () => {
   const [passcode, setPasscode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checkingIn, setCheckingIn] = useState(false);
   const [bookingData, setBookingData] = useState(null);
   const [error, setError] = useState('');
+  const [checkInMessage, setCheckInMessage] = useState('');
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -40,8 +42,61 @@ const PasscodeVerification = () => {
         return 'secondary';
       case 'CANCELLED':
         return 'destructive';
+      case 'CHECKED_IN':
+        return 'default';
+      case 'CHECKED_OUT':
+        return 'secondary';
       default:
         return 'outline';
+    }
+  };
+
+  const checkIn = async () => {
+    if (!bookingData?.bookingId) {
+      setError('No booking data available');
+      return;
+    }
+
+    setCheckingIn(true);
+    setError('');
+    setCheckInMessage('');
+
+    try {
+      const response = await api.put(`/bookings/${bookingData.bookingId}/status/checked_in`);
+      
+      // Handle the response from ResponseEntity.ok("Booking status updated successfully.")
+      if (response.status === 200) {
+        // Update the local booking data with new status
+        setBookingData(prev => ({
+          ...prev,
+          status: 'CHECKED_IN'
+        }));
+        setCheckInMessage('Check-in successful! Guest has been checked in.');
+        
+        // Clear the success message after 3 seconds
+        setTimeout(() => {
+          setCheckInMessage('');
+        }, 3000);
+      } else {
+        setError('Failed to check in');
+      }
+    } catch (err) {
+      console.error('Check-in error:', err);
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.response?.status === 404) {
+        setError('Booking not found');
+      } else if (err.response?.status === 400) {
+        setError('Invalid status value');
+      } else if (err.response?.status === 403) {
+        setError('You are not authorized to perform this action');
+      } else if (err.response?.status === 409) {
+        setError('Cannot check in. The booking may be in an invalid state.');
+      } else {
+        setError('Network error. Please check your connection and try again.');
+      }
+    } finally {
+      setCheckingIn(false);
     }
   };
 
@@ -160,6 +215,16 @@ const PasscodeVerification = () => {
           </Alert>
         )}
 
+        {/* Status Update Message */}
+        {checkInMessage && (
+          <Alert>
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription className="text-sm font-medium">
+              {checkInMessage}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Booking Details */}
         {bookingData && (
           <div className="space-y-4">
@@ -177,9 +242,14 @@ const PasscodeVerification = () => {
                     <User className="h-4 w-4" />
                     Booking Details
                   </CardTitle>
-                  <Badge variant={getStatusVariant(bookingData.status)} className="text-xs px-2 py-1">
-                    {bookingData.status}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={getStatusVariant(bookingData.status)} className="text-xs px-2 py-1">
+                      {bookingData.status}
+                    </Badge>
+                    {checkingIn && (
+                      <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                    )}
+                  </div>
                 </div>
                 <CardDescription className="text-sm">
                   Booking ID: #{bookingData.bookingId}
@@ -267,14 +337,23 @@ const PasscodeVerification = () => {
                       variant="outline" 
                       onClick={resetForm}
                       className="flex-1 h-9 text-sm"
+                      disabled={checkingIn}
                     >
                       Verify Another Passcode
                     </Button>
                     <Button 
                       className="flex-1 h-9 text-sm"
-                      onClick={() => window.print()}
+                      onClick={checkIn}
+                      disabled={checkingIn || bookingData?.status === 'CHECKED_IN'}
                     >
-                      Print Details
+                      {checkingIn ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Checking In...
+                        </>
+                      ) : (
+                        'Check in'
+                      )}
                     </Button>
                   </div>
                 </div>

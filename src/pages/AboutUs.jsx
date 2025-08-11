@@ -26,10 +26,10 @@ import {
 // YakRooms Text Logo Component (copied from Navbar.jsx)
 const YakRoomsText = ({ size = "default" }) => {
   const textSizes = {
-    // Optimized mobile-first text sizes
-    small: "text-lg font-bold",
-    default: "text-xl font-bold",
-    large: "text-2xl font-bold"
+    // Responsive mobile-first text sizes
+    small: "text-base sm:text-lg font-bold",
+    default: "text-lg sm:text-xl font-bold",
+    large: "text-xl sm:text-2xl lg:text-3xl font-bold"
   };
 
   return (
@@ -44,19 +44,50 @@ const AboutUs = () => {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="relative flex items-center justify-center mb-6">
-          {/* Navigation Button - Left Corner */}
-          <Button variant="ghost" size="sm" asChild className="absolute -left-4 sm:-left-8 lg:-left-12">
-            <Link to="/" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Back to Home</span>
-            </Link>
-          </Button>
-          
-          {/* YakRooms Title - Centered */}
-          <div className="text-center">
-            <YakRoomsText size="large" />
+      <div className="w-full px-4 pt-6 sm:pt-8 pb-4">
+        {/* Mobile-first responsive header */}
+        <div className="block sm:hidden mb-6">
+          {/* Mobile layout: Horizontal */}
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/" className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <div className="text-center">
+              <YakRoomsText size="large" />
+            </div>
+            {/* Empty div for balance */}
+            <div className="w-9"></div>
+          </div>
+        </div>
+        
+        {/* Desktop layout: Grid */}
+        <div className="hidden sm:block">
+          <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8">
+            <div className="grid grid-cols-3 items-center mb-6 gap-4">
+              {/* Navigation Button - Left */}
+              <div className="flex justify-start">
+                <Button variant="ghost" size="sm" asChild className="h-9 px-3">
+                  <Link to="/" className="flex items-center gap-2">
+                    <ArrowLeft className="h-4 w-4" />
+                    <span>Back to Home</span>
+                  </Link>
+                </Button>
+              </div>
+              
+              {/* YakRooms Title - Centered */}
+              <div className="flex justify-center">
+                <div className="text-center">
+                  <YakRoomsText size="large" />
+                </div>
+              </div>
+              
+              {/* Empty right column for balance */}
+              <div className="flex justify-end">
+                {/* This space intentionally left empty for visual balance */}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -64,10 +95,10 @@ const AboutUs = () => {
       {/* Hero Section */}
      
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 space-y-12">
         {/* Why YakRooms */}
         <section>
-          <h2 className="hidden md:block text-2xl font-bold font-heading mb-6 text-center">About us</h2>
+          {/* <h2 className="hidden md:block text-2xl font-bold font-heading mb-6 text-center">About us</h2> */}
           <div className="grid md:grid-cols-3 gap-6">
             <Card>
               <CardHeader>
