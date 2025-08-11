@@ -6,7 +6,6 @@ import API_BASE_URL from "../../config";
 
 const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLoginComplete }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState("");
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
@@ -40,15 +39,14 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
           flag,
         });
         
-        // Show success message before closing
-        setMessage("Login successful! Redirecting...");
+        // Close modal after successful login
         setTimeout(() => {
           onClose();
-        }, 1500); // Close after 1.5 seconds to show success message
+        }, 1000); // Close after 1 second
       }
     } catch (error) {
       console.log(error.message);
-      setMessage("Login failed. Please try again.");
+      // Error handling is now managed by the parent LoginModal
     } finally {
       setIsLoading(false);
       onLoginComplete?.(); // Notify parent that login process is complete
@@ -57,16 +55,6 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
 
   return (
     <div className="space-y-3">
-      {message && (
-        <div className={`text-sm text-center p-2 rounded-md ${
-          message.includes("successful") 
-            ? "bg-green-50 text-green-700 border border-green-200" 
-            : "bg-red-50 text-red-700 border border-red-200"
-        }`}>
-          {message}
-        </div>
-      )}
-      
       <button
         onClick={handleGoogleSignIn}
         disabled={isLoading}

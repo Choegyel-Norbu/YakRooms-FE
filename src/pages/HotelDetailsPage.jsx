@@ -857,8 +857,8 @@ const HotelDetailsPage = () => {
 
             {/* Testimonials Section */}
             <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+              <CardHeader className="pb-0">
+                <CardTitle className="flex items-center text-base font-semibold">
                   
                   Guest Reviews
                 </CardTitle>
@@ -885,7 +885,7 @@ const HotelDetailsPage = () => {
                     {testimonialsState.testimonials.map((testimonial) => (
                       <div
                         key={testimonial.id}
-                        className="sm:border sm:border-gray-100 sm:rounded-lg p-4 sm:hover:shadow-sm transition-shadow duration-200"
+                        className="sm:border sm:border-gray-100 sm:rounded-lg sm:p-4 sm:hover:shadow-sm transition-shadow duration-200"
                       >
                         <div className="flex items-start gap-3">
                           <div className="flex-shrink-0">
@@ -918,7 +918,7 @@ const HotelDetailsPage = () => {
                                 />
                               </div>
                               
-                              <span className="text-xs text-gray-500 sm:text-right">
+                              <span className="hidden md:block text-xs text-gray-500 sm:text-right">
                                 {new Date(testimonial.createdAt).toLocaleDateString()}
                               </span>
                             </div>
