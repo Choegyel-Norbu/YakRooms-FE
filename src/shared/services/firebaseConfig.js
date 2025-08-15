@@ -18,6 +18,6 @@ const provider = new GoogleAuthProvider();
 
 // API configuration
 // const API_BASE_URL = "http://localhost:8080";
-const API_BASE_URL = "https://yakrooms-backend.onrender.com";
+const API_BASE_URL = "https://yakrooms-be-production.up.railway.app";
 
 export { auth, provider, API_BASE_URL };
