@@ -64,7 +64,7 @@ const TopHighlightsSection = () => {
         <div className="container mx-auto">
           {/* Adjusted heading size for better hierarchy */}
           <h3 className="text-center text-2xl font-bold mb-8 text-gray-900">
-            Top Listed Hotels
+            Top Listed Lodges
           </h3>
 
           {loading && (

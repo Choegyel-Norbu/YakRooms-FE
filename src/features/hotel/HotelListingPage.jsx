@@ -402,7 +402,7 @@ const HotelListingPage = () => {
   }, [searchState.district, searchState.hotelType]);
 
   const pageTitle = useMemo(() => {
-    if (!isSearchActive) return "All Hotels in Bhutan";
+    if (!isSearchActive) return "All Lodges in Bhutan";
     
     const parts = [];
     if (searchState.district) parts.push(`Hotels in ${searchState.district}`);
@@ -584,9 +584,9 @@ const HotelListingPage = () => {
                   {appState.loading
                     ? "Searching..."
                     : isSearchActive && pagination.totalElements === 0
-                    ? "No hotels found for this search"
+                    ? "No lodges found for this search"
                     : `${pagination.totalElements} ${
-                        pagination.totalElements === 1 ? "hotel" : "hotels"
+                        pagination.totalElements === 1 ? "lodge" : "lodges"
                       } found`}
                 </p>
 

@@ -134,43 +134,60 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
     console.log('🚀 Starting camera scan...');
     
     if (!readerRef.current) {
-      console.error('❌ No reader ref available');
+      console.error('❌ No reader available');
       setError('QR scanner not initialized. Please refresh the page.');
       return;
     }
     
     if (!selectedDevice) {
-      console.error('❌ No device selected');
+      console.error('❌ No device selected, initializing...');
       await initializeCamera();
-      return;
+      if (!selectedDevice) {
+        setError('No camera device available. Please check your device has a camera.');
+        return;
+      }
     }
 
     try {
       setError(null);
       setIsScanning(true);
       
-      console.log('📹 Starting camera scan with device:', selectedDevice.label);
+      console.log('📹 Starting camera with device:', selectedDevice.label);
       console.log('Device ID:', selectedDevice.deviceId);
       
-      // Create a temporary video element for scanning (not displayed)
-      const tempVideo = document.createElement('video');
-      tempVideo.style.display = 'none';
-      document.body.appendChild(tempVideo);
+      // Start scanning directly without video element
+      const result = await readerRef.current.decodeOnceFromVideoDevice(selectedDevice.deviceId);
       
-      // Start scanning with the temporary video element
-      await readerRef.current.decodeFromVideoDevice(
-        selectedDevice.deviceId,
-        tempVideo,
-        (result, error) => {
-          if (result) {
-            console.log('✅ QR Code detected:', result.getText());
-            handleScanResult(result.getText());
+      if (result) {
+        console.log('✅ QR Code detected:', result.getText());
+        handleScanResult(result.getText());
+      } else {
+        // If single scan doesn't work, use continuous scanning
+        console.log('🔄 Switching to continuous scanning...');
+        
+        // Create a minimal video element for continuous scanning
+        const tempVideo = document.createElement('video');
+        tempVideo.style.position = 'absolute';
+        tempVideo.style.top = '-9999px';
+        tempVideo.style.left = '-9999px';
+        tempVideo.style.width = '1px';
+        tempVideo.style.height = '1px';
+        tempVideo.muted = true;
+        tempVideo.playsInline = true;
+        document.body.appendChild(tempVideo);
+        
+        // Start continuous scanning
+        await readerRef.current.decodeFromVideoDevice(
+          selectedDevice.deviceId,
+          tempVideo,
+          (scanResult, error) => {
+            if (scanResult) {
+              console.log('✅ QR Code detected:', scanResult.getText());
+              handleScanResult(scanResult.getText());
+            }
           }
-          if (error && error.name !== 'NotFoundException') {
-            console.warn('Scanner error (non-critical):', error);
-          }
-        }
-      );
+        );
+      }
       
       console.log('✅ Camera started successfully');
       setHasPermission(true);
@@ -181,23 +198,34 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       
     } catch (err) {
       console.error('❌ Error starting scanner:', err);
-      console.error('Error name:', err.name);
-      console.error('Error message:', err.message);
+      console.error('Error details:', {
+        name: err.name,
+        message: err.message,
+        stack: err.stack
+      });
       
       setIsScanning(false);
       setHasPermission(false);
       
+      let errorMessage = 'Failed to start camera';
+      
       if (err.name === 'NotAllowedError') {
-        setError('Camera permission denied. Please allow camera access and try again.');
+        errorMessage = 'Camera permission denied. Please allow camera access and try again.';
       } else if (err.name === 'NotFoundError') {
-        setError('No camera found. Please ensure your device has a camera.');
+        errorMessage = 'No camera found. Please ensure your device has a camera.';
       } else if (err.name === 'NotReadableError') {
-        setError('Camera is already in use by another application. Please close other apps using the camera.');
+        errorMessage = 'Camera is already in use by another application.';
       } else if (err.name === 'OverconstrainedError') {
-        setError('Camera constraints not supported. Please try a different camera.');
-      } else {
-        setError(`Failed to start camera: ${err.message || 'Unknown error'}`);
+        errorMessage = 'Camera constraints not supported.';
+      } else if (err.message) {
+        errorMessage = `Camera error: ${err.message}`;
       }
+      
+      setError(errorMessage);
+      toast.error("Camera Error", {
+        description: errorMessage,
+        duration: 6000
+      });
     }
   };
 
@@ -206,8 +234,8 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
     
     if (readerRef.current) {
       try {
-        // Find and remove temporary video elements
-        const tempVideos = document.querySelectorAll('video[style*="display: none"]');
+        // Find and remove all temporary video elements
+        const tempVideos = document.querySelectorAll('video[style*="position: absolute"], video[style*="display: none"]');
         tempVideos.forEach(video => {
           if (video.srcObject) {
             const stream = video.srcObject;
@@ -226,6 +254,10 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
         }
         
         console.log('✅ Camera stopped successfully');
+        toast.success("Camera Stopped", {
+          description: "Camera scanning has been stopped",
+          duration: 3000
+        });
       } catch (err) {
         console.warn('Error stopping scanner:', err);
       }
@@ -518,6 +550,33 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
                     <p className="text-sm text-center mb-3">
                       {error ? "Camera unavailable" : "Camera ready to scan"}
                     </p>
+                    {error && (
+                      <div className="text-center space-y-2">
+                        <p className="text-xs text-red-600 mb-2">{error}</p>
+                        <div className="flex flex-col gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setError(null);
+                              setHasPermission(null);
+                              initializeCamera();
+                            }}
+                          >
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Try Again
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => window.location.reload()}
+                          >
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Refresh Page
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                     {!error && (
                       <Button 
                         variant="default" 
