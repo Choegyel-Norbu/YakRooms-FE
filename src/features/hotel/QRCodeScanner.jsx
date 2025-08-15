@@ -1,8 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
-import { Button } from "@/shared/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/card";
-import { Badge } from "@/shared/components/badge";
 import { 
   Camera, 
   CameraOff, 
@@ -12,146 +9,250 @@ import {
   RefreshCw,
   Smartphone,
   Upload,
-  Image as ImageIcon,
   FileImage,
-  X
+  X,
+  ExternalLink,
+  Copy,
+  Shield,
+  ShieldAlert,
+  Info,
+  Play,
+  Pause
 } from "lucide-react";
-import { toast } from "sonner";
 
-// Hook to detect mobile device
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
+// Device detection hook
+const useDeviceCapabilities = () => {
+  const [capabilities, setCapabilities] = useState({
+    isMobile: false,
+    hasCamera: false,
+    hasTouchScreen: false,
+    screenWidth: window.innerWidth
+  });
 
   useEffect(() => {
-    const checkIsMobile = () => {
-      // Check user agent for mobile devices
+    const checkCapabilities = async () => {
+      // Check if mobile
       const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
       const isMobileUA = mobileRegex.test(navigator.userAgent);
-      
-      // Check for touch support
       const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      
-      // Check screen size (mobile-like width)
       const isMobileWidth = window.innerWidth <= 768;
-      
-      // Consider it mobile if it matches user agent OR (has touch AND mobile width)
-      setIsMobile(isMobileUA || (hasTouch && isMobileWidth));
+      const isMobile = isMobileUA || (hasTouch && isMobileWidth);
+
+      // Check camera availability
+      let hasCamera = false;
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        hasCamera = devices.some(device => device.kind === 'videoinput');
+      } catch (err) {
+        console.warn('Could not check camera availability:', err);
+      }
+
+      setCapabilities({
+        isMobile,
+        hasCamera,
+        hasTouchScreen: hasTouch,
+        screenWidth: window.innerWidth
+      });
     };
 
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
+    checkCapabilities();
+    window.addEventListener('resize', checkCapabilities);
     
-    return () => window.removeEventListener('resize', checkIsMobile);
+    return () => window.removeEventListener('resize', checkCapabilities);
   }, []);
 
-  return isMobile;
+  return capabilities;
 };
 
-const QRCodeScanner = ({ onScanSuccess, isActive }) => {
-  const isMobile = useIsMobile();
+// QR Content types detection
+const detectQRContentType = (content) => {
+  // URL detection
+  const urlRegex = /^(https?:\/\/|www\.)/i;
+  if (urlRegex.test(content)) {
+    return { type: 'url', safe: !detectSuspiciousURL(content) };
+  }
+
+  // JSON detection
+  try {
+    const parsed = JSON.parse(content);
+    return { type: 'json', data: parsed, safe: true };
+  } catch {}
+
+  // Email detection
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (emailRegex.test(content)) {
+    return { type: 'email', safe: true };
+  }
+
+  // Phone detection
+  const phoneRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
+  if (phoneRegex.test(content)) {
+    return { type: 'phone', safe: true };
+  }
+
+  // WiFi credential detection
+  if (content.startsWith('WIFI:')) {
+    return { type: 'wifi', safe: true };
+  }
+
+  // Default to text
+  return { type: 'text', safe: true };
+};
+
+// Security: Check for suspicious URLs
+const detectSuspiciousURL = (url) => {
+  const suspiciousPatterns = [
+    /bit\.ly/i,
+    /tinyurl/i,
+    /goo\.gl/i,
+    /ow\.ly/i,
+    /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/,  // IP addresses
+    /@/,  // URLs with @ can be phishing
+    /[^\x00-\x7F]/,  // Non-ASCII characters
+  ];
+
+  const suspiciousDomains = ['tk', 'ml', 'ga', 'cf'];
+
+  // Check patterns
+  if (suspiciousPatterns.some(pattern => pattern.test(url))) {
+    return true;
+  }
+
+  // Check TLD
+  try {
+    const urlObj = new URL(url.startsWith('http') ? url : `http://${url}`);
+    const tld = urlObj.hostname.split('.').pop();
+    if (suspiciousDomains.includes(tld)) {
+      return true;
+    }
+  } catch {}
+
+  return false;
+};
+
+// Sanitize content for display
+const sanitizeContent = (content) => {
+  return content
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .trim();
+};
+
+// Main QR Scanner Component
+const QRCodeScanner = ({ 
+  onScanSuccess = () => {}, 
+  isActive = true,
+  continuousScanning = false,
+  scanThrottle = 2000,
+  darkMode = false,
+  showParsedContent = true,
+  securityWarnings = true
+}) => {
+  const deviceCaps = useDeviceCapabilities();
   const [isScanning, setIsScanning] = useState(false);
   const [hasPermission, setHasPermission] = useState(null);
   const [error, setError] = useState(null);
-  const [lastScanResult, setLastScanResult] = useState(null);
+  const [notification, setNotification] = useState(null);
+  const [scanHistory, setScanHistory] = useState([]);
   const [devices, setDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
-  const [scanMode, setScanMode] = useState(isMobile ? 'camera' : 'upload'); // Default to camera on mobile, upload on desktop
+  const [scanMode, setScanMode] = useState('upload');
   const [uploadedImage, setUploadedImage] = useState(null);
   const [processingUpload, setProcessingUpload] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [parsedContent, setParsedContent] = useState(null);
+  const [isContinuousMode, setIsContinuousMode] = useState(continuousScanning);
   
   const videoRef = useRef(null);
   const readerRef = useRef(null);
   const fileInputRef = useRef(null);
+  const lastScanTimeRef = useRef(0);
 
+  // Set scan mode based on device capabilities
   useEffect(() => {
-    // Initialize the code reader
+    if (deviceCaps.isMobile && deviceCaps.hasCamera) {
+      setScanMode('camera');
+    } else {
+      setScanMode('upload');
+    }
+  }, [deviceCaps]);
+
+  // Initialize reader
+  useEffect(() => {
     readerRef.current = new BrowserMultiFormatReader();
     
-    // Initialize camera only on mobile
-    if (isMobile) {
+    if (deviceCaps.isMobile && deviceCaps.hasCamera) {
       initializeCamera();
     }
     
     return () => {
-      // Cleanup function
-      try {
-        stopScanning();
-      } catch (err) {
-        console.warn('Error during component cleanup:', err);
-      }
+      cleanup();
     };
-  }, [isMobile]);
+  }, [deviceCaps]);
 
+  // Handle component activation/deactivation
   useEffect(() => {
     if (!isActive && isScanning) {
-      // Stop scanning when component becomes inactive
-      console.log('⏸️ Component deactivated, stopping camera...');
       stopScanning();
     }
   }, [isActive, isScanning]);
 
+  // Auto-hide notifications
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
+  const showNotification = (message, type = 'info') => {
+    setNotification({ message, type });
+  };
+
+  const cleanup = () => {
+    try {
+      stopScanning();
+    } catch (err) {
+      console.warn('Cleanup error:', err);
+    }
+  };
+
   const initializeCamera = async () => {
     try {
-      console.log('🎥 Initializing camera...');
       setError(null);
       setHasPermission(null);
       
-      // Get available video devices
       const videoInputDevices = await BrowserMultiFormatReader.listVideoInputDevices();
-      console.log('📱 Available video devices:', videoInputDevices);
       setDevices(videoInputDevices);
       
       if (videoInputDevices.length === 0) {
-        setError('No camera devices found. Please ensure your device has a camera.');
+        setError('No camera devices found');
         setHasPermission(false);
         return;
       }
       
-      // Prefer back camera for mobile devices - try multiple variations
+      // Prefer back camera
       const backCamera = videoInputDevices.find(device => {
         const label = device.label.toLowerCase();
         return label.includes('back') || 
                label.includes('rear') || 
-               label.includes('environment') ||
-               label.includes('facing back') ||
-               label.includes('camera 0') ||
-               device.deviceId.includes('back');
+               label.includes('environment');
       });
       
       const selectedDevice = backCamera || videoInputDevices[0];
-      console.log('🎯 Selected device:', selectedDevice);
       setSelectedDevice(selectedDevice);
       setHasPermission(true);
       
     } catch (err) {
-      console.error('❌ Error initializing camera:', err);
-      setError(`Unable to access camera: ${err.message}`);
+      console.error('Camera initialization error:', err);
+      setError(`Camera access failed: ${err.message}`);
       setHasPermission(false);
     }
   };
 
   const startScanning = async () => {
-    console.log('🚀 Starting camera scan...');
-    
-    if (!readerRef.current) {
-      console.error('❌ No reader available');
-      setError('QR scanner not initialized. Please refresh the page.');
-      return;
-    }
-    
-    if (!selectedDevice) {
-      console.error('❌ No device selected, initializing...');
-      await initializeCamera();
-      if (!selectedDevice) {
-        setError('No camera device available. Please check your device has a camera.');
-        return;
-      }
-    }
-
-    if (!videoRef.current) {
-      console.error('❌ No video element available');
-      setError('Camera interface not ready. Please try again.');
+    if (!readerRef.current || !selectedDevice || !videoRef.current) {
+      setError('Scanner not ready. Please try again.');
       return;
     }
 
@@ -159,163 +260,125 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       setError(null);
       setIsScanning(true);
       
-      console.log('📹 Starting camera with device:', selectedDevice.label);
-      console.log('Device ID:', selectedDevice.deviceId);
-      
-      // Start continuous scanning with the visible video element
       await readerRef.current.decodeFromVideoDevice(
         selectedDevice.deviceId,
         videoRef.current,
         (scanResult, error) => {
           if (scanResult) {
-            console.log('✅ QR Code detected:', scanResult.getText());
             handleScanResult(scanResult.getText());
           }
-          // Ignore NotFoundException as it's normal when no QR code is visible
           if (error && error.name !== 'NotFoundException') {
             console.warn('Scanner warning:', error);
           }
         }
       );
       
-      console.log('✅ Camera started successfully');
       setHasPermission(true);
-      toast.success("Camera Active", {
-        description: "Point camera at QR code within the frame",
-        duration: 6000
-      });
+      showNotification('Scanner Active - Point camera at QR code', 'success');
       
     } catch (err) {
-      console.error('❌ Error starting scanner:', err);
-      console.error('Error details:', {
-        name: err.name,
-        message: err.message,
-        stack: err.stack
-      });
-      
+      console.error('Scanner error:', err);
       setIsScanning(false);
       setHasPermission(false);
       
-      let errorMessage = 'Failed to start camera';
-      
+      let errorMessage = 'Failed to start scanner';
       if (err.name === 'NotAllowedError') {
-        errorMessage = 'Camera permission denied. Please allow camera access and try again.';
+        errorMessage = 'Camera permission denied';
       } else if (err.name === 'NotFoundError') {
-        errorMessage = 'No camera found. Please ensure your device has a camera.';
+        errorMessage = 'No camera found';
       } else if (err.name === 'NotReadableError') {
-        errorMessage = 'Camera is already in use by another application.';
-      } else if (err.name === 'OverconstrainedError') {
-        errorMessage = 'Camera constraints not supported.';
-      } else if (err.message) {
-        errorMessage = `Camera error: ${err.message}`;
+        errorMessage = 'Camera is in use by another app';
       }
       
       setError(errorMessage);
-      toast.error("Camera Error", {
-        description: errorMessage,
-        duration: 6000
-      });
+      showNotification(errorMessage, 'error');
     }
   };
 
   const stopScanning = () => {
-    console.log('⏹️ Stopping camera scan...');
-    
     if (readerRef.current) {
       try {
-        // Stop the video stream from the main video element
-        if (videoRef.current && videoRef.current.srcObject) {
+        // Stop video stream
+        if (videoRef.current?.srcObject) {
           const stream = videoRef.current.srcObject;
-          const tracks = stream.getTracks();
-          tracks.forEach(track => track.stop());
+          stream.getTracks().forEach(track => track.stop());
           videoRef.current.srcObject = null;
         }
         
-        // Find and remove any temporary video elements
-        const tempVideos = document.querySelectorAll('video[style*="position: absolute"], video[style*="display: none"]');
-        tempVideos.forEach(video => {
+        // Reset reader
+        if (readerRef.current.reset) {
+          readerRef.current.reset();
+        }
+        
+        // Clean up any temporary video elements
+        document.querySelectorAll('video[style*="position: absolute"]').forEach(video => {
           if (video.srcObject) {
-            const stream = video.srcObject;
-            const tracks = stream.getTracks();
-            tracks.forEach(track => track.stop());
+            video.srcObject.getTracks().forEach(track => track.stop());
             video.srcObject = null;
           }
           video.remove();
         });
         
-        // Reset the reader if the method exists
-        if (typeof readerRef.current.reset === 'function') {
-          readerRef.current.reset();
-        } else if (typeof readerRef.current.stopContinuousDecode === 'function') {
-          readerRef.current.stopContinuousDecode();
-        }
-        
-        console.log('✅ Camera stopped successfully');
-        toast.success("Camera Stopped", {
-          description: "Camera scanning has been stopped",
-          duration: 3000
-        });
       } catch (err) {
-        console.warn('Error stopping scanner:', err);
+        console.warn('Stop scanning error:', err);
       }
     }
     setIsScanning(false);
   };
 
-  const handleScanResult = (result) => {
-    try {
-      setLastScanResult(result);
-      
-      // Stop scanning after successful detection to prevent multiple scans
-      stopScanning();
-      
-      // Try to parse as JSON (booking QR code)
-      const bookingData = JSON.parse(result);
-      
-      if (bookingData.bookingId || bookingData.id) {
-        toast.success("QR Code Scanned Successfully!", {
-          description: "Booking information found and processed",
-          duration: 6000
-        });
-        onScanSuccess(bookingData);
-      } else {
-        throw new Error('Invalid booking QR code format');
-      }
-      
-    } catch (err) {
-      console.error('Error parsing QR code:', err);
-      toast.error("Invalid QR Code", {
-        description: "This doesn't appear to be a valid booking QR code",
-        duration: 6000
-      });
-      
-      // Stop scanning on error as well
-      stopScanning();
-      
-      // Still pass the raw result in case it's useful
-      onScanSuccess({ rawData: result, error: 'Invalid format' });
+  const handleScanResult = useCallback((rawContent) => {
+    // Throttle scans in continuous mode
+    const now = Date.now();
+    if (isContinuousMode && now - lastScanTimeRef.current < scanThrottle) {
+      return;
     }
-  };
+    lastScanTimeRef.current = now;
 
-  // Handle file upload
+    // Sanitize content
+    const content = sanitizeContent(rawContent);
+    
+    // Detect content type and security
+    const contentInfo = detectQRContentType(content);
+    
+    // Create scan record
+    const scanRecord = {
+      id: Date.now(),
+      content,
+      contentType: contentInfo.type,
+      timestamp: new Date().toISOString(),
+      safe: contentInfo.safe,
+      data: contentInfo.data
+    };
+
+    // Update history
+    setScanHistory(prev => [scanRecord, ...prev.slice(0, 9)]);
+    setParsedContent(scanRecord);
+
+    // Security warning
+    if (securityWarnings && !contentInfo.safe) {
+      showNotification('Security Warning: This QR code may contain suspicious content', 'warning');
+    } else {
+      showNotification(`QR Code Scanned - Type: ${contentInfo.type}`, 'success');
+    }
+
+    // Handle continuous vs single scan
+    if (!isContinuousMode) {
+      stopScanning();
+    }
+
+    // Callback
+    onScanSuccess(scanRecord);
+    
+  }, [isContinuousMode, scanThrottle, securityWarnings, onScanSuccess]);
+
   const handleFileUpload = async (file) => {
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error("Invalid File Type", {
-        description: "Please upload an image file (PNG, JPG, etc.)",
-        duration: 6000
-      });
+    if (!file || !file.type.startsWith('image/')) {
+      showNotification('Please upload an image file', 'error');
       return;
     }
 
-    // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("File Too Large", {
-        description: "Please upload an image smaller than 10MB",
-        duration: 6000
-      });
+      showNotification('File too large (max 10MB)', 'error');
       return;
     }
 
@@ -323,78 +386,29 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       setProcessingUpload(true);
       setError(null);
 
-      // Create image URL for preview
       const imageUrl = URL.createObjectURL(file);
       setUploadedImage(imageUrl);
 
-      // Create image element for QR code reading
-      const img = new Image();
-      img.onload = async () => {
-        try {
-          // Decode QR code from image
-          const result = await readerRef.current.decodeFromImageUrl(imageUrl);
-          handleScanResult(result.getText());
-        } catch (err) {
-          console.error('Error reading QR code from image:', err);
-          toast.error("No QR Code Found", {
-            description: "Could not find a valid QR code in this image",
-            duration: 6000
-          });
-        } finally {
-          setProcessingUpload(false);
-        }
-      };
+      const result = await readerRef.current.decodeFromImageUrl(imageUrl);
+      handleScanResult(result.getText());
       
-      img.onerror = () => {
-        setProcessingUpload(false);
-        toast.error("Invalid Image", {
-          description: "Could not load the uploaded image",
-          duration: 6000
-        });
-      };
-      
-      img.src = imageUrl;
-
     } catch (err) {
-      console.error('Error processing upload:', err);
+      console.error('Upload processing error:', err);
+      showNotification('No QR code found in image', 'error');
+    } finally {
       setProcessingUpload(false);
-      toast.error("Upload Failed", {
-        description: "There was an error processing your image",
-        duration: 6000
-      });
     }
-  };
-
-  // Handle drag and drop
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    setDragOver(false);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setDragOver(false);
-    
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       handleFileUpload(files[0]);
     }
   };
 
-  // Handle file input change
-  const handleFileInputChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(file);
-    }
-  };
-
-  // Clear uploaded image
   const clearUploadedImage = () => {
     if (uploadedImage) {
       URL.revokeObjectURL(uploadedImage);
@@ -403,405 +417,423 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    setParsedContent(null);
   };
 
-  // Switch scan mode
-  const switchScanMode = (mode) => {
-    if (mode === 'camera' && isScanning) {
-      stopScanning();
-    }
-    if (mode === 'upload') {
-      clearUploadedImage();
-    }
-    setScanMode(mode);
-    setError(null);
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    showNotification('Content copied to clipboard', 'success');
   };
 
-  const switchCamera = () => {
-    if (devices.length > 1 && selectedDevice) {
-      const currentIndex = devices.findIndex(d => d.deviceId === selectedDevice.deviceId);
-      const nextIndex = (currentIndex + 1) % devices.length;
-      setSelectedDevice(devices[nextIndex]);
-      
-      if (isScanning) {
-        stopScanning();
-        setTimeout(() => {
-          startScanning();
-        }, 500);
+  const openURL = (url) => {
+    if (detectSuspiciousURL(url)) {
+      if (!confirm("This URL may be suspicious. Do you want to continue?")) {
+        return;
       }
-      
-      toast.success("Camera Switched", {
-        description: `Using ${devices[nextIndex].label}`,
-        duration: 6000
-      });
+    }
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const rescan = () => {
+    setParsedContent(null);
+    clearUploadedImage();
+    if (scanMode === 'camera' && !isScanning) {
+      startScanning();
     }
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          {(isScanning || processingUpload) && (
-            <Badge variant="secondary" className="ml-auto">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-1"></div>
-              {isScanning ? 'Scanning' : 'Processing'}
-            </Badge>
-          )}
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {/* Scan Mode Toggle - Only show camera option on mobile */}
-        {isMobile ? (
-          <div className="flex rounded-lg bg-gray-100 p-1">
-            <Button
-              variant={scanMode === 'camera' ? 'default' : 'ghost'}
-              size="sm"
-              className="flex-1 h-8"
-              onClick={() => switchScanMode('camera')}
-            >
-              <Camera className="mr-2 h-4 w-4" />
-              Camera
-            </Button>
-            <Button
-              variant={scanMode === 'upload' ? 'default' : 'ghost'}
-              size="sm"
-              className="flex-1 h-8"
-              onClick={() => switchScanMode('upload')}
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              Upload
-            </Button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div className="flex items-center gap-2 text-blue-700">
-              <Upload className="h-5 w-5" />
-              <span className="text-sm font-medium">Upload QR Code Image</span>
-            </div>
-          </div>
-        )}
-
-        {/* Camera Mode - Only on mobile devices */}
-        {scanMode === 'camera' && isMobile && (
-          <div className="relative bg-black rounded-lg overflow-hidden aspect-square">
-            {/* Video element for camera feed */}
-            <video
-              ref={videoRef}
-              className={`w-full h-full object-cover ${isScanning ? 'block' : 'hidden'}`}
-              autoPlay
-              playsInline
-              muted
-            />
-            
-            {isScanning && (
-              <>
-                {/* Camera viewfinder overlay */}
-                <div className="absolute inset-0 pointer-events-none">
-                  {/* Dark overlay with cutout for scanning area */}
-                  <div className="absolute inset-0 bg-black bg-opacity-60">
-                    {/* Cutout area - larger scanning zone */}
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64">
-                      <div className="w-full h-full border-2 border-transparent relative">
-                        {/* Corner brackets - Top Left */}
-                        <div className="absolute -top-2 -left-2 w-12 h-12">
-                          <div className="absolute top-0 left-0 w-8 h-1.5 bg-blue-400 rounded"></div>
-                          <div className="absolute top-0 left-0 w-1.5 h-8 bg-blue-400 rounded"></div>
-                        </div>
-                        {/* Corner brackets - Top Right */}
-                        <div className="absolute -top-2 -right-2 w-12 h-12">
-                          <div className="absolute top-0 right-0 w-8 h-1.5 bg-blue-400 rounded"></div>
-                          <div className="absolute top-0 right-0 w-1.5 h-8 bg-blue-400 rounded"></div>
-                        </div>
-                        {/* Corner brackets - Bottom Left */}
-                        <div className="absolute -bottom-2 -left-2 w-12 h-12">
-                          <div className="absolute bottom-0 left-0 w-8 h-1.5 bg-blue-400 rounded"></div>
-                          <div className="absolute bottom-0 left-0 w-1.5 h-8 bg-blue-400 rounded"></div>
-                        </div>
-                        {/* Corner brackets - Bottom Right */}
-                        <div className="absolute -bottom-2 -right-2 w-12 h-12">
-                          <div className="absolute bottom-0 right-0 w-8 h-1.5 bg-blue-400 rounded"></div>
-                          <div className="absolute bottom-0 right-0 w-1.5 h-8 bg-blue-400 rounded"></div>
-                        </div>
-                        
-                        {/* Scanning line animation */}
-                        <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-                          <div className="w-full h-0.5 bg-red-400 animate-pulse absolute top-1/2 left-0 transform -translate-y-1/2 shadow-lg"></div>
-                        </div>
-                        
-                        {/* Center dot indicator */}
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                          <div className="w-2 h-2 bg-white rounded-full opacity-60"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Status overlay at bottom */}
-                <div className="absolute bottom-4 left-4 right-4">
-                  <div className="bg-black bg-opacity-70 text-white text-center py-2 px-4 rounded-lg">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium">Scanning Active</span>
-                    </div>
-                    <p className="text-xs opacity-80">
-                      Position QR code within the frame
-                    </p>
-                  </div>
-                </div>
-              </>
+    <div className={`w-full max-w-md mx-auto ${darkMode ? 'dark' : ''}`}>
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <QrCode className="h-5 w-5" />
+            QR Code Scanner
+            {(isScanning || processingUpload) && (
+              <span className="ml-auto text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full flex items-center gap-1">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                {isScanning ? 'Scanning' : 'Processing'}
+              </span>
             )}
-            
-            {!isScanning && (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500 p-4">
-                {hasPermission === false ? (
-                  <>
-                    <AlertTriangle className="h-12 w-12 mb-2 text-red-500" />
-                    <p className="text-sm text-center text-red-600 mb-3">
-                      Camera permission required
-                    </p>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={initializeCamera}
-                    >
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                      Retry Access
-                    </Button>
-                  </>
-                ) : hasPermission === null ? (
-                  <>
-                    <Camera className="h-12 w-12 mb-2 animate-pulse" />
-                    <p className="text-sm text-center">
-                      Initializing camera...
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <Camera className="h-12 w-12 mb-2" />
-                    <p className="text-sm text-center mb-3">
-                      {error ? "Camera unavailable" : "Camera ready to scan"}
-                    </p>
-                    {error && (
-                      <div className="text-center space-y-2">
-                        <p className="text-xs text-red-600 mb-2">{error}</p>
-                        <div className="flex flex-col gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              setError(null);
-                              setHasPermission(null);
-                              initializeCamera();
-                            }}
-                          >
-                            <RefreshCw className="mr-2 h-4 w-4" />
-                            Try Again
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => window.location.reload()}
-                          >
-                            <RefreshCw className="mr-2 h-4 w-4" />
-                            Refresh Page
-                          </Button>
+          </h2>
+        </div>
+        
+        <div className="p-4 space-y-4">
+          {/* Notification */}
+          {notification && (
+            <div className={`p-3 rounded-lg flex items-start gap-2 ${
+              notification.type === 'error' ? 'bg-red-50 text-red-800' :
+              notification.type === 'warning' ? 'bg-yellow-50 text-yellow-800' :
+              notification.type === 'success' ? 'bg-green-50 text-green-800' :
+              'bg-blue-50 text-blue-800'
+            }`}>
+              {notification.type === 'error' && <AlertTriangle className="h-4 w-4 mt-0.5" />}
+              {notification.type === 'success' && <CheckCircle className="h-4 w-4 mt-0.5" />}
+              {notification.type === 'warning' && <ShieldAlert className="h-4 w-4 mt-0.5" />}
+              {notification.type === 'info' && <Info className="h-4 w-4 mt-0.5" />}
+              <span className="text-sm">{notification.message}</span>
+            </div>
+          )}
+
+          {/* Mode Selection */}
+          {deviceCaps.hasCamera && (
+            <div className="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1">
+              <button
+                className={`flex-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  scanMode === 'camera' 
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow' 
+                    : 'text-gray-600 dark:text-gray-400'
+                }`}
+                onClick={() => setScanMode('camera')}
+                disabled={!deviceCaps.isMobile}
+              >
+                <Camera className="inline-block mr-2 h-4 w-4" />
+                Camera {!deviceCaps.isMobile && '(Mobile Only)'}
+              </button>
+              <button
+                className={`flex-1 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  scanMode === 'upload' 
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow' 
+                    : 'text-gray-600 dark:text-gray-400'
+                }`}
+                onClick={() => setScanMode('upload')}
+              >
+                <Upload className="inline-block mr-2 h-4 w-4" />
+                Upload
+              </button>
+            </div>
+          )}
+
+          {/* Camera Mode */}
+          {scanMode === 'camera' && deviceCaps.isMobile && (
+            <>
+              <div className="relative bg-black rounded-lg overflow-hidden aspect-square">
+                <video
+                  ref={videoRef}
+                  className={`w-full h-full object-cover ${isScanning ? 'block' : 'hidden'}`}
+                  autoPlay
+                  playsInline
+                  muted
+                />
+                
+                {isScanning && (
+                  <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute inset-0 bg-black bg-opacity-50">
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64">
+                        <div className="w-full h-full border-2 border-transparent relative">
+                          {/* Corner brackets */}
+                          <div className="absolute -top-2 -left-2 w-12 h-12">
+                            <div className="absolute top-0 left-0 w-8 h-1.5 bg-blue-400 rounded"></div>
+                            <div className="absolute top-0 left-0 w-1.5 h-8 bg-blue-400 rounded"></div>
+                          </div>
+                          <div className="absolute -top-2 -right-2 w-12 h-12">
+                            <div className="absolute top-0 right-0 w-8 h-1.5 bg-blue-400 rounded"></div>
+                            <div className="absolute top-0 right-0 w-1.5 h-8 bg-blue-400 rounded"></div>
+                          </div>
+                          <div className="absolute -bottom-2 -left-2 w-12 h-12">
+                            <div className="absolute bottom-0 left-0 w-8 h-1.5 bg-blue-400 rounded"></div>
+                            <div className="absolute bottom-0 left-0 w-1.5 h-8 bg-blue-400 rounded"></div>
+                          </div>
+                          <div className="absolute -bottom-2 -right-2 w-12 h-12">
+                            <div className="absolute bottom-0 right-0 w-8 h-1.5 bg-blue-400 rounded"></div>
+                            <div className="absolute bottom-0 right-0 w-1.5 h-8 bg-blue-400 rounded"></div>
+                          </div>
+                          
+                          {/* Scanning line */}
+                          <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+                            <div className="scanning-line"></div>
+                          </div>
                         </div>
                       </div>
+                    </div>
+                    
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <div className="bg-black bg-opacity-70 text-white text-center py-2 px-4 rounded-lg">
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                          <span className="text-sm">
+                            {isContinuousMode ? 'Continuous Scanning' : 'Single Scan Mode'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {!isScanning && (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-500 p-4">
+                    {hasPermission === false ? (
+                      <>
+                        <AlertTriangle className="h-12 w-12 mb-2 text-red-500" />
+                        <p className="text-sm text-center text-red-600 mb-3">
+                          Camera permission required
+                        </p>
+                        <button
+                          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium"
+                          onClick={initializeCamera}
+                        >
+                          <RefreshCw className="inline-block mr-2 h-4 w-4" />
+                          Retry
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="h-12 w-12 mb-2" />
+                        <p className="text-sm text-center mb-3">Camera ready</p>
+                        <button
+                          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium"
+                          onClick={startScanning}
+                        >
+                          <Play className="inline-block mr-2 h-4 w-4" />
+                          Start Scan
+                        </button>
+                      </>
                     )}
-                    {!error && (
-                      <Button 
-                        variant="default" 
-                        size="sm"
-                        onClick={startScanning}
-                      >
-                        <Camera className="mr-2 h-4 w-4" />
-                        Start Camera
-                      </Button>
-                    )}
-                  </>
+                  </div>
                 )}
               </div>
-            )}
-          </div>
-        )}
 
-        {/* Upload Mode - Always on desktop, optional on mobile */}
-        {(scanMode === 'upload' || !isMobile) && (
-          <div className="space-y-4">
-            {/* Upload Area */}
+              {/* Camera Controls */}
+              <div className="flex gap-2">
+                <button
+                  onClick={isScanning ? stopScanning : startScanning}
+                  className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isScanning 
+                      ? 'bg-red-500 hover:bg-red-600 text-white' 
+                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  }`}
+                >
+                  {isScanning ? (
+                    <>
+                      <Pause className="inline-block mr-2 h-4 w-4" />
+                      Stop
+                    </>
+                  ) : (
+                    <>
+                      <Play className="inline-block mr-2 h-4 w-4" />
+                      Start
+                    </>
+                  )}
+                </button>
+                
+                <button
+                  onClick={() => setIsContinuousMode(!isContinuousMode)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg"
+                  title="Toggle continuous scanning"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isContinuousMode ? 'animate-spin' : ''}`} />
+                </button>
+                
+                {devices.length > 1 && (
+                  <button
+                    onClick={() => {
+                      const idx = devices.findIndex(d => d.deviceId === selectedDevice?.deviceId);
+                      setSelectedDevice(devices[(idx + 1) % devices.length]);
+                      if (isScanning) {
+                        stopScanning();
+                        setTimeout(startScanning, 500);
+                      }
+                    }}
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg"
+                    title="Switch camera"
+                  >
+                    <CameraOff className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Upload Mode */}
+          {(scanMode === 'upload' || !deviceCaps.isMobile) && (
             <div
-              className={`relative bg-gray-100 rounded-lg border-2 border-dashed transition-colors aspect-square flex flex-col items-center justify-center ${
-                dragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+              className={`relative bg-gray-100 dark:bg-gray-800 rounded-lg border-2 border-dashed transition-colors aspect-square flex flex-col items-center justify-center ${
+                dragOver ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' : 'border-gray-300 dark:border-gray-600'
               }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={(e) => { e.preventDefault(); setDragOver(false); }}
               onDrop={handleDrop}
             >
               {uploadedImage ? (
                 <div className="relative w-full h-full">
                   <img
                     src={uploadedImage}
-                    alt="Uploaded QR Code"
+                    alt="Uploaded QR"
                     className="w-full h-full object-contain rounded-lg"
                   />
                   {processingUpload && (
                     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
-                      <div className="text-white text-center">
-                        <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
-                        <p className="text-sm">Processing...</p>
-                      </div>
+                      <RefreshCw className="h-8 w-8 text-white animate-spin" />
                     </div>
                   )}
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="absolute top-2 right-2"
+                  <button
+                    className="absolute top-2 right-2 p-1 bg-red-500 hover:bg-red-600 text-white rounded-lg"
                     onClick={clearUploadedImage}
                   >
                     <X className="h-4 w-4" />
-                  </Button>
+                  </button>
                 </div>
               ) : (
                 <div className="text-center p-6">
-                  <div className="mb-4">
-                    {dragOver ? (
-                      <FileImage className="h-12 w-12 mx-auto text-blue-500" />
-                    ) : (
-                      <ImageIcon className="h-12 w-12 mx-auto text-gray-400" />
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600 mb-2">
-                    {dragOver ? 'Drop image here' : 'Drag & drop QR code image'}
+                  <FileImage className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    Drag & drop QR code image
                   </p>
-                  <p className="text-xs text-gray-500 mb-4">
-                    or click to browse
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
+                  <button
+                    className="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-sm font-medium"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Upload className="mr-2 h-4 w-4" />
+                    <Upload className="inline-block mr-2 h-4 w-4" />
                     Choose File
-                  </Button>
+                  </button>
                 </div>
               )}
             </div>
+          )}
 
-            {/* Hidden file input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileInputChange}
-              className="hidden"
-            />
-          </div>
-        )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleFileUpload(e.target.files?.[0])}
+            className="hidden"
+          />
 
-        {/* Error Display */}
-        {error && (
-          <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-red-700">{error}</div>
-          </div>
-        )}
-
-        {/* Last Scan Result */}
-        {lastScanResult && (
-          <div className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-            <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-green-700">
-              <div className="font-medium">Last scan successful</div>
-              <div className="text-xs text-green-600 mt-1 break-all">
-                {lastScanResult.length > 50 
-                  ? `${lastScanResult.substring(0, 50)}...` 
-                  : lastScanResult
-                }
+          {/* Parsed Content Display */}
+          {showParsedContent && parsedContent && (
+            <div className={`p-3 rounded-lg border ${
+              parsedContent.safe 
+                ? 'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800' 
+                : 'bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800'
+            }`}>
+              <div className="flex items-start gap-2">
+                {parsedContent.safe ? (
+                  <Shield className="h-5 w-5 text-green-500 mt-0.5" />
+                ) : (
+                  <ShieldAlert className="h-5 w-5 text-yellow-500 mt-0.5" />
+                )}
+                <div className="flex-1">
+                  <div className="font-medium text-sm mb-1">
+                    {parsedContent.contentType.toUpperCase()} Content
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 break-all">
+                    {parsedContent.content.substring(0, 100)}
+                    {parsedContent.content.length > 100 && '...'}
+                  </div>
+                  
+                  {/* Action buttons */}
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      className="px-3 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded text-xs font-medium"
+                      onClick={() => copyToClipboard(parsedContent.content)}
+                    >
+                      <Copy className="inline-block h-3 w-3 mr-1" />
+                      Copy
+                    </button>
+                    
+                    {parsedContent.contentType === 'url' && (
+                      <button
+                        className="px-3 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded text-xs font-medium"
+                        onClick={() => openURL(parsedContent.content)}
+                      >
+                        <ExternalLink className="inline-block h-3 w-3 mr-1" />
+                        Open
+                      </button>
+                    )}
+                    
+                    <button
+                      className="px-3 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded text-xs font-medium"
+                      onClick={rescan}
+                    >
+                      <RefreshCw className="inline-block h-3 w-3 mr-1" />
+                      Rescan
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Control Buttons - Only on mobile */}
-        {scanMode === 'camera' && isMobile && (
-          <div className="flex gap-2">
-            <Button
-              onClick={isScanning ? stopScanning : startScanning}
-              variant={isScanning ? "destructive" : "default"}
-              className="flex-1"
-            >
-              {isScanning ? (
-                <>
-                  <CameraOff className="mr-2 h-4 w-4" />
-                  Stop
-                </>
-              ) : (
-                <>
-                  <Camera className="mr-2 h-4 w-4" />
-                  Start Scan
-                </>
-              )}
-            </Button>
-            
-            {devices.length > 1 && (
-              <Button
-                onClick={switchCamera}
-                variant="outline"
-                disabled={!isScanning}
-                title="Switch Camera"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        )}
+          {/* Error Display */}
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5" />
+              <span className="text-sm text-red-700">{error}</span>
+            </div>
+          )}
 
-        {/* Instructions */}
-        <div className="bg-blue-50 p-3 rounded-lg">
-          <div className="flex items-start gap-2">
-            {scanMode === 'camera' ? (
-              <Smartphone className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-            ) : (
-              <ImageIcon className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-            )}
-            <div className="text-sm text-blue-800">
-              <div className="font-medium mb-1">
-                {scanMode === 'camera' ? 'How to scan:' : 'How to upload:'}
+          {/* Scan History */}
+          {scanHistory.length > 0 && (
+            <div className="space-y-2">
+              <div className="text-sm font-medium">Recent Scans</div>
+              <div className="max-h-32 overflow-y-auto space-y-1">
+                {scanHistory.slice(0, 3).map(scan => (
+                  <div key={scan.id} className="text-xs p-2 bg-gray-100 dark:bg-gray-800 rounded flex items-center justify-between">
+                    <span className="px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs">
+                      {scan.contentType}
+                    </span>
+                    <span className="text-gray-500">
+                      {new Date(scan.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <ul className="space-y-1 text-xs">
-                {scanMode === 'camera' ? (
-                  <>
-                    <li>• Point camera at guest's booking QR code</li>
-                    <li>• Ensure good lighting and steady hands</li>
-                    <li>• QR code should fill the scanning area</li>
-                    <li>• Booking details will appear automatically</li>
-                  </>
-                ) : (
-                  <>
-                    <li>• Upload screenshots or photos of QR codes</li>
-                    <li>• Drag & drop or click to browse files</li>
-                    <li>• Supports PNG, JPG, and other image formats</li>
-                    <li>• QR code will be processed automatically</li>
-                  </>
-                )}
-              </ul>
+            </div>
+          )}
+
+          {/* Instructions */}
+          <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Info className="h-4 w-4 text-blue-600 mt-0.5" />
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                {scanMode === 'camera' && deviceCaps.isMobile
+                  ? 'Point your camera at a QR code. The scanner will automatically detect and process it.'
+                  : 'Upload or drag & drop an image containing a QR code to scan it.'}
+              </p>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Device Selection - Only on mobile */}
-        {scanMode === 'camera' && isMobile && devices.length > 1 && (
-          <div className="text-xs text-gray-600">
-            Camera: {selectedDevice?.label || 'Default'}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );  
+      <style>{`
+        @keyframes scan {
+          0% { transform: translateY(-100%); }
+          50% { transform: translateY(100%); }
+          100% { transform: translateY(-100%); }
+        }
+        
+        .scanning-line {
+          width: 100%;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, #ef4444, transparent);
+          animation: scan 2s linear infinite;
+          box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+        }
+        
+        .dark {
+          color-scheme: dark;
+        }
+        
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        
+        .animate-pulse {
+          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+      `}</style>
+    </div>
+  );
 };
 
 export default QRCodeScanner;
-
