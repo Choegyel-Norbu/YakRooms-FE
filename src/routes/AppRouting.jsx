@@ -1,16 +1,16 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "../services/AuthProvider";
-import Landing from "../pages/Landing";
-import About from "../pages/About";
-import AboutUs from "../pages/AboutUs";
-import HotelListingPage from "../pages/HotelListingPage";
-import HotelDetailsPage from "../pages/HotelDetailsPage";
-import AddListingPage from "../pages/AddListingPage";
-import HotelAdminDashboard from "../pages/HotelAdminDashboard";
-import SuperAdmin from "../pages/SuperAdmin";
-import GuestDashboard from "../pages/GuestDashboard";
-import PrivacyPolicy from "../pages/PrivacyPolicy";
+import { useAuth } from "../features/authentication";
+import { Landing } from "../features/landing";
+import { About } from "../features/landing";
+import { AboutUs } from "../features/landing";
+import { HotelListingPage } from "../features/hotel";
+import { HotelDetailsPage } from "../features/hotel";
+import { AddListingPage } from "../features/hotel";
+import { HotelAdminDashboard } from "../features/hotel";
+import { SuperAdmin } from "../features/admin";
+import { GuestDashboard } from "../features/guest";
+import { PrivacyPolicy } from "../features/landing";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {

@@ -3,11 +3,11 @@ import AppRouting from "./routes/AppRouting";
 import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 
-import { AuthProvider } from "./services/AuthProvider";
-import { BookingProvider } from "./context/BookingContext";
-import PWARegistration from "./components/PWARegistration";
-import OfflineWrapper from "./components/OfflineWrapper";
-import GlobalReviewSheet from "./components/GlobalReviewSheet";
+import { AuthProvider } from "./features/authentication";
+import { BookingProvider } from "./features/booking";
+import { PWARegistration } from "./modules/pwa";
+import { OfflineWrapper } from "./modules/pwa";
+import { GlobalReviewSheet } from "./shared/components";
 
 function App() {
   return (

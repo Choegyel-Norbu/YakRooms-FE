@@ -1,0 +1,521 @@
+import React, { useState, useEffect } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  User,
+  Phone,
+  Calendar,
+  Users,
+  DollarSign,
+  CheckCircle,
+  LogIn,
+  LogOut,
+  Trash2,
+  MoreHorizontal,
+  XCircle,
+} from "lucide-react";
+
+import api from "../../shared/services/Api"; // Your API service for making requests
+import { useBookingContext } from "../../features/booking/BookingContext";
+
+// shadcn/ui components
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/components";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components";
+import { Badge } from "@/shared/components";
+import { Button } from "@/shared/components";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components";
+import { toast } from "sonner"; // For toast notifications
+
+// shadcn/ui AlertDialog components for the confirmation dialog
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/components";
+
+// --- DeleteConfirmationDialog Component ---
+// This component provides a generic confirmation dialog using shadcn/ui's AlertDialog.
+const DeleteConfirmationDialog = ({
+  open,
+  onOpenChange,
+  onConfirm,
+  title,
+  description,
+}) => {
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm}>Continue</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
+const BookingTable = ({ hotelId }) => {
+  const { socket } = useBookingContext();
+  const [bookings, setBookings] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [deleteDialog, setDeleteDialog] = useState(false); // Controls the delete confirmation dialog visibility
+  const [bookingToDelete, setBookingToDelete] = useState(null); // Stores the ID of the booking to be deleted
+
+  const pageSize = 10; // Number of bookings per page
+
+  // --- Fetch Bookings Data ---
+  const fetchBookings = async (page) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await api.get(`/bookings/?page=${page}&size=${pageSize}&hotelId=${hotelId}`);
+      if (!res.data) {
+        throw new Error("Failed to fetch bookings");
+      }
+      const data = res.data;
+
+      if (data.content) {
+        setBookings(data.content);
+        setTotalPages(data.totalPages || 1);
+      } else if (Array.isArray(data)) {
+        // Fallback if API returns array directly (e.g., for smaller datasets)
+        setBookings(data);
+        setTotalPages(Math.ceil(data.length / pageSize));
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (hotelId) fetchBookings(currentPage);
+  }, [currentPage, hotelId]);
+
+  // --- Update Booking Status ---
+  const updateBookingStatus = async (id, newStatus) => {
+    setLoading(true);
+    try {
+      const res = await api.put(`/bookings/${id}/status/${newStatus}`);
+      if (res.status === 200) {
+        // Send WebSocket message to notify about status change
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({
+            type: 'BOOKING_STATUS_UPDATE',
+            payload: {
+              bookingId: id,
+              newStatus,
+              hotelId,
+              userId: res.data?.userId || null
+            }
+          }));
+        }
+        
+        toast.success(
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-green-500" />
+            Booking status updated successfully to {newStatus.replace("_", " ")}
+            .
+          </div>,
+          {
+            duration: 6000
+          }
+        );
+      }
+      fetchBookings(currentPage); // Re-fetch to get updated data
+    } catch (err) {
+      toast.error(
+        <div className="flex items-center gap-2">
+          <XCircle className="h-5 w-5 text-red-500" />
+          Failed to update booking status. Please try again.
+        </div>,
+        {
+          duration: 6000
+        }
+      );
+      console.error("Status update error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- Handle Booking Deletion ---
+  // This function is called when the user confirms deletion from the dialog.
+  const handleDeleteBooking = async () => {
+    if (!bookingToDelete) return; // Should not happen if dialog is opened correctly
+
+    setLoading(true);
+    try {
+      await api.delete(`/bookings/${bookingToDelete}`);
+      toast.success(
+        <div className="flex items-center gap-2">
+          <CheckCircle className="h-5 w-5 text-green-500" />
+          Booking {bookingToDelete} has been removed successfully.
+        </div>,
+        {
+          duration: 6000
+        }
+      );
+      fetchBookings(currentPage); // Re-fetch to get updated data
+    } catch (err) {
+      toast.error(
+        <div className="flex items-center gap-2">
+          <XCircle className="h-5 w-5 text-red-500" />
+          Failed to delete booking. Please try again.
+        </div>,
+        {
+          duration: 6000
+        }
+      );
+      console.error("Delete booking error:", err);
+    } finally {
+      setLoading(false);
+      setDeleteDialog(false); // Close the dialog
+      setBookingToDelete(null); // Reset the ID
+    }
+  };
+
+  // --- Pagination Handlers ---
+  const handlePreviousPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages - 1) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePageClick = (page) => {
+    setCurrentPage(page);
+  };
+
+  // Generate page numbers for pagination controls
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+
+    let startPage = Math.max(0, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(0, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
+
+  // --- Status Badge Styling ---
+  const getStatusBadge = (status) => {
+    let colorClass = "bg-slate-100 text-slate-700 border border-slate-200";
+    
+    switch (status) {
+      case "CONFIRMED":
+        colorClass = "bg-emerald-50 text-emerald-700 border border-emerald-200";
+        break;
+      case "PENDING":
+        colorClass = "bg-amber-50 text-amber-700 border border-amber-200";
+        break;
+      case "CHECKED_IN":
+        colorClass = "bg-blue-50 text-blue-700 border border-blue-200";
+        break;
+      case "CHECKED_OUT":
+        colorClass = "bg-slate-50 text-slate-600 border border-slate-200";
+        break;
+      case "CANCELLED":
+        colorClass = "bg-red-50 text-red-700 border border-red-200";
+        break;
+      default:
+        colorClass = "bg-slate-50 text-slate-600 border border-slate-200";
+    }
+    
+    return (
+      <Badge className={`${colorClass} px-3 py-1 rounded-full text-xs font-medium shadow-sm`}>
+        {status.replace("_", " ")}
+      </Badge>
+    );
+  };
+
+  if (!hotelId) {
+    return (
+      <div className="flex justify-center items-center h-64 text-muted-foreground">
+        No hotel selected. Please log in as a hotel admin or select a hotel.
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <User className="h-5 w-5" />
+          Booking Management
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* --- Error Message Display --- */}
+        {error && (
+          <div
+            className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4"
+            role="alert"
+          >
+            <p className="font-bold">Error:</p>
+            <p>{error}</p>
+            <p className="text-sm mt-1">Using mock data for demonstration</p>
+          </div>
+        )}
+
+        {/* --- Bookings Table --- */}
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Guest Info</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Room</TableHead>
+                <TableHead>Guests</TableHead>
+                <TableHead>Check-in</TableHead>
+                <TableHead>Check-out</TableHead>
+                <TableHead>Total Price</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {bookings.map((booking) => (
+                <TableRow key={booking.id}>
+                  <TableCell>
+                    <div className="font-medium">{booking.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {booking.email}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <Phone className="h-4 w-4 mr-1 text-muted-foreground" />
+                      {booking.phone || "N/A"}
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {booking.roomNumber}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 mr-1 text-muted-foreground" />
+                      {booking.guests}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                      {booking.checkInDate}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                      {booking.checkOutDate}
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center">
+                      Nu.{" "}
+                      {new Intl.NumberFormat("en-IN").format(
+                        booking.totalPrice
+                      )}
+                      /-
+                    </div>
+                  </TableCell>
+
+                  <TableCell>{getStatusBadge(booking.status)}</TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {booking.status === "PENDING" && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              updateBookingStatus(booking.id, "CONFIRMED")
+                            }
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" /> Confirm
+                          </DropdownMenuItem>
+                        )}
+                        {(booking.status === "CONFIRMED" ||
+                          booking.status === "PENDING") && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              updateBookingStatus(booking.id, "CHECKED_IN")
+                            }
+                          >
+                            <LogIn className="h-4 w-4 mr-2" /> Check-in
+                          </DropdownMenuItem>
+                        )}
+                        {booking.status === "CHECKED_IN" && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              updateBookingStatus(booking.id, "CHECKED_OUT")
+                            }
+                          >
+                            <LogOut className="h-4 w-4 mr-2" /> Check-out
+                          </DropdownMenuItem>
+                        )}
+                        {(booking.status === "PENDING" ||
+                          booking.status === "CONFIRMED") && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              updateBookingStatus(booking.id, "CANCELLED")
+                            }
+                          >
+                            <XCircle className="h-4 w-4 mr-2" /> Cancel
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setBookingToDelete(booking.id); // Set the ID to be deleted
+                            setDeleteDialog(true); // Open the confirmation dialog
+                          }}
+                          className="text-red-600" // Highlight delete action
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* --- Pagination Controls --- */}
+        <div className="flex items-center justify-between px-4 py-3 sm:px-6">
+          {/* Mobile pagination */}
+          <div className="flex-1 flex justify-between sm:hidden">
+            <Button
+              onClick={handlePreviousPage}
+              disabled={currentPage === 0}
+              variant="outline"
+            >
+              Previous
+            </Button>
+            <Button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages - 1}
+              variant="outline"
+            >
+              Next
+            </Button>
+          </div>
+          {/* Desktop pagination */}
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Showing page{" "}
+                <span className="font-medium">{currentPage + 1}</span> of{" "}
+                <span className="font-medium">{totalPages}</span>
+              </p>
+            </div>
+            <div>
+              <nav
+                className="flex rounded-md shadow-sm -space-x-px"
+                aria-label="Pagination"
+              >
+                <Button
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 0}
+                  variant="outline"
+                  className="rounded-l-md rounded-r-none"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+
+                {getPageNumbers().map((page) => (
+                  <Button
+                    key={page}
+                    onClick={() => handlePageClick(page)}
+                    variant={page === currentPage ? "default" : "outline"}
+                    className="rounded-none"
+                  >
+                    {page + 1}
+                  </Button>
+                ))}
+
+                <Button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages - 1}
+                  variant="outline"
+                  className="rounded-r-md rounded-l-none"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+
+      {/* --- Delete Confirmation Dialog --- */}
+      {/* This dialog is controlled by `deleteDialog` state and uses `bookingToDelete` for the actual ID */}
+      <DeleteConfirmationDialog
+        open={deleteDialog}
+        onOpenChange={setDeleteDialog} // Function to close the dialog
+        onConfirm={handleDeleteBooking} // Function to call when confirmed
+        title="Confirm Deletion"
+        description={`Are you sure you want to delete booking ID ${bookingToDelete}? This action cannot be undone.`}
+      />
+    </Card>
+  );
+};
+
+export default BookingTable;
