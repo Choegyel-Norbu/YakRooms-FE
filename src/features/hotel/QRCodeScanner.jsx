@@ -60,6 +60,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
   const [processingUpload, setProcessingUpload] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   
+  const videoRef = useRef(null);
   const readerRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -148,6 +149,12 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       }
     }
 
+    if (!videoRef.current) {
+      console.error('❌ No video element available');
+      setError('Camera interface not ready. Please try again.');
+      return;
+    }
+
     try {
       setError(null);
       setIsScanning(true);
@@ -155,44 +162,26 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       console.log('📹 Starting camera with device:', selectedDevice.label);
       console.log('Device ID:', selectedDevice.deviceId);
       
-      // Start scanning directly without video element
-      const result = await readerRef.current.decodeOnceFromVideoDevice(selectedDevice.deviceId);
-      
-      if (result) {
-        console.log('✅ QR Code detected:', result.getText());
-        handleScanResult(result.getText());
-      } else {
-        // If single scan doesn't work, use continuous scanning
-        console.log('🔄 Switching to continuous scanning...');
-        
-        // Create a minimal video element for continuous scanning
-        const tempVideo = document.createElement('video');
-        tempVideo.style.position = 'absolute';
-        tempVideo.style.top = '-9999px';
-        tempVideo.style.left = '-9999px';
-        tempVideo.style.width = '1px';
-        tempVideo.style.height = '1px';
-        tempVideo.muted = true;
-        tempVideo.playsInline = true;
-        document.body.appendChild(tempVideo);
-        
-        // Start continuous scanning
-        await readerRef.current.decodeFromVideoDevice(
-          selectedDevice.deviceId,
-          tempVideo,
-          (scanResult, error) => {
-            if (scanResult) {
-              console.log('✅ QR Code detected:', scanResult.getText());
-              handleScanResult(scanResult.getText());
-            }
+      // Start continuous scanning with the visible video element
+      await readerRef.current.decodeFromVideoDevice(
+        selectedDevice.deviceId,
+        videoRef.current,
+        (scanResult, error) => {
+          if (scanResult) {
+            console.log('✅ QR Code detected:', scanResult.getText());
+            handleScanResult(scanResult.getText());
           }
-        );
-      }
+          // Ignore NotFoundException as it's normal when no QR code is visible
+          if (error && error.name !== 'NotFoundException') {
+            console.warn('Scanner warning:', error);
+          }
+        }
+      );
       
       console.log('✅ Camera started successfully');
       setHasPermission(true);
       toast.success("Camera Active", {
-        description: "Point camera at QR code to scan",
+        description: "Point camera at QR code within the frame",
         duration: 6000
       });
       
@@ -234,7 +223,15 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
     
     if (readerRef.current) {
       try {
-        // Find and remove all temporary video elements
+        // Stop the video stream from the main video element
+        if (videoRef.current && videoRef.current.srcObject) {
+          const stream = videoRef.current.srcObject;
+          const tracks = stream.getTracks();
+          tracks.forEach(track => track.stop());
+          videoRef.current.srcObject = null;
+        }
+        
+        // Find and remove any temporary video elements
         const tempVideos = document.querySelectorAll('video[style*="position: absolute"], video[style*="display: none"]');
         tempVideos.forEach(video => {
           if (video.srcObject) {
@@ -487,40 +484,76 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
 
         {/* Camera Mode - Only on mobile devices */}
         {scanMode === 'camera' && isMobile && (
-          <div className="relative bg-gray-100 rounded-lg overflow-hidden aspect-square">
-            {isScanning ? (
-              <div className="flex flex-col items-center justify-center h-full text-blue-600 p-4">
-                {/* Scanning Animation */}
-                <div className="relative mb-4">
-                  <div className="w-24 h-24 border-4 border-blue-200 rounded-lg relative">
-                    <div className="absolute inset-0 border-4 border-blue-500 rounded-lg animate-pulse"></div>
-                    {/* Corner indicators */}
-                    <div className="absolute -top-1 -left-1 w-4 h-4 border-t-4 border-l-4 border-blue-500"></div>
-                    <div className="absolute -top-1 -right-1 w-4 h-4 border-t-4 border-r-4 border-blue-500"></div>
-                    <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-4 border-l-4 border-blue-500"></div>
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-4 border-r-4 border-blue-500"></div>
-                  </div>
-                  {/* Scanning line */}
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="w-16 h-0.5 bg-red-500 animate-pulse"></div>
+          <div className="relative bg-black rounded-lg overflow-hidden aspect-square">
+            {/* Video element for camera feed */}
+            <video
+              ref={videoRef}
+              className={`w-full h-full object-cover ${isScanning ? 'block' : 'hidden'}`}
+              autoPlay
+              playsInline
+              muted
+            />
+            
+            {isScanning && (
+              <>
+                {/* Camera viewfinder overlay */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {/* Dark overlay with cutout for scanning area */}
+                  <div className="absolute inset-0 bg-black bg-opacity-60">
+                    {/* Cutout area - larger scanning zone */}
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64">
+                      <div className="w-full h-full border-2 border-transparent relative">
+                        {/* Corner brackets - Top Left */}
+                        <div className="absolute -top-2 -left-2 w-12 h-12">
+                          <div className="absolute top-0 left-0 w-8 h-1.5 bg-blue-400 rounded"></div>
+                          <div className="absolute top-0 left-0 w-1.5 h-8 bg-blue-400 rounded"></div>
+                        </div>
+                        {/* Corner brackets - Top Right */}
+                        <div className="absolute -top-2 -right-2 w-12 h-12">
+                          <div className="absolute top-0 right-0 w-8 h-1.5 bg-blue-400 rounded"></div>
+                          <div className="absolute top-0 right-0 w-1.5 h-8 bg-blue-400 rounded"></div>
+                        </div>
+                        {/* Corner brackets - Bottom Left */}
+                        <div className="absolute -bottom-2 -left-2 w-12 h-12">
+                          <div className="absolute bottom-0 left-0 w-8 h-1.5 bg-blue-400 rounded"></div>
+                          <div className="absolute bottom-0 left-0 w-1.5 h-8 bg-blue-400 rounded"></div>
+                        </div>
+                        {/* Corner brackets - Bottom Right */}
+                        <div className="absolute -bottom-2 -right-2 w-12 h-12">
+                          <div className="absolute bottom-0 right-0 w-8 h-1.5 bg-blue-400 rounded"></div>
+                          <div className="absolute bottom-0 right-0 w-1.5 h-8 bg-blue-400 rounded"></div>
+                        </div>
+                        
+                        {/* Scanning line animation */}
+                        <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+                          <div className="w-full h-0.5 bg-red-400 animate-pulse absolute top-1/2 left-0 transform -translate-y-1/2 shadow-lg"></div>
+                        </div>
+                        
+                        {/* Center dot indicator */}
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                          <div className="w-2 h-2 bg-white rounded-full opacity-60"></div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
-                {/* Status */}
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium">Camera Active</span>
-                  </div>
-                  <p className="text-xs text-gray-600 mb-4">
-                    Point your device at a QR code to scan
-                  </p>
-                  <div className="text-xs text-gray-500">
-                    Using back camera for scanning
+                {/* Status overlay at bottom */}
+                <div className="absolute bottom-4 left-4 right-4">
+                  <div className="bg-black bg-opacity-70 text-white text-center py-2 px-4 rounded-lg">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium">Scanning Active</span>
+                    </div>
+                    <p className="text-xs opacity-80">
+                      Position QR code within the frame
+                    </p>
                   </div>
                 </div>
-              </div>
-            ) : (
+              </>
+            )}
+            
+            {!isScanning && (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 p-4">
                 {hasPermission === false ? (
                   <>
