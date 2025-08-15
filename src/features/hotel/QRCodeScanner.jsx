@@ -60,7 +60,6 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
   const [processingUpload, setProcessingUpload] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   
-  const videoRef = useRef(null);
   const readerRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -68,30 +67,15 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
     // Initialize the code reader
     readerRef.current = new BrowserMultiFormatReader();
     
-    // Get available video devices only on mobile
+    // Initialize camera only on mobile
     if (isMobile) {
-      getVideoDevices();
+      initializeCamera();
     }
     
     return () => {
       // Cleanup function
       try {
-        if (readerRef.current) {
-          // Stop any ongoing video streams
-          if (videoRef.current && videoRef.current.srcObject) {
-            const stream = videoRef.current.srcObject;
-            const tracks = stream.getTracks();
-            tracks.forEach(track => track.stop());
-            videoRef.current.srcObject = null;
-          }
-          
-          // Reset the reader if the method exists
-          if (typeof readerRef.current.reset === 'function') {
-            readerRef.current.reset();
-          } else if (typeof readerRef.current.stopContinuousDecode === 'function') {
-            readerRef.current.stopContinuousDecode();
-          }
-        }
+        stopScanning();
       } catch (err) {
         console.warn('Error during component cleanup:', err);
       }
@@ -99,46 +83,27 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
   }, [isMobile]);
 
   useEffect(() => {
-    if (isActive && !isScanning && scanMode === 'camera' && isMobile) {
-      // Auto-start scanning when component becomes active (with delay for UI) - only on mobile
-      console.log('🎬 Component activated, auto-starting camera...');
-      setTimeout(() => {
-        if (selectedDevice) {
-          startScanning();
-        } else {
-          console.log('⏳ No device selected yet, waiting...');
-        }
-      }, 1000);
-    } else if (!isActive && isScanning) {
+    if (!isActive && isScanning) {
       // Stop scanning when component becomes inactive
       console.log('⏸️ Component deactivated, stopping camera...');
       stopScanning();
     }
-  }, [isActive, selectedDevice, scanMode, isMobile]);
+  }, [isActive, isScanning]);
 
-  const getVideoDevices = async () => {
+  const initializeCamera = async () => {
     try {
-      console.log('🎥 Getting video devices...');
+      console.log('🎥 Initializing camera...');
+      setError(null);
+      setHasPermission(null);
       
-      // First, request camera permission
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        console.log('✅ Camera permission granted');
-        // Stop the test stream
-        stream.getTracks().forEach(track => track.stop());
-      } catch (permErr) {
-        console.error('❌ Camera permission denied:', permErr);
-        setError('Camera permission is required. Please allow camera access and refresh the page.');
-        setHasPermission(false);
-        return;
-      }
-      
+      // Get available video devices
       const videoInputDevices = await BrowserMultiFormatReader.listVideoInputDevices();
       console.log('📱 Available video devices:', videoInputDevices);
       setDevices(videoInputDevices);
       
       if (videoInputDevices.length === 0) {
         setError('No camera devices found. Please ensure your device has a camera.');
+        setHasPermission(false);
         return;
       }
       
@@ -150,7 +115,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
                label.includes('environment') ||
                label.includes('facing back') ||
                label.includes('camera 0') ||
-               (device.deviceId && device.deviceId.includes('back'));
+               device.deviceId.includes('back');
       });
       
       const selectedDevice = backCamera || videoInputDevices[0];
@@ -159,17 +124,14 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       setHasPermission(true);
       
     } catch (err) {
-      console.error('❌ Error getting video devices:', err);
-      setError(`Unable to access camera devices: ${err.message}`);
+      console.error('❌ Error initializing camera:', err);
+      setError(`Unable to access camera: ${err.message}`);
       setHasPermission(false);
     }
   };
 
   const startScanning = async () => {
     console.log('🚀 Starting camera scan...');
-    console.log('Reader ref:', !!readerRef.current);
-    console.log('Selected device:', selectedDevice);
-    console.log('Video ref:', !!videoRef.current);
     
     if (!readerRef.current) {
       console.error('❌ No reader ref available');
@@ -179,13 +141,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
     
     if (!selectedDevice) {
       console.error('❌ No device selected');
-      setError('No camera device selected. Please check camera permissions.');
-      return;
-    }
-    
-    if (!videoRef.current) {
-      console.error('❌ No video element available');
-      setError('Video element not ready. Please try again.');
+      await initializeCamera();
       return;
     }
 
@@ -193,13 +149,18 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       setError(null);
       setIsScanning(true);
       
-      console.log('📹 Starting decode from video device...');
+      console.log('📹 Starting camera scan with device:', selectedDevice.label);
       console.log('Device ID:', selectedDevice.deviceId);
       
-      // Request camera permission and start scanning
+      // Create a temporary video element for scanning (not displayed)
+      const tempVideo = document.createElement('video');
+      tempVideo.style.display = 'none';
+      document.body.appendChild(tempVideo);
+      
+      // Start scanning with the temporary video element
       await readerRef.current.decodeFromVideoDevice(
         selectedDevice.deviceId,
-        videoRef.current,
+        tempVideo,
         (result, error) => {
           if (result) {
             console.log('✅ QR Code detected:', result.getText());
@@ -213,7 +174,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       
       console.log('✅ Camera started successfully');
       setHasPermission(true);
-      toast.success("Camera started", {
+      toast.success("Camera Active", {
         description: "Point camera at QR code to scan",
         duration: 6000
       });
@@ -241,15 +202,21 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
   };
 
   const stopScanning = () => {
+    console.log('⏹️ Stopping camera scan...');
+    
     if (readerRef.current) {
       try {
-        // Stop the video stream properly
-        if (videoRef.current && videoRef.current.srcObject) {
-          const stream = videoRef.current.srcObject;
-          const tracks = stream.getTracks();
-          tracks.forEach(track => track.stop());
-          videoRef.current.srcObject = null;
-        }
+        // Find and remove temporary video elements
+        const tempVideos = document.querySelectorAll('video[style*="display: none"]');
+        tempVideos.forEach(video => {
+          if (video.srcObject) {
+            const stream = video.srcObject;
+            const tracks = stream.getTracks();
+            tracks.forEach(track => track.stop());
+            video.srcObject = null;
+          }
+          video.remove();
+        });
         
         // Reset the reader if the method exists
         if (typeof readerRef.current.reset === 'function') {
@@ -257,6 +224,8 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
         } else if (typeof readerRef.current.stopContinuousDecode === 'function') {
           readerRef.current.stopContinuousDecode();
         }
+        
+        console.log('✅ Camera stopped successfully');
       } catch (err) {
         console.warn('Error stopping scanner:', err);
       }
@@ -487,15 +456,6 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
         {/* Camera Mode - Only on mobile devices */}
         {scanMode === 'camera' && isMobile && (
           <div className="relative bg-gray-100 rounded-lg overflow-hidden aspect-square">
-            {/* Hidden video element for camera scanning */}
-            <video
-              ref={videoRef}
-              className="hidden"
-              autoPlay
-              playsInline
-              muted
-            />
-            
             {isScanning ? (
               <div className="flex flex-col items-center justify-center h-full text-blue-600 p-4">
                 {/* Scanning Animation */}
@@ -539,10 +499,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => {
-                        console.log('🔄 Retrying camera access...');
-                        getVideoDevices();
-                      }}
+                      onClick={initializeCamera}
                     >
                       <RefreshCw className="mr-2 h-4 w-4" />
                       Retry Access
