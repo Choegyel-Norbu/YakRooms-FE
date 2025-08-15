@@ -142,12 +142,16 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
         return;
       }
       
-      // Prefer back camera for mobile devices
-      const backCamera = videoInputDevices.find(device => 
-        device.label.toLowerCase().includes('back') || 
-        device.label.toLowerCase().includes('rear') ||
-        device.label.toLowerCase().includes('environment')
-      );
+      // Prefer back camera for mobile devices - try multiple variations
+      const backCamera = videoInputDevices.find(device => {
+        const label = device.label.toLowerCase();
+        return label.includes('back') || 
+               label.includes('rear') || 
+               label.includes('environment') ||
+               label.includes('facing back') ||
+               label.includes('camera 0') ||
+               (device.deviceId && device.deviceId.includes('back'));
+      });
       
       const selectedDevice = backCamera || videoInputDevices[0];
       console.log('🎯 Selected device:', selectedDevice);
@@ -264,12 +268,15 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
     try {
       setLastScanResult(result);
       
+      // Stop scanning after successful detection to prevent multiple scans
+      stopScanning();
+      
       // Try to parse as JSON (booking QR code)
       const bookingData = JSON.parse(result);
       
       if (bookingData.bookingId || bookingData.id) {
-        toast.success("QR Code Scanned!", {
-          description: "Booking information found",
+        toast.success("QR Code Scanned Successfully!", {
+          description: "Booking information found and processed",
           duration: 6000
         });
         onScanSuccess(bookingData);
@@ -283,6 +290,9 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
         description: "This doesn't appear to be a valid booking QR code",
         duration: 6000
       });
+      
+      // Stop scanning on error as well
+      stopScanning();
       
       // Still pass the raw result in case it's useful
       onScanSuccess({ rawData: result, error: 'Invalid format' });
@@ -477,35 +487,47 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
         {/* Camera Mode - Only on mobile devices */}
         {scanMode === 'camera' && isMobile && (
           <div className="relative bg-gray-100 rounded-lg overflow-hidden aspect-square">
+            {/* Hidden video element for camera scanning */}
+            <video
+              ref={videoRef}
+              className="hidden"
+              autoPlay
+              playsInline
+              muted
+            />
+            
             {isScanning ? (
-              <>
-                <video
-                  ref={videoRef}
-                  className="w-full h-full object-cover"
-                  autoPlay
-                  playsInline
-                  muted
-                />
-                {/* Scanning overlay */}
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute inset-4 border-2 border-blue-500 rounded-lg">
-                    <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-blue-500 rounded-tl-lg"></div>
-                    <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-blue-500 rounded-tr-lg"></div>
-                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-blue-500 rounded-bl-lg"></div>
-                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-blue-500 rounded-br-lg"></div>
+              <div className="flex flex-col items-center justify-center h-full text-blue-600 p-4">
+                {/* Scanning Animation */}
+                <div className="relative mb-4">
+                  <div className="w-24 h-24 border-4 border-blue-200 rounded-lg relative">
+                    <div className="absolute inset-0 border-4 border-blue-500 rounded-lg animate-pulse"></div>
+                    {/* Corner indicators */}
+                    <div className="absolute -top-1 -left-1 w-4 h-4 border-t-4 border-l-4 border-blue-500"></div>
+                    <div className="absolute -top-1 -right-1 w-4 h-4 border-t-4 border-r-4 border-blue-500"></div>
+                    <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-4 border-l-4 border-blue-500"></div>
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-4 border-r-4 border-blue-500"></div>
                   </div>
+                  {/* Scanning line */}
                   <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="w-1 h-8 bg-red-500 animate-pulse opacity-75"></div>
+                    <div className="w-16 h-0.5 bg-red-500 animate-pulse"></div>
                   </div>
                 </div>
-                {/* Status overlay */}
-                <div className="absolute top-2 left-2 right-2">
-                  <div className="bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    Scanning for QR codes...
+                
+                {/* Status */}
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium">Camera Active</span>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-4">
+                    Point your device at a QR code to scan
+                  </p>
+                  <div className="text-xs text-gray-500">
+                    Using back camera for scanning
                   </div>
                 </div>
-              </>
+              </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 p-4">
                 {hasPermission === false ? (
@@ -733,3 +755,4 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
 };
 
 export default QRCodeScanner;
+
