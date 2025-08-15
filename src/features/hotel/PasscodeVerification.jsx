@@ -1,99 +1,116 @@
-import React, { useState } from 'react';
-import { Button } from '@/shared/components/button';
-import { Input } from '@/shared/components/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/card';
-import { Alert, AlertDescription } from '@/shared/components/alert';
-import { Badge } from '@/shared/components/badge';
-import { Separator } from '@/shared/components/separator';
-import { Loader2, CheckCircle, XCircle, Calendar, MapPin, User, Bed, Clock } from 'lucide-react';
+import React, { useState } from "react";
+import { Button } from "@/shared/components/button";
+import { Input } from "@/shared/components/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/card";
+import { Alert, AlertDescription } from "@/shared/components/alert";
+import { Badge } from "@/shared/components/badge";
+import { Separator } from "@/shared/components/separator";
+import {
+  Loader2,
+  CheckCircle,
+  XCircle,
+  Calendar,
+  MapPin,
+  User,
+  Bed,
+  Clock,
+} from "lucide-react";
 import api from "../../shared/services/Api";
 
 const PasscodeVerification = () => {
-  const [passcode, setPasscode] = useState('');
+  const [passcode, setPasscode] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
   const [bookingData, setBookingData] = useState(null);
-  const [error, setError] = useState('');
-  const [checkInMessage, setCheckInMessage] = useState('');
+  const [error, setError] = useState("");
+  const [checkInMessage, setCheckInMessage] = useState("");
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   const formatDateTime = (dateTimeString) => {
-    return new Date(dateTimeString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateTimeString).toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getStatusVariant = (status) => {
     switch (status?.toUpperCase()) {
-      case 'CONFIRMED':
-        return 'default';
-      case 'PENDING':
-        return 'secondary';
-      case 'CANCELLED':
-        return 'destructive';
-      case 'CHECKED_IN':
-        return 'default';
-      case 'CHECKED_OUT':
-        return 'secondary';
+      case "CONFIRMED":
+        return "default";
+      case "PENDING":
+        return "secondary";
+      case "CANCELLED":
+        return "destructive";
+      case "CHECKED_IN":
+        return "default";
+      case "CHECKED_OUT":
+        return "secondary";
       default:
-        return 'outline';
+        return "outline";
     }
   };
 
   const checkIn = async () => {
     if (!bookingData?.bookingId) {
-      setError('No booking data available');
+      setError("No booking data available");
       return;
     }
 
     setCheckingIn(true);
-    setError('');
-    setCheckInMessage('');
+    setError("");
+    setCheckInMessage("");
 
     try {
-      const response = await api.put(`/bookings/${bookingData.bookingId}/status/checked_in`);
-      
+      const response = await api.put(
+        `/bookings/${bookingData.bookingId}/status/checked_in`
+      );
+
       // Handle the response from ResponseEntity.ok("Booking status updated successfully.")
       if (response.status === 200) {
         // Update the local booking data with new status
-        setBookingData(prev => ({
+        setBookingData((prev) => ({
           ...prev,
-          status: 'CHECKED_IN'
+          status: "CHECKED_IN",
         }));
-        setCheckInMessage('Check-in successful! Guest has been checked in.');
-        
+        setCheckInMessage("Check-in successful! Guest has been checked in.");
+
         // Clear the success message after 3 seconds
         setTimeout(() => {
-          setCheckInMessage('');
+          setCheckInMessage("");
         }, 3000);
       } else {
-        setError('Failed to check in');
+        setError("Failed to check in");
       }
     } catch (err) {
-      console.error('Check-in error:', err);
+      console.error("Check-in error:", err);
       if (err.response?.data?.message) {
         setError(err.response.data.message);
       } else if (err.response?.status === 404) {
-        setError('Booking not found');
+        setError("Booking not found");
       } else if (err.response?.status === 400) {
-        setError('Invalid status value');
+        setError("Invalid status value");
       } else if (err.response?.status === 403) {
-        setError('You are not authorized to perform this action');
+        setError("You are not authorized to perform this action");
       } else if (err.response?.status === 409) {
-        setError('Cannot check in. The booking may be in an invalid state.');
+        setError("Cannot check in. The booking may be in an invalid state.");
       } else {
-        setError('Network error. Please check your connection and try again.');
+        setError("Network error. Please check your connection and try again.");
       }
     } finally {
       setCheckingIn(false);
@@ -102,56 +119,52 @@ const PasscodeVerification = () => {
 
   const verifyPasscode = async (e) => {
     e.preventDefault();
-    
+
     if (!passcode.trim()) {
-      setError('Please enter a passcode');
+      setError("Please enter a passcode");
       return;
     }
 
     setLoading(true);
-    setError('');
+    setError("");
     setBookingData(null);
 
     try {
-      const response = await api.get(`/passcode/verify?passcode=${encodeURIComponent(passcode.trim())}`);
+      const response = await api.get(
+        `/passcode/verify?passcode=${encodeURIComponent(passcode.trim())}`
+      );
       const data = response.data;
 
       if (data.valid) {
         setBookingData(data);
-        setPasscode('');
+        setPasscode("");
       } else {
-        setError(data.message || 'Invalid passcode or booking not found');
+        setError(data.message || "Invalid passcode or booking not found");
       }
     } catch (err) {
-      setError('Network error. Please check your connection and try again.');
-      console.error('Verification error:', err);
+      setError("Network error. Please check your connection and try again.");
+      console.error("Verification error:", err);
     } finally {
       setLoading(false);
     }
   };
 
   const resetForm = () => {
-    setPasscode('');
-    setError('');
+    setPasscode("");
+    setError("");
     setBookingData(null);
   };
 
   return (
     <div className="h-auto w-full flex items-center justify-center p-6">
       <div className="w-full max-w-2xl space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">Verify Your Booking</h1>
-          <p className="text-sm text-muted-foreground">
-            Enter your passcode to view your booking details
-          </p>
-        </div>
-
         {/* Verification Form */}
         {!bookingData && (
           <Card className="w-full">
             <CardHeader className="space-y-2">
-              <CardTitle className="text-lg text-center">Passcode Verification</CardTitle>
+              <CardTitle className="text-lg text-center">
+                Passcode Verification
+              </CardTitle>
               <CardDescription className="text-center text-sm">
                 Enter the passcode you received with your booking confirmation
               </CardDescription>
@@ -165,7 +178,7 @@ const PasscodeVerification = () => {
                     value={passcode}
                     onChange={(e) => setPasscode(e.target.value.toUpperCase())}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === "Enter") {
                         verifyPasscode(e);
                       }
                     }}
@@ -174,10 +187,10 @@ const PasscodeVerification = () => {
                     disabled={loading}
                   />
                 </div>
-                
-                <Button 
+
+                <Button
                   onClick={verifyPasscode}
-                  className="w-full h-9 text-sm" 
+                  className="w-full h-9 text-sm"
                   disabled={loading || !passcode.trim()}
                 >
                   {loading ? (
@@ -203,9 +216,9 @@ const PasscodeVerification = () => {
             <XCircle className="h-4 w-4" />
             <AlertDescription className="flex justify-between items-center text-sm">
               <span>{error}</span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={resetForm}
                 className="ml-4 text-xs"
               >
@@ -243,7 +256,10 @@ const PasscodeVerification = () => {
                     Booking Details
                   </CardTitle>
                   <div className="flex items-center gap-2">
-                    <Badge variant={getStatusVariant(bookingData.status)} className="text-xs px-2 py-1">
+                    <Badge
+                      variant={getStatusVariant(bookingData.status)}
+                      className="text-xs px-2 py-1"
+                    >
                       {bookingData.status}
                     </Badge>
                     {checkingIn && (
@@ -263,8 +279,12 @@ const PasscodeVerification = () => {
                     <div className="flex items-center gap-3 p-3 border rounded-lg">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="text-xs text-muted-foreground">Guest Name</p>
-                        <p className="text-sm font-medium">{bookingData.guestName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Guest Name
+                        </p>
+                        <p className="text-sm font-medium">
+                          {bookingData.guestName}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -272,21 +292,29 @@ const PasscodeVerification = () => {
                   <Separator />
 
                   <div className="space-y-3">
-                    <h3 className="text-sm font-semibold">Accommodation Details</h3>
+                    <h3 className="text-sm font-semibold">
+                      Accommodation Details
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="flex items-center gap-3 p-3 border rounded-lg">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
                         <div>
                           <p className="text-xs text-muted-foreground">Hotel</p>
-                          <p className="text-sm font-medium">{bookingData.hotelName}</p>
+                          <p className="text-sm font-medium">
+                            {bookingData.hotelName}
+                          </p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-3 p-3 border rounded-lg">
                         <Bed className="h-4 w-4 text-muted-foreground" />
                         <div>
-                          <p className="text-xs text-muted-foreground">Room Number</p>
-                          <p className="text-sm font-medium">Room {bookingData.roomNumber}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Room Number
+                          </p>
+                          <p className="text-sm font-medium">
+                            Room {bookingData.roomNumber}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -300,16 +328,24 @@ const PasscodeVerification = () => {
                       <div className="flex items-center gap-3 p-3 border rounded-lg">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <div>
-                          <p className="text-xs text-muted-foreground">Check-in Date</p>
-                          <p className="text-sm font-medium">{formatDate(bookingData.checkInDate)}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Check-in Date
+                          </p>
+                          <p className="text-sm font-medium">
+                            {formatDate(bookingData.checkInDate)}
+                          </p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-3 p-3 border rounded-lg">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <div>
-                          <p className="text-xs text-muted-foreground">Check-out Date</p>
-                          <p className="text-sm font-medium">{formatDate(bookingData.checkOutDate)}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Check-out Date
+                          </p>
+                          <p className="text-sm font-medium">
+                            {formatDate(bookingData.checkOutDate)}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -318,12 +354,18 @@ const PasscodeVerification = () => {
                   <Separator />
 
                   <div className="space-y-3">
-                    <h3 className="text-sm font-semibold">Booking Information</h3>
+                    <h3 className="text-sm font-semibold">
+                      Booking Information
+                    </h3>
                     <div className="flex items-center gap-3 p-3 border rounded-lg">
                       <Clock className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="text-xs text-muted-foreground">Booking Created</p>
-                        <p className="text-sm font-medium">{formatDateTime(bookingData.createdAt)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Booking Created
+                        </p>
+                        <p className="text-sm font-medium">
+                          {formatDateTime(bookingData.createdAt)}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -333,18 +375,20 @@ const PasscodeVerification = () => {
                 <div className="pt-4 space-y-3">
                   <Separator />
                   <div className="flex gap-3">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={resetForm}
                       className="flex-1 h-9 text-sm"
                       disabled={checkingIn}
                     >
                       Verify Another Passcode
                     </Button>
-                    <Button 
+                    <Button
                       className="flex-1 h-9 text-sm"
                       onClick={checkIn}
-                      disabled={checkingIn || bookingData?.status === 'CHECKED_IN'}
+                      disabled={
+                        checkingIn || bookingData?.status === "CHECKED_IN"
+                      }
                     >
                       {checkingIn ? (
                         <>
@@ -352,7 +396,7 @@ const PasscodeVerification = () => {
                           Checking In...
                         </>
                       ) : (
-                        'Check in'
+                        "Check in"
                       )}
                     </Button>
                   </div>
