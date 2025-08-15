@@ -125,7 +125,7 @@ const SuperAdmin = () => {
   const LoadingSpinner = () => (
     <div className="flex justify-center items-center py-12">
       <YakRoomsLoader 
-        size={80} 
+        size={112} 
         showTagline={false} 
         loadingText=""
         className="mb-4"

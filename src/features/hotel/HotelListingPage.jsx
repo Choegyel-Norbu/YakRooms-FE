@@ -661,7 +661,7 @@ const HotelListingPage = () => {
                           : (
                             <div className="flex flex-col items-center justify-center">
                               <YakRoomsLoader 
-                                size={64} 
+                                size={40} 
                                 showTagline={false} 
                                 loadingText=""
                                 className="mb-2"

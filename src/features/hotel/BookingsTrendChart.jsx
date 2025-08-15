@@ -129,7 +129,7 @@ const BookingsTrendChart = () => {
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
               <YakRoomsLoader 
-                size={60} 
+                size={112} 
                 showTagline={false} 
                 loadingText=""
                 className="mb-4"

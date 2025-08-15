@@ -592,8 +592,8 @@ const HotelDetailsPage = () => {
         <div className="text-center space-y-4">
           <YakRoomsLoader 
             size={112} 
-            showTagline={true} 
-            loadingText="Loading hotel details..."
+            showTagline={false} 
+            loadingText=""
             className="mb-4"
           />
         </div>

@@ -19,7 +19,12 @@ import {
   AlertTriangle,
   QrCode,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/card";
 import { Button } from "@/shared/components/button";
 import { Separator } from "@/shared/components/separator";
 import { Badge } from "@/shared/components/badge";
@@ -57,6 +62,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/shared/components/sheet";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/shared/components/tabs";
 import HotelInfoForm from "./HotelInfoForm";
 import RoomManager from "../admin/RoomManager";
 import BookingTable from "./BookingTable";
@@ -70,12 +81,12 @@ import SockJS from "sockjs-client";
 import { API_BASE_URL } from "../../shared/services/firebaseConfig";
 import { toast } from "sonner";
 
-// YakRooms Text Logo Component (copied from Navbar.jsx)
+// YakRooms Text Logo Component (consistent with HotelListingPage)
 const YakRoomsText = ({ size = "default" }) => {
   const textSizes = {
-    small: "text-lg font-bold",
-    default: "text-xl font-bold",
-    large: "text-2xl font-bold",
+    small: "text-lg font-semibold",
+    default: "text-xl font-semibold",
+    large: "text-2xl font-semibold",
   };
   return (
     <div className={`${textSizes[size]} font-sans tracking-tight`}>
@@ -88,7 +99,7 @@ const YakRoomsText = ({ size = "default" }) => {
 const HotelAdminDashboard = () => {
   const { userId, userName, hotelId, lastLogin, roles } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
-  
+
   // Redirect to dashboard if user doesn't have access to current tab
   useEffect(() => {
     if (activeTab === "staff" && roles && roles.includes("STAFF")) {
@@ -105,13 +116,11 @@ const HotelAdminDashboard = () => {
   const clientRef = useRef(null);
   const notificationRef = useRef(null);
   const [showStaffGrid, setShowStaffGrid] = useState(true);
-  const [showPasscodeVerification, setShowPasscodeVerification] =
-    useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showQRScanner, setShowQRScanner] = useState(false);
   const [scannedBookingData, setScannedBookingData] = useState(null);
   const [showScannedBookingModal, setShowScannedBookingModal] = useState(false);
+  const [verificationTab, setVerificationTab] = useState("qr-scanner"); // "qr-scanner" or "passcode"
   // Simple media query hook for small screens (max-width: 640px)
   const isMobile =
     typeof window !== "undefined"
@@ -423,7 +432,8 @@ const HotelAdminDashboard = () => {
 
       // Show toast before redirect
       toast("Your hotel account and all associated data have been deleted.", {
-        description: "We're sorry to see you go. You will be redirected to the homepage.",
+        description:
+          "We're sorry to see you go. You will be redirected to the homepage.",
         duration: 4000,
       });
 
@@ -460,7 +470,9 @@ const HotelAdminDashboard = () => {
     { id: "hotel", label: "Hotel Details", icon: Hotel },
     { id: "rooms", label: "Room Management", icon: Bed },
     // Hide Staff Management for users with STAFF role
-    ...(roles && !roles.includes("STAFF") ? [{ id: "staff", label: "Staff Management", icon: Users }] : []),
+    ...(roles && !roles.includes("STAFF")
+      ? [{ id: "staff", label: "Staff Management", icon: Users }]
+      : []),
     { id: "inventory", label: "Inventory Tracker", icon: Package },
     { id: "analytics", label: "Analytics", icon: PieChart },
     { id: "booking", label: "Booking", icon: Calendar },
@@ -560,14 +572,14 @@ const HotelAdminDashboard = () => {
           <div className="px-4 py-3 lg:px-6 lg:py-4 flex justify-between items-center">
             <div className="space-y-0.5 flex-1 min-w-0">
               <h2 className="hidden md:block text-xl sm:text-xl lg:text-2xl font-semibold text-foreground truncate">
-                  {getPageTitle()}
-                </h2>
+                {getPageTitle()}
+              </h2>
               {activeTab !== "dashboard" && (
                 <p className="hidden md:block text-sm sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
                   {getPageDescription()}
                 </p>
               )}
-              </div>
+            </div>
 
             {/* Right side actions */}
             <div className="flex items-center space-x-3 flex-shrink-0">
@@ -673,7 +685,6 @@ const HotelAdminDashboard = () => {
                         </div>
                       )}
                     </div>
-                    
                   </div>
                 )}
               </div>
@@ -681,7 +692,7 @@ const HotelAdminDashboard = () => {
               {/* Mobile Navigation Button */}
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <SheetTrigger asChild>
-                    <List className="h-4 w-4 md:hidden" />
+                  <List className="h-4 w-4 md:hidden" />
                 </SheetTrigger>
                 <SheetContent
                   side="left"
@@ -741,7 +752,10 @@ const HotelAdminDashboard = () => {
                         </Button>
                       </Link>
 
-                      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                      <AlertDialog
+                        open={showDeleteDialog}
+                        onOpenChange={setShowDeleteDialog}
+                      >
                         <AlertDialogTrigger asChild>
                           <Button
                             variant="outline"
@@ -759,7 +773,8 @@ const HotelAdminDashboard = () => {
                               Delete Account & Hotel
                             </AlertDialogTitle>
                             <AlertDialogDescription className="text-left">
-                              This action cannot be undone. This will permanently delete your:
+                              This action cannot be undone. This will
+                              permanently delete your:
                               <ul className="list-disc list-inside mt-2 space-y-1">
                                 <li>Hotel account and all associated data</li>
                                 <li>User account and profile</li>
@@ -803,90 +818,94 @@ const HotelAdminDashboard = () => {
               />
 
               {/* Desktop User Menu - Hidden on mobile */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 hidden md:flex"
                   >
                     <Avatar className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-primary/20">
                       <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
-                          {userName?.charAt(0).toUpperCase() || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
+                        {userName?.charAt(0).toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-48 sm:w-56" align="end">
-                    <DropdownMenuLabel className="font-normal">
-                      <div className="flex flex-col space-y-1">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none truncate">
                         {userName}
                       </p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                          Hotel Administrator
-                        </p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/" className="w-full">
-                        <Home className="mr-2 h-4 w-4" />
-                        <span>Return to Website</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                      <AlertDialogTrigger asChild>
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive cursor-pointer"
-                          onSelect={(e) => e.preventDefault()}
+                      <p className="text-xs leading-none text-muted-foreground">
+                        Hotel Administrator
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/" className="w-full">
+                      <Home className="mr-2 h-4 w-4" />
+                      <span>Return to Website</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <AlertDialog
+                    open={showDeleteDialog}
+                    onOpenChange={setShowDeleteDialog}
+                  >
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive cursor-pointer"
+                        onSelect={(e) => e.preventDefault()}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        <span>Delete Account</span>
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                          <AlertTriangle className="h-5 w-5 text-destructive" />
+                          Delete Account & Hotel
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-left">
+                          This action cannot be undone. This will permanently
+                          delete your:
+                          <ul className="list-disc list-inside mt-2 space-y-1">
+                            <li>Hotel account and all associated data</li>
+                            <li>User account and profile</li>
+                            <li>All bookings and customer information</li>
+                            <li>Staff accounts and permissions</li>
+                          </ul>
+                          <p className="mt-3 font-medium text-destructive">
+                            Are you absolutely sure you want to proceed?
+                          </p>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteAccount}
+                          disabled={isDeleting}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          <span>Delete Account</span>
-                        </DropdownMenuItem>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="flex items-center gap-2">
-                            <AlertTriangle className="h-5 w-5 text-destructive" />
-                            Delete Account & Hotel
-                          </AlertDialogTitle>
-                          <AlertDialogDescription className="text-left">
-                            This action cannot be undone. This will permanently delete your:
-                            <ul className="list-disc list-inside mt-2 space-y-1">
-                              <li>Hotel account and all associated data</li>
-                              <li>User account and profile</li>
-                              <li>All bookings and customer information</li>
-                              <li>Staff accounts and permissions</li>
-                            </ul>
-                            <p className="mt-3 font-medium text-destructive">
-                              Are you absolutely sure you want to proceed?
-                            </p>
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel disabled={isDeleting}>
-                            Cancel
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleDeleteAccount}
-                            disabled={isDeleting}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
-                          >
-                            {isDeleting ? (
-                              <>
-                                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
-                                Deleting...
-                              </>
-                            ) : (
-                              "Delete Account"
-                            )}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                          {isDeleting ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
+                              Deleting...
+                            </>
+                          ) : (
+                            "Delete Account"
+                          )}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </header>
@@ -917,13 +936,13 @@ const HotelAdminDashboard = () => {
                             />
                           </svg>
                         </div>
-                    <div>
+                        <div>
                           <h3 className="text-lg sm:text-lg font-semibold text-foreground mb-1 truncate">
-                        Welcome back, {userName}!
-                      </h3>
+                            Welcome back, {userName}!
+                          </h3>
                           <p className="text-sm text-muted-foreground">
-                        Here's what's happening with your hotel today.
-                      </p>
+                            Here's what's happening with your hotel today.
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -938,7 +957,9 @@ const HotelAdminDashboard = () => {
                       </Badge>
 
                       <div className="text-left">
-                        <p className="text-xs text-muted-foreground">Last login</p>
+                        <p className="text-xs text-muted-foreground">
+                          Last login
+                        </p>
                         <p className="text-xs font-medium text-foreground">
                           {formatLoginTime(lastLogin)}
                         </p>
@@ -963,9 +984,7 @@ const HotelAdminDashboard = () => {
                 </Button>
               </div>
 
-              
               {showStaffGrid && <StaffCardGrid hotelId={hotelId} />}
-              
             </div>
           )}
 
@@ -1045,40 +1064,6 @@ const HotelAdminDashboard = () => {
 
           {activeTab === "booking" && (
             <div className="space-y-4">
-              {/* QR Code Scanner Section */}
-              <Card>
-                <CardHeader className="">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <QrCode className="h-4 w-4 text-primary" />
-                    QR Code Scanner
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 md:px-6 md:pb-6">
-                  {/* QR Scanner Toggle */}
-                  <div className="mb-4">
-                    <Button
-                      variant={showQRScanner ? "secondary" : "outline"}
-                      className="w-full"
-                      onClick={() => setShowQRScanner((prev) => !prev)}
-                    >
-                      <QrCode className="mr-2 h-4 w-4" />
-                      {showQRScanner
-                        ? "Hide QR Scanner"
-                        : "Show QR Scanner"}
-                    </Button>
-                  </div>
-                  
-                  {showQRScanner && (
-                    <div className="flex justify-center">
-                      <QRCodeScanner 
-                        onScanSuccess={handleQRScanSuccess}
-                        isActive={showQRScanner}
-                      />
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
               {/* Admin Booking Form */}
               <Card>
                 <CardHeader className="">
@@ -1088,36 +1073,72 @@ const HotelAdminDashboard = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 md:px-6 md:pb-6">
-                  <AdminBookingForm 
-                    hotelId={hotelId} 
+                  <AdminBookingForm
+                    hotelId={hotelId}
                     onBookingSuccess={handleBookingSuccess}
                   />
                 </CardContent>
               </Card>
 
-              {/* Passcode Verification Toggle */}
-              <div className="mb-2">
-                <Button
-                  variant={showPasscodeVerification ? "secondary" : "outline"}
-                  className="w-full"
-                  onClick={() => setShowPasscodeVerification((prev) => !prev)}
-                >
-                  {showPasscodeVerification
-                    ? "Hide Passcode Verification"
-                    : "Show Passcode Verification"}
-                </Button>
-              </div>
-
-              {showPasscodeVerification && <PasscodeVerification />}
+              {/* Booking Verification Section with Tabs */}
+              <Card>
+                <CardHeader className="">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <QrCode className="h-4 w-4 text-primary" />
+                    Booking Verification
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 md:px-6 md:pb-6">
+                  <Tabs 
+                    value={verificationTab} 
+                    onValueChange={setVerificationTab}
+                    className="w-full"
+                  >
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="qr-scanner" className="flex items-center gap-2">
+                        <QrCode className="h-4 w-4" />
+                        QR Scanner
+                      </TabsTrigger>
+                      <TabsTrigger value="passcode" className="flex items-center gap-2">
+                        <Bed className="h-4 w-4" />
+                        Passcode
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="qr-scanner" className="mt-4">
+                      <div className="space-y-4">
+                        <div className="text-center text-sm text-gray-600 mb-4">
+                          Scan guest QR codes to verify booking details
+                        </div>
+                        <div className="flex justify-center">
+                          <QRCodeScanner
+                            onScanSuccess={handleQRScanSuccess}
+                            isActive={verificationTab === "qr-scanner"}
+                          />
+                        </div>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="passcode" className="mt-4">
+                      <div className="space-y-4">
+                        <div className="text-center text-sm text-gray-600 mb-4">
+                          Enter room passcode to verify guest booking
+                        </div>
+                        <PasscodeVerification />
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
 
               {/* Booking Table */}
-            <Card>
+              <Card>
                 <CardHeader className="">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <Calendar className="h-4 w-4 text-primary" />
                     Recent Bookings
-                </CardTitle>
-              </CardHeader>
+                  </CardTitle>
+                </CardHeader>
                 <CardContent className="p-0 md:px-6 md:pb-6">
                   <div className="overflow-x-auto" data-booking-table>
                     <BookingTable
@@ -1126,9 +1147,9 @@ const HotelAdminDashboard = () => {
                       onStatusChange={updateBookingStatus}
                       viewMode="compact"
                     />
-                </div>
-              </CardContent>
-            </Card>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
         </main>

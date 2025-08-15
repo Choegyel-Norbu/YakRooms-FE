@@ -319,7 +319,12 @@ const RoomStatusTable = ({ hotelId }) => {
           {/* Loading State */}
           {(loading || searchLoading) && (
             <div className="flex justify-center items-center py-12">
-              <YakRoomsLoader />
+              <YakRoomsLoader 
+                size={112} 
+                showTagline={false} 
+                loadingText=""
+                className="mb-4"
+              />
             </div>
           )}
 

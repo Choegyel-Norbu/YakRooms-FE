@@ -70,10 +70,10 @@ const TopHighlightsSection = () => {
           {loading && (
             <div className="flex justify-center items-center py-8">
               <YakRoomsLoader 
-                size={80} 
+                size={112} 
                 showTagline={false} 
                 loadingText=""
-              className="mb-4"
+                className="mb-4"
               />
             </div>
           )}
