@@ -311,7 +311,7 @@ const BookingTable = ({ hotelId }) => {
         )}
 
         {/* --- Bookings Table --- */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scrollbar-hide">
           <Table>
             <TableHeader>
               <TableRow>

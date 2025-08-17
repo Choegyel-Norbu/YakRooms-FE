@@ -161,8 +161,9 @@ const QRCodeGenerator = ({ isOpen, onClose, bookingData }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Sticky Header */}
+        <DialogHeader className="flex-shrink-0 sticky top-0 bg-background z-10 pb-4 border-b">
           <DialogTitle className="flex items-center gap-2 text-lg">
             <QrCode className="h-5 w-5 text-blue-600" />
             Booking Confirmation
@@ -172,7 +173,9 @@ const QRCodeGenerator = ({ isOpen, onClose, bookingData }) => {
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-6">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto pt-4 scrollbar-hide">
+          <div className="space-y-6">
           {/* QR Code Display */}
           <div className="flex justify-center p-6 border border-border rounded-lg">
             {loading ? (
@@ -250,6 +253,7 @@ const QRCodeGenerator = ({ isOpen, onClose, bookingData }) => {
             <Button onClick={onClose} variant="outline" className="w-full">
               Close
             </Button>
+          </div>
           </div>
         </div>
       </DialogContent>

@@ -503,6 +503,7 @@ const RoomManager = () => {
           </DialogHeader>
 
           <form onSubmit={handleSubmit} ref={formRef} className="space-y-6">
+            {/* First Row: Room Type, Price, Room Number */}
             <div className="flex flex-col sm:flex-row flex-wrap gap-4">
               {/* Room Type */}
               <div className="space-y-2 flex-1 min-w-[250px]">
@@ -565,17 +566,30 @@ const RoomManager = () => {
                   <p className="text-sm text-destructive">{errors.roomNumber}</p>
                 )}
               </div>
+            </div>
 
-              {/* Availability */}
-              <div className="flex items-center space-x-2 flex-1 min-w-[250px]">
-                <Checkbox
-                  id="available"
-                  checked={roomForm.available}
-                  onCheckedChange={(checked) => 
-                    setRoomForm(prev => ({ ...prev, available: checked }))
-                  }
-                />
-                <Label htmlFor="available">Available for booking</Label>
+            {/* Availability Checkbox - Dedicated Row for Better Visibility */}
+            <div className="border rounded-lg p-4 bg-muted/20">
+              <div className="space-y-3">
+                <Label className="text-base font-medium">Room Availability</Label>
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id="available"
+                    checked={roomForm.available}
+                    onCheckedChange={(checked) => 
+                      setRoomForm(prev => ({ ...prev, available: checked }))
+                    }
+                    className="w-5 h-5"
+                  />
+                  <Label htmlFor="available" className="text-sm cursor-pointer select-none">
+                    Make this room available for booking
+                  </Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {roomForm.available 
+                    ? "✓ Guests can book this room" 
+                    : "⚠️ Room is marked as not available for booking"}
+                </p>
               </div>
             </div>
 
@@ -705,7 +719,8 @@ const RoomManager = () => {
           <CardTitle>All Rooms</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto scrollbar-hide">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Room No.</TableHead>
@@ -779,6 +794,7 @@ const RoomManager = () => {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

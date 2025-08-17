@@ -48,8 +48,9 @@ const BookingSuccessModal = ({ isOpen, onClose, bookingData }) => {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+          {/* Sticky Header */}
+          <DialogHeader className="flex-shrink-0 sticky top-0 bg-background z-10 pb-4 border-b">
             <DialogTitle className="flex items-center gap-3 text-lg text-green-700">
               <CheckCircle className="h-6 w-6 text-green-600" />
               Booking Confirmed!
@@ -59,7 +60,9 @@ const BookingSuccessModal = ({ isOpen, onClose, bookingData }) => {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-6">
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto pt-4 scrollbar-hide">
+            <div className="space-y-6">
             
 
             <Separator />
@@ -163,6 +166,7 @@ const BookingSuccessModal = ({ isOpen, onClose, bookingData }) => {
               >
                 Close
               </Button>
+            </div>
             </div>
           </div>
         </DialogContent>

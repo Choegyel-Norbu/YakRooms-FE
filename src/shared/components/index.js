@@ -47,5 +47,6 @@ export { default as QRCodeGenerator } from './QRCodeGenerator';
 export { default as RatingWidget } from './RatingWidget';
 export { default as Toast } from './Toast';
 export { default as ToastTest } from './ToastTest';
+export { default as TopHotelBadge } from './TopHotelBadge';
 export { default as NotificationsComponent } from './NotificationsComponent';
 export { default as UnAuthorizedPage } from './UnAuthorizedPage'; 

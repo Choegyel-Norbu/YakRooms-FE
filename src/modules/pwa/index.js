@@ -1,4 +1,2 @@
-// PWA Components
+// PWA Components (Install functionality only, no offline features)
 export { default as PWARegistration } from './PWARegistration';
-export { default as OfflineWrapper } from './OfflineWrapper';
-export { default as OfflinePage } from './OfflinePage'; 

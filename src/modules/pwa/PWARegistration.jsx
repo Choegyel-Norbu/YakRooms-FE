@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { registerSW } from 'virtual:pwa-register';
-import { Button } from '@/shared/components/button';
 import { toast } from 'sonner';
 import useMediaQuery from '@/shared/hooks/useMediaQuery';
 
@@ -16,7 +15,7 @@ const PWARegistration = () => {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
-    // Register service worker
+    // Register service worker for PWA features (no offline functionality)
     const updateSW = registerSW({
       onNeedRefresh() {
         if (isMobile) {
@@ -30,11 +29,6 @@ const PWARegistration = () => {
               label: "Later"
             }
           });
-        }
-      },
-      onOfflineReady() {
-        if (isMobile) {
-          toast.success("App is ready for offline use!");
         }
       },
       onRegistered(swRegistration) {
@@ -123,8 +117,6 @@ const PWARegistration = () => {
     };
   }, []);
 
-
-
   const handleInstall = async () => {
     console.log('handleInstall called, deferredPrompt:', !!deferredPrompt);
     
@@ -168,8 +160,6 @@ const PWARegistration = () => {
     }
   };
 
-
-
   // For debugging: Show install button if on mobile and not iOS
   if (isMobile && !isIOS() && process.env.NODE_ENV === 'development') {
     return (
@@ -195,4 +185,4 @@ const PWARegistration = () => {
   return null;
 };
 
-export default PWARegistration; 
+export default PWARegistration;

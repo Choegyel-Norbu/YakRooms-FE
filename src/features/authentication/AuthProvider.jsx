@@ -12,7 +12,8 @@ const AUTH_STORAGE_KEYS = {
   PICTURE_URL: 'pictureURL',
   REGISTER_FLAG: 'registerFlag',
   CLIENT_DETAIL_SET: 'clientDetailSet',
-  HOTEL_ID: 'hotelId'
+  HOTEL_ID: 'hotelId',
+  TOP_HOTEL_IDS: 'topHotelIds' // New key for persistent top hotel IDs
 };
 
 // === Utility to check token expiry ===
@@ -73,6 +74,29 @@ const stringifyRolesForStorage = (roles) => {
   }
 };
 
+// === Utility to parse top hotel IDs from storage ===
+const parseTopHotelIdsFromStorage = (topHotelIdsString) => {
+  try {
+    if (!topHotelIdsString) return [];
+    const parsed = JSON.parse(topHotelIdsString);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error("Failed to parse top hotel IDs from storage", error);
+    return [];
+  }
+};
+
+// === Utility to stringify top hotel IDs for storage ===
+const stringifyTopHotelIdsForStorage = (topHotelIds) => {
+  try {
+    if (!Array.isArray(topHotelIds)) return '[]';
+    return JSON.stringify(topHotelIds);
+  } catch (error) {
+    console.error("Failed to stringify top hotel IDs for storage", error);
+    return '[]';
+  }
+};
+
 // === Context Setup ===
 const AuthContext = createContext(null);
 
@@ -89,6 +113,7 @@ const defaultAuthState = {
   userId: "",
   flag: false,
   hotelId: null,
+  topHotelIds: [], // Store top three hotel IDs
 };
 
 export const AuthProvider = ({ children }) => {
@@ -117,6 +142,7 @@ export const AuthProvider = ({ children }) => {
         userId: getStorageItem(AUTH_STORAGE_KEYS.USER_ID),
         flag: false,
         hotelId: getStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID) || null,
+        topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)), // Load from localStorage
       };
     } catch (error) {
       console.error("Failed to initialize auth state", error);
@@ -133,8 +159,23 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(() => {
     try {
       console.log("Logging out...");
+      
+      // Preserve top hotel IDs during logout
+      const topHotelIds = getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS);
+      console.log("🔒 [LOGOUT] Preserving top hotel IDs:", topHotelIds);
+      
       localStorage.clear();
-      setAuthState(defaultAuthState);
+      
+      // Restore top hotel IDs after clearing
+      if (topHotelIds) {
+        setStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS, topHotelIds);
+        console.log("🔒 [LOGOUT] Restored top hotel IDs to localStorage");
+      }
+      
+      setAuthState({
+        ...defaultAuthState,
+        topHotelIds: parseTopHotelIdsFromStorage(topHotelIds) // Preserve in state too
+      });
       navigate("/");
     } catch (error) {
       console.error("Failed to clear auth data", error);
@@ -172,6 +213,7 @@ export const AuthProvider = ({ children }) => {
             clientDetailSet: getStorageItem(AUTH_STORAGE_KEYS.CLIENT_DETAIL_SET) === "true",
             registerFlag: getStorageItem(AUTH_STORAGE_KEYS.REGISTER_FLAG) === "true",
             hotelId: getStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID) || null,
+            topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)), // Sync from localStorage
           }));
         }
       }
@@ -241,6 +283,7 @@ export const AuthProvider = ({ children }) => {
         clientDetailSet: Boolean(authData.detailSet),
         flag: true,
         hotelId: authData.hotelId || existingHotelId || null,
+        topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)), // Preserve existing top hotel IDs on login
       });
 
       // Navigate only if not a first-time registration
@@ -401,6 +444,58 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  // === TOP HOTELS MANAGEMENT ===
+  const updateTopHotelIds = useCallback((hotelIds) => {
+    try {
+      const idsArray = Array.isArray(hotelIds) ? hotelIds : [];
+      console.log("🔄 [AUTH PROVIDER] updateTopHotelIds called:");
+      console.log("  - Input hotelIds:", hotelIds);
+      console.log("  - Processed idsArray:", idsArray);
+      
+      // Persist to localStorage for eternity
+      setStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS, stringifyTopHotelIdsForStorage(idsArray));
+      console.log("  - Persisted to localStorage:", stringifyTopHotelIdsForStorage(idsArray));
+      
+      setAuthState(prev => {
+        console.log("  - Previous topHotelIds:", prev.topHotelIds);
+        const newState = {
+          ...prev,
+          topHotelIds: idsArray
+        };
+        console.log("  - New topHotelIds:", newState.topHotelIds);
+        return newState;
+      });
+    } catch (error) {
+      console.error("Failed to update top hotel IDs", error);
+    }
+  }, []);
+
+  const isTopHotel = useCallback((hotelId) => {
+    // Convert both to strings for consistent comparison
+    const hotelIdStr = String(hotelId);
+    const topHotelIdsStr = authState.topHotelIds.map(id => String(id));
+    const result = topHotelIdsStr.includes(hotelIdStr);
+    
+    console.log("🔍 [AUTH PROVIDER] isTopHotel called:");
+    console.log("  - Input hotelId:", hotelId, "(type:", typeof hotelId, ")");
+    console.log("  - Converted hotelId:", hotelIdStr);
+    console.log("  - Current topHotelIds:", authState.topHotelIds);
+    console.log("  - Converted topHotelIds:", topHotelIdsStr);
+    console.log("  - Result:", result);
+    return result;
+  }, [authState.topHotelIds]);
+
+  const clearTopHotelIds = useCallback(() => {
+    // Remove from localStorage
+    setStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS, '[]');
+    console.log("🗑️ [AUTH PROVIDER] clearTopHotelIds called - removed from localStorage");
+    
+    setAuthState(prev => ({
+      ...prev,
+      topHotelIds: []
+    }));
+  }, []);
+
   // === Memoize context value to prevent unnecessary re-renders ===
   const contextValue = useMemo(() => ({
     ...authState,
@@ -419,7 +514,11 @@ export const AuthProvider = ({ children }) => {
     updateUserProfile,
     lastLogin,
     setLastLogin,
-  }), [authState, role, login, logout, setHotelId, setRoles, addRole, removeRole, hasRole, getPrimaryRole, setActiveRole, getCurrentActiveRole, switchToRole, updateUserProfile, lastLogin, setLastLogin]);
+    // Top hotels management
+    updateTopHotelIds,
+    isTopHotel,
+    clearTopHotelIds,
+  }), [authState, role, login, logout, setHotelId, setRoles, addRole, removeRole, hasRole, getPrimaryRole, setActiveRole, getCurrentActiveRole, switchToRole, updateUserProfile, lastLogin, setLastLogin, updateTopHotelIds, isTopHotel, clearTopHotelIds]);
 
   return (
     <AuthContext.Provider value={contextValue}>

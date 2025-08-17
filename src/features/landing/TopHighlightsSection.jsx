@@ -15,11 +15,13 @@ import { Button } from "@/shared/components/button";
 import StarRating from "@/shared/components/star-rating";
 import api from "../../shared/services/Api";
 import YakRoomsLoader from "@/shared/components/YakRoomsLoader";
+import { useAuth } from "../authentication";
 
 const TopHighlightsSection = () => {
   const [hotelsData, setHotelsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { updateTopHotelIds } = useAuth();
 
   useEffect(() => {
     const fetchHotels = async () => {
@@ -31,6 +33,15 @@ const TopHighlightsSection = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         setHotelsData(response.data);
+        
+        // Store hotel IDs in context
+        const hotelIds = response.data.map(hotel => hotel.id);
+        console.log("🏆 [TOP HIGHLIGHTS] Storing top hotel IDs:");
+        console.log("  - Raw response.data:", response.data);
+        console.log("  - Extracted hotel IDs:", hotelIds);
+        console.log("  - Hotel IDs types:", hotelIds.map(id => typeof id));
+        updateTopHotelIds(hotelIds);
+        console.log("  - Successfully called updateTopHotelIds");
       } catch (e) {
         console.error("Failed to fetch hotels:", e);
         setError("Failed to load hotels. Please try again later.");

@@ -25,7 +25,6 @@ import { Calendar } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
-  const { userId } = useAuth();
   const [openBookingDialog, setOpenBookingDialog] = useState(false);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -191,7 +190,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
     <>
       <Button 
         onClick={() => setOpenBookingDialog(true)}
-        className="w-full"
+        className="w-auto cursor-pointer"
         disabled={loading}
       >
         <Calendar className="mr-2 h-4 w-4" />

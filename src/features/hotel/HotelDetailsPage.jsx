@@ -501,12 +501,14 @@ const HotelDetailsPage = () => {
     };
   }, [fetchInitialData]);
 
-  // Room pagination effect - only when page changes, not on initial load
+  // Room pagination effect - track page changes after initial load
+  const [hasNavigatedFromInitialPage, setHasNavigatedFromInitialPage] = useState(false);
+  
   useEffect(() => {
-    if (appState.criticalDataLoaded && roomsState.currentPage > 0) {
+    if (appState.criticalDataLoaded && hasNavigatedFromInitialPage) {
       fetchRooms(roomsState.currentPage);
     }
-  }, [roomsState.currentPage, fetchRooms, appState.criticalDataLoaded]);
+  }, [roomsState.currentPage, fetchRooms, appState.criticalDataLoaded, hasNavigatedFromInitialPage]);
 
   // Testimonials pagination effect - only when page changes, not on initial load
   useEffect(() => {
@@ -551,6 +553,7 @@ const HotelDetailsPage = () => {
   }, [appState.hotel?.photoUrls?.length]);
 
   const handlePageChange = useCallback((page) => {
+    setHasNavigatedFromInitialPage(true);
     setRoomsState(prev => ({ ...prev, currentPage: page }));
   }, []);
 

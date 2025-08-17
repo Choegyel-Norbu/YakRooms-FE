@@ -6,7 +6,6 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "./features/authentication";
 import { BookingProvider } from "./features/booking";
 import { PWARegistration } from "./modules/pwa";
-import { OfflineWrapper } from "./modules/pwa";
 import { GlobalReviewSheet } from "./shared/components";
 
 function App() {
@@ -14,18 +13,16 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <BookingProvider>
-          <OfflineWrapper>
-            <AppRouting />
-            <PWARegistration />
-            <GlobalReviewSheet />
-            <ToastContainer />
-            <Toaster 
-              position="bottom-right"
-              closeButton={true}
-              duration={Infinity}
-              richColors={true}
-            />
-          </OfflineWrapper>
+          <AppRouting />
+          <PWARegistration />
+          <GlobalReviewSheet />
+          <ToastContainer />
+          <Toaster 
+            position="bottom-right"
+            closeButton={true}
+            duration={6000}
+            richColors={true}
+          />
         </BookingProvider>
       </AuthProvider>
     </BrowserRouter>
