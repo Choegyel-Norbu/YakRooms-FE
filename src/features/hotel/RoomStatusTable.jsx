@@ -207,7 +207,7 @@ const RoomStatusTable = ({ hotelId }) => {
     <Card className="w-full">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Room Status Overview</CardTitle>
+          <CardTitle>Room Overview</CardTitle>
           <Button
             variant="outline"
             size="sm"

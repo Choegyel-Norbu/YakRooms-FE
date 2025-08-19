@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import api from "../../shared/services/Api";
-import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft } from "lucide-react";
+import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft, Eye, X, MapPin, Phone, Mail, Globe, Calendar, Star } from "lucide-react";
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
 import { Link } from "react-router-dom";
@@ -20,6 +20,14 @@ import {
   CardTitle,
 } from "@/shared/components/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shared/components/dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -37,6 +45,8 @@ const SuperAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [verifyingHotelId, setVerifyingHotelId] = useState(null); // New state for tracking verification
+  const [selectedHotel, setSelectedHotel] = useState(null); // For hotel details modal
+  const [showHotelDetails, setShowHotelDetails] = useState(false); // Modal state
 
   const [pagination, setPagination] = useState({
     pageNumber: 0,
@@ -89,23 +99,45 @@ const SuperAdmin = () => {
     setVerifyingHotelId(hotelId); // Set the ID of the hotel being verified
     try {
       const res = await api.post(`/hotels/${hotelId}/verify`);
-      if (res.status === 200) {
-        toast.success("Hotel Verified", {
-          description: "The hotel has been successfully verified.",
-          icon: <CheckCircle className="text-green-600" />,
-        });
-        // Optimistically update the hotel's verified status in the state
-        setHotels((prevHotels) =>
-          prevHotels.map((hotel) =>
-            hotel.id === hotelId ? { ...hotel, verified: true } : hotel
-          )
-        );
+      if (res.status === 200 && res.data) {
+        const { success, emailSent, message, hotelName, alreadyVerified } = res.data;
+        
+        if (success) {
+          if (alreadyVerified) {
+            toast.info("Hotel Already Verified", {
+              description: `${hotelName} was already verified.`,
+              icon: <CheckCircle className="text-blue-600" />,
+              duration: 6000,
+            });
+          } else {
+            toast.success("Hotel Verified Successfully", {
+              description: emailSent 
+                ? `${hotelName} has been verified and notification email sent.`
+                : `${hotelName} has been verified.`,
+              icon: <CheckCircle className="text-green-600" />,
+              duration: 6000,
+            });
+            
+            // Optimistically update the hotel's verified status in the state
+            setHotels((prevHotels) =>
+              prevHotels.map((hotel) =>
+                hotel.id === hotelId ? { ...hotel, verified: true } : hotel
+              )
+            );
+          }
+        } else {
+          toast.error("Verification Failed", {
+            description: message || "There was an error verifying the hotel. Please try again.",
+            icon: <XCircle className="text-red-600" />,
+            duration: 6000,
+          });
+        }
       }
     } catch (err) {
       toast.error("Verification Failed", {
-        description:
-          "There was an error verifying the hotel. Please try again.",
+        description: "There was an error verifying the hotel. Please try again.",
         icon: <XCircle className="text-red-600" />,
+        duration: 6000,
       });
       setError(err.message);
     } finally {
@@ -120,6 +152,241 @@ const SuperAdmin = () => {
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
     setPagination((prev) => ({ ...prev, pageNumber: 0 }));
+  };
+
+  const handleViewDetails = (hotel) => {
+    setSelectedHotel(hotel);
+    setShowHotelDetails(true);
+  };
+
+  // Hotel Details Modal Component
+  const HotelDetailsModal = () => {
+    if (!selectedHotel) return null;
+
+    const formatHotelType = (type) => {
+      if (!type) return "Not specified";
+      return type.replace(/_/g, " ");
+    };
+
+    const formatPrice = (price) => {
+      if (!price || price === "-" || price === "null") return "Contact for pricing";
+      return `Nu. ${Number(price).toLocaleString()}`;
+    };
+
+    return (
+      <Dialog open={showHotelDetails} onOpenChange={setShowHotelDetails}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Star className="h-5 w-5 text-yellow-500" />
+              {selectedHotel.name || "Hotel Details"}
+            </DialogTitle>
+            <DialogDescription>
+              Complete hotel information and verification status
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Hotel Images */}
+            {selectedHotel.photoUrls?.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold">Hotel Images</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {selectedHotel.photoUrls.slice(0, 6).map((url, index) => (
+                    <div key={index} className="relative aspect-video rounded-lg overflow-hidden">
+                      <img
+                        src={url}
+                        alt={`Hotel image ${index + 1}`}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+                      />
+                    </div>
+                  ))}
+                </div>
+                {selectedHotel.photoUrls.length > 6 && (
+                  <p className="text-sm text-muted-foreground">
+                    +{selectedHotel.photoUrls.length - 6} more images
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Basic Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Basic Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Location</p>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedHotel.address}, {selectedHotel.district}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Phone</p>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedHotel.phone || "Not provided"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Email</p>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedHotel.email || "Not provided"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {selectedHotel.websiteUrl && (
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Website</p>
+                        <a 
+                          href={selectedHotel.websiteUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          {selectedHotel.websiteUrl}
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Joined</p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(selectedHotel.createdAt), "dd MMM yyyy")}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Hotel Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium">Hotel Type</p>
+                    <Badge variant="outline" className="mt-1">
+                      {formatHotelType(selectedHotel.hotelType)}
+                    </Badge>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium">Verification Status</p>
+                    <Badge variant={selectedHotel.verified ? "default" : "secondary"} className="mt-1">
+                      {selectedHotel.verified ? "Verified" : "Pending"}
+                    </Badge>
+                  </div>
+
+                  {selectedHotel.lowestPrice && (
+                    <div>
+                      <p className="text-sm font-medium">Starting Price</p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatPrice(selectedHotel.lowestPrice)} /night
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Description */}
+            {selectedHotel.description && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Description</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {selectedHotel.description}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Amenities */}
+            {selectedHotel.amenities?.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Amenities ({selectedHotel.amenities.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                    {selectedHotel.amenities.map((amenity, index) => (
+                      <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
+                        {/* <CheckCircle className="h-3 w-3 text-green-600" /> */}
+                        <span className="text-xs">{amenity}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Documents */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Verification Documents</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium mb-2">Business License</p>
+                    {selectedHotel.licenseUrl ? (
+                      <a
+                        href={selectedHotel.licenseUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-blue-600 hover:underline text-sm"
+                      >
+                        <Eye className="h-4 w-4" />
+                        View License Document
+                      </a>
+                    ) : (
+                      <p className="text-sm text-red-600">❌ Missing</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium mb-2">ID Proof</p>
+                    {selectedHotel.idProofUrl ? (
+                      <a
+                        href={selectedHotel.idProofUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-blue-600 hover:underline text-sm"
+                      >
+                        <Eye className="h-4 w-4" />
+                        View ID Document
+                      </a>
+                    ) : (
+                      <p className="text-sm text-red-600">❌ Missing</p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
   };
 
   const LoadingSpinner = () => (
@@ -427,18 +694,29 @@ const SuperAdmin = () => {
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
-                {!hotel.verified && (
+                <div className="flex items-center justify-end gap-2">
                   <Button
-                    onClick={() => handleVerifyHotel(hotel.id)}
-                    disabled={
-                      hasMissingData(hotel) || verifyingHotelId === hotel.id
-                    } // Disable if verifying
+                    onClick={() => handleViewDetails(hotel)}
+                    variant="outline"
                     size="sm"
                     className="cursor-pointer"
                   >
-                    {verifyingHotelId === hotel.id ? "Verifying..." : "Verify"}
+                    <Eye className="h-4 w-4 mr-1" />
+                    View
                   </Button>
-                )}
+                  {!hotel.verified && (
+                    <Button
+                      onClick={() => handleVerifyHotel(hotel.id)}
+                      disabled={
+                        hasMissingData(hotel) || verifyingHotelId === hotel.id
+                      } // Disable if verifying
+                      size="sm"
+                      className="cursor-pointer"
+                    >
+                      {verifyingHotelId === hotel.id ? "Verifying..." : "Verify"}
+                    </Button>
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ))}
@@ -451,22 +729,16 @@ const SuperAdmin = () => {
     <div className="min-h-screen bg-muted/40 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Navigation Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <Link to="/">
-              <Button variant="outline" className="flex items-center space-x-2">
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back to Home</span>
-              </Button>
-            </Link>
-            <div className="hidden sm:block h-6 w-px bg-border"></div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
-              Hotel Verification Dashboard
+        <div className="flex items-center justify-between mb-6 gap-3">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg sm:text-xl font-bold text-gray-800 truncate">
+              Admin Dashboard
             </h1>
           </div>
-          <Link to="/">
-            <Button variant="ghost" size="icon" className="hidden sm:flex">
-              <Home className="h-5 w-5" />
+          <Link to="/" className="flex-shrink-0">
+            <Button variant="ghost" size="sm" className="flex items-center gap-2 px-3">
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Home</span>
             </Button>
           </Link>
         </div>
@@ -483,6 +755,9 @@ const SuperAdmin = () => {
             <PaginationControls />
           </>
         )}
+
+        {/* Hotel Details Modal */}
+        <HotelDetailsModal />
       </div>
     </div>
   );

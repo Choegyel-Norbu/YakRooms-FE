@@ -190,7 +190,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
     <>
       <Button 
         onClick={() => setOpenBookingDialog(true)}
-        className="w-auto cursor-pointer"
+        className="w-auto cursor-pointer ml-4 sm:ml-0"
         disabled={loading}
       >
         <Calendar className="mr-2 h-4 w-4" />

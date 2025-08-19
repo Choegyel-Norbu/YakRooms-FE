@@ -71,7 +71,7 @@ const TopHighlightsSection = () => {
         `}
       </style>
       {/* Adjusted for consistent section padding and width across sizes */}
-      <section className="py-5 lg:py-12 mt-10 px-4 lg:px-8 lg:w-[70%] m-auto">
+      <section className="py-5 lg:py-12 mt-10 px-6 sm:px-4 lg:px-8 lg:w-[70%] m-auto">
         <div className="container mx-auto">
           {/* Adjusted heading size for better hierarchy */}
           <h3 className="text-center text-2xl font-bold mb-8 text-gray-900">
@@ -164,10 +164,12 @@ const ListingCard = ({ item }) => {
   // Determine price display message
   const getPriceDisplay = () => {
     if (priceDisplay && priceDisplay !== "-" && priceDisplay !== "null") {
+      // Format price with comma separators
+      const formattedPrice = Number(priceDisplay).toLocaleString();
       return (
         <>
           <span className="text-yellow-600">From - </span>
-          <span className="font-bold">Nu. {priceDisplay}</span> /night
+          <span className="font-bold">Nu. {formattedPrice}</span> /night
         </>
       );
     } else {
@@ -222,7 +224,7 @@ const ListingCard = ({ item }) => {
               className="flex-shrink-0"
             />
             <span className="text-xs text-gray-500">
-              ({item.avgRating.toFixed(1)} Avg)
+              ({item.avgRating.toFixed(1)} Avg. Rating)
             </span>
           </div>
         )}
@@ -237,7 +239,7 @@ const ListingCard = ({ item }) => {
           {/* Adjusted button padding and text size for consistency */}
           <Button
             size="sm"
-            className="bg-yellow-500 hover:bg-yellow-600 text-slate-900 rounded-full px-4 py-2 text-sm cursor-pointer" // Increased px and py for larger button
+            className="bg-yellow-500 hover:bg-yellow-600 text-white rounded-full px-4 py-2 text-sm cursor-pointer" // Increased px and py for larger button
           >
             <Link to={`/hotel/${id}`}>View Details</Link>
           </Button>

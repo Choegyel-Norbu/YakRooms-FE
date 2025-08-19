@@ -17,9 +17,9 @@ const TopHotelBadge = ({ hotelId, className = "" }) => {
   return (
     <Badge 
       variant="secondary" 
-      className={`bg-yellow-500 text-slate-900 hover:bg-yellow-600 ${className}`}
+      className={`bg-yellow-500 text-white hover:bg-yellow-600 ${className}`}
     >
-      🏆 Top Listed Lodge
+       Top Listed Lodge
     </Badge>
   );
 };

@@ -122,7 +122,7 @@ const HotelCard = React.memo(({ hotel }) => (
               className="flex-shrink-0"
             />
             <span className="text-xs text-muted-foreground">
-              ({hotel.averageRating.toFixed(1)} Avg)
+              ({hotel.averageRating.toFixed(1)} Avg. Rating)
             </span>
           </div>
         )}
@@ -145,7 +145,7 @@ const HotelCard = React.memo(({ hotel }) => (
         <Button 
           asChild 
           size="sm" 
-          className="ml-3 shadow-sm hover:shadow-md transition-shadow duration-200 px-4 py-1.5 font-medium text-sm bg-yellow-500 hover:bg-yellow-600 text-black rounded-[20px]"
+          className="ml-3 shadow-sm hover:shadow-md transition-shadow duration-200 px-4 py-1.5 font-medium text-sm bg-yellow-500 hover:bg-yellow-600 text-white rounded-[20px]"
         >
           <Link to={`/hotel/${hotel.id}`}>View Details</Link>
         </Button>

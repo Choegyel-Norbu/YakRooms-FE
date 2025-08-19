@@ -790,7 +790,7 @@ const HotelDetailsPage = () => {
                           className="flex-shrink-0"
                         />
                         <span className="text-sm text-slate-600">
-                          Avg
+                          Avg. Rating 
                         </span>
                       </div>
                     )}
