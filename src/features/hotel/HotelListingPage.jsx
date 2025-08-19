@@ -113,7 +113,7 @@ const HotelCard = React.memo(({ hotel }) => (
         </CardDescription>
 
         {/* Rating Section */}
-        {hotel.averageRating > 0 && (
+        {hotel.averageRating && hotel.averageRating > 0 && (
           <div className="flex items-center gap-2 pt-1">
             <StarRating 
               rating={hotel.averageRating} 

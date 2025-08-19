@@ -997,7 +997,7 @@ const AddListingPage = () => {
                       >
                         <Camera className="h-8 w-8 text-muted-foreground mb-2" />
                         <span className="text-sm text-muted-foreground text-center">
-                          Upload photos (Maximum 5)
+                          Upload photo
                         </span>
                         <Input
                           id="photos"
