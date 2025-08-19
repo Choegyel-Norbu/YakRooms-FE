@@ -55,7 +55,7 @@ const StarRating = ({ rating, size = 16, showRating = false, className = "" }) =
   return (
     <div className={`flex items-center gap-1 ${className}`}>
       {[1, 2, 3, 4, 5].map((star) => renderStar(star))}
-      {showRating && (
+      {showRating && numericRating > 0 && (
         <span className="text-xs sm:text-sm font-medium text-gray-700 ml-1">
           {numericRating.toFixed(1)}
         </span>

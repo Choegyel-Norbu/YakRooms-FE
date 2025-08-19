@@ -83,7 +83,7 @@ const HotelCard = React.memo(({ hotel }) => (
       </div>
 
       {/* Price Badge - Compact positioning */}
-      {hotel.lowestPrice && (
+      {hotel.lowestPrice && hotel.lowestPrice > 0 && (
         <div className="absolute top-3 right-3">
           <div className="bg-primary text-primary-foreground px-2 py-1.5 rounded-md shadow-lg backdrop-blur-md border border-primary/20">
             <span className="text-14 text-yellow-500">From</span>
@@ -113,7 +113,7 @@ const HotelCard = React.memo(({ hotel }) => (
         </CardDescription>
 
         {/* Rating Section */}
-        {hotel.averageRating && hotel.averageRating > 0 && (
+        {hotel.averageRating > 0 && (
           <div className="flex items-center gap-2 pt-1">
             <StarRating 
               rating={hotel.averageRating} 
