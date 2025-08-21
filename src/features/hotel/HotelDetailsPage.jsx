@@ -1007,7 +1007,7 @@ const HotelDetailsPage = () => {
             {/* Enhanced Rooms Section */}
             <div ref={roomsSectionRef} className="space-y-6 scroll-mt-24">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="pl-4 sm:pl-0">
                   <h2 className="text-base font-semibold tracking-tight">
                     Available Rooms
                   </h2>

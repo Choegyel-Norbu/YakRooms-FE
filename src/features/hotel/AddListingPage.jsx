@@ -64,6 +64,9 @@ const AddListingPage = () => {
     longitude: "",
     numberOfRooms: "",
     roomTypesDescription: "",
+    cid: "",
+    destination: "",
+    origin: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
