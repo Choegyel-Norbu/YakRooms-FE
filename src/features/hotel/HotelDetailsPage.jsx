@@ -28,6 +28,8 @@ import {
   Bath,
   AirVent,
   Phone,
+  X,
+  Clock,
 } from "lucide-react";
 
 import { Button } from "@/shared/components/button";
@@ -91,9 +93,14 @@ const RoomImageCarousel = ({ images, roomNumber, roomType }) => {
     return () => clearInterval(interval);
   }, [images.length]);
 
-  // Keyboard navigation
+  // Keyboard navigation - only when carousel is focused
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Don't handle keyboard events if user is typing in form inputs
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.contentEditable === 'true') {
+        return;
+      }
+      
       if (images.length <= 1) return;
       
       switch (e.key) {
@@ -290,6 +297,12 @@ const HotelDetailsPage = () => {
     isFavorite: false,
     showImageModal: false,
     reviewSheetOpen: false,
+  });
+
+  // Separate state for room image modal to avoid conflicts
+  const [roomImageModal, setRoomImageModal] = useState({
+    isOpen: false,
+    selectedImage: null,
   });
 
   // Rooms state
@@ -562,7 +575,7 @@ const HotelDetailsPage = () => {
       try {
         await navigator.share({
           title: appState.hotel.name,
-          text: `Check out ${appState.hotel.name} in ${appState.hotel.district}, Bhutan`,
+          text: `Check out ${appState.hotel.name} in ${appState.hotel.locality && `${appState.hotel.locality}, `}${appState.hotel.district}, Bhutan`,
           url: window.location.href,
         });
       } catch (err) {
@@ -680,7 +693,7 @@ const HotelDetailsPage = () => {
       </header>
 
       {/* Main content */}
-      <main className="container mx-auto px-4 sm:px-6 py-6 lg:py-8 space-y-6 sm:space-y-8">
+      <main className="container mx-auto px-0 sm:px-6 py-0 lg:py-8 space-y-6 sm:space-y-8">
         {/* Enhanced Hero Section */}
         <Card className="overflow-hidden">
           <div className="relative h-48 sm:h-64 md:h-96 lg:h-[500px]">
@@ -752,7 +765,7 @@ const HotelDetailsPage = () => {
                           <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
                         </div>
                         <span className="text-sm text-slate-600 font-normal group-hover:text-slate-700 transition-colors duration-200">
-                          {transformedHotel.district}, Bhutan
+                          {transformedHotel.locality && `${transformedHotel.locality}, `}{transformedHotel.district}, Bhutan
                         </span>
                       </div>
 
@@ -825,6 +838,31 @@ const HotelDetailsPage = () => {
                 <div className="absolute -top-2 -left-2 w-16 h-16 bg-gradient-to-br from-blue-100/30 to-purple-100/30 rounded-full blur-xl -z-10"></div>
                 <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-br from-purple-100/30 to-pink-100/30 rounded-full blur-xl -z-10"></div>
               </div>
+
+              {/* Check-in/Check-out Times - Mobile & Desktop Visible */}
+              <div className="mt-6 pt-4 border-t border-slate-200">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100">
+                      <Clock className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-slate-800">Check-in Time</h4>
+                      <p className="text-sm text-slate-600">12:00 AM (Midnight)</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-green-100 to-emerald-100">
+                      <Clock className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-slate-800">Check-out Time</h4>
+                      <p className="text-sm text-slate-600">2:00 PM (Afternoon)</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -832,7 +870,7 @@ const HotelDetailsPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             {/* Enhanced Amenities Section */}
-            <Card>
+            {/* <Card> */}
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
                   <CheckCircle className="h-5 w-5 text-primary" />
@@ -856,7 +894,7 @@ const HotelDetailsPage = () => {
                   ))}
                 </div>
               </CardContent>
-            </Card>
+            {/* </Card> */}
 
             {/* Testimonials Section */}
             <Card>
@@ -1065,6 +1103,37 @@ const HotelDetailsPage = () => {
                               )}
                             </div>
 
+                            {/* Room Image Preview Section */}
+                            {room.imageUrl && Array.isArray(room.imageUrl) && room.imageUrl.length > 1 && (
+                              <div className="mt-6 pt-4 border-t">
+                                <div className="mb-4">
+                                  <h4 className="text-sm font-medium text-muted-foreground mb-3">
+                                    Room Photos
+                                  </h4>
+                                  <div className="flex gap-2 overflow-x-auto pb-2">
+                                    {room.imageUrl.map((image, index) => (
+                                      <button
+                                        key={index}
+                                        onClick={() => {
+                                          setRoomImageModal({
+                                            isOpen: true,
+                                            selectedImage: image
+                                          });
+                                        }}
+                                        className="flex-shrink-0 relative group transition-all duration-200 hover:ring-2 ring-muted-foreground/30 ring-offset-1"
+                                      >
+                                        <img
+                                          src={image}
+                                          alt={`Room ${room.roomNumber} - Photo ${index + 1}`}
+                                          className="h-16 w-24 object-cover rounded-md transition-all duration-200 opacity-70 hover:opacity-100 hover:scale-105"
+                                        />
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
                             <div className="mt-6 pt-4 border-t">
                               <RoomBookingCard room={room} hotelId={id} />
                             </div>
@@ -1150,7 +1219,7 @@ const HotelDetailsPage = () => {
           </div>
 
           {/* Sidebar */}
-          <aside className="hidden lg:block space-y-6">
+          <aside className="space-y-6">
             <YakRoomsAdCard />
 
             {/* Quick Info Card */}
@@ -1166,18 +1235,30 @@ const HotelDetailsPage = () => {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm">District</span>
-                  <span className="text-sm">{appState.hotel.district}</span>
+                  <span className="text-sm">Location</span>
+                  <span className="text-sm">
+                    {appState.hotel.locality && `${appState.hotel.locality}, `}{appState.hotel.district}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Address</span>
-                  <span className="text-sm">{appState.hotel.address}</span>
-                </div>
+                {appState.hotel.address && (
+                  <div className="flex justify-between">
+                    <span className="text-sm">Address</span>
+                    <span className="text-sm">{appState.hotel.address}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-sm">Total Rooms</span>
                   <span className="text-sm">
                     {roomsState.availableRooms.length}+ available
                   </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Check-in Time</span>
+                  <span className="text-sm">12:00 AM</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Check-out Time</span>
+                  <span className="text-sm">2:00 PM</span>
                 </div>
               </CardContent>
             </Card>
@@ -1227,6 +1308,32 @@ const HotelDetailsPage = () => {
         hotelId={id}
         onSubmitSuccess={handleReviewSubmitSuccess}
       />
+
+      {/* Room Image Modal */}
+      {roomImageModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="relative bg-white rounded-lg shadow-2xl overflow-hidden max-w-[95vw] max-h-[90vh]">
+            {/* Close Button */}
+            <button
+              onClick={() => setRoomImageModal({ isOpen: false, selectedImage: null })}
+              className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg transition-colors duration-200"
+            >
+              <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-700" />
+            </button>
+            
+            {/* Image Container */}
+            <div className="flex items-center justify-center">
+              {roomImageModal.selectedImage && (
+                <img
+                  src={roomImageModal.selectedImage}
+                  alt="Room Photo"
+                  className="max-w-full max-h-[80vh] object-contain rounded-lg"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

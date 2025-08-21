@@ -222,7 +222,7 @@ const SuperAdmin = () => {
                     <div>
                       <p className="text-sm font-medium">Location</p>
                       <p className="text-sm text-muted-foreground">
-                        {selectedHotel.address}, {selectedHotel.district}
+                        {selectedHotel.address && `${selectedHotel.address}, `}{selectedHotel.locality}, {selectedHotel.district}
                       </p>
                     </div>
                   </div>
@@ -657,7 +657,7 @@ const SuperAdmin = () => {
               <TableCell>
                 <div className="text-sm">{hotel.district}</div>
                 <div className="text-sm text-muted-foreground">
-                  {hotel.village}
+                  {hotel.locality}
                 </div>
               </TableCell>
               <TableCell>

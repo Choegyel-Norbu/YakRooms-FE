@@ -4,9 +4,9 @@ import {
   MapPin,
   Home,
   Building2,
-  ChevronDown,
   Search,
   X,
+  Clock,
 } from "lucide-react";
 import YakRoomsLoader from "@/shared/components/YakRoomsLoader";
 import StarRating from "@/shared/components/star-rating";
@@ -109,8 +109,22 @@ const HotelCard = React.memo(({ hotel }) => (
         
         <CardDescription className="flex items-center gap-1.5 text-sm">
           <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
-          <span className="font-medium">{hotel.district}, Bhutan</span>
+          <span className="font-medium">
+            {hotel.locality && `${hotel.locality}, `}{hotel.district}, Bhutan
+          </span>
         </CardDescription>
+
+        {/* Check-in/Check-out Times */}
+        <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+            <span>Check-in: 12:00 AM</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+            <span>Check-out: 2:00 PM</span>
+          </div>
+        </div>
 
         {/* Rating Section */}
         {hotel.averageRating > 0 && (
@@ -167,6 +181,7 @@ const HotelListingPage = () => {
 
   const [searchState, setSearchState] = useState({
     district: "",
+    locality: "",
     hotelType: "all",
     sortBy: "default",
   });
@@ -193,15 +208,15 @@ const HotelListingPage = () => {
   ], []);
 
   // Memoized function to generate fetch key for deduplication
-  const generateFetchKey = useCallback((page, district, hotelType, sortBy) => {
-    return `${page}-${district.trim()}-${hotelType}-${sortBy}`;
+  const generateFetchKey = useCallback((page, district, locality, hotelType, sortBy) => {
+    return `${page}-${district.trim()}-${locality.trim()}-${hotelType}-${sortBy}`;
   }, []);
 
   // Optimized fetch function with request deduplication and caching
   const fetchHotels = useCallback(
-    async (page = 0, searchDistrict = "", searchHotelType = "", sortByParam = "default") => {
+    async (page = 0, searchDistrict = "", searchLocality = "", searchHotelType = "", sortByParam = "default") => {
       // Generate unique key for this request
-      const fetchKey = generateFetchKey(page, searchDistrict, searchHotelType, sortByParam);
+      const fetchKey = generateFetchKey(page, searchDistrict, searchLocality, searchHotelType, sortByParam);
       
       // Prevent duplicate API calls
       if (appState.lastFetchKey === fetchKey && !appState.loading) {
@@ -224,7 +239,7 @@ const HotelListingPage = () => {
         }));
 
         let endpoint = `/hotels?page=${page}&size=${pagination.size}`;
-        const isSearchActive = searchDistrict.trim() || 
+        const isSearchActive = searchDistrict.trim() || searchLocality.trim() || 
           (searchHotelType && searchHotelType !== "all");
 
         // Build endpoint based on search/sort criteria
@@ -235,6 +250,7 @@ const HotelListingPage = () => {
           });
 
           if (searchDistrict.trim()) params.append("district", searchDistrict.trim());
+          if (searchLocality.trim()) params.append("locality", searchLocality.trim());
           if (searchHotelType && searchHotelType !== "all") params.append("hotelType", searchHotelType);
 
           endpoint = `/hotels/search?${params.toString()}`;
@@ -297,7 +313,7 @@ const HotelListingPage = () => {
     }));
     
     // Fetch initial data
-    fetchHotels(0, districtParam, hotelTypeParam, "default");
+    fetchHotels(0, districtParam, "", hotelTypeParam, "default");
     
     setAppState(prev => ({ ...prev, initialLoadDone: true }));
   }, []); // Only run on mount
@@ -311,31 +327,31 @@ const HotelListingPage = () => {
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Set new debounced timer
-    debounceTimerRef.current = setTimeout(() => {
-      const isSearchActive = searchState.district.trim() || 
-        (searchState.hotelType && searchState.hotelType !== "all");
-      fetchHotels(0, searchState.district, searchState.hotelType, 
-        isSearchActive ? "default" : searchState.sortBy);
-    }, 300);
+          // Set new debounced timer
+      debounceTimerRef.current = setTimeout(() => {
+        const isSearchActive = searchState.district.trim() || searchState.locality.trim() || 
+          (searchState.hotelType && searchState.hotelType !== "all");
+        fetchHotels(0, searchState.district, searchState.locality, searchState.hotelType, 
+          isSearchActive ? "default" : searchState.sortBy);
+      }, 300);
 
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [searchState.district, searchState.hotelType, fetchHotels, appState.initialLoadDone]);
+  }, [searchState.district, searchState.locality, searchState.hotelType, fetchHotels, appState.initialLoadDone]);
 
   // Separate effect for sort changes (no debounce needed)
   useEffect(() => {
     if (!appState.initialLoadDone) return;
     
-    const isSearchActive = searchState.district.trim() || 
+    const isSearchActive = searchState.district.trim() || searchState.locality.trim() || 
       (searchState.hotelType && searchState.hotelType !== "all");
     if (!isSearchActive) {
-      fetchHotels(0, searchState.district, searchState.hotelType, searchState.sortBy);
+      fetchHotels(0, searchState.district, searchState.locality, searchState.hotelType, searchState.sortBy);
     }
-  }, [searchState.sortBy, fetchHotels, appState.initialLoadDone, searchState.district, searchState.hotelType]);
+  }, [searchState.sortBy, fetchHotels, appState.initialLoadDone, searchState.district, searchState.locality, searchState.hotelType]);
 
   // Cleanup effect
   useEffect(() => {
@@ -351,34 +367,39 @@ const HotelListingPage = () => {
 
   // Memoized handlers to prevent unnecessary re-renders
   const handleSearch = useCallback(() => {
-    const isSearchActive = searchState.district.trim() || 
+    const isSearchActive = searchState.district.trim() || searchState.locality.trim() || 
       (searchState.hotelType && searchState.hotelType !== "all");
-    fetchHotels(0, searchState.district, searchState.hotelType, 
+    fetchHotels(0, searchState.district, searchState.locality, searchState.hotelType, 
       isSearchActive ? "default" : searchState.sortBy);
-  }, [searchState.district, searchState.hotelType, searchState.sortBy, fetchHotels]);
+  }, [searchState.district, searchState.locality, searchState.hotelType, searchState.sortBy, fetchHotels]);
 
   const handleClearSearch = useCallback(() => {
     setSearchState(prev => ({
       ...prev,
       district: "",
+      locality: "",
       hotelType: "all",
     }));
     
     window.history.replaceState({}, "", "/hotels");
-    fetchHotels(0, "", "all", searchState.sortBy);
+    fetchHotels(0, "", "", "all", searchState.sortBy);
   }, [fetchHotels, searchState.sortBy]);
 
   const handlePageChange = useCallback((newPage) => {
     if (newPage >= 0 && newPage < pagination.totalPages) {
-      const isSearchActive = searchState.district.trim() || 
+      const isSearchActive = searchState.district.trim() || searchState.locality.trim() || 
         (searchState.hotelType && searchState.hotelType !== "all");
-      fetchHotels(newPage, searchState.district, searchState.hotelType, 
+      fetchHotels(newPage, searchState.district, searchState.locality, searchState.hotelType, 
         isSearchActive ? "default" : searchState.sortBy);
     }
-  }, [pagination.totalPages, searchState.district, searchState.hotelType, searchState.sortBy, fetchHotels]);
+  }, [pagination.totalPages, searchState.district, searchState.locality, searchState.hotelType, searchState.sortBy, fetchHotels]);
 
   const handleDistrictChange = useCallback((value) => {
     setSearchState(prev => ({ ...prev, district: value }));
+  }, []);
+
+  const handleLocalityChange = useCallback((value) => {
+    setSearchState(prev => ({ ...prev, locality: value }));
   }, []);
 
   const handleHotelTypeChange = useCallback((value) => {
@@ -397,15 +418,16 @@ const HotelListingPage = () => {
 
   // Memoized computed values
   const isSearchActive = useMemo(() => {
-    return searchState.district.trim() || 
+    return searchState.district.trim() || searchState.locality.trim() || 
       (searchState.hotelType && searchState.hotelType !== "all");
-  }, [searchState.district, searchState.hotelType]);
+  }, [searchState.district, searchState.locality, searchState.hotelType]);
 
   const pageTitle = useMemo(() => {
     if (!isSearchActive) return "All Lodges in Bhutan";
     
     const parts = [];
-    if (searchState.district) parts.push(`Hotels in ${searchState.district}`);
+    if (searchState.locality) parts.push(`Hotels in ${searchState.locality}`);
+    if (searchState.district) parts.push(`District: ${searchState.district}`);
     if (searchState.hotelType && searchState.hotelType !== "all") {
       const typeLabel = searchState.hotelType.split('_').map(word => 
         word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
@@ -414,13 +436,14 @@ const HotelListingPage = () => {
     }
     
     return parts.join(' - ') || "Search Results";
-  }, [isSearchActive, searchState.district, searchState.hotelType]);
+  }, [isSearchActive, searchState.district, searchState.locality, searchState.hotelType]);
 
   const transformedHotels = useMemo(() => {
     return appState.hotels.map((hotel) => ({
       id: hotel.id,
       name: hotel.name,
       district: hotel.district,
+      locality: hotel.locality,
       price: hotel.lowestPrice,
       lowestPrice: hotel.lowestPrice,
       image: hotel.photoUrl || 
@@ -521,7 +544,7 @@ const HotelListingPage = () => {
         <main className="w-full">
           {/* Simple Search Section */}
           <div className="space-y-4 mb-6">
-            {/* First row - District and Hotel Type */}
+            {/* First row - District, Locality and Hotel Type */}
             <div className="flex flex-col sm:flex-row gap-4">
               {/* District Search */}
               <div className="flex-1">
@@ -529,6 +552,17 @@ const HotelListingPage = () => {
                   placeholder="Search by district..."
                   value={searchState.district}
                   onChange={(e) => handleDistrictChange(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="w-full text-14"
+                />
+              </div>
+
+              {/* Locality Search */}
+              <div className="flex-1">
+                <Input
+                  placeholder="Search by locality/town..."
+                  value={searchState.locality}
+                  onChange={(e) => handleLocalityChange(e.target.value)}
                   onKeyPress={handleKeyPress}
                   className="w-full text-14"
                 />
@@ -593,6 +627,11 @@ const HotelListingPage = () => {
                 {/* Active filters display */}
                 {isSearchActive && !appState.loading && (
                   <div className="flex gap-2 mt-2 flex-wrap">
+                    {searchState.locality && (
+                      <Badge variant="secondary" className="text-xs text-blue-900">
+                        Locality: {searchState.locality}
+                      </Badge>
+                    )}
                     {searchState.district && (
                       <Badge variant="secondary" className="text-xs">
                         District: {searchState.district}
@@ -652,9 +691,7 @@ const HotelListingPage = () => {
                 !appState.loading && appState.initialLoadDone && (
                   <Card className="text-center py-16 px-6 bg-muted/20 border-dashed border-2 rounded-xl">
                     <CardContent className="space-y-4">
-                      <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                        <Building2 className="h-8 w-8 text-muted-foreground" />
-                      </div>
+                     
                       <CardTitle className="text-2xl">
                         {isSearchActive 
                           ? "No Hotels Found" 

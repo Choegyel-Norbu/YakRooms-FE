@@ -34,6 +34,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { getCategorizedAmenities } from "../../shared/utils/amenitiesHelper";
+import { districts } from "../../shared/constants";
 
 const formSchema = z.object({
   name: z.string().min(1, "Hotel name is required"),
@@ -55,28 +56,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
   const [selectedAmenities, setSelectedAmenities] = useState(hotel.amenities || []);
   const [availableAmenities] = useState(getCategorizedAmenities("hotel"));
 
-  const districts = [
-    "Thimphu",
-    "Paro",
-    "Punakha",
-    "Wangdue",
-    "Bumthang",
-    "Trongsa",
-    "Gasa",
-    "Haa",
-    "Samtse",
-    "Chukha",
-    "Dagana",
-    "Tsirang",
-    "Sarpang",
-    "Zhemgang",
-    "Trashigang",
-    "Mongar",
-    "Pemagatshel",
-    "Lhuentse",
-    "Samdrup Jongkhar",
-    "Trashiyangtse",
-  ];
+
 
   const form = useForm({
     resolver: zodResolver(formSchema),

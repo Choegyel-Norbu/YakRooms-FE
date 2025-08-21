@@ -89,6 +89,7 @@ const RoomManager = () => {
     roomType: "",
     price: "",
     roomNumber: "",
+    maxGuests: "",
     available: true,
     description: "",
     images: [],
@@ -139,6 +140,11 @@ const RoomManager = () => {
         return "";
       case "roomNumber":
         return value ? "" : "Room number is required";
+      case "maxGuests":
+        if (!value) return "Max guests is required";
+        if (isNaN(value) || value <= 0 || value > 10)
+          return "Max guests must be between 1 and 10";
+        return "";
       case "description":
         return value.length >= 20
           ? ""
@@ -155,6 +161,7 @@ const RoomManager = () => {
     newErrors.roomType = validateField("roomType", roomForm.roomType);
     newErrors.price = validateField("price", roomForm.price);
     newErrors.roomNumber = validateField("roomNumber", roomForm.roomNumber);
+    newErrors.maxGuests = validateField("maxGuests", roomForm.maxGuests);
     newErrors.description = validateField("description", roomForm.description);
     newErrors.images = validateField("images", roomForm.images);
 
@@ -206,6 +213,7 @@ const RoomManager = () => {
           roomType: roomToEdit.roomType || "",
           price: roomToEdit.price || "",
           roomNumber: roomToEdit.roomNumber || "",
+          maxGuests: roomToEdit.maxGuests || "",
           available: roomToEdit.available !== false,
           description: roomToEdit.description || "",
           images:
@@ -234,6 +242,7 @@ const RoomManager = () => {
       roomType: "",
       price: "",
       roomNumber: "",
+      maxGuests: "",
       available: true,
       description: "",
       images: [],
@@ -568,6 +577,31 @@ const RoomManager = () => {
               </div>
             </div>
 
+            {/* Second Row: Max Guests */}
+            <div className="flex flex-col sm:flex-row flex-wrap gap-4">
+              {/* Max Guests */}
+              <div className="space-y-2 flex-1 min-w-[250px]">
+                <Label htmlFor="maxGuests">
+                  Max Guests <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="maxGuests"
+                  name="maxGuests"
+                  type="number"
+                  min="1"
+                  max="10"
+                  step="1"
+                  value={roomForm.maxGuests}
+                  onChange={handleInputChange}
+                  placeholder="Enter max number of guests"
+                  className={errors.maxGuests ? "border-destructive" : ""}
+                />
+                {errors.maxGuests && (
+                  <p className="text-sm text-destructive">{errors.maxGuests}</p>
+                )}
+              </div>
+            </div>
+
             {/* Availability Checkbox - Dedicated Row for Better Visibility */}
             <div className="border rounded-lg p-4 bg-muted/20">
               <div className="space-y-3">
@@ -725,6 +759,7 @@ const RoomManager = () => {
               <TableRow>
                 <TableHead>Room No.</TableHead>
                 <TableHead>Type</TableHead>
+                <TableHead>Max Guests</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>Amenities</TableHead>
@@ -737,6 +772,7 @@ const RoomManager = () => {
                 <TableRow key={room.id}>
                   <TableCell className="font-medium">{room.roomNumber}</TableCell>
                   <TableCell>{room.roomType}</TableCell>
+                  <TableCell>{room.maxGuests || '-'}</TableCell>
                   <TableCell className="max-w-xs truncate">{room.description}</TableCell>
                   <TableCell>Nu {typeof room.price === 'number' && !isNaN(room.price) ? room.price.toFixed(2) : '-'}</TableCell>
                   <TableCell className="max-w-xs truncate">

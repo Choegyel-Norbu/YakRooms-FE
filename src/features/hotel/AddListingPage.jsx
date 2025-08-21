@@ -39,6 +39,7 @@ import {
 } from "@/shared/components/select";
 import { useAuth } from "../authentication";
 import { getAmenitiesForType, getCategorizedAmenities } from "../../shared/utils/amenitiesHelper";
+import { districts, getLocalitiesForDistrict } from "../../shared/constants";
 
 const AddListingPage = () => {
   const [step, setStep] = useState(1);
@@ -48,7 +49,7 @@ const AddListingPage = () => {
     name: "",
     description: "",
     district: "",
-    village: "",
+    locality: "",
     address: "",
     email: "",
     phone: "",
@@ -107,6 +108,8 @@ const AddListingPage = () => {
   // Get amenities from JSON file based on listing type
   const currentAmenities = getAmenitiesForType(listingType);
   const categorizedAmenities = getCategorizedAmenities(listingType);
+
+
 
   /**
    * Handle getting user's current location using Geolocation API
@@ -280,28 +283,7 @@ const AddListingPage = () => {
     }));
   };
 
-  const districts = [
-    "Thimphu",
-    "Paro",
-    "Punakha",
-    "Wangdue",
-    "Bumthang",
-    "Trongsa",
-    "Gasa",
-    "Haa",
-    "Samtse",
-    "Chukha",
-    "Dagana",
-    "Tsirang",
-    "Sarpang",
-    "Zhemgang",
-    "Trashigang",
-    "Mongar",
-    "Pemagatshel",
-    "Lhuentse",
-    "Samdrup Jongkhar",
-    "Trashiyangtse",
-  ];
+
 
   const stepInfo = [
     { title: "Choose Type", description: "Select your business type", icon: Hotel },
@@ -380,7 +362,7 @@ const AddListingPage = () => {
       if (!formData.description)
         newErrors.description = "Description is required";
       if (!formData.district) newErrors.district = "District is required";
-      if (!formData.village) newErrors.village = "Village/Town is required";
+      if (!formData.locality) newErrors.locality = "Locality/Town is required";
       if (!formData.phone) newErrors.phone = "Phone is required";
       if (formData.photos.length === 0)
         newErrors.photos = "At least one photo is required";
@@ -497,7 +479,7 @@ const AddListingPage = () => {
                   name: "",
                   description: "",
                   district: "",
-                  village: "",
+                  locality: "",
                   address: "",
                   email: "",
                   phone: "",
@@ -719,11 +701,22 @@ const AddListingPage = () => {
                     <Select
                       value={formData.district}
                       onValueChange={(value) => {
-                        setFormData(prev => ({ ...prev, district: value }));
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          district: value,
+                          locality: "" // Clear locality when district changes
+                        }));
                         if (errors.district) {
                           setErrors(prev => {
                             const newErrors = { ...prev };
                             delete newErrors.district;
+                            return newErrors;
+                          });
+                        }
+                        if (errors.locality) {
+                          setErrors(prev => {
+                            const newErrors = { ...prev };
+                            delete newErrors.locality;
                             return newErrors;
                           });
                         }
@@ -746,19 +739,38 @@ const AddListingPage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="village">
-                      Village/Town <span className="text-destructive">*</span>
+                    <Label htmlFor="locality">
+                      Town/Locality <span className="text-destructive">*</span>
                     </Label>
-                    <Input
-                      id="village"
-                      name="village"
-                      value={formData.village}
-                      onChange={handleChange}
-                      className={errors.village ? "border-destructive" : ""}
-                    />
-                    {errors.village && (
-                      <p className="text-destructive text-sm">{errors.village}</p>
+                    <Select
+                      value={formData.locality}
+                      onValueChange={(value) => {
+                        setFormData(prev => ({ ...prev, locality: value }));
+                        if (errors.locality) {
+                          setErrors(prev => {
+                            const newErrors = { ...prev };
+                            delete newErrors.locality;
+                            return newErrors;
+                          });
+                        }
+                      }}
+                      disabled={!formData.district}
+                    >
+                      <SelectTrigger className={errors.locality ? "border-destructive" : ""}>
+                        <SelectValue placeholder={formData.district ? "Select Town/Locality" : "Please select your locality"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {formData.district && getLocalitiesForDistrict(formData.district).map((locality) => (
+                          <SelectItem key={locality} value={locality}>
+                            {locality}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.locality && (
+                      <p className="text-destructive text-sm">{errors.locality}</p>
                     )}
+                    
                   </div>
                 </div>
 
@@ -1157,7 +1169,7 @@ const AddListingPage = () => {
                           </div>
                           <div>
                             <Label className="text-muted-foreground">Location</Label>
-                            <p className="font-bold text-sm lg:text-base">{formData.village}, {formData.district}</p>
+                            <p className="font-bold text-sm lg:text-base">{formData.locality}, {formData.district}</p>
                           </div>
                           {formData.address && (
                             <div>
