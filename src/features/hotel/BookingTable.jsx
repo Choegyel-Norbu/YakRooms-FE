@@ -13,6 +13,7 @@ import {
   Trash2,
   MoreHorizontal,
   XCircle,
+  Info,
 } from "lucide-react";
 
 import api from "../../shared/services/Api"; // Your API service for making requests
@@ -54,9 +55,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shared/components";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components";
 
 // --- DeleteConfirmationDialog Component ---
-// This component provides a generic confirmation dialog using shadcn/ui's AlertDialog.
+// This component provides a generic confirmation dialog
 const DeleteConfirmationDialog = ({
   open,
   onOpenChange,
@@ -89,6 +98,7 @@ const BookingTable = ({ hotelId }) => {
   const [error, setError] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState(false); // Controls the delete confirmation dialog visibility
   const [bookingToDelete, setBookingToDelete] = useState(null); // Stores the ID of the booking to be deleted
+  const [selectedBooking, setSelectedBooking] = useState(null); // Stores the booking to show details
 
   const pageSize = 10; // Number of bookings per page
 
@@ -305,7 +315,7 @@ const BookingTable = ({ hotelId }) => {
         )}
 
         {/* --- Bookings Table --- */}
-        <div className="overflow-x-auto scrollbar-hide">
+        <div className="overflow-x-auto scrollbar-hide px-4 sm:px-0">
           <Table>
             <TableHeader>
               <TableRow>
@@ -366,6 +376,8 @@ const BookingTable = ({ hotelId }) => {
                     </div>
                   </TableCell>
 
+
+
                   <TableCell>{getStatusBadge(booking.status)}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -376,6 +388,11 @@ const BookingTable = ({ hotelId }) => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => setSelectedBooking(booking)}
+                        >
+                          <Info className="h-4 w-4 mr-2" /> View Details
+                        </DropdownMenuItem>
                         {booking.status === "PENDING" && (
                           <DropdownMenuItem
                             onClick={() =>
@@ -508,6 +525,107 @@ const BookingTable = ({ hotelId }) => {
         title="Confirm Deletion"
         description={`Are you sure you want to delete booking ID ${bookingToDelete}? This action cannot be undone.`}
       />
+
+      {/* --- Booking Details Modal --- */}
+      {selectedBooking && (
+        <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="pb-6">
+              <DialogTitle className="flex items-center gap-3 text-2xl font-bold text-gray-900">
+                <Info className="h-6 w-6 text-blue-600" />
+                Booking Details
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-2">
+              {/* Guest Information */}
+              <div className="space-y-5">
+                <h3 className="text-xl font-bold text-gray-900 border-b border-gray-200 pb-3">Guest Information</h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">Name:</span>
+                    <span className="text-gray-900 text-sm">{selectedBooking.name || 'Not provided'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">Email:</span>
+                    <span className="text-gray-900 text-sm">{selectedBooking.email || 'Not provided'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">Phone:</span>
+                    <span className="text-gray-900 text-sm">+975 {selectedBooking.phone}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">CID:</span>
+                    <span className="text-gray-900 text-sm">{selectedBooking.cid || 'Not provided'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">Guests:</span>
+                    <span className="text-gray-900 text-sm">{selectedBooking.guests}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Travel Information */}
+              <div className="space-y-5">
+                <h3 className="text-xl font-bold text-gray-900 border-b border-gray-200 pb-3">Travel Information</h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">Origin:</span>
+                    <span className="text-gray-900 text-sm">{selectedBooking.origin || 'Not provided'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">Destination:</span>
+                    <span className="text-gray-900 text-sm">{selectedBooking.destination || 'Not provided'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">Hotel:</span>
+                    <span className="text-gray-900 text-sm">{selectedBooking.hotelName || 'Not provided'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">District:</span>
+                    <span className="text-gray-900 text-sm">{selectedBooking.hotelDistrict || 'Not provided'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Booking Details */}
+              <div className="space-y-5 md:col-span-2">
+                <h3 className="text-xl font-bold text-gray-900 border-b border-gray-200 pb-3">Booking Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">Room:</span>
+                    <span className="text-gray-900 text-sm">{selectedBooking.roomNumber}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">Check-in:</span>
+                    <span className="text-gray-900 text-sm">{selectedBooking.checkInDate}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">Check-out:</span>
+                    <span className="text-gray-900 text-sm">{selectedBooking.checkOutDate}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">Status:</span>
+                    <div className="mt-1">{getStatusBadge(selectedBooking.status)}</div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">Total Price:</span>
+                    <span className="text-gray-900 font-bold text-sm text-green-600">
+                      Nu. {new Intl.NumberFormat("en-IN").format(selectedBooking.totalPrice)}/-
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="pt-6">
+              <Button variant="outline" onClick={() => setSelectedBooking(null)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

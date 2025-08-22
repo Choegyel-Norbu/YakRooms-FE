@@ -773,7 +773,7 @@ const RoomManager = () => {
                 <TableRow key={room.id}>
                   <TableCell className="font-medium">{room.roomNumber}</TableCell>
                   <TableCell>{room.roomType}</TableCell>
-                  <TableCell>{room.maxGuests || '-'}</TableCell>
+                  <TableCell className="text-center">{room.maxGuests || '-'}</TableCell>
                   <TableCell className="max-w-xs truncate">{room.description}</TableCell>
                   <TableCell>Nu {typeof room.price === 'number' && !isNaN(room.price) ? room.price.toFixed(2) : '-'}</TableCell>
                   <TableCell className="max-w-xs truncate">
