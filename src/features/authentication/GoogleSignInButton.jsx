@@ -36,7 +36,6 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
           flag: res.data.user.registerFlag,
           detailSet: res.data.user.detailSet,
           hotelId: res.data.user.hotelId,
-          flag,
         });
         
         // Close modal after successful login

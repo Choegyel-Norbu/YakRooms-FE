@@ -948,114 +948,115 @@ const HotelAdminDashboard = () => {
           {activeTab === "dashboard" && (
             <div className="space-y-4">
               {/* Welcome Card */}
-              <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200">
-                <CardContent className="p-4 md:p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-6">
-                    {/* Left Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <svg
-                            className="w-5 h-5 text-primary"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                            />
-                          </svg>
-                        </div>
-                        <div>
-                          <h3 className="text-lg sm:text-lg font-semibold text-foreground mb-1 truncate">
-                            Welcome back, {userName}!
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            Here's what's happening with your hotel today.
-                          </p>
-                        </div>
+              {/* <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200"> */}
+              <CardContent className="p-4 md:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-6">
+                  {/* Left Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <svg
+                          className="w-5 h-5 text-primary"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
+                        </svg>
                       </div>
-                    </div>
-
-                    {/* Right Content */}
-                    <div className="hidden md:block flex-shrink-0 flex flex-col items-end gap-8">
-                      <Badge
-                        variant="secondary"
-                        className="bg-primary/10 text-primary border-primary/20 text-xs font-medium px-3 py-1"
-                      >
-                        Admin
-                      </Badge>
-
-                      <div className="text-left">
-                        <p className="text-xs text-muted-foreground">
-                          Last login
-                        </p>
-                        <p className="text-xs font-medium text-foreground">
-                          {formatLoginTime(lastLogin)}
+                      <div>
+                        <h3 className="text-lg sm:text-lg font-semibold text-foreground mb-1 truncate">
+                          Welcome back, {userName}!
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Here's what's happening with your hotel today.
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Top Hotel Congratulations Section */}
+                  {/* Right Content */}
+                  <div className="hidden md:block flex-shrink-0 flex flex-col items-end gap-8">
+                    <Badge
+                      variant="secondary"
+                      className="bg-primary/10 text-primary border-primary/20 text-xs font-medium px-3 py-1"
+                    >
+                      Admin
+                    </Badge>
 
-                  {hotelId && isTopHotel(hotelId) && (
-                    <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0">
-                          <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                            <svg
-                              className="w-5 h-5 text-white"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M10 18l-1.45-1.32C5.4 13.36 2 9.28 2 5.5 2 3.42 3.42 2 5.5 2c1.74 0 3.41.81 4.5 2.09C11.09 2.81 12.76 2 14.5 2 16.58 2 18 3.42 18 5.5c0 3.78-3.4 7.86-6.55 11.18L10 18z"
-                              />
-                            </svg>
-                          </div>
+                    <div className="text-left">
+                      <p className="text-xs text-muted-foreground">
+                        Last login
+                      </p>
+                      <p className="text-xs font-medium text-foreground">
+                        {formatLoginTime(lastLogin)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Top Hotel Congratulations Section */}
+
+                {hotelId && isTopHotel(hotelId) && (
+                  <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                          <svg
+                            className="w-5 h-5 text-white"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18l-1.45-1.32C5.4 13.36 2 9.28 2 5.5 2 3.42 3.42 2 5.5 2c1.74 0 3.41.81 4.5 2.09C11.09 2.81 12.76 2 14.5 2 16.58 2 18 3.42 18 5.5c0 3.78-3.4 7.86-6.55 11.18L10 18z"
+                            />
+                          </svg>
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="text-base font-semibold text-yellow-800 dark:text-yellow-200">
-                              Congratulations!
-                            </h4>
-                            <TopHotelBadge hotelId={hotelId} className="ml-1" />
-                          </div>
-                          <p className="text-sm text-yellow-700 dark:text-yellow-300 leading-relaxed">
-                            Your hotel is featured among our{" "}
-                            <strong>Top Listed Lodges</strong>! This recognition
-                            showcases your exceptional hospitality and service
-                            quality. Thank you for being an outstanding partner
-                            with YakRooms.
-                          </p>
-                          <div className="mt-3 flex items-center text-xs text-yellow-600 dark:text-yellow-400">
-                            <svg
-                              className="w-4 h-4 mr-1"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            Featured on our homepage and highly visible to
-                            guests
-                          </div>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-base font-semibold text-yellow-800 dark:text-yellow-200">
+                            Congratulations!
+                          </h4>
+                          <TopHotelBadge hotelId={hotelId} className="ml-1" />
+                        </div>
+                        <p className="text-sm text-yellow-700 dark:text-yellow-300 leading-relaxed">
+                          Your hotel is featured among our{" "}
+                          <strong>Top Listed Lodges</strong>! This recognition
+                          showcases your exceptional hospitality and service
+                          quality. Thank you for being an outstanding partner
+                          with YakRooms.
+                        </p>
+                        <div className="mt-3 flex items-center text-xs text-yellow-600 dark:text-yellow-400">
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          Featured on our homepage and highly visible to guests
                         </div>
                       </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </div>
+                )}
+              </CardContent>
+              {/* </Card> */}
 
-              <RoomStatusTable hotelId={hotelId} />
+                <div className="mb-10">
+                  <RoomStatusTable hotelId={hotelId} />
+                </div>
 
               {/* Toggle for StaffCardGrid (visible on all screens) */}
               <div className="mb-2">
@@ -1125,14 +1126,12 @@ const HotelAdminDashboard = () => {
           )}
 
           {activeTab === "analytics" && (
-            <Card>
               <CardContent className="p-0 md:px-6 md:pb-6">
                 <div className="space-y-8">
                   <BookingsTrendChart />
                   <MonthlyPerformanceChart />
                 </div>
               </CardContent>
-            </Card>
           )}
 
           {activeTab === "booking" && (
@@ -1145,7 +1144,7 @@ const HotelAdminDashboard = () => {
               />
 
               {/* Booking Verification Section with Tabs */}
-              <Card>
+              {/* <Card> */}
                 <CardHeader className="">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <QrCode className="h-4 w-4 text-primary" />
@@ -1199,7 +1198,7 @@ const HotelAdminDashboard = () => {
                     </TabsContent>
                   </Tabs>
                 </CardContent>
-              </Card>
+              {/* </Card> */}
 
               {/* Booking Table */}
               <Card>

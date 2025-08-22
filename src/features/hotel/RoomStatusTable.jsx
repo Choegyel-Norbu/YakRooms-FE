@@ -204,7 +204,7 @@ const RoomStatusTable = ({ hotelId }) => {
   const hasNoRooms = !data || !data.content || data.content.length === 0;
 
   return (
-    <Card className="w-full">
+    <div className="w-full">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Room Overview</CardTitle>
@@ -481,7 +481,7 @@ const RoomStatusTable = ({ hotelId }) => {
           )}
         </CardContent>
       )}
-    </Card>
+    </div>
   );
 };
 

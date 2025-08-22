@@ -327,13 +327,13 @@ const HotelListingPage = () => {
       clearTimeout(debounceTimerRef.current);
     }
 
-          // Set new debounced timer
-      debounceTimerRef.current = setTimeout(() => {
-        const isSearchActive = searchState.district.trim() || searchState.locality.trim() || 
-          (searchState.hotelType && searchState.hotelType !== "all");
-        fetchHotels(0, searchState.district, searchState.locality, searchState.hotelType, 
-          isSearchActive ? "default" : searchState.sortBy);
-      }, 300);
+    // Set new debounced timer
+    debounceTimerRef.current = setTimeout(() => {
+      const isSearchActive = searchState.district.trim() || searchState.locality.trim() || 
+        (searchState.hotelType && searchState.hotelType !== "all");
+      fetchHotels(0, searchState.district, searchState.locality, searchState.hotelType, 
+        isSearchActive ? "default" : searchState.sortBy);
+    }, 500);
 
     return () => {
       if (debounceTimerRef.current) {

@@ -35,6 +35,9 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
     guests: 1,
     phone: "",
     customerName: "",
+    cid: "",
+    destination: "",
+    origin: "",
   });
   const [errors, setErrors] = useState({});
 
@@ -92,6 +95,53 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
     
     if (bookingDetails.checkOutDate && new Date(bookingDetails.checkOutDate) <= new Date()) {
       newErrors.checkOutDate = "Check-out must be after today";
+    }
+
+    // Validate CID Number (Bhutanese Citizen Identity Document)
+    if (!bookingDetails.cid.trim()) {
+      newErrors.cid = "CID number is required";
+    } else {
+      const cid = bookingDetails.cid.trim();
+      
+      // Rule 1: Must be exactly 11 digits
+      if (!/^\d{11}$/.test(cid)) {
+        newErrors.cid = "CID must be exactly 11 digits";
+      } else {
+        // Rule 2: Dzongkhag code must be 01–20
+        const dzongkhagCode = parseInt(cid.substring(0, 2), 10);
+        if (dzongkhagCode < 1 || dzongkhagCode > 20) {
+          newErrors.cid = "Invalid Dzongkhag code (must be 01–20)";
+        }
+        // Additional validation: Check if it's not all zeros or all same digits
+        else if (/^0{11}$/.test(cid)) {
+          newErrors.cid = "CID number cannot be all zeros";
+        } else if (/^(\d)\1{10}$/.test(cid)) {
+          newErrors.cid = "CID number cannot be all same digits";
+        }
+        // CID is valid if it passes all the above checks
+      }
+    }
+
+    // Validate Destination
+    if (!bookingDetails.destination.trim()) {
+      newErrors.destination = "Destination is required";
+    } else if (bookingDetails.destination.length < 2) {
+      newErrors.destination = "Destination must be at least 2 characters long";
+    } else if (bookingDetails.destination.length > 50) {
+      newErrors.destination = "Destination must not exceed 50 characters";
+    } else if (!/^[a-zA-Z\s\-_.,]+$/.test(bookingDetails.destination)) {
+      newErrors.destination = "Destination can only contain letters, spaces, hyphens, underscores, commas, and periods";
+    }
+
+    // Validate Origin
+    if (!bookingDetails.origin.trim()) {
+      newErrors.origin = "Origin is required";
+    } else if (bookingDetails.origin.length < 2) {
+      newErrors.origin = "Origin must be at least 2 characters long";
+    } else if (bookingDetails.origin.length > 50) {
+      newErrors.origin = "Origin must not exceed 50 characters";
+    } else if (!/^[a-zA-Z\s\-_.,]+$/.test(bookingDetails.origin)) {
+      newErrors.origin = "Origin can only contain letters, spaces, hyphens, underscores, commas, and periods";
     }
 
     const validateBhutanesePhone = (phone) => {
@@ -160,6 +210,9 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
           guests: 1,
           phone: "",
           customerName: "",
+          cid: "",
+          destination: "",
+          origin: "",
         });
         setErrors({});
         setOpenBookingDialog(false);
@@ -197,14 +250,23 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
         {loading ? "Loading..." : "Create New Booking"}
       </Button>
 
-      <Dialog open={openBookingDialog} onOpenChange={setOpenBookingDialog}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog 
+        open={openBookingDialog} 
+        onOpenChange={(open) => {
+          setOpenBookingDialog(open);
+          // Reset all validation errors when dialog closes
+          if (!open) {
+            setErrors({});
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Create New Booking</DialogTitle>
             <DialogDescription>Book a room for a customer (registered user or walk-in guest)</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4 overflow-y-auto max-h-[60vh]">
               <div className="grid gap-2">
                 <Label htmlFor="roomNumber">Room Number <span className="text-destructive">*</span></Label>
                 <Select
@@ -217,11 +279,17 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
                     <SelectValue placeholder="Select a room" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableRooms.map((room) => (
-                      <SelectItem key={room.id} value={room.roomNumber}>
-                        Room {room.roomNumber} - {room.roomType} (Nu. {room.price}/night)
-                      </SelectItem>
-                    ))}
+                    {availableRooms.length > 0 ? (
+                      availableRooms.map((room) => (
+                        <SelectItem key={room.id} value={room.roomNumber}>
+                          Room {room.roomNumber} - {room.roomType} (Nu. {room.price}/night)
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+                        No rooms available
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
                 {errors.roomNumber && <p className="text-sm text-destructive">{errors.roomNumber}</p>}
@@ -257,6 +325,59 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
                   />
                 </div>
                 {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+              </div>
+
+              {/* Additional Information Fields */}
+              <div className="grid grid-cols-1 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="cid" className="text-sm">CID Number <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="cid"
+                    name="cid"
+                    type="text"
+                    value={bookingDetails.cid}
+                    onChange={handleInputChange}
+                    placeholder="11 digits (e.g., 10901001065)"
+                    maxLength={11}
+                    className={`text-sm ${errors.cid ? "border-destructive" : ""}`}
+                  />
+                  
+                  {errors.cid && (
+                    <p className="text-sm text-destructive">{errors.cid}</p>
+                  )}
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="destination" className="text-sm">Destination <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="destination"
+                    name="destination"
+                    type="text"
+                    value={bookingDetails.destination}
+                    onChange={handleInputChange}
+                    placeholder="Enter destination"
+                    className={`text-sm ${errors.destination ? "border-destructive" : ""}`}
+                  />
+                  {errors.destination && (
+                    <p className="text-sm text-destructive">{errors.destination}</p>
+                  )}
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="origin" className="text-sm">Origin <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="origin"
+                    name="origin"
+                    type="text"
+                    value={bookingDetails.origin}
+                    onChange={handleInputChange}
+                    placeholder="Enter origin"
+                    className={`text-sm ${errors.origin ? "border-destructive" : ""}`}
+                  />
+                  {errors.origin && (
+                    <p className="text-sm text-destructive">{errors.origin}</p>
+                  )}
+                </div>
               </div>
 
               <div className="grid gap-2">

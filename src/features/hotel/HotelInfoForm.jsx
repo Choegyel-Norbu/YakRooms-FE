@@ -34,12 +34,13 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { getCategorizedAmenities } from "../../shared/utils/amenitiesHelper";
-import { districts } from "../../shared/constants";
+import { districts, getLocalitiesForDistrict } from "../../shared/constants";
 
 const formSchema = z.object({
   name: z.string().min(1, "Hotel name is required"),
   hotelType: z.string().min(1, "Hotel type is required"),
   district: z.string().min(1, "District is required"),
+  locality: z.string().min(1, "Locality is required"),
   address: z.string().min(1, "Address is required"),
   phone: z.string().min(1, "Phone number is required"),
   description: z.string().min(1, "Description is required"),
@@ -50,7 +51,10 @@ const formSchema = z.object({
 
 const HotelInfoForm = ({ hotel, onUpdate }) => {
   const { email } = useAuth();
-  const [formData, setFormData] = useState(hotel);
+  const [formData, setFormData] = useState({
+    ...hotel,
+    locality: hotel.locality || "",
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAmenities, setSelectedAmenities] = useState(hotel.amenities || []);
@@ -64,6 +68,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       name: hotel.name || "",
       hotelType: hotel.hotelType || "",
       district: hotel.district || "",
+      locality: hotel.locality || "",
       address: hotel.address || "",
       phone: hotel.phone || "",
       description: hotel.description || "",
@@ -74,12 +79,16 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
   });
 
   useEffect(() => {
-    setFormData(hotel);
+    setFormData({
+      ...hotel,
+      locality: hotel.locality || "",
+    });
     setSelectedAmenities(hotel.amenities || []);
     form.reset({
       name: hotel.name || "",
       hotelType: hotel.hotelType || "",
       district: hotel.district || "",
+      locality: hotel.locality || "",
       address: hotel.address || "",
       phone: hotel.phone || "",
       description: hotel.description || "",
@@ -135,6 +144,12 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
     form.setValue("amenities", updatedAmenities);
   };
 
+  const handleDistrictChange = (value) => {
+    // Reset locality when district changes
+    form.setValue("locality", "");
+    form.setValue("district", value);
+  };
+
   const onSubmit = async (values) => {
     setIsLoading(true);
 
@@ -178,8 +193,14 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
               variant="outline"
               onClick={() => {
                 setIsEditing(false);
-                form.reset(hotel);
-                setFormData(hotel);
+                form.reset({
+                  ...hotel,
+                  locality: hotel.locality || "",
+                });
+                setFormData({
+                  ...hotel,
+                  locality: hotel.locality || "",
+                });
                 setSelectedAmenities(hotel.amenities || []);
               }}
               disabled={isLoading}
@@ -250,7 +271,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                   <FormItem>
                     <FormLabel>District</FormLabel>
                     <Select
-                      onValueChange={field.onChange}
+                      onValueChange={handleDistrictChange}
                       defaultValue={field.value}
                       disabled={!isEditing}
                     >
@@ -263,6 +284,35 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                         {districts.map((district) => (
                           <SelectItem key={district} value={district}>
                             {district}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="locality"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Locality</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      disabled={!isEditing}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Locality" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {getLocalitiesForDistrict(form.watch("district")).map((locality) => (
+                          <SelectItem key={locality} value={locality}>
+                            {locality}
                           </SelectItem>
                         ))}
                       </SelectContent>

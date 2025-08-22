@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/shared/components/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/components/tooltip";
 import {
   Card,
   CardContent,
@@ -658,11 +659,7 @@ const HotelDetailsPage = () => {
         <div className="mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
           {/* Left side - Navigation */}
           <div className="flex items-center gap-1 sm:gap-2">
-            <Button asChild variant="ghost" className="p-2">
-              <Link to="/">
-                <Home className="h-5 w-5 " />
-              </Link>
-            </Button>
+            
             <Button
               variant="ghost"
               onClick={() => navigate(-1)}
@@ -670,6 +667,12 @@ const HotelDetailsPage = () => {
             >
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline ml-2">Back</span>
+            </Button>
+            <Button asChild variant="ghost" className="p-2">
+              <Link to="/">
+                {/* <Home className="h-5 w-5 " /> */}
+                Home
+              </Link>
             </Button>
           </div>
 
@@ -680,14 +683,23 @@ const HotelDetailsPage = () => {
 
           {/* Right side - Actions */}
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleShare}
-              className="h-8 w-8 sm:h-10 sm:w-10"
-            >
-              <Share2 className="h-4 w-4" />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleShare}
+                    className="h-8 w-8 sm:h-10 sm:w-10"
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Share this hotel
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </header>
@@ -841,7 +853,7 @@ const HotelDetailsPage = () => {
 
               {/* Check-in/Check-out Times - Mobile & Desktop Visible */}
               <div className="mt-6 pt-4 border-t border-slate-200">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center  gap-4">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100">
                       <Clock className="h-5 w-5 text-blue-600" />
@@ -868,7 +880,7 @@ const HotelDetailsPage = () => {
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
+          <div className="col-span-1 lg:col-span-2 space-y-8">
             {/* Enhanced Amenities Section */}
             {/* <Card> */}
               <CardHeader className="pb-2">
@@ -1218,8 +1230,8 @@ const HotelDetailsPage = () => {
             </div>
           </div>
 
-          {/* Sidebar */}
-          <aside className="space-y-6">
+          {/* Sidebar - Hidden on mobile, visible on lg screens and up */}
+          <aside className="hidden lg:block space-y-6">
             <YakRoomsAdCard />
 
             {/* Quick Info Card */}

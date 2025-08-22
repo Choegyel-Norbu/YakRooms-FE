@@ -33,6 +33,7 @@ import api from "../../shared/services/Api";
 // ShadCN UI Components
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/card";
 import { Button } from "@/shared/components/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/components/tooltip";
 import { Input } from "@/shared/components/input";
 import { Label } from "@/shared/components/label";
 import { Textarea } from "@/shared/components/textarea";
@@ -748,7 +749,7 @@ const RoomManager = () => {
       </Dialog>
 
       {/* Rooms Table */}
-      <Card>
+      {/* <Card> */}
         <CardHeader>
           <CardTitle>All Rooms</CardTitle>
         </CardHeader>
@@ -787,26 +788,45 @@ const RoomManager = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => startEdit(room)}
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => startEdit(room)}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs">
+                            Edit room
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            disabled={isDeleting === room.id}
-                          >
-                            {isDeleting === room.id ? (
-                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
-                            ) : (
-                              <Trash2 className="h-3 w-3" />
-                            )}
-                          </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  disabled={isDeleting === room.id}
+                                >
+                                  {isDeleting === room.id ? (
+                                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                                  ) : (
+                                    <Trash2 className="h-3 w-3" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="text-xs">
+                                Delete room
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
@@ -832,7 +852,7 @@ const RoomManager = () => {
           </Table>
           </div>
         </CardContent>
-      </Card>
+      {/* </Card> */}
     </div>
   );
 };

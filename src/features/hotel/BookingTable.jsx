@@ -290,8 +290,8 @@ const BookingTable = ({ hotelId }) => {
   }
 
   return (
-    <Card>
-      <CardContent>
+    <div>
+      <div>
         {/* --- Error Message Display --- */}
         {error && (
           <div
@@ -497,7 +497,7 @@ const BookingTable = ({ hotelId }) => {
             </div>
           </div>
         </div>
-      </CardContent>
+      </div>
 
       {/* --- Delete Confirmation Dialog --- */}
       {/* This dialog is controlled by `deleteDialog` state and uses `bookingToDelete` for the actual ID */}
@@ -508,7 +508,7 @@ const BookingTable = ({ hotelId }) => {
         title="Confirm Deletion"
         description={`Are you sure you want to delete booking ID ${bookingToDelete}? This action cannot be undone.`}
       />
-    </Card>
+    </div>
   );
 };
 
