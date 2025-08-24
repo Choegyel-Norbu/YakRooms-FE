@@ -78,21 +78,7 @@ import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { API_BASE_URL } from "../../shared/services/firebaseConfig";
 import { toast } from "sonner";
-
-// YakRooms Text Logo Component (consistent with HotelListingPage)
-const YakRoomsText = ({ size = "default" }) => {
-  const textSizes = {
-    small: "text-lg font-semibold",
-    default: "text-xl font-semibold",
-    large: "text-2xl font-semibold",
-  };
-  return (
-    <div className={`${textSizes[size]} font-sans tracking-tight`}>
-      <span className="text-blue-600">Yak</span>
-      <span className="text-yellow-500">Rooms</span>
-    </div>
-  );
-};
+import { YakRoomsText } from "@/shared/components";
 
 const HotelAdminDashboard = () => {
   const {

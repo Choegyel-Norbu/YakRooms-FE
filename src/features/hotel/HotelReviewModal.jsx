@@ -67,7 +67,7 @@ const HotelReviewModal = ({
               </h3>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-500"
+                className="text-gray-400 hover:text-gray-500 cursor-pointer"
               >
                 <FiX className="h-6 w-6" />
               </button>
@@ -240,7 +240,7 @@ const HotelReviewModal = ({
                     />
                     <button
                       onClick={() => addAdminNote(listing.id)}
-                      className="px-3 py-2 bg-amber-500 text-white text-sm rounded-r-lg hover:bg-amber-600"
+                      className="px-3 py-2 bg-amber-500 text-white text-sm rounded-r-lg hover:bg-amber-600 cursor-pointer"
                     >
                       Add
                     </button>
@@ -272,7 +272,7 @@ const HotelReviewModal = ({
               <button
                 type="button"
                 onClick={() => onApprove(listing.id)}
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm cursor-pointer"
               >
                 Approve Listing
               </button>
@@ -282,7 +282,7 @@ const HotelReviewModal = ({
                 type="button"
                 onClick={() => onReject(listing.id)}
                 disabled={!rejectReason && listing.status !== "rejected"}
-                className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm ${
+                className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm cursor-pointer ${
                   !rejectReason && listing.status !== "rejected"
                     ? "opacity-50 cursor-not-allowed"
                     : ""
@@ -294,7 +294,7 @@ const HotelReviewModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm cursor-pointer"
             >
               Close
             </button>

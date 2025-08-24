@@ -49,23 +49,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/components/dialog";
-
-// YakRooms Text Logo Component
-const YakRoomsText = ({ size = "default" }) => {
-  const textSizes = {
-    // Optimized mobile-first text sizes
-    small: "text-lg font-bold",
-    default: "text-xl font-bold",
-    large: "text-2xl font-bold"
-  };
-
-  return (
-    <div className={`${textSizes[size]} font-sans tracking-tight`}>
-      <span className="text-blue-600">Yak</span>
-      <span className="text-yellow-500">Rooms</span>
-    </div>
-  );
-};
+import { YakRoomsText } from "@/shared/components";
 
 const Navbar = ({ onLoginClick, onContactClick }) => {
   const { isAuthenticated, logout, userName, email, roles, pictureURL, hasRole, getPrimaryRole, getCurrentActiveRole, switchToRole } = useAuth();

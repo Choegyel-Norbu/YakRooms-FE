@@ -125,14 +125,14 @@ const HotelTable = ({ listings, onView, onApprove, onReject }) => {
                   <div className="flex justify-end space-x-2">
                     <button
                       onClick={() => onView(listing)}
-                      className="text-amber-600 hover:text-amber-900"
+                      className="text-amber-600 hover:text-amber-900 cursor-pointer"
                     >
                       <FiEye className="h-5 w-5" />
                     </button>
                     {listing.status !== "approved" && (
                       <button
                         onClick={() => onApprove(listing.id)}
-                        className="text-green-600 hover:text-green-900"
+                        className="text-green-600 hover:text-green-900 cursor-pointer"
                       >
                         <FiCheck className="h-5 w-5" />
                       </button>
@@ -140,7 +140,7 @@ const HotelTable = ({ listings, onView, onApprove, onReject }) => {
                     {listing.status !== "rejected" && (
                       <button
                         onClick={() => onReject(listing.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-600 hover:text-red-900 cursor-pointer"
                       >
                         <FiX className="h-5 w-5" />
                       </button>

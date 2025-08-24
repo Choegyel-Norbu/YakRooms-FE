@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/shared/components/select";
 import { Separator } from "@/shared/components/separator";
+import { SearchButton } from "@/shared/components";
 
 const FilterSidebar = ({ searchParams, setSearchParams, onSearchClick }) => {
   const handleDistrictChange = (e) => {
@@ -70,10 +71,9 @@ const FilterSidebar = ({ searchParams, setSearchParams, onSearchClick }) => {
       </div>
 
       {/* Search Button */}
-      <Button onClick={onSearchClick} className="w-full">
-        <Search className="mr-2 h-4 w-4" />
+      <SearchButton onClick={onSearchClick} className="w-full">
         Search Stays
-      </Button>
+      </SearchButton>
 
       <Separator />
 

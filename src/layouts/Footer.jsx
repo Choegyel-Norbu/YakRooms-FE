@@ -3,21 +3,7 @@ import { Button } from "@/shared/components/button";
 import { Separator } from "@/shared/components/separator";
 import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
-
-// YakRooms Text Logo Component (copied from Navbar.jsx)
-const YakRoomsText = ({ size = "default" }) => {
-  const textSizes = {
-    small: "text-lg font-bold",
-    default: "text-2xl font-bold",
-    large: "text-3xl font-bold"
-  };
-  return (
-    <div className={`${textSizes[size]} font-sans tracking-tight`}>
-      <span className="text-blue-600">Yak</span>
-      <span className="text-yellow-500">Rooms</span>
-    </div>
-  );
-};
+import { YakRoomsText } from "@/shared/components";
 
 const Footer = React.forwardRef((props, ref) => {
   return (
@@ -60,36 +46,36 @@ const Footer = React.forwardRef((props, ref) => {
             </h3>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="#"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Home
-                </a>
+                                  <a
+                    href="#"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    Home
+                  </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Book Hotels
-                </a>
+                                  <a
+                    href="#"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    Book Hotels
+                  </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Discover Food
-                </a>
+                                  <a
+                    href="#"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    Discover Food
+                  </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  About Us
-                </a>
+                                  <a
+                    href="#"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    About Us
+                  </a>
               </li>
               
             </ul>
@@ -104,7 +90,7 @@ const Footer = React.forwardRef((props, ref) => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   Add Your Property
                 </a>
@@ -112,7 +98,7 @@ const Footer = React.forwardRef((props, ref) => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   Partner Login
                 </a>
@@ -120,7 +106,7 @@ const Footer = React.forwardRef((props, ref) => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   Vendor Guidelines
                 </a>
@@ -135,7 +121,7 @@ const Footer = React.forwardRef((props, ref) => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   Help Center
                 </a>
@@ -143,7 +129,7 @@ const Footer = React.forwardRef((props, ref) => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   FAQs
                 </a>
@@ -151,7 +137,7 @@ const Footer = React.forwardRef((props, ref) => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   Terms & Conditions
                 </a>
@@ -159,7 +145,7 @@ const Footer = React.forwardRef((props, ref) => {
               <li>
                 <Link
                   to="/privacy-policy"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   Privacy Policy
                 </Link>
@@ -167,7 +153,7 @@ const Footer = React.forwardRef((props, ref) => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   Cancellation Policy
                 </a>

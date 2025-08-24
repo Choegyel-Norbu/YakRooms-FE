@@ -39,6 +39,7 @@ import { Badge } from "@/shared/components/badge";
 import { Label } from "@/shared/components/label";
 import { toast } from "sonner";
 import YakRoomsLoader from "@/shared/components/YakRoomsLoader";
+import { SearchButton } from "@/shared/components";
 
 const SuperAdmin = () => {
   const [hotels, setHotels] = useState([]);
@@ -222,7 +223,7 @@ const SuperAdmin = () => {
                     <div>
                       <p className="text-sm font-medium">Location</p>
                       <p className="text-sm text-muted-foreground">
-                        {selectedHotel.address && `${selectedHotel.address}, `}{selectedHotel.locality}, {selectedHotel.district}
+                        {selectedHotel.address}, {selectedHotel.district}
                       </p>
                     </div>
                   </div>
@@ -503,7 +504,7 @@ const SuperAdmin = () => {
             </div>
 
             <div className="flex gap-2">
-              <Button type="submit">Apply Filters</Button>
+              <SearchButton type="submit">Apply Filters</SearchButton>
               <Button type="button" variant="outline" onClick={handleReset}>
                 Reset
               </Button>

@@ -36,6 +36,7 @@ export { default as SpringBootCard } from './SpringBootCard';
 export { default as SummaryCards } from './SummaryCards';
 export { default as TailwindCard } from './TailwindCard';
 export { default as YakRoomsAdCard } from './YakRoomsAdCard';
+export { default as YakRoomsText } from './YakRoomsText';
 
 // Loader Components
 export { default as YakRoomsLoader } from './YakRoomsLoader';
@@ -49,4 +50,5 @@ export { default as Toast } from './Toast';
 export { default as ToastTest } from './ToastTest';
 export { default as TopHotelBadge } from './TopHotelBadge';
 export { default as NotificationsComponent } from './NotificationsComponent';
-export { default as UnAuthorizedPage } from './UnAuthorizedPage'; 
+export { default as UnAuthorizedPage } from './UnAuthorizedPage';
+export { default as SearchButton } from './SearchButton'; 

@@ -28,12 +28,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components";
 import { Badge } from "@/shared/components";
 import { Button } from "@/shared/components";
 import {
@@ -334,7 +328,7 @@ const BookingTable = ({ hotelId }) => {
               {bookings.map((booking) => (
                 <TableRow key={booking.id}>
                   <TableCell>
-                    <div className="font-medium">{booking.name}</div>
+                    <div className="font-medium">{booking.guestName}</div>
                     <div className="text-sm text-muted-foreground">
                       {booking.email}
                     </div>
@@ -544,7 +538,7 @@ const BookingTable = ({ hotelId }) => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Name:</span>
-                    <span className="text-gray-900 text-sm">{selectedBooking.name || 'Not provided'}</span>
+                                            <span className="text-gray-900 text-sm">{selectedBooking.guestName || 'Not provided'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Email:</span>

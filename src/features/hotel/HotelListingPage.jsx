@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import YakRoomsLoader from "@/shared/components/YakRoomsLoader";
 import StarRating from "@/shared/components/star-rating";
+import { SearchButton } from "@/shared/components";
 
 import { Button } from "@/shared/components/button";
 import {
@@ -42,21 +43,7 @@ import {
 } from "@/shared/components/pagination";
 
 import api from "../../shared/services/Api";
-
-// Memoized YakRoomsText component to prevent unnecessary re-renders
-const YakRoomsText = React.memo(({ size = "default" }) => {
-  const textSizes = {
-    small: "text-lg font-semibold",
-    default: "text-xl font-semibold",
-    large: "text-2xl font-semibold",
-  };
-  return (
-    <div className={`${textSizes[size]} font-sans tracking-tight`}>
-      <span className="text-blue-600">Yak</span>
-      <span className="text-yellow-500">Rooms</span>
-    </div>
-  );
-});
+import { YakRoomsText } from "@/shared/components";
 
 // Memoized HotelCard component to prevent unnecessary re-renders
 const HotelCard = React.memo(({ hotel }) => (
@@ -594,10 +581,13 @@ const HotelListingPage = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               {/* Search Actions */}
               <div className="flex gap-2 sm:flex-shrink-0">
-                <Button onClick={handleSearch} disabled={appState.loading} className="flex-1 sm:flex-initial">
-                  <Search className="h-4 w-4 mr-2" />
+                <SearchButton 
+                  onClick={handleSearch} 
+                  disabled={appState.loading} 
+                  className="flex-1 sm:flex-initial bg-yellow-500 hover:bg-yellow-600 text-white cursor-pointer"
+                >
                   Search
-                </Button>
+                </SearchButton>
                 {isSearchActive && (
                   <Button variant="outline" onClick={handleClearSearch} disabled={appState.loading}>
                     <X className="h-4 w-4" />

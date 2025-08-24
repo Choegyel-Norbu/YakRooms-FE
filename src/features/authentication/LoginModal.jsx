@@ -12,23 +12,7 @@ import {
 import { Button } from "@/shared/components";
 import { Alert, AlertDescription } from "@/shared/components";
 import { X } from "lucide-react";
-
-// YakRooms Text Logo Component
-const YakRoomsText = ({ size = "default" }) => {
-  const textSizes = {
-    // Optimized mobile-first text sizes
-    small: "text-lg font-semibold",
-    default: "text-xl font-semibold",
-    large: "text-2xl font-semibold"
-  };
-
-  return (
-    <div className={`${textSizes[size]} font-sans tracking-tight`}>
-      <span className="text-blue-600">Yak</span>
-      <span className="text-yellow-500">Rooms</span>
-    </div>
-  );
-};
+import { YakRoomsText } from "@/shared/components";
 
 const LoginModal = ({ onClose, flag }) => {
   const modalRef = useRef(null);

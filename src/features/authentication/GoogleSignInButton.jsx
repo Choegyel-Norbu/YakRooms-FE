@@ -57,7 +57,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
       <button
         onClick={handleGoogleSignIn}
         disabled={isLoading}
-        className={`w-full flex items-center justify-center gap-2 text-sm font-medium py-2.5 px-5 rounded-xl shadow-md transition duration-200 ease-in-out focus:outline-none border ${
+        className={`w-full flex items-center justify-center gap-2 text-sm font-medium py-2.5 px-5 rounded-xl shadow-md transition duration-200 ease-in-out focus:outline-none border cursor-pointer ${
           isLoading 
             ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
             : "text-black hover:shadow-lg border-transparent hover:border-[#cccccc]"

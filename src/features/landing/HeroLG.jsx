@@ -9,6 +9,7 @@ import { Input } from "@/shared/components/input";
 import { Calendar } from "@/shared/components/calendar";
 import { Separator } from "@/shared/components/separator";
 import { Badge } from "@/shared/components/badge";
+import { SearchButton } from "@/shared/components";
 import {
   Popover,
   PopoverContent,
@@ -133,14 +134,13 @@ const HeroLG = () => {
               )}
             </div>
 
-            <Button
+            <SearchButton
               size="lg"
-              className="h-10 sm:h-12 text-sm sm:text-base bg-yellow-500 hover:bg-yellow-600 text-slate-900 cursor-pointer"
+              className="h-10 sm:h-12 text-sm sm:text-base bg-yellow-500 hover:bg-yellow-600 text-black cursor-pointer"
               onClick={validateAndSearch}
             >
-              <Search className="mr-2 h-4 w-4" />
               Search Hotels
-            </Button>
+            </SearchButton>
           </div>
         </div>
 

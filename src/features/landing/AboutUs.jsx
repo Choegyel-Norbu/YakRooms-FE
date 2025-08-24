@@ -22,23 +22,7 @@ import {
   Mail,
   ArrowLeft
 } from 'lucide-react';
-
-// YakRooms Text Logo Component (copied from Navbar.jsx)
-const YakRoomsText = ({ size = "default" }) => {
-  const textSizes = {
-    // Responsive mobile-first text sizes
-    small: "text-base sm:text-lg font-bold",
-    default: "text-lg sm:text-xl font-bold",
-    large: "text-xl sm:text-2xl lg:text-3xl font-bold"
-  };
-
-  return (
-    <div className={`${textSizes[size]} font-sans tracking-tight`}>
-      <span className="text-blue-600">Yak</span>
-      <span className="text-yellow-500">Rooms</span>
-    </div>
-  );
-};
+import { YakRoomsText } from "@/shared/components";
 
 const AboutUs = () => {
   return (

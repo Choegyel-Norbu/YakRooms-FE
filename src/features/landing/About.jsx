@@ -78,7 +78,7 @@ export default function () {
         <section className="text-center">
           <Link
             to="/"
-            className="inline-block bg-[#1a1a1a] text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-in-out"
+            className="inline-block bg-[#1a1a1a] text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-in-out cursor-pointer"
           >
             Let’s build something meaningful.
           </Link>

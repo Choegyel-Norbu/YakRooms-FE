@@ -7,6 +7,7 @@ import {
 } from '@/shared/components/card';
 import { Badge } from '@/shared/components/badge';
 import { Button } from '@/shared/components/button';
+import { SearchButton } from '@/shared/components';
 import { ChevronDown, ChevronUp, Search, X } from 'lucide-react';
 import api from "../../shared/services/Api";
 import YakRoomsLoader from '@/shared/components/YakRoomsLoader';
@@ -252,23 +253,14 @@ const RoomStatusTable = ({ hotelId }) => {
               )}
             </div>
             <div className="flex justify-end">
-              <Button
+              <SearchButton
                 onClick={handleSearch}
                 disabled={searchLoading}
-                className="flex items-center justify-center gap-2"
+                loading={searchLoading}
+                loadingText="Searching..."
               >
-                {searchLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                    Searching...
-                  </>
-                ) : (
-                  <>
-                    <Search className="h-4 w-4" />
-                    Search
-                  </>
-                )}
-              </Button>
+                Search
+              </SearchButton>
             </div>
           </div>
 

@@ -136,7 +136,7 @@ const ActionButton = ({ action, onClick, disabled = false }) => {
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors ${
+      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer ${
         disabled ? "opacity-50 cursor-not-allowed" : ""
       }`}
     >
@@ -204,7 +204,7 @@ const GoogleMapsModal = ({ booking, isOpen, onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-accent rounded-md transition-colors"
+            className="p-2 hover:bg-accent rounded-md transition-colors cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -252,7 +252,7 @@ const GoogleMapsModal = ({ booking, isOpen, onClose }) => {
           <div className="space-y-3">
             <button
               onClick={openDirectionsWithAddress}
-              className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-3 rounded-md hover:bg-primary/90 transition-colors"
+              className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-3 rounded-md hover:bg-primary/90 transition-colors cursor-pointer"
             >
               <Navigation size={18} />
               Open Directions in Google Maps
@@ -262,7 +262,7 @@ const GoogleMapsModal = ({ booking, isOpen, onClose }) => {
             {userLocation && (
               <button
                 onClick={openInGoogleMaps}
-                className="w-full flex items-center justify-center gap-2 border border-input bg-background hover:bg-accent px-4 py-3 rounded-md transition-colors"
+                className="w-full flex items-center justify-center gap-2 border border-input bg-background hover:bg-accent px-4 py-3 rounded-md transition-colors cursor-pointer"
               >
                 <MapPin size={18} />
                 Directions from My Location
@@ -275,7 +275,7 @@ const GoogleMapsModal = ({ booking, isOpen, onClose }) => {
                 const url = `https://www.google.com/maps/search/?api=1&query=${booking.hotelLatitude},${booking.hotelLongitude}`;
                 window.open(url, "_blank");
               }}
-              className="w-full flex items-center justify-center gap-2 border border-input bg-background hover:bg-accent px-4 py-2 rounded-md transition-colors text-sm"
+              className="w-full flex items-center justify-center gap-2 border border-input bg-background hover:bg-accent px-4 py-2 rounded-md transition-colors text-sm cursor-pointer"
             >
               <Hotel size={16} />
               View Hotel on Map
@@ -575,7 +575,7 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-accent rounded-md transition-colors"
+            className="p-2 hover:bg-accent rounded-md transition-colors cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -821,7 +821,7 @@ const Pagination = ({
         <button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1 || loading}
-          className="p-2 border rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-2 border rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           <ChevronLeft size={16} />
         </button>
@@ -839,7 +839,7 @@ const Pagination = ({
               key={pageNum}
               onClick={() => onPageChange(pageNum)}
               disabled={loading}
-              className={`px-3 py-2 text-sm rounded-md transition-colors ${
+              className={`px-3 py-2 text-sm rounded-md transition-colors cursor-pointer ${
                 currentPage === pageNum
                   ? "bg-primary text-primary-foreground"
                   : "border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
@@ -853,7 +853,7 @@ const Pagination = ({
         <button
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage >= totalPages || loading}
-          className="p-2 border rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-2 border rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           <ChevronRight size={16} />
         </button>

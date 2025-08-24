@@ -34,7 +34,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
     checkOutDate: "",
     guests: 1,
     phone: "",
-    customerName: "",
+    guestName: "",
     cid: "",
     destination: "",
     origin: "",
@@ -90,7 +90,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
     
     if (!bookingDetails.roomNumber) newErrors.roomNumber = "Room number is required";
     // Removed userId validation - now optional for third-party bookings
-    if (!bookingDetails.customerName) newErrors.customerName = "Customer name is required";
+    if (!bookingDetails.guestName) newErrors.guestName = "Guest name is required";
     if (!bookingDetails.checkOutDate) newErrors.checkOutDate = "Check-out date is required";
     
     if (bookingDetails.checkOutDate && new Date(bookingDetails.checkOutDate) <= new Date()) {
@@ -199,7 +199,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
       const res = await api.post("/bookings", payload);
       if (res.status === 200) {
         toast.success("Booking Successful!", {
-          description: `Room ${bookingDetails.roomNumber} has been booked for ${bookingDetails.customerName}.`,
+          description: `Room ${bookingDetails.roomNumber} has been booked for ${bookingDetails.guestName}.`,
           duration: 6000
         });
         
@@ -209,7 +209,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
           checkOutDate: "",
           guests: 1,
           phone: "",
-          customerName: "",
+          guestName: "",
           cid: "",
           destination: "",
           origin: "",
@@ -296,16 +296,16 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="customerName">Customer Name <span className="text-destructive">*</span></Label>
+                <Label htmlFor="guestName">Guest Name <span className="text-destructive">*</span></Label>
                 <Input
-                  id="customerName"
-                  name="customerName"
+                  id="guestName"
+                  name="guestName"
                   type="text"
-                  value={bookingDetails.customerName}
+                  value={bookingDetails.guestName}
                   onChange={handleInputChange}
-                  placeholder="Enter customer name"
+                  placeholder="Enter guest name"
                 />
-                {errors.customerName && <p className="text-sm text-destructive">{errors.customerName}</p>}
+                {errors.guestName && <p className="text-sm text-destructive">{errors.guestName}</p>}
               </div>
 
 

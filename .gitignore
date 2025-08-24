@@ -22,6 +22,7 @@ dist-ssr
 src/services/Api.jsx
 src/config/api.js
 src/config/api.jsx
+src/config/firebaseConfig.js
 
 # Editor directories and files
 .vscode/*
@@ -34,4 +35,3 @@ src/config/api.jsx
 *.sln
 *.sw?
 config.js
-src/services/Api.jsx

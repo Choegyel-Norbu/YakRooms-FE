@@ -100,7 +100,7 @@ const PrivacyPolicy = () => {
                   <button
                     key={item.id}
                     onClick={() => scrollToSection(item.id)}
-                    className="block w-full text-left text-xs text-muted-foreground hover:text-primary transition-colors py-0.5"
+                    className="block w-full text-left text-xs text-muted-foreground hover:text-primary transition-colors py-0.5 cursor-pointer"
                   >
                     {index + 1}. {item.title}
                   </button>

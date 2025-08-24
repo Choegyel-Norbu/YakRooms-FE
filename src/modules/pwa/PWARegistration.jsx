@@ -173,7 +173,8 @@ const PWARegistration = () => {
             color: 'white',
             border: 'none',
             borderRadius: '5px',
-            fontSize: '12px'
+            fontSize: '12px',
+            cursor: isInstallable ? 'pointer' : 'not-allowed'
           }}
         >
           {isInstallable ? 'Install App' : 'Not Installable'}
