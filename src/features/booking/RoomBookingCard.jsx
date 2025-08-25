@@ -305,13 +305,13 @@ export default function RoomBookingCard({ room, hotelId }) {
           }
         }}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Book {room.hotelName}</DialogTitle>
             <DialogDescription>Room {room.roomNumber}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4 max-h-[50vh] overflow-y-auto pr-2">
               <div className="grid gap-2">
                 <Label htmlFor="phone">
                   Phone Number <span className="text-destructive">*</span>
