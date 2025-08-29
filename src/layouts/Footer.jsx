@@ -88,12 +88,12 @@ const Footer = React.forwardRef((props, ref) => {
             </h3>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/addListing"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   Add Your Property
-                </a>
+                </Link>
               </li>
               <li>
                 <a

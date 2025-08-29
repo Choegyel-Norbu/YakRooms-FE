@@ -71,6 +71,7 @@ import BookingTable from "./BookingTable";
 import AdminBookingForm from "./AdminBookingForm";
 import QRCodeScanner from "./QRCodeScanner";
 import ScannedBookingModal from "./ScannedBookingModal";
+import BookingsInventoryTable from "./BookingsInventoryTable";
 import { useAuth } from "../authentication";
 import api from "../../shared/services/Api";
 import { TopHotelBadge } from "../../shared/components";
@@ -492,7 +493,7 @@ const HotelAdminDashboard = () => {
     ...(roles && !roles.includes("STAFF")
       ? [{ id: "staff", label: "Staff Management", icon: Users }]
       : []),
-    { id: "inventory", label: "Inventory Tracker", icon: Package },
+    { id: "inventory", label: "Bookings Inventory", icon: Package },
     { id: "analytics", label: "Analytics", icon: PieChart },
     { id: "booking", label: "Booking", icon: Calendar },
   ];
@@ -503,7 +504,7 @@ const HotelAdminDashboard = () => {
       hotel: "Hotel Details",
       rooms: "Room Management",
       staff: "Staff Management",
-      inventory: "Inventory Tracker",
+      inventory: "Bookings Inventory",
       analytics: "Analytics & Reports",
       booking: "Booking Management",
     };
@@ -515,7 +516,7 @@ const HotelAdminDashboard = () => {
       dashboard: "Overview of your hotel operations and recent activity",
       hotel: "Manage your hotel information and details",
       rooms: "Add, edit, and manage your room inventory",
-      inventory: "Track and monitor your hotel inventory",
+      inventory: "View all bookings data in tabular format with Excel export",
       staff: "Manage your hotel staff and their roles",
       analytics: "Insights and reports about your business performance",
       booking: "Manage and view your hotel bookings",
@@ -1076,31 +1077,9 @@ const HotelAdminDashboard = () => {
           )}
 
           {activeTab === "inventory" && (
-            <Card>
-              <CardHeader className="p-4 md:p-6">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Package className="h-4 w-4 text-primary" />
-                  Room Inventory
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 md:px-6 md:pb-6">
-                <div className="text-center py-8 lg:py-12">
-                  <div className="mx-auto w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
-                    <Package className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-medium text-foreground mb-2">
-                    Inventory Tracking
-                  </h3>
-                  <p className="text-sm text-muted-foreground max-w-sm mx-auto px-4">
-                    Advanced inventory management features are being developed
-                    and will be available soon.
-                  </p>
-                  <Button variant="outline" className="mt-4 text-sm">
-                    Request Early Access
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <BookingsInventoryTable hotelId={hotelId} />
+            </div>
           )}
 
           {activeTab === "staff" && ( // Changed from "bookings" to "staff"

@@ -225,7 +225,7 @@ const HotelListingPage = () => {
           lastFetchKey: fetchKey
         }));
 
-        let endpoint = `/hotels?page=${page}&size=${pagination.size}`;
+        let endpoint = `/hotels/list?page=${page}&size=${pagination.size}`;
         const isSearchActive = searchDistrict.trim() || searchLocality.trim() || 
           (searchHotelType && searchHotelType !== "all");
 

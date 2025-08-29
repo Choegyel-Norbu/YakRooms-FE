@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "../authentication";
 import api from "../../shared/services/Api";
 
@@ -22,9 +22,9 @@ import {
   SelectValue,
 } from "@/shared/components/select";
 import { Separator } from "@/shared/components/separator";
-import { CheckCircle, Users, Home, AlertTriangle, UserCheck } from "lucide-react";
+import { CheckCircle, AlertTriangle, UserCheck } from "lucide-react";
 import LoginModal from "../authentication/LoginModal"; // Assuming this is your LoginModal component
-import { BookingSuccessModal } from "../../shared/components";
+import { BookingSuccessModal, CustomDatePicker } from "../../shared/components";
 import { toast } from "sonner"; // Using sonner for toasts
 
 export default function RoomBookingCard({ room, hotelId }) {
@@ -33,8 +33,23 @@ export default function RoomBookingCard({ room, hotelId }) {
   const [openLoginModal, setOpenLoginModal] = useState(false);
   const [openRoleSwitchDialog, setOpenRoleSwitchDialog] = useState(false);
   const [openBookingSuccessModal, setOpenBookingSuccessModal] = useState(false);
+  const [openImmediateBookingDialog, setOpenImmediateBookingDialog] = useState(false);
   const [successBookingData, setSuccessBookingData] = useState(null);
+  const [pendingBookingType, setPendingBookingType] = useState(null); // Track which booking type was requested
+  const [isImmediateBookingLoading, setIsImmediateBookingLoading] = useState(false);
+  const [bookedDates, setBookedDates] = useState([]);
+  const [isLoadingBookedDates, setIsLoadingBookedDates] = useState(false);
+  const [hasCheckedBookings, setHasCheckedBookings] = useState(false);
+  const [isTodayAvailable, setIsTodayAvailable] = useState(true);
+  const [immediateBookingDetails, setImmediateBookingDetails] = useState({
+    phone: "",
+    cid: "",
+    destination: "",
+    origin: "",
+  });
+  const [immediateBookingErrors, setImmediateBookingErrors] = useState({});
   const [bookingDetails, setBookingDetails] = useState({
+    checkInDate: "",
     checkOutDate: "",
     guests: 1,
     numberOfRooms: 1,
@@ -45,13 +60,71 @@ export default function RoomBookingCard({ room, hotelId }) {
   });
   const [errors, setErrors] = useState({});
 
+  // Fetch booked dates for the room and check availability
+  const fetchBookedDates = async () => {
+    if (!room?.id) return;
+    
+    setIsLoadingBookedDates(true);
+    try {
+      const response = await api.get(`/rooms/${room.id}/booked-dates`);
+      if (response.data && response.data.bookedDates) {
+        setBookedDates(response.data.bookedDates);
+        
+        // Check if today is available for immediate booking
+        const today = new Date();
+        const todayString = today.getFullYear() + '-' + 
+          String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+          String(today.getDate()).padStart(2, '0');
+        
+        const isTodayBooked = response.data.bookedDates.includes(todayString);
+        setIsTodayAvailable(!isTodayBooked);
+        setHasCheckedBookings(true);
+      }
+    } catch (error) {
+      console.error('Failed to fetch booked dates:', error);
+      // Show a toast notification for the error
+      toast.error('Failed to load booking calendar', {
+        description: 'Could not fetch booked dates. Some dates may appear available when they are not.',
+        duration: 4000
+      });
+      // Still mark as checked even if there's an error
+      setHasCheckedBookings(true);
+      setIsTodayAvailable(true); // Assume available on error
+    } finally {
+      setIsLoadingBookedDates(false);
+    }
+  };
+
+  // Handle check bookings button click
+  const handleCheckBookings = async () => {
+    await fetchBookedDates();
+  };
+
+  // Get minimum date for check-out (must be after check-in)
+  const getMinCheckOutDate = () => {
+    if (!bookingDetails.checkInDate) {
+      // If no check-in date, minimum is tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return tomorrow;
+    }
+    
+    // If check-in date is selected, minimum is day after check-in
+    const checkIn = new Date(bookingDetails.checkInDate);
+    const minCheckOut = new Date(checkIn);
+    minCheckOut.setDate(minCheckOut.getDate() + 1);
+    return minCheckOut;
+  };
+
+
+
   const calculateDays = () => {
-    if (!bookingDetails.checkOutDate) {
+    if (!bookingDetails.checkInDate || !bookingDetails.checkOutDate) {
       return 0;
     }
-    const today = new Date();
+    const checkIn = new Date(bookingDetails.checkInDate);
     const checkOut = new Date(bookingDetails.checkOutDate);
-    const timeDiff = checkOut.getTime() - today.getTime();
+    const timeDiff = checkOut.getTime() - checkIn.getTime();
     const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
     return daysDiff > 0 ? daysDiff : 0;
   };
@@ -65,7 +138,7 @@ export default function RoomBookingCard({ room, hotelId }) {
     console.log("Validating form with data:", bookingDetails);
     const newErrors = {};
     const validateBhutanesePhone = (phone) => {
-      const cleanPhone = phone.replace(/[\s\-\(\)]/g, "");
+      const cleanPhone = phone.replace(/[\s\-()]/g, "");
       if (!cleanPhone) return "Phone number is required";
       if (!/^\d+$/.test(cleanPhone))
         return "Phone number should contain only digits";
@@ -126,14 +199,61 @@ export default function RoomBookingCard({ room, hotelId }) {
 
     const phoneError = validateBhutanesePhone(bookingDetails.phone);
     if (phoneError) newErrors.phone = phoneError;
-    if (!bookingDetails.checkOutDate)
-      newErrors.checkOutDate = "Check-out date is required";
-    if (
-      bookingDetails.checkOutDate &&
-      new Date(bookingDetails.checkOutDate) <= new Date()
-    ) {
-      newErrors.checkOutDate = "Check-out must be after today";
+    
+    // Comprehensive check-in date validation
+    if (!bookingDetails.checkInDate) {
+      newErrors.checkInDate = "Check-in date is required";
+    } else {
+      const checkInDate = new Date(bookingDetails.checkInDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set to start of day for proper comparison
+      
+      // Check if check-in date is in the past
+      if (checkInDate < today) {
+        newErrors.checkInDate = "Check-in date cannot be in the past";
+      }
+
+      // Check if it's too far in the future (optional business rule - 1 year max)
+      else {
+        const oneYearFromNow = new Date();
+        oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+        if (checkInDate > oneYearFromNow) {
+          newErrors.checkInDate = "Check-in date cannot be more than 1 year in advance";
+        }
+      }
     }
+    
+    // Comprehensive check-out date validation
+    if (!bookingDetails.checkOutDate) {
+      newErrors.checkOutDate = "Check-out date is required";
+    } else {
+      const checkOutDate = new Date(bookingDetails.checkOutDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set to start of day for proper comparison
+      
+      // Check if check-out date is in the past or today
+      if (checkOutDate <= today) {
+        newErrors.checkOutDate = "Check-out date must be after today";
+      }
+      // Check if check-out is before or same as check-in
+      else if (bookingDetails.checkInDate) {
+        const checkInDate = new Date(bookingDetails.checkInDate);
+        if (checkOutDate <= checkInDate) {
+          newErrors.checkOutDate = "Check-out date must be after check-in date";
+        }
+
+        // Check for maximum stay duration (optional business rule - 30 days max)
+        else {
+          const diffTime = checkOutDate.getTime() - checkInDate.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          if (diffDays > 30) {
+            newErrors.checkOutDate = "Maximum stay duration is 30 days";
+          }
+        }
+      }
+
+    }
+
     if (!bookingDetails.guests)
       newErrors.guests = "Please select number of guests";
     
@@ -143,6 +263,7 @@ export default function RoomBookingCard({ room, hotelId }) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
     setBookingDetails((prev) => ({
       ...prev,
       [name]:
@@ -158,6 +279,69 @@ export default function RoomBookingCard({ room, hotelId }) {
     }
   };
 
+  // Handle date selection from CustomDatePicker
+  const handleDateSelect = (name, date) => {
+    let dateValue = '';
+    if (date) {
+      // Create a new date normalized to avoid timezone issues
+      const normalizedDate = new Date(date);
+      normalizedDate.setHours(12, 0, 0, 0);
+      // Use toLocaleDateString with specific format to avoid timezone issues
+      const year = normalizedDate.getFullYear();
+      const month = String(normalizedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(normalizedDate.getDate()).padStart(2, '0');
+      dateValue = `${year}-${month}-${day}`;
+    }
+    
+    setBookingDetails((prev) => ({
+      ...prev,
+      [name]: dateValue,
+    }));
+    
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined
+      }));
+    }
+    
+    // Real-time validation for date fields
+    if (name === "checkInDate" && date) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (date < today) {
+        setErrors((prev) => ({
+          ...prev,
+          checkInDate: "Check-in date cannot be in the past"
+        }));
+      }
+      
+      // Also validate checkout if it exists
+      if (bookingDetails.checkOutDate) {
+        const checkOutDate = new Date(bookingDetails.checkOutDate);
+        if (checkOutDate <= date) {
+          setErrors((prev) => ({
+            ...prev,
+            checkOutDate: "Check-out date must be after check-in date"
+          }));
+        }
+      }
+    }
+    
+    if (name === "checkOutDate" && date && bookingDetails.checkInDate) {
+      const checkInDate = new Date(bookingDetails.checkInDate);
+      
+      if (date <= checkInDate) {
+        setErrors((prev) => ({
+          ...prev,
+          checkOutDate: "Check-out date must be after check-in date"
+        }));
+      }
+    }
+  };
+
   const handleSelectChange = (name, value) => {
     setBookingDetails((prev) => ({
       ...prev,
@@ -165,9 +349,111 @@ export default function RoomBookingCard({ room, hotelId }) {
     }));
   };
 
+  const handleImmediateInputChange = (e) => {
+    const { name, value } = e.target;
+    
+    setImmediateBookingDetails((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    
+    // Clear error for this field when user starts typing
+    if (immediateBookingErrors[name]) {
+      setImmediateBookingErrors((prev) => ({
+        ...prev,
+        [name]: undefined
+      }));
+    }
+  };
+
+  // Get immediate booking dates (fixed: today and tomorrow)
+  const getImmediateBookingDates = () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const formatDate = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
+    return {
+      checkInDate: formatDate(today),
+      checkOutDate: formatDate(tomorrow),
+      checkInDisplay: today.toLocaleDateString(),
+      checkOutDisplay: tomorrow.toLocaleDateString()
+    };
+  };
+
+  const validateImmediateBooking = () => {
+    const newErrors = {};
+    
+    // Validate phone number (Bhutanese format)
+    const validateBhutanesePhone = (phone) => {
+      const cleanPhone = phone.replace(/[\s\-()]/g, "");
+      if (!cleanPhone) return "Phone number is required";
+      if (!/^\d+$/.test(cleanPhone))
+        return "Phone number should contain only digits";
+      if (cleanPhone.length !== 8)
+        return "Phone number must be exactly 8 digits";
+      const mobilePattern = /^(17|77)\d{6}$/;
+      if (!mobilePattern.test(cleanPhone))
+        return "Invalid Bhutanese mobile number. Must start with 17 or 77.";
+      return null;
+    };
+
+    // Validate CID Number
+    if (!immediateBookingDetails.cid.trim()) {
+      newErrors.cid = "CID number is required";
+    } else {
+      const cid = immediateBookingDetails.cid.trim();
+      if (!/^\d{11}$/.test(cid)) {
+        newErrors.cid = "CID must be exactly 11 digits";
+      } else {
+        const dzongkhagCode = parseInt(cid.substring(0, 2), 10);
+        if (dzongkhagCode < 1 || dzongkhagCode > 20) {
+          newErrors.cid = "Invalid Dzongkhag code (must be 01–20)";
+        } else if (/^0{11}$/.test(cid)) {
+          newErrors.cid = "CID number cannot be all zeros";
+        } else if (/^(\d)\1{10}$/.test(cid)) {
+          newErrors.cid = "CID number cannot be all same digits";
+        }
+      }
+    }
+
+    // Validate Destination
+    if (!immediateBookingDetails.destination.trim()) {
+      newErrors.destination = "Destination is required";
+    } else if (immediateBookingDetails.destination.length < 2) {
+      newErrors.destination = "Destination must be at least 2 characters long";
+    } else if (immediateBookingDetails.destination.length > 50) {
+      newErrors.destination = "Destination must not exceed 50 characters";
+    } else if (!/^[a-zA-Z\s\-_.,]+$/.test(immediateBookingDetails.destination)) {
+      newErrors.destination = "Destination can only contain letters, spaces, hyphens, underscores, commas, and periods";
+    }
+
+    // Validate Origin
+    if (!immediateBookingDetails.origin.trim()) {
+      newErrors.origin = "Origin is required";
+    } else if (immediateBookingDetails.origin.length < 2) {
+      newErrors.origin = "Origin must be at least 2 characters long";
+    } else if (immediateBookingDetails.origin.length > 50) {
+      newErrors.origin = "Origin must not exceed 50 characters";
+    } else if (!/^[a-zA-Z\s\-_.,]+$/.test(immediateBookingDetails.origin)) {
+      newErrors.origin = "Origin can only contain letters, spaces, hyphens, underscores, commas, and periods";
+    }
+
+    const phoneError = validateBhutanesePhone(immediateBookingDetails.phone);
+    if (phoneError) newErrors.phone = phoneError;
+    
+    return newErrors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted, validating...");
+    console.log("Custom booking form submitted, validating...");
     const formErrors = validateForm();
     console.log("Form validation result:", formErrors);
     if (Object.keys(formErrors).length > 0) {
@@ -179,14 +465,16 @@ export default function RoomBookingCard({ room, hotelId }) {
     try {
       const payload = {
         ...bookingDetails,
-        checkInDate: new Date().toISOString().split('T')[0], // Today's date
         roomId: room.id,
         hotelId: hotelId,
         totalPrice: calculateTotalPrice(),
         userId,
         days: calculateDays(),
       };
+      
+      // Use advanced booking endpoint for detailed form submissions
       const res = await api.post("/bookings", payload);
+      
       if (res.status === 200) {
         // Prepare booking data for success modal
         const bookingData = {
@@ -203,13 +491,14 @@ export default function RoomBookingCard({ room, hotelId }) {
         setOpenBookingSuccessModal(true);
         
         // Show toast notification
-        toast.success("Booking Successful!", {
-          description: "Your room has been booked. QR code generated!",
+        toast.success("Custom Booking Successful!", {
+          description: "Your room has been booked with custom details. QR code generated!",
           duration: 6000
         });
         
         // Reset form and close booking dialog
         setBookingDetails({
+          checkInDate: "",
           checkOutDate: "",
           guests: 1,
           numberOfRooms: 1,
@@ -222,17 +511,96 @@ export default function RoomBookingCard({ room, hotelId }) {
         setOpenBookingDialog(false);
       }
     } catch (error) {
-      console.error("Booking failed:", error);
-      toast.error("Booking Failed", {
+      console.error("Custom booking failed:", error);
+      toast.error("Custom Booking Failed", {
         description:
-          "There was an error processing your booking. Please try again.",
+          "There was an error processing your custom booking. Please try again.",
         duration: 6000
       });
     }
   };
 
+  // Handle immediate booking with minimal data
+  const handleImmediateBooking = async () => {
+    // Validate form first
+    const formErrors = validateImmediateBooking();
+    if (Object.keys(formErrors).length > 0) {
+      setImmediateBookingErrors(formErrors);
+      return;
+    }
+
+    setIsImmediateBookingLoading(true);
+    try {
+      // For immediate booking, use fixed dates (today and tomorrow)
+      const { checkInDate, checkOutDate } = getImmediateBookingDates();
+      const daysDiff = 1; // Always 1 night for immediate booking
+      
+      const immediatePayload = {
+        roomId: room.id,
+        hotelId: hotelId,
+        userId,
+        checkInDate: checkInDate,
+        checkOutDate: checkOutDate,
+        guests: 1,
+        numberOfRooms: 1,
+        totalPrice: daysDiff * room.price,
+        days: daysDiff,
+        // Use user input values
+        phone: immediateBookingDetails.phone,
+        cid: immediateBookingDetails.cid,
+        destination: immediateBookingDetails.destination,
+        origin: immediateBookingDetails.origin,
+      };
+      
+      const res = await api.post("/bookings", immediatePayload);
+      
+      if (res.status === 200) {
+        // Prepare booking data for success modal
+        const bookingData = {
+          ...immediatePayload,
+          id: res.data?.id || res.data?.bookingId || `booking_${Date.now()}`,
+          hotelName: room.hotelName,
+          roomNumber: room.roomNumber,
+          room: room,
+          bookingTime: new Date().toISOString()
+        };
+        
+        // Set success data and show modal
+        setSuccessBookingData(bookingData);
+        setOpenBookingSuccessModal(true);
+        
+        // Close the immediate booking dialog
+        setOpenImmediateBookingDialog(false);
+        
+        // Reset form
+        setImmediateBookingDetails({
+          phone: "",
+          cid: "",
+          destination: "",
+          origin: "",
+        });
+        setImmediateBookingErrors({});
+        
+        // Show toast notification
+        toast.success("Immediate Booking Successful!", {
+          description: "Your room has been booked for tonight! QR code generated!",
+          duration: 6000
+        });
+      }
+    } catch (error) {
+      console.error("Immediate booking failed:", error);
+      toast.error("Immediate Booking Failed", {
+        description:
+          "There was an error processing your immediate booking. Please try again.",
+        duration: 6000
+      });
+    } finally {
+      setIsImmediateBookingLoading(false);
+    }
+  };
+
   // --- Core logic change: Handle opening of modals ---
-  const handleBookNowClick = () => {
+  const handleInstantBookingClick = async () => {
     if (!isAuthenticated) {
       setOpenLoginModal(true);
       return;
@@ -242,6 +610,35 @@ export default function RoomBookingCard({ room, hotelId }) {
     
     // Check if user is Admin (SUPER_ADMIN) - prevent booking
     if (currentRole === "SUPER_ADMIN") {
+      setPendingBookingType("immediate");
+      setOpenRoleSwitchDialog(true);
+      return;
+    }
+
+    // If user is already in GUEST role, allow direct immediate booking
+    if (currentRole === "GUEST") {
+      // Open immediate booking dialog (no need to fetch booked dates for fixed booking)
+      setOpenImmediateBookingDialog(true);
+      return;
+    }
+
+    // For all other roles, show role switch dialog to switch to GUEST
+    setPendingBookingType("immediate");
+    setOpenRoleSwitchDialog(true);
+  };
+
+  // Handle advanced booking - opens the detailed booking form
+  const handleAdvancedBookingClick = async () => {
+    if (!isAuthenticated) {
+      setOpenLoginModal(true);
+      return;
+    }
+
+    const currentRole = getCurrentActiveRole();
+    
+    // Check if user is Admin (SUPER_ADMIN) - prevent booking
+    if (currentRole === "SUPER_ADMIN") {
+      setPendingBookingType("advanced");
       setOpenRoleSwitchDialog(true);
       return;
     }
@@ -249,11 +646,14 @@ export default function RoomBookingCard({ room, hotelId }) {
     // If user is already in GUEST role, allow direct booking
     if (currentRole === "GUEST") {
       setErrors({}); // Reset errors when opening dialog
+      // Fetch booked dates before opening dialog for date picker functionality
+      await fetchBookedDates();
       setOpenBookingDialog(true);
       return;
     }
 
     // For all other roles, show role switch dialog to switch to GUEST
+    setPendingBookingType("advanced");
     setOpenRoleSwitchDialog(true);
   };
 
@@ -266,11 +666,24 @@ export default function RoomBookingCard({ room, hotelId }) {
         description: "You can now book rooms.",
         duration: 6000
       });
-      // Open booking dialog after role switch
-      setTimeout(() => {
-        setErrors({}); // Reset errors when opening dialog after role switch
-        setOpenBookingDialog(true);
-      }, 500);
+      
+      // Handle the pending booking type after role switch
+      if (pendingBookingType === "immediate") {
+        // Open immediate booking dialog after role switch
+        setTimeout(() => {
+          setOpenImmediateBookingDialog(true);
+        }, 500);
+      } else if (pendingBookingType === "advanced") {
+        // Open advanced booking dialog after role switch
+        setTimeout(async () => {
+          setErrors({}); // Reset errors when opening dialog after role switch
+          await fetchBookedDates();
+          setOpenBookingDialog(true);
+        }, 500);
+      }
+      
+      // Reset pending booking type
+      setPendingBookingType(null);
     }
   };
 
@@ -288,8 +701,81 @@ export default function RoomBookingCard({ room, hotelId }) {
             Max Guests: {room.maxGuests > 0 ? room.maxGuests : "Not specified"}
           </span>
         </div>
-        {/* Call the handler on button click, not DialogTrigger */}
-        <Button onClick={handleBookNowClick}>Book Now</Button>
+        <div className="flex flex-col gap-2">
+          {!hasCheckedBookings ? (
+            /* Check Bookings Button - Initial State */
+            <Button 
+              onClick={handleCheckBookings}
+              disabled={isLoadingBookedDates}
+              className="flex-1 sm:flex-none bg-black text-white"
+              title="Check room availability and booking options"
+            >
+              <span className="flex items-center gap-2">
+                {isLoadingBookedDates ? (
+                  <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.646 9.646 8 0 0118 15.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                )}
+                {isLoadingBookedDates ? "Checking Availability..." : "Check Bookings"}
+              </span>
+            </Button>
+          ) : (
+            /* Booking Options - After Check */
+            <div className="flex flex-col sm:flex-row gap-2">
+              {isTodayAvailable ? (
+                /* Book Tonight Button - Available */
+                <Button 
+                  onClick={handleInstantBookingClick}
+                  className="flex-1 sm:flex-none"
+                  title="Book this room starting tonight"
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Book Tonight
+                  </span>
+                </Button>
+              ) : (
+                /* Not Available Button - Disabled */
+                <Button 
+                  disabled={true}
+                  variant="outline"
+                  className="flex-1 sm:flex-none border-red-300 text-red-500 cursor-not-allowed"
+                  title="Room not available for tonight"
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                    </svg>
+                    Not Available for tonight
+                  </span>
+                </Button>
+              )}
+              
+              {/* Custom Booking Button - Always Available */}
+              <Button 
+                onClick={handleAdvancedBookingClick}
+                variant="outline"
+                className="border-blue-600 text-blue-600 hover:bg-blue-50 flex-1 sm:flex-none"
+                title="Open detailed booking form"
+              >
+                <span className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                  </svg>
+                  Custom Booking
+                </span>
+              </Button>
+            </div>
+          )}
+          
+
+        </div>
       </div>
 
 
@@ -307,11 +793,20 @@ export default function RoomBookingCard({ room, hotelId }) {
       >
         <DialogContent className="sm:max-w-md max-h-[80vh] overflow-hidden">
           <DialogHeader>
-            <DialogTitle>Book {room.hotelName}</DialogTitle>
-            <DialogDescription>Room {room.roomNumber}</DialogDescription>
+            <DialogTitle>Custom Booking - {room.hotelName}</DialogTitle>
+            <DialogDescription>Room {room.roomNumber} - Detailed Booking Form</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4 max-h-[50vh] overflow-y-auto pr-2">
+              {/* Loading indicator for booked dates */}
+              {isLoadingBookedDates && (
+                <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <svg className="w-4 h-4 animate-spin text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.646 9.646 8 0 0118 15.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm text-blue-700">Loading booking calendar...</span>
+                </div>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="phone">
                   Phone Number <span className="text-destructive">*</span>
@@ -388,24 +883,34 @@ export default function RoomBookingCard({ room, hotelId }) {
                 </div>
               </div>
 
+
+
               <div className="grid gap-2">
-                <Label htmlFor="checkOutDate">
-                  Check-out <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="checkOutDate"
-                  name="checkOutDate"
-                  type="date"
-                  value={bookingDetails.checkOutDate}
-                  onChange={handleInputChange}
-                  min={new Date().toISOString().split("T")[0]}
-                  className={errors.checkOutDate ? "border-destructive" : ""}
+                <CustomDatePicker
+                  selectedDate={bookingDetails.checkInDate ? new Date(bookingDetails.checkInDate + 'T12:00:00') : null}
+                  onDateSelect={(date) => handleDateSelect("checkInDate", date)}
+                  blockedDates={bookedDates}
+                  minDate={new Date()}
+                  placeholder="Select check-in date"
+                  label="Check-in *"
+                  error={errors.checkInDate}
+                  disabled={isLoadingBookedDates}
+                  className="w-full"
                 />
-                {errors.checkOutDate && (
-                  <p className="text-sm text-destructive">
-                    {errors.checkOutDate}
-                  </p>
-                )}
+              </div>
+
+              <div className="grid gap-2">
+                <CustomDatePicker
+                  selectedDate={bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate + 'T12:00:00') : null}
+                  onDateSelect={(date) => handleDateSelect("checkOutDate", date)}
+                  blockedDates={bookedDates}
+                  minDate={getMinCheckOutDate()}
+                  placeholder="Select check-out date"
+                  label="Check-out *"
+                  error={errors.checkOutDate}
+                  disabled={isLoadingBookedDates}
+                  className="w-full"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -439,7 +944,25 @@ export default function RoomBookingCard({ room, hotelId }) {
 
               <Separator className="my-2" />
 
+
+
               <div className="space-y-2 text-sm">
+                {bookingDetails.checkInDate && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Check-in</span>
+                    <span className="font-medium">
+                      {new Date(bookingDetails.checkInDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+                {bookingDetails.checkOutDate && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Check-out</span>
+                    <span className="font-medium">
+                      {new Date(bookingDetails.checkOutDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Price per night</span>
                   <span className="font-medium">
@@ -463,11 +986,49 @@ export default function RoomBookingCard({ room, hotelId }) {
                   <span>Nu {totalPrice.toFixed(2)}</span>
                 </div>
                 {days === 0 &&
-                  bookingDetails.checkOutDate && (
+                  (bookingDetails.checkInDate || bookingDetails.checkOutDate) && (
                     <p className="text-sm text-amber-600">
-                      Please select a valid check-out date.
+                      {!bookingDetails.checkInDate && !bookingDetails.checkOutDate 
+                        ? "Please select check-in and check-out dates."
+                        : !bookingDetails.checkInDate 
+                        ? "Please select a check-in date."
+                        : "Please select a valid check-out date."
+                      }
                     </p>
                   )}
+                
+                {/* Date validation helper */}
+                {(errors.checkInDate || errors.checkOutDate) && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-2">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-sm">
+                        <p className="font-medium text-red-800">Date Selection Issues</p>
+                        <p className="text-red-700 mt-1">
+                          Please review your date selections and choose available dates that don't conflict with existing bookings.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBookingDetails(prev => ({
+                              ...prev,
+                              checkInDate: "",
+                              checkOutDate: ""
+                            }));
+                            setErrors(prev => ({
+                              ...prev,
+                              checkInDate: undefined,
+                              checkOutDate: undefined
+                            }));
+                          }}
+                          className="text-xs text-red-600 hover:text-red-800 underline mt-1"
+                        >
+                          Clear all dates and start over
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <DialogFooter>
@@ -520,6 +1081,201 @@ export default function RoomBookingCard({ room, hotelId }) {
               Switch to Guest
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Immediate Booking Dialog */}
+      <Dialog 
+        open={openImmediateBookingDialog} 
+        onOpenChange={(open) => {
+          setOpenImmediateBookingDialog(open);
+          // Reset form when dialog closes
+          if (!open) {
+            setImmediateBookingDetails({
+              phone: "",
+              cid: "",
+              destination: "",
+              origin: "",
+            });
+            setImmediateBookingErrors({});
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Book Tonight - {room.hotelName}
+            </DialogTitle>
+            <DialogDescription>
+              Room {room.roomNumber} - Quick booking starting tonight
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={(e) => { e.preventDefault(); handleImmediateBooking(); }}>
+            <div className="py-4 space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+              {/* Loading indicator for booked dates */}
+              {isLoadingBookedDates && (
+                <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <svg className="w-4 h-4 animate-spin text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.646 9.646 8 0 0118 15.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm text-blue-700">Loading booking calendar...</span>
+                </div>
+              )}
+              {/* Phone Number */}
+              <div className="grid gap-2">
+                <Label htmlFor="immediatePhone">
+                  Phone Number <span className="text-destructive">*</span>
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                    +975
+                  </span>
+                  <Input
+                    id="immediatePhone"
+                    name="phone"
+                    type="tel"
+                    value={immediateBookingDetails.phone}
+                    onChange={handleImmediateInputChange}
+                    placeholder="17123456"
+                    className="pl-14"
+                  />
+                </div>
+                {immediateBookingErrors.phone && (
+                  <p className="text-sm text-destructive">{immediateBookingErrors.phone}</p>
+                )}
+              </div>
+
+              {/* CID Number */}
+              <div className="grid gap-2">
+                <Label htmlFor="immediateCid" className="text-sm">
+                  CID Number <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="immediateCid"
+                  name="cid"
+                  type="text"
+                  value={immediateBookingDetails.cid}
+                  onChange={handleImmediateInputChange}
+                  placeholder="11 digits (e.g., 10901001065)"
+                  maxLength={11}
+                  className={`text-sm ${immediateBookingErrors.cid ? "border-destructive" : ""}`}
+                />
+                {immediateBookingErrors.cid && (
+                  <p className="text-sm text-destructive">{immediateBookingErrors.cid}</p>
+                )}
+              </div>
+
+              {/* Destination */}
+              <div className="grid gap-2">
+                <Label htmlFor="immediateDestination" className="text-sm">
+                  Destination <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="immediateDestination"
+                  name="destination"
+                  type="text"
+                  value={immediateBookingDetails.destination}
+                  onChange={handleImmediateInputChange}
+                  placeholder="Enter destination"
+                  className={`text-sm ${immediateBookingErrors.destination ? "border-destructive" : ""}`}
+                />
+                {immediateBookingErrors.destination && (
+                  <p className="text-sm text-destructive">{immediateBookingErrors.destination}</p>
+                )}
+              </div>
+
+              {/* Origin */}
+              <div className="grid gap-2">
+                <Label htmlFor="immediateOrigin" className="text-sm">
+                  Origin <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="immediateOrigin"
+                  name="origin"
+                  type="text"
+                  value={immediateBookingDetails.origin}
+                  onChange={handleImmediateInputChange}
+                  placeholder="Enter origin"
+                  className={`text-sm ${immediateBookingErrors.origin ? "border-destructive" : ""}`}
+                />
+                {immediateBookingErrors.origin && (
+                  <p className="text-sm text-destructive">{immediateBookingErrors.origin}</p>
+                )}
+              </div>
+
+              {/* Booking Summary */}
+              <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                <h4 className="font-medium text-sm">Booking Summary</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Check-in</span>
+                    <span className="font-medium">
+                      {getImmediateBookingDates().checkInDisplay} (Tonight)
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Check-out</span>
+                    <span className="font-medium">
+                      {getImmediateBookingDates().checkOutDisplay} (Tomorrow)
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Guests</span>
+                    <span className="font-medium">1</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Duration</span>
+                    <span className="font-medium">1 night</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Price per night</span>
+                    <span className="font-medium">Nu {room.price.toFixed(2)}</span>
+                  </div>
+                  <Separator className="my-2" />
+                  <div className="flex justify-between font-bold text-base">
+                    <span>Total Price</span>
+                    <span>Nu {room.price.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Note about required information */}
+              <div className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <p><strong>Note:</strong> This is a fixed 1-night booking from tonight to tomorrow.</p>
+                <p className="mt-1 text-xs">Booking time: {new Date().toLocaleTimeString()}</p>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button 
+                type="button"
+                variant="outline" 
+                onClick={() => setOpenImmediateBookingDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit"
+                className="bg-green-600 hover:bg-green-700"
+                disabled={isImmediateBookingLoading}
+              >
+                {isImmediateBookingLoading ? (
+                  <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.646 9.646 8 0 0118 15.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                )}
+                {isImmediateBookingLoading ? "Booking..." : "Confirm Tonight's Booking"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 

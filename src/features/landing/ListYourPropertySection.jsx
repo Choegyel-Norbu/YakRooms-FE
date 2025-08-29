@@ -75,7 +75,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
             <h2 className="text-3xl md:text-3xl font-bold tracking-tight">
               Partner with{" "}
               <span className="text-primary">
-                YakRooms
+                YakRooms{" "}
               </span>
               & Grow Your Business
             </h2>
@@ -232,7 +232,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
 
                   {/* Trust indicators */}
                   <div className="text-center">
-                    <div className="flex items-center justify-center space-x-1 text-primary mb-2">
+                    <div className="flex items-center justify-center space-x-1 text-yellow-500 mb-2">
                       {[...Array(5)].map((_, i) => (
                         <Star key={i} className="w-4 h-4 fill-current" />
                       ))}

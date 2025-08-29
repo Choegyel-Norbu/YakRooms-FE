@@ -1,36 +1,54 @@
 {
     "hotel": {
       "basic": [
-        "WiFi",
-        "Parking",
-        "Room Service",
-        "Daily Housekeeping"
+        "Free WiFi",
+        "Free Parking",
+        "24/7 Reception",
+        "Daily Housekeeping",
+        "Luggage Storage",
+        "Elevator"
       ],
-      "comfort": [
-        "Mountain View",
-        "Balcony"
-      ],
-      "luxury": [
-        "Spa Services",
+      "dining": [
         "Restaurant",
         "Bar/Lounge",
+        "Room Service",
+        "Breakfast Service",
+        "Dining Area",
+        "Kitchen Facilities",
+        "BBQ Facilities"
+      ],
+      "leisure": [
+        "Spa Services",
+        "Garden",
+        "Terrace"
+      ],
+      "business": [
         "Conference Room"
       ],
       "outdoor": [
-        "Outdoor Seating"
+        "Outdoor Seating",
+        "Garden View",
+        "Outdoor Dining Area",
+        "Mountain View"
       ],
       "cultural": [
-        "Traditional Bhutanese Decor",
-        "Bhutanese Cuisine"
+        "Traditional Bhutanese Decor"
       ],
-      "business": [
-        "High-Speed Internet"
+      "family": [
+        "Family Rooms Available",
+        "Children's Menu",
+        "Pet-Friendly"
+      ],
+      "safety": [
+        "24/7 Security",
+        "CCTV Surveillance",
+        "First Aid Services",
+        "Emergency Procedures"
       ],
       "accessibility": [
-        "Ground Floor Rooms",
-        "Wide Doorways",
-        "Assistance Available",
-        "Accessible Parking"
+        "Accessible Parking",
+        "Ground Floor Access",
+        "Accessible Bathrooms"
       ]
     }
   }

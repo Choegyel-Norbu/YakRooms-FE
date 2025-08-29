@@ -87,7 +87,7 @@ const HeroLG = () => {
           </h1>
 
           <p className="mx-auto max-w-2xl text-14 text-white/90 sm:text-xl">
-            Your convenient way to book locally. Discover hotels and restaurants
+            Your convenient way to book locally. Discover hotels
             in Bhutan with just a few taps.
           </p>
         </div>
@@ -149,7 +149,7 @@ const HeroLG = () => {
         {/* Call to Action */}
         <div className="space-y-4">
           <p className="text-sm text-white/90">
-            Ready to explore Bhutan's cultural heart?
+            Need a comfortable stay anywhere in Bhutan?
           </p>
           <Button 
             variant="outline" 

@@ -42,7 +42,9 @@ export { default as YakRoomsText } from './YakRoomsText';
 export { default as YakRoomsLoader } from './YakRoomsLoader';
 
 // Other Shared Components
+export { default as AvailabilityDatePicker } from './AvailabilityDatePicker';
 export { default as BookingSuccessModal } from './BookingSuccessModal';
+export { default as CustomDatePicker } from './CustomDatePicker';
 export { default as GlobalReviewSheet } from './GlobalReviewSheet';
 export { default as QRCodeGenerator } from './QRCodeGenerator';
 export { default as RatingWidget } from './RatingWidget';

@@ -14,7 +14,6 @@ import {
   BedSingle,
   BedDouble,
   Bath,
-  ParkingCircle,
   Coffee,
   Utensils,
   Fan,
@@ -23,7 +22,17 @@ import {
   Flame,
   MapPin,
   ShieldCheck,
-  Landmark
+  Landmark,
+  Zap,
+  Droplets,
+  Shirt,
+  Wind,
+  Lock,
+  Phone,
+  Lightbulb,
+  Refrigerator,
+  Users,
+  Clock
 } from "lucide-react";
 import { uploadFile } from "../../shared/services/uploadService";
 import { toast } from "sonner";
@@ -106,16 +115,28 @@ const RoomManager = () => {
     { id: 4, name: "Smart TV", icon: Tv },
     { id: 5, name: "Air Conditioning / Room Heater", icon: Snowflake },
     { id: 6, name: "Private Bathroom", icon: Bath },
-    { id: 7, name: "Free Parking", icon: ParkingCircle },
-    { id: 8, name: "Complimentary Tea/Coffee", icon: Coffee },
-    { id: 9, name: "Traditional Bhutanese Cuisine (on request)", icon: Utensils },
-    { id: 10, name: "Room Fan / Ventilation", icon: Fan },
-    { id: 11, name: "Scenic Mountain View", icon: Mountain },
-    { id: 12, name: "Eco-Friendly Amenities", icon: Leaf },
-    { id: 13, name: "In-room Fire Extinguisher", icon: Flame },
-    { id: 14, name: "Local Travel Assistance", icon: MapPin },
-    { id: 15, name: "24/7 Security", icon: ShieldCheck },
-    { id: 16, name: "Balcony", icon: Landmark }, 
+    { id: 7, name: "Complimentary Tea/Coffee", icon: Coffee },
+    { id: 8, name: "Traditional Bhutanese Cuisine (on request)", icon: Utensils },
+    { id: 9, name: "Room Fan / Ventilation", icon: Fan },
+    { id: 10, name: "Scenic Mountain View", icon: Mountain },
+    { id: 11, name: "Eco-Friendly Amenities", icon: Leaf },
+    { id: 12, name: "In-room Fire Extinguisher", icon: Flame },
+    { id: 13, name: "Local Travel Assistance", icon: MapPin },
+    { id: 14, name: "24/7 Security", icon: ShieldCheck },
+    { id: 15, name: "Balcony", icon: Landmark },
+    { id: 16, name: "Water Boiler / Kettle", icon: Zap },
+    { id: 17, name: "Fresh Towels", icon: Shirt },
+    { id: 18, name: "Hot Water Supply", icon: Droplets },
+    { id: 19, name: "Room Heater", icon: Wind },
+    { id: 20, name: "Room Safe / Locker", icon: Lock },
+    { id: 21, name: "Telephone", icon: Phone },
+    { id: 22, name: "Reading Lights", icon: Lightbulb },
+    { id: 23, name: "Mini Refrigerator", icon: Refrigerator },
+    { id: 24, name: "Family Room (Multiple Guests)", icon: Users },
+    { id: 25, name: "24/7 Room Service", icon: Clock },
+    { id: 26, name: "Daily Housekeeping", icon: Leaf },
+    { id: 27, name: "Complimentary Toiletries", icon: Bath },
+    { id: 28, name: "Work Desk", icon: Lightbulb },
   ];
 
   const roomTypeOptions = [
@@ -761,7 +782,7 @@ const RoomManager = () => {
                 <TableHead>Room No.</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Max Guests</TableHead>
-                <TableHead>Description</TableHead>
+                {/* <TableHead>Description</TableHead> */}
                 <TableHead>Price</TableHead>
                 <TableHead>Amenities</TableHead>
                 <TableHead>Status</TableHead>
@@ -774,7 +795,7 @@ const RoomManager = () => {
                   <TableCell className="font-medium">{room.roomNumber}</TableCell>
                   <TableCell>{room.roomType}</TableCell>
                   <TableCell className="text-center">{room.maxGuests || '-'}</TableCell>
-                  <TableCell className="max-w-xs truncate">{room.description}</TableCell>
+                  {/* <TableCell className="max-w-xs truncate">{room.description}</TableCell> */}
                   <TableCell>Nu {typeof room.price === 'number' && !isNaN(room.price) ? room.price.toFixed(2) : '-'}</TableCell>
                   <TableCell className="max-w-xs truncate">
                     {Array.isArray(room.amenities)
@@ -805,10 +826,10 @@ const RoomManager = () => {
                         </Tooltip>
                       </TooltipProvider>
                       
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <TooltipProvider>
-                            <Tooltip>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
                               <TooltipTrigger asChild>
                                 <Button
                                   size="sm"
@@ -822,28 +843,28 @@ const RoomManager = () => {
                                   )}
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent side="top" className="text-xs">
-                                Delete room
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete the room
-                              and remove all associated data.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(room.id)}>
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete the room
+                                  and remove all associated data.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(room.id)}>
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                          <TooltipContent side="top" className="text-xs">
+                            Delete room
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </TableCell>
                 </TableRow>

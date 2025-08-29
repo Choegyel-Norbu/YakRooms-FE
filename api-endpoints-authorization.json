@@ -1,0 +1,482 @@
+{
+  "metadata": {
+    "title": "YakRooms API Endpoints Authorization Mapping",
+    "description": "Comprehensive mapping of API endpoints with their authorized roles and access patterns",
+    "baseUrl": "http://localhost:8080/api",
+    "productionUrl": "https://yakrooms-be-production.up.railway.app/api",
+    "authenticationMethod": "JWT Bearer Token",
+    "lastUpdated": "2024-12-19",
+    "roles": {
+      "SUPER_ADMIN": "Highest privilege level - complete system access",
+      "HOTEL_ADMIN": "Hotel management and administration",
+      "STAFF": "Hotel staff operations and guest services",
+      "GUEST": "Customer/guest access for bookings and reviews"
+    },
+    "rolePriority": ["SUPER_ADMIN", "HOTEL_ADMIN", "STAFF", "GUEST"]
+  },
+  "endpoints": {
+    "authentication": {
+      "category": "Authentication & User Management",
+      "endpoints": [
+        {
+          "path": "/auth/firebase",
+          "method": "POST",
+          "description": "Firebase authentication for all users",
+          "authorizedRoles": ["PUBLIC"],
+          "requiresAuth": false,
+          "requestBody": {
+            "idToken": "string"
+          },
+          "responseFields": ["token", "user.email", "user.id", "user.roles", "user.name", "user.profilePicUrl", "user.registerFlag", "user.detailSet", "user.hotelId"]
+        }
+      ]
+    },
+    "notifications": {
+      "category": "User Notifications",
+      "endpoints": [
+        {
+          "path": "/notifications/user/{userId}",
+          "method": "GET",
+          "description": "Get user notifications",
+          "authorizedRoles": ["SUPER_ADMIN", "HOTEL_ADMIN", "STAFF", "GUEST"],
+          "requiresAuth": true,
+          "pathParams": ["userId"],
+          "usedBy": ["HotelAdminDashboard"]
+        },
+        {
+          "path": "/notifications/user/{userId}/markAllRead",
+          "method": "PUT",
+          "description": "Mark all user notifications as read",
+          "authorizedRoles": ["SUPER_ADMIN", "HOTEL_ADMIN", "STAFF", "GUEST"],
+          "requiresAuth": true,
+          "pathParams": ["userId"],
+          "usedBy": ["HotelAdminDashboard"]
+        },
+        {
+          "path": "/notifications/user/{userId}",
+          "method": "DELETE",
+          "description": "Delete all user notifications",
+          "authorizedRoles": ["SUPER_ADMIN", "HOTEL_ADMIN", "STAFF", "GUEST"],
+          "requiresAuth": true,
+          "pathParams": ["userId"],
+          "usedBy": ["HotelAdminDashboard"]
+        }
+      ]
+    },
+    "hotels": {
+      "category": "Hotel Management",
+      "endpoints": [
+        {
+          "path": "/hotels/topThree",
+          "method": "GET",
+          "description": "Get top 3 hotels for homepage display",
+          "authorizedRoles": ["PUBLIC"],
+          "requiresAuth": false,
+          "usedBy": ["TopHighlightsSection"]
+        },
+        {
+          "path": "/hotels/details/{id}",
+          "method": "GET",
+          "description": "Get detailed hotel information by ID",
+          "authorizedRoles": ["PUBLIC"],
+          "requiresAuth": false,
+          "pathParams": ["id"],
+          "usedBy": ["HotelDetailsPage"]
+        },
+        {
+          "path": "/hotels/superAdmin",
+          "method": "GET",
+          "description": "Get all hotels for super admin management",
+          "authorizedRoles": ["SUPER_ADMIN"],
+          "requiresAuth": true,
+          "queryParams": ["page", "size"],
+          "usedBy": ["SuperAdmin"]
+        },
+        {
+          "path": "/hotels/{hotelId}/verify",
+          "method": "POST",
+          "description": "Verify a hotel (admin approval)",
+          "authorizedRoles": ["SUPER_ADMIN"],
+          "requiresAuth": true,
+          "pathParams": ["hotelId"],
+          "usedBy": ["SuperAdmin"]
+        },
+        {
+          "path": "/hotels/{userId}",
+          "method": "GET",
+          "description": "Get hotel information by user ID",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "pathParams": ["userId"],
+          "usedBy": ["HotelAdminDashboard"]
+        },
+        {
+          "path": "/hotels/{userId}",
+          "method": "POST",
+          "description": "Create new hotel listing",
+          "authorizedRoles": ["HOTEL_ADMIN"],
+          "requiresAuth": true,
+          "pathParams": ["userId"],
+          "usedBy": ["AddListingPage"]
+        },
+        {
+          "path": "/hotels/{id}",
+          "method": "PUT",
+          "description": "Update hotel information",
+          "authorizedRoles": ["HOTEL_ADMIN"],
+          "requiresAuth": true,
+          "pathParams": ["id"],
+          "usedBy": ["HotelInfoForm"]
+        },
+        {
+          "path": "/hotels/{hotelId}",
+          "method": "DELETE",
+          "description": "Delete hotel and all associated data",
+          "authorizedRoles": ["HOTEL_ADMIN"],
+          "requiresAuth": true,
+          "pathParams": ["hotelId"],
+          "usedBy": ["HotelAdminDashboard"]
+        }
+      ]
+    },
+    "rooms": {
+      "category": "Room Management",
+      "endpoints": [
+        {
+          "path": "/rooms/available/{hotelId}",
+          "method": "GET",
+          "description": "Get available rooms for booking",
+          "authorizedRoles": ["PUBLIC", "HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": false,
+          "pathParams": ["hotelId"],
+          "queryParams": ["page", "size"],
+          "usedBy": ["HotelDetailsPage", "AdminBookingForm"]
+        },
+        {
+          "path": "/rooms/hotel/{hotelId}",
+          "method": "GET",
+          "description": "Get all rooms for a specific hotel",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "pathParams": ["hotelId"],
+          "usedBy": ["RoomManager"]
+        },
+        {
+          "path": "/rooms/hotel/{hotelId}",
+          "method": "POST",
+          "description": "Create new room for hotel",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "pathParams": ["hotelId"],
+          "usedBy": ["RoomManager"]
+        },
+        {
+          "path": "/rooms/{roomId}",
+          "method": "PUT",
+          "description": "Update room information",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "pathParams": ["roomId"],
+          "usedBy": ["RoomManager"]
+        },
+        {
+          "path": "/rooms/{roomId}",
+          "method": "DELETE",
+          "description": "Delete room",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "pathParams": ["roomId"],
+          "usedBy": ["RoomManager"]
+        },
+        {
+          "path": "/rooms/status/{hotelId}",
+          "method": "GET",
+          "description": "Get room status for hotel management",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "pathParams": ["hotelId"],
+          "queryParams": ["page", "size"],
+          "usedBy": ["RoomStatusTable"]
+        },
+        {
+          "path": "/rooms/status/{hotelId}/search",
+          "method": "GET",
+          "description": "Search rooms by room number",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "pathParams": ["hotelId"],
+          "queryParams": ["roomNumber", "page", "size"],
+          "usedBy": ["RoomStatusTable"]
+        }
+      ]
+    },
+    "bookings": {
+      "category": "Booking Management",
+      "endpoints": [
+        {
+          "path": "/bookings",
+          "method": "POST",
+          "description": "Create new booking",
+          "authorizedRoles": ["GUEST", "HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "requestBody": {
+            "checkInDate": "string",
+            "checkOutDate": "string", 
+            "guests": "number",
+            "roomId": "number",
+            "hotelId": "number",
+            "totalPrice": "number",
+            "userId": "string",
+            "days": "number"
+          },
+          "usedBy": ["RoomBookingCard", "AdminBookingForm"]
+        },
+        {
+          "path": "/bookings/user/{userId}",
+          "method": "GET",
+          "description": "Get user's booking history",
+          "authorizedRoles": ["GUEST"],
+          "requiresAuth": true,
+          "pathParams": ["userId"],
+          "queryParams": ["page", "size"],
+          "usedBy": ["GuestDashboard"]
+        },
+        {
+          "path": "/bookings/{bookingId}",
+          "method": "GET",
+          "description": "Get specific booking details",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF", "GUEST"],
+          "requiresAuth": true,
+          "pathParams": ["bookingId"],
+          "usedBy": ["ScannedBookingModal"]
+        },
+        {
+          "path": "/bookings/",
+          "method": "GET",
+          "description": "Get paginated bookings for hotel",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "queryParams": ["page", "size", "hotelId"],
+          "usedBy": ["BookingTable"]
+        },
+        {
+          "path": "/bookings/{id}/status/{newStatus}",
+          "method": "PUT",
+          "description": "Update booking status",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "pathParams": ["id", "newStatus"],
+          "usedBy": ["BookingTable"]
+        },
+        {
+          "path": "/bookings/{bookingId}/status/checked_in",
+          "method": "PUT",
+          "description": "Check-in guest",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "pathParams": ["bookingId"],
+          "usedBy": ["PasscodeVerification", "ScannedBookingModal"]
+        },
+        {
+          "path": "/bookings/{bookingId}",
+          "method": "DELETE",
+          "description": "Cancel/delete booking",
+          "authorizedRoles": ["GUEST", "HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "pathParams": ["bookingId"],
+          "usedBy": ["GuestDashboard", "BookingTable"],
+          "notes": "Guests can only delete their own bookings"
+        }
+      ]
+    },
+    "staff": {
+      "category": "Staff Management",
+      "endpoints": [
+        {
+          "path": "/staff/hotel/{hotelId}",
+          "method": "GET",
+          "description": "Get staff list for hotel",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "pathParams": ["hotelId"],
+          "usedBy": ["StaffManager", "StaffCardGrid"]
+        },
+        {
+          "path": "/staff",
+          "method": "POST",
+          "description": "Add new staff member",
+          "authorizedRoles": ["HOTEL_ADMIN"],
+          "requiresAuth": true,
+          "usedBy": ["StaffManager"]
+        },
+        {
+          "path": "/staff/{staffId}",
+          "method": "DELETE",
+          "description": "Remove staff member",
+          "authorizedRoles": ["HOTEL_ADMIN"],
+          "requiresAuth": true,
+          "pathParams": ["staffId"],
+          "usedBy": ["StaffManager"]
+        }
+      ]
+    },
+    "analytics": {
+      "category": "Analytics & Statistics",
+      "endpoints": [
+        {
+          "path": "/booking-statistics/monthly/hotel/{hotelId}",
+          "method": "GET",
+          "description": "Get monthly booking trends",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "pathParams": ["hotelId"],
+          "queryParams": ["startDate"],
+          "usedBy": ["BookingsTrendChart"]
+        },
+        {
+          "path": "/booking-statistics/revenue/monthly/{hotelId}",
+          "method": "GET",
+          "description": "Get monthly revenue statistics",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "pathParams": ["hotelId"],
+          "queryParams": ["startDate"],
+          "usedBy": ["MonthlyPerformanceChart"]
+        }
+      ]
+    },
+    "reviews": {
+      "category": "Reviews & Ratings",
+      "endpoints": [
+        {
+          "path": "/reviews/hotel/{id}/testimonials/paginated",
+          "method": "GET",
+          "description": "Get hotel testimonials with pagination",
+          "authorizedRoles": ["PUBLIC"],
+          "requiresAuth": false,
+          "pathParams": ["id"],
+          "queryParams": ["page", "size"],
+          "usedBy": ["HotelDetailsPage"]
+        },
+        {
+          "path": "/reviews",
+          "method": "POST",
+          "description": "Submit hotel review",
+          "authorizedRoles": ["GUEST"],
+          "requiresAuth": true,
+          "usedBy": ["HotelReviewSheet"]
+        },
+        {
+          "path": "/averageRating",
+          "method": "GET",
+          "description": "Get average rating across platform",
+          "authorizedRoles": ["PUBLIC"],
+          "requiresAuth": false,
+          "usedBy": ["RatingWidget"]
+        },
+        {
+          "path": "/rating",
+          "method": "POST",
+          "description": "Submit rating",
+          "authorizedRoles": ["GUEST"],
+          "requiresAuth": true,
+          "requestBody": {
+            "stars": "number",
+            "feedback": "string"
+          },
+          "usedBy": ["RatingWidget"]
+        }
+      ]
+    },
+    "security": {
+      "category": "Security & Verification",
+      "endpoints": [
+        {
+          "path": "/passcode/verify",
+          "method": "GET",
+          "description": "Verify check-in passcode",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "queryParams": ["passcode"],
+          "usedBy": ["PasscodeVerification"]
+        }
+      ]
+    },
+    "communication": {
+      "category": "Contact & Communication",
+      "endpoints": [
+        {
+          "path": "/getIntouch",
+          "method": "POST",
+          "description": "Contact form submission",
+          "authorizedRoles": ["PUBLIC"],
+          "requiresAuth": false,
+          "usedBy": ["GetInTouch"]
+        }
+      ]
+    }
+  },
+  "routeProtection": {
+    "publicRoutes": [
+      "/",
+      "/aboutus", 
+      "/hotels",
+      "/hotel/{id}",
+      "/privacy-policy",
+      "/unauthorized"
+    ],
+    "protectedRoutes": [
+      {
+        "path": "/dashboard",
+        "allowedRoles": ["HOTEL_ADMIN", "SUPER_ADMIN", "STAFF", "GUEST"],
+        "redirectBehavior": "Auto-redirects based on active role"
+      },
+      {
+        "path": "/hotelAdmin",
+        "allowedRoles": ["HOTEL_ADMIN", "STAFF"],
+        "component": "HotelAdminDashboard"
+      },
+      {
+        "path": "/adminDashboard", 
+        "allowedRoles": ["SUPER_ADMIN"],
+        "component": "SuperAdmin"
+      },
+      {
+        "path": "/guestDashboard",
+        "allowedRoles": ["GUEST"],
+        "component": "GuestDashboard"
+      }
+    ],
+    "unprotectedRouteIssues": [
+      {
+        "path": "/addListing",
+        "issue": "Should require authentication",
+        "recommendation": "Add ProtectedRoute wrapper with HOTEL_ADMIN role"
+      }
+    ]
+  },
+  "securityConfiguration": {
+    "authenticationMethod": "JWT Bearer Token",
+    "tokenStorage": "localStorage",
+    "tokenHeader": "Authorization: Bearer {token}",
+    "tokenExpiration": "Auto-logout on expiry",
+    "crossTabSync": true,
+    "timeout": "10000ms",
+    "withCredentials": false,
+    "corsConfiguration": "Ensure backend CORS matches frontend configuration"
+  },
+  "recommendations": {
+    "security": [
+      "Protect /addListing route with authentication",
+      "Implement refresh token mechanism",
+      "Add rate limiting for public endpoints",
+      "Ensure backend validates all role-based permissions"
+    ],
+    "architecture": [
+      "Consider implementing API versioning",
+      "Add request/response logging for audit trails",
+      "Implement consistent error response format",
+      "Add API documentation with OpenAPI/Swagger"
+    ]
+  }
+}

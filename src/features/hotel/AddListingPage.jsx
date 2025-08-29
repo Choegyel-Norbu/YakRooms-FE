@@ -86,7 +86,7 @@ const AddListingPage = () => {
       id: "hotel",
       label: "Hotel",
       icon: Hotel,
-      description: "Full-service accommodation with professional amenities"
+      description: "Premium hospitality experiences with curated amenities and personalized guest services"
     },
     // {
     //   id: "homestay",
@@ -98,7 +98,8 @@ const AddListingPage = () => {
       id: "restaurant",
       label: "Restaurant",
       icon: Utensils,
-      description: "Full dining establishment with complete menu"
+      description: "Full dining establishment with complete menu",
+      disabled: true
     },
     // {
     //   id: "cafe",
@@ -110,9 +111,6 @@ const AddListingPage = () => {
 
   // Get amenities from JSON file based on listing type
   const currentAmenities = getAmenitiesForType(listingType);
-  const categorizedAmenities = getCategorizedAmenities(listingType);
-
-
 
   /**
    * Handle getting user's current location using Geolocation API
@@ -414,7 +412,7 @@ const AddListingPage = () => {
       }
 
       const uploadResults = await Promise.all(uploadPromises);
-      const updatedFormData = { ...formData, email: `${email}}` };
+      const updatedFormData = { ...formData, email: `${email}` };
 
       uploadResults.forEach((result) => {
         if (result.field === "photos") {
@@ -592,32 +590,48 @@ const AddListingPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {listingTypes.map((type) => {
                     const IconComponent = type.icon;
+                    const isDisabled = type.disabled;
                     return (
                       <Card
                         key={type.id}
-                        className={`cursor-pointer transition-all hover:shadow-md ${
-                          listingType === type.id
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/50"
+                        className={`transition-all ${
+                          isDisabled
+                            ? "opacity-50 cursor-not-allowed bg-muted/50"
+                            : `cursor-pointer hover:shadow-md ${
+                                listingType === type.id
+                                  ? "border-primary bg-primary/5"
+                                  : "border-border hover:border-primary/50"
+                              }`
                         }`}
-                        onClick={() => handleListingTypeChange(type.id)}
+                        onClick={() => !isDisabled && handleListingTypeChange(type.id)}
                       >
                         <CardContent className="p-6">
                           <div className="flex items-start gap-4">
                             <div className={`
                               p-3 rounded-lg 
-                              ${listingType === type.id 
-                                ? 'bg-primary text-primary-foreground' 
-                                : 'bg-muted text-muted-foreground'
+                              ${isDisabled 
+                                ? 'bg-muted/50 text-muted-foreground/50'
+                                : listingType === type.id 
+                                  ? 'bg-primary text-primary-foreground' 
+                                  : 'bg-muted text-muted-foreground'
                               }
                             `}>
                               <IconComponent className="h-6 w-6" />
                             </div>
                             <div>
-                              <h3 className="font-semibold text-foreground mb-1">
+                              <h3 className={`font-semibold mb-1 ${
+                                isDisabled ? 'text-muted-foreground/50' : 'text-foreground'
+                              }`}>
                                 {type.label}
+                                {isDisabled && (
+                                  <span className="ml-2 text-xs font-normal">
+                                    (Coming Soon)
+                                  </span>
+                                )}
                               </h3>
-                              <p className="text-sm text-muted-foreground">
+                              <p className={`text-sm ${
+                                isDisabled ? 'text-muted-foreground/50' : 'text-muted-foreground'
+                              }`}>
                                 {type.description}
                               </p>
                             </div>

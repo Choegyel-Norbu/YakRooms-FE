@@ -56,10 +56,10 @@ const FeatureSection = () => {
               ?
             </h2>
           </div>
-          <p className="text-md text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            We bridge the gap between travelers and authentic Bhutanese
-            experiences. From cozy homestays to bustling local restaurants,
-            discover the heart of Bhutan with confidence and ease.
+          <p className="text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Your trusted platform for convenient accommodation booking across
+            all 20 dzongkhags. From business trips to family visits,
+            find reliable stays throughout Bhutan with ease.
           </p>
         </div>
 
