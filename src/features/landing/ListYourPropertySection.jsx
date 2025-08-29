@@ -57,7 +57,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
   ];
 
   const stats = [
-    { number: "10+", label: "Partner Properties" },
+    { number: "30+", label: "Partner Properties" },
     { number: "95%", label: "Customer Satisfaction" },
     { number: "24/7", label: "Support Available" },
   ];
