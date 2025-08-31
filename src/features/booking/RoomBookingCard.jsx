@@ -46,6 +46,8 @@ export default function RoomBookingCard({ room, hotelId }) {
     cid: "",
     destination: "",
     origin: "",
+    guests: 1,
+    nationality: "bhutanese",
   });
   const [immediateBookingErrors, setImmediateBookingErrors] = useState({});
   const [bookingDetails, setBookingDetails] = useState({
@@ -57,6 +59,7 @@ export default function RoomBookingCard({ room, hotelId }) {
     cid: "",
     destination: "",
     origin: "",
+    nationality: "bhutanese",
   });
   const [errors, setErrors] = useState({});
 
@@ -150,28 +153,30 @@ export default function RoomBookingCard({ room, hotelId }) {
       return null;
     };
 
-    // Validate CID Number (Bhutanese Citizen Identity Document)
-    if (!bookingDetails.cid.trim()) {
-      newErrors.cid = "CID number is required";
-    } else {
-      const cid = bookingDetails.cid.trim();
-      
-      // Rule 1: Must be exactly 11 digits
-      if (!/^\d{11}$/.test(cid)) {
-        newErrors.cid = "CID must be exactly 11 digits";
+    // Validate CID Number (only required for Bhutanese citizens)
+    if (bookingDetails.nationality === "bhutanese") {
+      if (!bookingDetails.cid.trim()) {
+        newErrors.cid = "CID number is required for Bhutanese citizens";
       } else {
-        // Rule 2: Dzongkhag code must be 01–20
-        const dzongkhagCode = parseInt(cid.substring(0, 2), 10);
-        if (dzongkhagCode < 1 || dzongkhagCode > 20) {
-          newErrors.cid = "Invalid Dzongkhag code (must be 01–20)";
+        const cid = bookingDetails.cid.trim();
+        
+        // Rule 1: Must be exactly 11 digits
+        if (!/^\d{11}$/.test(cid)) {
+          newErrors.cid = "CID must be exactly 11 digits";
+        } else {
+          // Rule 2: Dzongkhag code must be 01–20
+          const dzongkhagCode = parseInt(cid.substring(0, 2), 10);
+          if (dzongkhagCode < 1 || dzongkhagCode > 20) {
+            newErrors.cid = "Invalid Dzongkhag code (must be 01–20)";
+          }
+          // Additional validation: Check if it's not all zeros or all same digits
+          else if (/^0{11}$/.test(cid)) {
+            newErrors.cid = "CID number cannot be all zeros";
+          } else if (/^(\d)\1{10}$/.test(cid)) {
+            newErrors.cid = "CID number cannot be all same digits";
+          }
+          // CID is valid if it passes all the above checks
         }
-        // Additional validation: Check if it's not all zeros or all same digits
-        else if (/^0{11}$/.test(cid)) {
-          newErrors.cid = "CID number cannot be all zeros";
-        } else if (/^(\d)\1{10}$/.test(cid)) {
-          newErrors.cid = "CID number cannot be all same digits";
-        }
-        // CID is valid if it passes all the above checks
       }
     }
 
@@ -404,21 +409,23 @@ export default function RoomBookingCard({ room, hotelId }) {
       return null;
     };
 
-    // Validate CID Number
-    if (!immediateBookingDetails.cid.trim()) {
-      newErrors.cid = "CID number is required";
-    } else {
-      const cid = immediateBookingDetails.cid.trim();
-      if (!/^\d{11}$/.test(cid)) {
-        newErrors.cid = "CID must be exactly 11 digits";
+    // Validate CID Number (only required for Bhutanese citizens)
+    if (immediateBookingDetails.nationality === "bhutanese") {
+      if (!immediateBookingDetails.cid.trim()) {
+        newErrors.cid = "CID number is required for Bhutanese citizens";
       } else {
-        const dzongkhagCode = parseInt(cid.substring(0, 2), 10);
-        if (dzongkhagCode < 1 || dzongkhagCode > 20) {
-          newErrors.cid = "Invalid Dzongkhag code (must be 01–20)";
-        } else if (/^0{11}$/.test(cid)) {
-          newErrors.cid = "CID number cannot be all zeros";
-        } else if (/^(\d)\1{10}$/.test(cid)) {
-          newErrors.cid = "CID number cannot be all same digits";
+        const cid = immediateBookingDetails.cid.trim();
+        if (!/^\d{11}$/.test(cid)) {
+          newErrors.cid = "CID must be exactly 11 digits";
+        } else {
+          const dzongkhagCode = parseInt(cid.substring(0, 2), 10);
+          if (dzongkhagCode < 1 || dzongkhagCode > 20) {
+            newErrors.cid = "Invalid Dzongkhag code (must be 01–20)";
+          } else if (/^0{11}$/.test(cid)) {
+            newErrors.cid = "CID number cannot be all zeros";
+          } else if (/^(\d)\1{10}$/.test(cid)) {
+            newErrors.cid = "CID number cannot be all same digits";
+          }
         }
       }
     }
@@ -447,6 +454,15 @@ export default function RoomBookingCard({ room, hotelId }) {
 
     const phoneError = validateBhutanesePhone(immediateBookingDetails.phone);
     if (phoneError) newErrors.phone = phoneError;
+    
+    // Validate guest count
+    if (!immediateBookingDetails.guests || immediateBookingDetails.guests < 1) {
+      newErrors.guests = "Number of guests is required and must be at least 1";
+    } else if (room.maxGuests > 0 && immediateBookingDetails.guests > room.maxGuests) {
+      newErrors.guests = `Maximum ${room.maxGuests} guests allowed for this room`;
+    } else if (immediateBookingDetails.guests > 6) {
+      newErrors.guests = "Maximum 6 guests allowed";
+    }
     
     return newErrors;
   };
@@ -506,6 +522,7 @@ export default function RoomBookingCard({ room, hotelId }) {
           cid: "",
           destination: "",
           origin: "",
+          nationality: "bhutanese",
         });
         setErrors({});
         setOpenBookingDialog(false);
@@ -541,7 +558,7 @@ export default function RoomBookingCard({ room, hotelId }) {
         userId,
         checkInDate: checkInDate,
         checkOutDate: checkOutDate,
-        guests: 1,
+        guests: immediateBookingDetails.guests,
         numberOfRooms: 1,
         totalPrice: daysDiff * room.price,
         days: daysDiff,
@@ -578,6 +595,8 @@ export default function RoomBookingCard({ room, hotelId }) {
           cid: "",
           destination: "",
           origin: "",
+          guests: 1,
+          nationality: "bhutanese",
         });
         setImmediateBookingErrors({});
         
@@ -832,23 +851,58 @@ export default function RoomBookingCard({ room, hotelId }) {
 
               {/* Additional Information Fields */}
               <div className="grid grid-cols-1 gap-4">
+                {/* Nationality Selection */}
                 <div className="grid gap-2">
-                  <Label htmlFor="cid" className="text-sm">CID Number <span className="text-destructive">*</span></Label>
-                  <Input
-                    id="cid"
-                    name="cid"
-                    type="text"
-                    value={bookingDetails.cid}
-                    onChange={handleInputChange}
-                    placeholder="11 digits (e.g., 10901001065)"
-                    maxLength={11}
-                    className={`text-sm ${errors.cid ? "border-destructive" : ""}`}
-                  />
-                  
-                  {errors.cid && (
-                    <p className="text-sm text-destructive">{errors.cid}</p>
-                  )}
+                  <Label className="text-sm">Nationality <span className="text-destructive">*</span></Label>
+                  <Select
+                    name="nationality"
+                    value={bookingDetails.nationality}
+                    onValueChange={(value) => {
+                      setBookingDetails((prev) => ({
+                        ...prev,
+                        nationality: value,
+                        // Clear CID when switching to non-Bhutanese
+                        cid: value === "bhutanese" ? prev.cid : ""
+                      }));
+                      // Clear CID error when switching nationality
+                      if (errors.cid) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          cid: undefined
+                        }));
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="Select nationality" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bhutanese">Bhutanese</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+
+                {/* CID Number - Only show for Bhutanese */}
+                {bookingDetails.nationality === "bhutanese" && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="cid" className="text-sm">CID Number <span className="text-destructive">*</span></Label>
+                    <Input
+                      id="cid"
+                      name="cid"
+                      type="text"
+                      value={bookingDetails.cid}
+                      onChange={handleInputChange}
+                      placeholder="11 digits (e.g., 10901001065)"
+                      maxLength={11}
+                      className={`text-sm ${errors.cid ? "border-destructive" : ""}`}
+                    />
+                    
+                    {errors.cid && (
+                      <p className="text-sm text-destructive">{errors.cid}</p>
+                    )}
+                  </div>
+                )}
 
                 <div className="grid gap-2">
                   <Label htmlFor="destination" className="text-sm">Destination <span className="text-destructive">*</span></Label>
@@ -1096,6 +1150,7 @@ export default function RoomBookingCard({ room, hotelId }) {
               cid: "",
               destination: "",
               origin: "",
+              guests: 1,
             });
             setImmediateBookingErrors({});
           }
@@ -1149,25 +1204,59 @@ export default function RoomBookingCard({ room, hotelId }) {
                 )}
               </div>
 
-              {/* CID Number */}
+              {/* Nationality Selection */}
               <div className="grid gap-2">
-                <Label htmlFor="immediateCid" className="text-sm">
-                  CID Number <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="immediateCid"
-                  name="cid"
-                  type="text"
-                  value={immediateBookingDetails.cid}
-                  onChange={handleImmediateInputChange}
-                  placeholder="11 digits (e.g., 10901001065)"
-                  maxLength={11}
-                  className={`text-sm ${immediateBookingErrors.cid ? "border-destructive" : ""}`}
-                />
-                {immediateBookingErrors.cid && (
-                  <p className="text-sm text-destructive">{immediateBookingErrors.cid}</p>
-                )}
+                <Label className="text-sm">Nationality <span className="text-destructive">*</span></Label>
+                <Select
+                  name="nationality"
+                  value={immediateBookingDetails.nationality}
+                  onValueChange={(value) => {
+                    setImmediateBookingDetails((prev) => ({
+                      ...prev,
+                      nationality: value,
+                      // Clear CID when switching to non-Bhutanese
+                      cid: value === "bhutanese" ? prev.cid : ""
+                    }));
+                    // Clear CID error when switching nationality
+                    if (immediateBookingErrors.cid) {
+                      setImmediateBookingErrors((prev) => ({
+                        ...prev,
+                        cid: undefined
+                      }));
+                    }
+                  }}
+                >
+                  <SelectTrigger className="text-sm">
+                    <SelectValue placeholder="Select nationality" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bhutanese">Bhutanese</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+
+              {/* CID Number - Only show for Bhutanese */}
+              {immediateBookingDetails.nationality === "bhutanese" && (
+                <div className="grid gap-2">
+                  <Label htmlFor="immediateCid" className="text-sm">
+                    CID Number <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="immediateCid"
+                    name="cid"
+                    type="text"
+                    value={immediateBookingDetails.cid}
+                    onChange={handleImmediateInputChange}
+                    placeholder="11 digits (e.g., 10901001065)"
+                    maxLength={11}
+                    className={`text-sm ${immediateBookingErrors.cid ? "border-destructive" : ""}`}
+                  />
+                  {immediateBookingErrors.cid && (
+                    <p className="text-sm text-destructive">{immediateBookingErrors.cid}</p>
+                  )}
+                </div>
+              )}
 
               {/* Destination */}
               <div className="grid gap-2">
@@ -1207,6 +1296,53 @@ export default function RoomBookingCard({ room, hotelId }) {
                 )}
               </div>
 
+              {/* Number of Guests */}
+              <div className="grid gap-2">
+                <Label htmlFor="immediateGuests" className="text-sm">
+                  Number of Guests <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  name="guests"
+                  value={String(immediateBookingDetails.guests)}
+                  onValueChange={(value) => {
+                    const numGuests = parseInt(value);
+                    setImmediateBookingDetails((prev) => ({
+                      ...prev,
+                      guests: numGuests,
+                    }));
+                    // Clear error for this field
+                    if (immediateBookingErrors.guests) {
+                      setImmediateBookingErrors((prev) => ({
+                        ...prev,
+                        guests: undefined
+                      }));
+                    }
+                  }}
+                >
+                  <SelectTrigger className={`text-sm ${immediateBookingErrors.guests ? "border-destructive" : ""}`}>
+                    <SelectValue placeholder="Select guests" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(() => {
+                      const maxGuests = room.maxGuests > 0 ? Math.min(room.maxGuests, 6) : 6;
+                      return Array.from({ length: maxGuests }, (_, i) => i + 1).map((num) => (
+                        <SelectItem key={num} value={String(num)}>
+                          {num} {num === 1 ? "guest" : "guests"}
+                        </SelectItem>
+                      ));
+                    })()}
+                  </SelectContent>
+                </Select>
+                {immediateBookingErrors.guests && (
+                  <p className="text-sm text-destructive">{immediateBookingErrors.guests}</p>
+                )}
+                {room.maxGuests > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Maximum {room.maxGuests} guests allowed for this room
+                  </p>
+                )}
+              </div>
+
               {/* Booking Summary */}
               <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                 <h4 className="font-medium text-sm">Booking Summary</h4>
@@ -1225,7 +1361,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Guests</span>
-                    <span className="font-medium">1</span>
+                    <span className="font-medium">{immediateBookingDetails.guests}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Duration</span>

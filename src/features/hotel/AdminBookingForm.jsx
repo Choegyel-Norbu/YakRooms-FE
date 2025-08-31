@@ -23,14 +23,19 @@ import {
 import { Separator } from "@/shared/components/separator";
 import { Calendar } from "lucide-react";
 import { toast } from "sonner";
+import { CustomDatePicker } from "../../shared/components";
 
 export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
   const [openBookingDialog, setOpenBookingDialog] = useState(false);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [bookedDates, setBookedDates] = useState([]);
+  const [isLoadingBookedDates, setIsLoadingBookedDates] = useState(false);
+  const [selectedRoomForDates, setSelectedRoomForDates] = useState(null);
   const [bookingDetails, setBookingDetails] = useState({
     roomNumber: "",
     hotelId: hotelId,
+    checkInDate: "",
     checkOutDate: "",
     guests: 1,
     phone: "",
@@ -65,11 +70,35 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
     }
   };
 
+  // Fetch booked dates for the selected room
+  const fetchBookedDates = async (roomId) => {
+    if (!roomId) return;
+    
+    setIsLoadingBookedDates(true);
+    try {
+      const response = await api.get(`/rooms/${roomId}/booked-dates`);
+      if (response.data && response.data.bookedDates) {
+        setBookedDates(response.data.bookedDates);
+        setSelectedRoomForDates(roomId);
+      }
+    } catch (error) {
+      console.error('Failed to fetch booked dates:', error);
+      toast.error('Failed to load booking calendar', {
+        description: 'Could not fetch booked dates. Some dates may appear available when they are not.',
+        duration: 4000
+      });
+      // Reset to empty array on error to show all dates as available
+      setBookedDates([]);
+    } finally {
+      setIsLoadingBookedDates(false);
+    }
+  };
+
   const calculateDays = () => {
-    if (!bookingDetails.checkOutDate) return 0;
-    const today = new Date();
+    if (!bookingDetails.checkInDate || !bookingDetails.checkOutDate) return 0;
+    const checkIn = new Date(bookingDetails.checkInDate);
     const checkOut = new Date(bookingDetails.checkOutDate);
-    const timeDiff = checkOut.getTime() - today.getTime();
+    const timeDiff = checkOut.getTime() - checkIn.getTime();
     const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
     return daysDiff > 0 ? daysDiff : 0;
   };
@@ -91,10 +120,36 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
     if (!bookingDetails.roomNumber) newErrors.roomNumber = "Room number is required";
     // Removed userId validation - now optional for third-party bookings
     if (!bookingDetails.guestName) newErrors.guestName = "Guest name is required";
-    if (!bookingDetails.checkOutDate) newErrors.checkOutDate = "Check-out date is required";
     
-    if (bookingDetails.checkOutDate && new Date(bookingDetails.checkOutDate) <= new Date()) {
-      newErrors.checkOutDate = "Check-out must be after today";
+    // Validate check-in date
+    if (!bookingDetails.checkInDate) {
+      newErrors.checkInDate = "Check-in date is required";
+    } else {
+      const checkInDate = new Date(bookingDetails.checkInDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (checkInDate < today) {
+        newErrors.checkInDate = "Check-in date cannot be in the past";
+      }
+    }
+    
+    // Validate check-out date
+    if (!bookingDetails.checkOutDate) {
+      newErrors.checkOutDate = "Check-out date is required";
+    } else {
+      const checkOutDate = new Date(bookingDetails.checkOutDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (checkOutDate <= today) {
+        newErrors.checkOutDate = "Check-out date must be after today";
+      } else if (bookingDetails.checkInDate) {
+        const checkInDate = new Date(bookingDetails.checkInDate);
+        if (checkOutDate <= checkInDate) {
+          newErrors.checkOutDate = "Check-out date must be after check-in date";
+        }
+      }
     }
 
     // Validate CID Number (Bhutanese Citizen Identity Document)
@@ -168,6 +223,48 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
     }));
   };
 
+  // Handle date selection from CustomDatePicker
+  const handleDateSelect = (name, date) => {
+    let dateValue = '';
+    if (date) {
+      // Create a new date normalized to avoid timezone issues
+      const normalizedDate = new Date(date);
+      normalizedDate.setHours(12, 0, 0, 0);
+      // Use toLocaleDateString with specific format to avoid timezone issues
+      const year = normalizedDate.getFullYear();
+      const month = String(normalizedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(normalizedDate.getDate()).padStart(2, '0');
+      dateValue = `${year}-${month}-${day}`;
+    }
+    
+    setBookingDetails((prev) => ({
+      ...prev,
+      [name]: dateValue,
+    }));
+    
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined
+      }));
+    }
+  };
+
+  // Handle room selection change to fetch booked dates
+  const handleRoomSelect = (roomNumber) => {
+    setBookingDetails(prev => ({ ...prev, roomNumber }));
+    
+    // Find the selected room and fetch its booked dates
+    const selectedRoom = availableRooms.find(room => room.roomNumber === roomNumber);
+    if (selectedRoom && selectedRoom.id) {
+      // Only fetch if we haven't already fetched for this room
+      if (selectedRoomForDates !== selectedRoom.id) {
+        fetchBookedDates(selectedRoom.id);
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formErrors = validateForm();
@@ -187,7 +284,6 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
 
       const payload = {
         ...bookingDetails,
-        checkInDate: new Date().toISOString().split('T')[0],
         roomId: selectedRoom.id,
         hotelId: hotelId,
         totalPrice: calculateTotalPrice(),
@@ -206,6 +302,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
         setBookingDetails({
           roomNumber: "",
           hotelId: hotelId,
+          checkInDate: "",
           checkOutDate: "",
           guests: 1,
           phone: "",
@@ -267,13 +364,20 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4 overflow-y-auto max-h-[60vh]">
+              {/* Loading indicator for booked dates */}
+              {isLoadingBookedDates && (
+                <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <svg className="w-4 h-4 animate-spin text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.646 9.646 8 0 0118 15.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm text-blue-700">Loading booking calendar...</span>
+                </div>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="roomNumber">Room Number <span className="text-destructive">*</span></Label>
                 <Select
                   value={bookingDetails.roomNumber}
-                  onValueChange={(value) => 
-                    setBookingDetails(prev => ({ ...prev, roomNumber: value }))
-                  }
+                  onValueChange={handleRoomSelect}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a room" />
@@ -381,17 +485,31 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="checkOutDate">Check-out Date <span className="text-destructive">*</span></Label>
-                <Input
-                  id="checkOutDate"
-                  name="checkOutDate"
-                  type="date"
-                  value={bookingDetails.checkOutDate}
-                  onChange={handleInputChange}
-                  min={new Date().toISOString().split("T")[0]}
-                  className={errors.checkOutDate ? "border-destructive" : ""}
+                <CustomDatePicker
+                  selectedDate={bookingDetails.checkInDate ? new Date(bookingDetails.checkInDate + 'T12:00:00') : null}
+                  onDateSelect={(date) => handleDateSelect("checkInDate", date)}
+                  blockedDates={bookedDates}
+                  minDate={new Date()}
+                  placeholder="Select check-in date"
+                  label="Check-in Date"
+                  error={errors.checkInDate}
+                  disabled={isLoadingBookedDates}
+                  className="w-full"
                 />
-                {errors.checkOutDate && <p className="text-sm text-destructive">{errors.checkOutDate}</p>}
+              </div>
+
+              <div className="grid gap-2">
+                <CustomDatePicker
+                  selectedDate={bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate + 'T12:00:00') : null}
+                  onDateSelect={(date) => handleDateSelect("checkOutDate", date)}
+                  blockedDates={bookedDates}
+                  minDate={bookingDetails.checkInDate ? new Date(new Date(bookingDetails.checkInDate).getTime() + 24 * 60 * 60 * 1000) : new Date(new Date().getTime() + 24 * 60 * 60 * 1000)}
+                  placeholder="Select check-out date"
+                  label="Check-out Date"
+                  error={errors.checkOutDate}
+                  disabled={isLoadingBookedDates}
+                  className="w-full"
+                />
               </div>
 
               <div className="grid gap-2">
@@ -417,30 +535,53 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
               <Separator className="my-2" />
 
               {selectedRoom && (
-                <div className="space-y-2 text-sm">
+                              <div className="space-y-2 text-sm">
+                {bookingDetails.checkInDate && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Room Type</span>
-                    <span className="font-medium">{selectedRoom.roomType}</span>
+                    <span className="text-muted-foreground">Check-in</span>
+                    <span className="font-medium">
+                      {new Date(bookingDetails.checkInDate).toLocaleDateString()}
+                    </span>
                   </div>
+                )}
+                {bookingDetails.checkOutDate && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Price per night</span>
-                    <span className="font-medium">Nu {selectedRoom.price.toFixed(2)}</span>
+                    <span className="text-muted-foreground">Check-out</span>
+                    <span className="font-medium">
+                      {new Date(bookingDetails.checkOutDate).toLocaleDateString()}
+                    </span>
                   </div>
-                  {days > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">{days} {days === 1 ? "night" : "nights"}</span>
-                      <span className="font-medium">Nu {totalPrice.toFixed(2)}</span>
-                    </div>
-                  )}
-                  <Separator className="my-2" />
-                  <div className="flex justify-between font-bold text-base">
-                    <span>Total Price</span>
-                    <span>Nu {totalPrice.toFixed(2)}</span>
-                  </div>
-                  {days === 0 && bookingDetails.checkOutDate && (
-                    <p className="text-sm text-amber-600">Please select a valid check-out date.</p>
-                  )}
+                )}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Room Type</span>
+                  <span className="font-medium">{selectedRoom.roomType}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Price per night</span>
+                  <span className="font-medium">Nu {selectedRoom.price.toFixed(2)}</span>
+                </div>
+                {days > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{days} {days === 1 ? "night" : "nights"}</span>
+                    <span className="font-medium">Nu {totalPrice.toFixed(2)}</span>
+                  </div>
+                )}
+                <Separator className="my-2" />
+                <div className="flex justify-between font-bold text-base">
+                  <span>Total Price</span>
+                  <span>Nu {totalPrice.toFixed(2)}</span>
+                </div>
+                {days === 0 && (bookingDetails.checkInDate || bookingDetails.checkOutDate) && (
+                  <p className="text-sm text-amber-600">
+                    {!bookingDetails.checkInDate && !bookingDetails.checkOutDate 
+                      ? "Please select check-in and check-out dates."
+                      : !bookingDetails.checkInDate 
+                      ? "Please select a check-in date."
+                      : "Please select a valid check-out date."
+                    }
+                  </p>
+                )}
+              </div>
               )}
             </div>
             <DialogFooter>

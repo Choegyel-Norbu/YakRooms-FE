@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Download, Search, Calendar, FileText, Loader2, ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { Download, Search, Calendar, FileText, Loader2, ChevronLeft, ChevronRight, Filter, CalendarIcon, X } from "lucide-react";
 import * as XLSX from "xlsx";
 import {
   Card,
@@ -10,6 +10,18 @@ import {
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
 import { Badge } from "@/shared/components/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shared/components/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/select";
 import {
   Table,
   TableBody,
@@ -23,34 +35,66 @@ import { toast } from "sonner";
 
 const BookingsInventoryTable = ({ hotelId }) => {
   const [bookings, setBookings] = useState([]);
-  const [filteredBookings, setFilteredBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchOption, setSearchOption] = useState("name"); // New state for search option
+  const [searchOption, setSearchOption] = useState("all"); // Updated search options
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
+  
+  // Date range search states
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [showDateRangePicker, setShowDateRangePicker] = useState(false);
 
   const pageSize = 10; // Number of bookings per page
 
-  // Fetch bookings data with pagination
-  const fetchBookings = async (page) => {
+  // Fetch bookings data with pagination and search
+  const fetchBookings = async (page, searchParams = {}) => {
     if (!hotelId) return;
 
     try {
       setLoading(true);
-      const response = await api.get(`/bookings/?page=${page}&size=${pageSize}&hotelId=${hotelId}`);
+      let url = "";
+      const baseParams = `page=${page}&size=${pageSize}&hotelId=${hotelId}`;
+      
+      // Determine which endpoint to use based on search criteria
+      if (searchParams.searchOption && searchParams.searchTerm) {
+        switch (searchParams.searchOption) {
+          case "cid":
+            url = `/bookings/search/cid?cid=${encodeURIComponent(searchParams.searchTerm)}&${baseParams}`;
+            break;
+          case "phone":
+            url = `/bookings/search/phone?phone=${encodeURIComponent(searchParams.searchTerm)}&${baseParams}`;
+            break;
+          case "checkin":
+            url = `/bookings/search/checkin-date?checkInDate=${encodeURIComponent(searchParams.searchTerm)}&${baseParams}`;
+            break;
+          case "checkout":
+            url = `/bookings/search/checkout-date?checkOutDate=${encodeURIComponent(searchParams.searchTerm)}&${baseParams}`;
+            break;
+          case "status":
+            url = `/bookings/search/status?status=${encodeURIComponent(searchParams.searchTerm)}&${baseParams}`;
+            break;
+          default:
+            url = `/bookings/?${baseParams}`;
+        }
+      } else if (searchParams.startDate && searchParams.endDate) {
+        url = `/bookings/search/date-range?startDate=${encodeURIComponent(searchParams.startDate)}&endDate=${encodeURIComponent(searchParams.endDate)}&${baseParams}`;
+      } else {
+        url = `/bookings/?${baseParams}`;
+      }
+
+      const response = await api.get(url);
       
       if (response.data && response.data.content) {
         // Paginated response
         setBookings(response.data.content);
-        setFilteredBookings(response.data.content);
         setTotalPages(response.data.totalPages || 1);
         setTotalElements(response.data.totalElements || 0);
       } else if (Array.isArray(response.data)) {
         // Fallback for direct array response
         setBookings(response.data);
-        setFilteredBookings(response.data);
         setTotalPages(Math.ceil(response.data.length / pageSize));
         setTotalElements(response.data.length);
       }
@@ -60,7 +104,6 @@ const BookingsInventoryTable = ({ hotelId }) => {
       console.error("Error fetching bookings:", error);
       toast.error("Failed to fetch bookings data");
       setBookings([]);
-      setFilteredBookings([]);
       setTotalPages(1);
       setTotalElements(0);
     } finally {
@@ -68,39 +111,43 @@ const BookingsInventoryTable = ({ hotelId }) => {
     }
   };
 
+  // Initial load and page changes
   useEffect(() => {
-    fetchBookings(currentPage);
+    // Only pass search params if we're maintaining an active search across page changes
+    const hasActiveSearch = searchTerm || (startDate && endDate);
+    const searchParams = hasActiveSearch ? getSearchParams() : {};
+    fetchBookings(currentPage, searchParams);
   }, [hotelId, currentPage]);
 
-  // Filter bookings based on search term and search option
-  useEffect(() => {
-    let filtered = bookings;
-
-    // Filter by search term based on selected option
-    if (searchTerm) {
-      filtered = filtered.filter((booking) => {
-        switch (searchOption) {
-          case "cid":
-            return booking.cid?.toLowerCase().includes(searchTerm.toLowerCase());
-          case "phone":
-            return booking.phone?.includes(searchTerm);
-          case "name":
-            return booking.name?.toLowerCase().includes(searchTerm.toLowerCase());
-          case "checkin":
-            // Search by check-in date (partial match)
-            const checkInDate = new Date(booking.checkInDate);
-            const searchDate = new Date(searchTerm);
-            return checkInDate.toDateString().includes(searchTerm) || 
-                   checkInDate.toLocaleDateString().includes(searchTerm);
-          default:
-            // Fallback to name search
-            return booking.name?.toLowerCase().includes(searchTerm.toLowerCase());
-        }
-      });
+  // Manual search function
+  const handleSearch = () => {
+    if (searchTerm || (startDate && endDate)) {
+      setCurrentPage(0); // Reset to first page when searching
+      const searchParams = getSearchParams();
+      fetchBookings(0, searchParams);
+    } else {
+      // Clear search - fetch all bookings
+      setCurrentPage(0);
+      fetchBookings(0);
     }
+  };
 
-    setFilteredBookings(filtered);
-  }, [searchTerm, searchOption, bookings]);
+  // Handle Enter key press in search input
+  const handleSearchKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  // Helper function to get current search parameters
+  const getSearchParams = () => {
+    if (startDate && endDate) {
+      return { startDate, endDate };
+    } else if (searchTerm && searchOption !== "all") {
+      return { searchOption, searchTerm };
+    }
+    return {};
+  };
 
   // Export to Excel function
   const exportToExcel = async () => {
@@ -113,10 +160,41 @@ const BookingsInventoryTable = ({ hotelId }) => {
       // Show loading toast
       const loadingToast = toast.loading("Preparing Excel export...");
 
-      // Fetch all bookings for export (without pagination)
+      // Fetch all bookings for export using current search criteria
       let allBookings = [];
       try {
-        const response = await api.get(`/bookings/?page=0&size=${totalElements}&hotelId=${hotelId}`);
+        const searchParams = getSearchParams();
+        let url = "";
+        const baseParams = `page=0&size=${totalElements}&hotelId=${hotelId}`;
+        
+        // Use the same endpoint logic as fetchBookings
+        if (searchParams.searchOption && searchParams.searchTerm) {
+          switch (searchParams.searchOption) {
+            case "cid":
+              url = `/bookings/search/cid?cid=${encodeURIComponent(searchParams.searchTerm)}&${baseParams}`;
+              break;
+            case "phone":
+              url = `/bookings/search/phone?phone=${encodeURIComponent(searchParams.searchTerm)}&${baseParams}`;
+              break;
+            case "checkin":
+              url = `/bookings/search/checkin-date?checkInDate=${encodeURIComponent(searchParams.searchTerm)}&${baseParams}`;
+              break;
+            case "checkout":
+              url = `/bookings/search/checkout-date?checkOutDate=${encodeURIComponent(searchParams.searchTerm)}&${baseParams}`;
+              break;
+            case "status":
+              url = `/bookings/search/status?status=${encodeURIComponent(searchParams.searchTerm)}&${baseParams}`;
+              break;
+            default:
+              url = `/bookings/?${baseParams}`;
+          }
+        } else if (searchParams.startDate && searchParams.endDate) {
+          url = `/bookings/search/date-range?startDate=${encodeURIComponent(searchParams.startDate)}&endDate=${encodeURIComponent(searchParams.endDate)}&${baseParams}`;
+        } else {
+          url = `/bookings/?${baseParams}`;
+        }
+
+        const response = await api.get(url);
         if (response.data && response.data.content) {
           allBookings = response.data.content;
         } else if (Array.isArray(response.data)) {
@@ -125,32 +203,10 @@ const BookingsInventoryTable = ({ hotelId }) => {
       } catch (error) {
         console.error("Error fetching all bookings for export:", error);
         // Fallback to current page data
-        allBookings = filteredBookings;
+        allBookings = bookings;
       }
 
-      // Apply current filters to all bookings
       let filteredAllBookings = allBookings;
-      
-      // Filter by search term based on selected option
-      if (searchTerm) {
-        filteredAllBookings = filteredAllBookings.filter((booking) => {
-          switch (searchOption) {
-            case "cid":
-              return booking.cid?.toLowerCase().includes(searchTerm.toLowerCase());
-            case "phone":
-              return booking.phone?.includes(searchTerm);
-            case "name":
-              return booking.name?.toLowerCase().includes(searchTerm.toLowerCase());
-            case "checkin":
-              const checkInDate = new Date(booking.checkInDate);
-              const searchDate = new Date(searchTerm);
-              return checkInDate.toDateString().includes(searchTerm) || 
-                     checkInDate.toLocaleDateString().includes(searchTerm);
-            default:
-              return booking.name?.toLowerCase().includes(searchTerm.toLowerCase());
-          }
-        });
-      }
 
       if (filteredAllBookings.length === 0) {
         toast.dismiss(loadingToast);
@@ -230,7 +286,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
     switch (status?.toUpperCase()) {
       case "CONFIRMED":
         return "default";
-      case "PENDING":
+      case "CHECKED_IN":
         return "secondary";
       case "CANCELLED":
         return "destructive";
@@ -302,15 +358,42 @@ const BookingsInventoryTable = ({ hotelId }) => {
   const getSearchPlaceholder = () => {
     switch (searchOption) {
       case "cid":
-        return "Search by CID number...";
+        return "Enter CID number...";
       case "phone":
-        return "Search by phone number...";
-      case "name":
-        return "Search by guest name...";
+        return "Enter phone number...";
       case "checkin":
-        return "Search by check-in date (MM/DD/YYYY)...";
+        return "Enter check-in date (YYYY-MM-DD)...";
+      case "checkout":
+        return "Enter check-out date (YYYY-MM-DD)...";
+      case "status":
+        return "Enter booking status...";
+      case "daterange":
+        return "Select date range...";
       default:
-        return "Search by guest name...";
+        return "Select search criteria...";
+    }
+  };
+
+  // Clear search function
+  const clearSearch = () => {
+    setSearchTerm("");
+    setStartDate("");
+    setEndDate("");
+    setSearchOption("all");
+    setShowDateRangePicker(false);
+    // Immediately fetch all bookings when clearing
+    setCurrentPage(0);
+    fetchBookings(0);
+  };
+
+  // Handle date range search
+  const handleDateRangeSearch = () => {
+    if (startDate && endDate) {
+      setSearchTerm(""); // Clear regular search when using date range
+      setShowDateRangePicker(false);
+      setCurrentPage(0);
+      const searchParams = { startDate, endDate };
+      fetchBookings(0, searchParams);
     }
   };
 
@@ -348,27 +431,112 @@ const BookingsInventoryTable = ({ hotelId }) => {
             {/* Search Options and Input */}
             <div className="flex flex-col sm:flex-row gap-2 flex-1">
               {/* Search Option Selector */}
-              <select
-                value={searchOption}
-                onChange={(e) => setSearchOption(e.target.value)}
-                className="px-3 py-2 border border-input bg-background rounded-md text-sm min-w-[140px]"
-              >
-                <option value="name">Search by Name</option>
-                <option value="cid">Search by CID</option>
-                <option value="phone">Search by Phone</option>
-                <option value="checkin">Search by Check-in Date</option>
-              </select>
+              <Select value={searchOption} onValueChange={setSearchOption}>
+                <SelectTrigger className="min-w-[160px]">
+                  <SelectValue placeholder="Search by..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Bookings</SelectItem>
+                  <SelectItem value="cid">Search by CID</SelectItem>
+                  <SelectItem value="phone">Search by Phone</SelectItem>
+                  <SelectItem value="checkin">Search by Check-in Date</SelectItem>
+                  <SelectItem value="checkout">Search by Check-out Date</SelectItem>
+                  <SelectItem value="status">Search by Status</SelectItem>
+                  <SelectItem value="daterange">Date Range Search</SelectItem>
+                </SelectContent>
+              </Select>
 
-              {/* Search Input */}
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={getSearchPlaceholder()}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-full"
-                />
-              </div>
+              {/* Conditional Search Input or Date Range Picker */}
+              {searchOption === "daterange" ? (
+                <Popover open={showDateRangePicker} onOpenChange={setShowDateRangePicker}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex-1 justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate && endDate
+                        ? `${startDate} to ${endDate}`
+                        : "Select date range..."}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-4" align="start">
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-sm font-medium">Start Date</label>
+                          <Input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">End Date</label>
+                          <Input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleDateRangeSearch}
+                          disabled={!startDate || !endDate}
+                          size="sm"
+                        >
+                          Search
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setStartDate("");
+                            setEndDate("");
+                            setShowDateRangePicker(false);
+                          }}
+                          variant="outline"
+                          size="sm"
+                        >
+                          Clear
+                        </Button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              ) : searchOption !== "all" ? (
+                <div className="flex gap-2 flex-1">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder={getSearchPlaceholder()}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onKeyPress={handleSearchKeyPress}
+                      className="pl-10 w-full"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleSearch}
+                    disabled={!searchTerm.trim()}
+                    className="px-4"
+                  >
+                    <Search className="h-4 w-4 mr-1" />
+                    Search
+                  </Button>
+                </div>
+              ) : null}
+
+              {/* Clear Search Button */}
+              {(searchTerm || startDate || endDate) && (
+                <Button
+                  onClick={clearSearch}
+                  variant="outline"
+                  size="sm"
+                  className="px-3"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
 
@@ -391,16 +559,16 @@ const BookingsInventoryTable = ({ hotelId }) => {
             <div className="text-sm text-muted-foreground">Total Bookings</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-primary">
               {bookings.filter((b) => b.status === "CONFIRMED").length}
             </div>
-            <div className="text-sm text-muted-foreground">Confirmed (Page)</div>
+            <div className="text-sm text-muted-foreground">Confirmed</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-600">
-              {bookings.filter((b) => b.status === "PENDING").length}
+            <div className="text-2xl font-bold text-primary">
+              {bookings.filter((b) => b.status === "CHECKED_IN").length}
             </div>
-            <div className="text-sm text-muted-foreground">Pending (Page)</div>
+            <div className="text-sm text-muted-foreground">Checked In</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-yellow-500">
@@ -408,12 +576,12 @@ const BookingsInventoryTable = ({ hotelId }) => {
                 bookings.reduce((sum, booking) => sum + (booking.totalPrice || 0), 0)
               )}
             </div>
-            <div className="text-sm text-muted-foreground">Page Revenue</div>
+            <div className="text-sm text-muted-foreground">Revenue</div>
           </div>
         </div>
 
         {/* Bookings Table */}
-        {filteredBookings.length === 0 ? (
+        {bookings.length === 0 ? (
           <div className="text-center py-12">
             <Calendar className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-foreground mb-2">
@@ -430,23 +598,28 @@ const BookingsInventoryTable = ({ hotelId }) => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-16">Sl.No. </TableHead>
-                  <TableHead className="min-w-40">Guest Details</TableHead>
-                  <TableHead className="w-32">CID</TableHead>
-                  <TableHead className="min-w-32">Room Info</TableHead>
-                  <TableHead className="min-w-40">Stay Period</TableHead>
-                  <TableHead className="w-24">Guests</TableHead>
-                  <TableHead className="w-28">Status</TableHead>
-                  <TableHead className="w-32">Price</TableHead>
-                  <TableHead className="min-w-40">Travel Info</TableHead>
-                  <TableHead className="min-w-32">Created</TableHead>
+                  {/* <TableHead className="w-16">Sl.No. </TableHead> */}
+                  <TableHead className="w-32 font-bold">CID</TableHead>
+                  <TableHead className="min-w-40 font-bold">Guest Details</TableHead>
+                  <TableHead className="min-w-32 font-bold">Room Info</TableHead>
+                  <TableHead className="min-w-40 font-bold">Stay Period</TableHead>
+                  <TableHead className="w-24 font-bold">Guests</TableHead>
+                  <TableHead className="w-28 font-bold">Status</TableHead>
+                  <TableHead className="w-32 font-bold">Price</TableHead>
+                  <TableHead className="min-w-40 font-bold">Travel Info</TableHead>
+                  <TableHead className="min-w-32 font-bold">Booked on</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredBookings.map((booking) => (
+                {bookings.map((booking) => (
                   <TableRow key={booking.id} className="hover:bg-muted/50">
-                    <TableCell className="font-medium">{booking.id}</TableCell>
-                    
+                    {/* <TableCell className="font-medium">{booking.id}</TableCell> */}
+                    {/* CID */}
+                    <TableCell className="font-medium text-sm">
+                      {booking.cid || (
+                        <span className="text-muted-foreground text-xs">-</span>
+                      )}
+                    </TableCell>
                     {/* Guest Details */}
                     <TableCell>
                       <div className="space-y-1">
@@ -455,14 +628,6 @@ const BookingsInventoryTable = ({ hotelId }) => {
                         <div className="text-xs text-muted-foreground">{booking.phone}</div>
                       </div>
                     </TableCell>
-
-                    {/* CID */}
-                    <TableCell className="font-medium text-sm">
-                      {booking.cid || (
-                        <span className="text-muted-foreground text-xs">-</span>
-                      )}
-                    </TableCell>
-
                     {/* Room Info */}
                     <TableCell>
                       <div className="space-y-1">
@@ -538,9 +703,10 @@ const BookingsInventoryTable = ({ hotelId }) => {
         )}
 
         {/* Results Summary */}
-        {filteredBookings.length > 0 && (
+        {bookings.length > 0 && (
           <div className="text-sm text-muted-foreground text-center">
-            Showing {filteredBookings.length} of {totalElements} bookings
+            Showing {bookings.length} of {totalElements} bookings
+            {(searchTerm || startDate || endDate) && " (filtered)"}
           </div>
         )}
 

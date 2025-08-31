@@ -113,14 +113,44 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
   ];
 
   // Helper function to get role display info
-  const getRoleDisplayInfo = (role) => {
+  const getRoleDisplayInfo = (role, isActive = false) => {
     const roleInfo = {
-      'SUPER_ADMIN': { label: 'Admin', color: 'bg-red-100 text-red-800 border-red-200' },
-      'HOTEL_ADMIN': { label: 'Hotel Admin', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-      'STAFF': { label: 'Staff', color: 'bg-green-100 text-green-800 border-green-200' },
-      'GUEST': { label: 'Guest', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+      'SUPER_ADMIN': { 
+        label: 'Admin', 
+        color: isActive 
+          ? 'bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500 shadow-lg shadow-red-500/25' 
+          : 'bg-red-100 text-red-800 border-red-200',
+        ringColor: 'rgb(239 68 68 / 0.4)'
+      },
+      'HOTEL_ADMIN': { 
+        label: 'Hotel Admin', 
+        color: isActive 
+          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 shadow-lg shadow-blue-500/25' 
+          : 'bg-blue-100 text-blue-800 border-blue-200',
+        ringColor: 'rgb(59 130 246 / 0.4)'
+      },
+      'STAFF': { 
+        label: 'Staff', 
+        color: isActive 
+          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-500/25' 
+          : 'bg-green-100 text-green-800 border-green-200',
+        ringColor: 'rgb(34 197 94 / 0.4)'
+      },
+      'GUEST': { 
+        label: 'Guest', 
+        color: isActive 
+          ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/25' 
+          : 'bg-purple-100 text-purple-800 border-purple-200',
+        ringColor: 'rgb(168 85 247 / 0.4)'
+      },
     };
-    return roleInfo[role] || { label: role, color: 'bg-gray-100 text-gray-800 border-gray-200' };
+    return roleInfo[role] || { 
+      label: role, 
+      color: isActive 
+        ? 'bg-gradient-to-r from-gray-500 to-gray-600 text-white border-gray-500 shadow-lg shadow-gray-500/25' 
+        : 'bg-gray-100 text-gray-800 border-gray-200',
+      ringColor: 'rgb(107 114 128 / 0.4)'
+    };
   };
 
   const UserNav = () => {
@@ -141,7 +171,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
     }
 
     const currentActiveRole = getCurrentActiveRole();
-    const roleDisplayInfo = getRoleDisplayInfo(currentActiveRole);
+    const roleDisplayInfo = getRoleDisplayInfo(currentActiveRole, true); // Mark as active for bright colors
     const availableRoles = roles.filter(role => role !== currentActiveRole);
 
     return (
@@ -171,11 +201,14 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
               <p className="text-xs leading-none text-muted-foreground">
                 {email}
               </p>
-              {/* Current Role Badge */}
-              <div className="mt-2">
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${roleDisplayInfo.color}`}>
+              {/* Enhanced Current Role Badge with bright colors */}
+              <div className="mt-2 flex items-center gap-2">
+                <span className={`inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-bold border-2 ${roleDisplayInfo.color} ring-2 ring-offset-1 ring-offset-background animate-pulse`} 
+                      style={{ ringColor: roleDisplayInfo.ringColor }}>
+                  <div className="w-1.5 h-1.5 rounded-full bg-white/90 mr-1.5 animate-pulse"></div>
                   {roleDisplayInfo.label}
                 </span>
+                <span className="text-xs text-emerald-600 font-bold dark:text-emerald-400">● ACTIVE</span>
               </div>
             </div>
           </DropdownMenuLabel>
@@ -195,11 +228,12 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           {availableRoles.length > 0 && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-                Switch User
+              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-muted-foreground/40"></div>
+                Switch User Role
               </DropdownMenuLabel>
               {availableRoles.map((role) => {
-                const roleInfo = getRoleDisplayInfo(role);
+                const roleInfo = getRoleDisplayInfo(role, false); // Non-active styling
                 return (
                   <DropdownMenuItem
                     key={role}
@@ -211,11 +245,14 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                         duration: 3000,
                       });
                     }}
-                    className="cursor-pointer"
+                    className="cursor-pointer hover:bg-accent/50 transition-colors"
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className="text-sm">{roleInfo.label}</span>
-                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium border ${roleInfo.color}`}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-muted-foreground/30"></div>
+                        <span className="text-sm font-medium">{roleInfo.label}</span>
+                      </div>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${roleInfo.color} opacity-75`}>
                         {roleInfo.label}
                       </span>
                     </div>
@@ -354,7 +391,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
     }
 
     const currentActiveRole = getCurrentActiveRole();
-    const roleDisplayInfo = getRoleDisplayInfo(currentActiveRole);
+    const roleDisplayInfo = getRoleDisplayInfo(currentActiveRole, true); // Mark as active for bright colors
     const availableRoles = roles.filter(role => role !== currentActiveRole);
 
     return (
@@ -373,11 +410,14 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           <div className="flex-1 min-w-0 pr-4">
             <p className="text-sm font-medium truncate">{userName}</p>
             <p className="text-xs text-muted-foreground truncate">{email}</p>
-            {/* Current Role Badge */}
-            <div className="mt-1">
-              <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium border ${roleDisplayInfo.color}`}>
+            {/* Enhanced Current Role Badge for mobile with bright colors */}
+            <div className="mt-1.5 flex items-center gap-2">
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border-2 ${roleDisplayInfo.color} ring-2 ring-offset-1 ring-offset-background animate-pulse`} 
+                    style={{ ringColor: roleDisplayInfo.ringColor }}>
+                <div className="w-1 h-1 rounded-full bg-white/90 mr-1 animate-pulse"></div>
                 {roleDisplayInfo.label}
               </span>
+              <span className="text-xs text-emerald-600 font-bold dark:text-emerald-400">● ACTIVE</span>
             </div>
           </div>
           
@@ -416,30 +456,34 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           {/* Role Switching Section */}
           {availableRoles.length > 0 && (
             <>
-              <div className="px-3 py-1.5">
+              <div className="px-3 py-1.5 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-muted-foreground/40"></div>
                 <p className="text-xs font-medium text-muted-foreground">
-                  Switch Role
+                  Switch User Role
                 </p>
               </div>
               {availableRoles.map((role) => {
-                const roleInfo = getRoleDisplayInfo(role);
+                const roleInfo = getRoleDisplayInfo(role, false); // Non-active styling
                 return (
                   <SheetClose asChild key={role}>
                     <Button
                       variant="ghost"
-                      className="w-full justify-between px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
+                      className="w-full justify-between px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent/50 transition-colors"
                       onClick={() => {
                         switchToRole(role);
                         setIsMobileMenuOpen(false);
-                        const roleInfo = getRoleDisplayInfo(role);
+                        const roleInfo = getRoleDisplayInfo(role, true); // Will be active after switch
                         toast(`Switched to ${roleInfo.label} user`, {
                           description: `You are now viewing the application as ${roleInfo.label}`,
                           duration: 3000,
                         });
                       }}
                     >
-                      <span>{roleInfo.label}</span>
-                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium border ${roleInfo.color}`}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-muted-foreground/30"></div>
+                        <span>{roleInfo.label}</span>
+                      </div>
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium border ${roleInfo.color} opacity-75`}>
                         {roleInfo.label}
                       </span>
                     </Button>

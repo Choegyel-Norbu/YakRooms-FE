@@ -12,7 +12,8 @@ import {
   LabelList,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/card";
-import { Calendar, TrendingUp } from "lucide-react";
+import { Calendar, TrendingUp, Download } from "lucide-react";
+import * as XLSX from 'xlsx';
 import api from "../../shared/services/Api";
 import { useAuth } from "@/features/authentication";
 
@@ -176,6 +177,105 @@ const MonthlyPerformanceChart = () => {
     return "Total Revenue (Nu.)";
   };
 
+  // Export data to Excel
+  const exportToExcel = () => {
+    if (!data || data.length === 0) {
+      alert("No data available to export");
+      return;
+    }
+
+    try {
+      // Prepare data for Excel export
+      const exportData = data.map((item, index) => ({
+        'S.No': index + 1,
+        'Month': item.displayMonth || item.monthYear,
+        'Hotel Name': item.hotelName || hotelName || 'Hotel',
+        'Total Revenue (Nu.)': item.totalRevenue || 0,
+        'Booking Count': item.bookingCount || 0,
+        'Average Booking Value (Nu.)': item.averageBookingValue || 0,
+        'Revenue per Booking (Nu.)': item.totalRevenue && item.bookingCount 
+          ? Math.round(item.totalRevenue / item.bookingCount) 
+          : 0
+      }));
+
+      // Add summary statistics
+      const totalRevenue = data.reduce((sum, item) => sum + (item.totalRevenue || 0), 0);
+      const totalBookings = data.reduce((sum, item) => sum + (item.bookingCount || 0), 0);
+      const avgBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
+
+      // Add empty row and summary
+      exportData.push({});
+      exportData.push({
+        'S.No': '',
+        'Month': 'SUMMARY STATISTICS',
+        'Hotel Name': '',
+        'Total Revenue (Nu.)': '',
+        'Booking Count': '',
+        'Average Booking Value (Nu.)': '',
+        'Revenue per Booking (Nu.)': ''
+      });
+      exportData.push({
+        'S.No': '',
+        'Month': 'Total Revenue',
+        'Hotel Name': '',
+        'Total Revenue (Nu.)': totalRevenue,
+        'Booking Count': '',
+        'Average Booking Value (Nu.)': '',
+        'Revenue per Booking (Nu.)': ''
+      });
+      exportData.push({
+        'S.No': '',
+        'Month': 'Total Bookings',
+        'Hotel Name': '',
+        'Total Revenue (Nu.)': '',
+        'Booking Count': totalBookings,
+        'Average Booking Value (Nu.)': '',
+        'Revenue per Booking (Nu.)': ''
+      });
+      exportData.push({
+        'S.No': '',
+        'Month': 'Average Booking Value',
+        'Hotel Name': '',
+        'Total Revenue (Nu.)': '',
+        'Booking Count': '',
+        'Average Booking Value (Nu.)': Math.round(avgBookingValue),
+        'Revenue per Booking (Nu.)': ''
+      });
+
+      // Create workbook and worksheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
+
+      // Set column widths for better formatting
+      const colWidths = [
+        { wch: 8 },   // S.No
+        { wch: 15 },  // Month
+        { wch: 25 },  // Hotel Name
+        { wch: 20 },  // Total Revenue
+        { wch: 15 },  // Booking Count
+        { wch: 25 },  // Average Booking Value
+        { wch: 25 }   // Revenue per Booking
+      ];
+      ws['!cols'] = colWidths;
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Monthly Performance");
+
+      // Generate filename with hotel name and current date
+      const sanitizedHotelName = (hotelName || 'Hotel').replace(/[^a-zA-Z0-9]/g, '_');
+      const currentDate = new Date().toISOString().split('T')[0];
+      const filename = `monthly-performance-report-${sanitizedHotelName}-${currentDate}.xlsx`;
+
+      // Save the file
+      XLSX.writeFile(wb, filename);
+
+      console.log(`Excel file exported successfully: ${filename}`);
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      alert("Failed to export data. Please try again.");
+    }
+  };
+
   // Loading state
   if (loading) {
     return (
@@ -228,13 +328,32 @@ const MonthlyPerformanceChart = () => {
   return (
     <Card className="w-full">
       <CardHeader className="pb-4">
-        <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-blue-600" />
-          Monthly Performance - {hotelName}
-        </CardTitle>
-        <p className="text-sm text-gray-500 mt-1">
-          Revenue, bookings, and average booking value trends
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-blue-600" />
+              Monthly Performance - {hotelName}
+            </CardTitle>
+            <p className="text-sm text-gray-500 mt-1">
+              Revenue, bookings, and average booking value trends
+            </p>
+          </div>
+          
+          {/* Export Excel Button */}
+          <button
+            onClick={exportToExcel}
+            disabled={!data || data.length === 0}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              data && data.length > 0
+                ? "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
+            title={data && data.length > 0 ? "Export data to Excel" : "No data available to export"}
+          >
+            <Download className="h-4 w-4" />
+            Export Excel
+          </button>
+        </div>
 
         {/* Date Picker */}
         <div className="flex items-center gap-2 mt-4">

@@ -186,6 +186,21 @@ const RoomManagement = () => {
 
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
+    
+    // Validate file sizes (4MB limit per file)
+    const maxFileSize = 4 * 1024 * 1024; // 4MB in bytes
+    const oversizedFiles = files.filter(file => file.size > maxFileSize);
+    
+    if (oversizedFiles.length > 0) {
+      const fileNames = oversizedFiles.map(file => file.name).join(', ');
+      toast({
+        title: "File size too large",
+        description: `${fileNames} - Each image must be smaller than 4MB. Please compress your images and try again.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     const newPhotos = files.map((file) => URL.createObjectURL(file));
     setRoomForm({
       ...roomForm,

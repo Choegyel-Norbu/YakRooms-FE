@@ -63,7 +63,7 @@ const HotelCard = React.memo(({ hotel }) => (
       <div className="absolute top-3 left-3">
         <Badge
           variant="secondary"
-          className="bg-background/95 backdrop-blur-md shadow-lg border border-border/20 text-xs font-medium px-2 py-0.5 text-yellow-500"
+          className="bg-background/95 backdrop-blur-md shadow-lg border border-border/20 text-xs font-medium px-2 py-0.5 text-yellow-700"
         >
           {hotel.type}
         </Badge>
@@ -138,7 +138,9 @@ const HotelCard = React.memo(({ hotel }) => (
             variant="outline" 
             className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100 transition-colors duration-200 px-2 py-1 text-xs font-medium flex items-center gap-1"
           >
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+            <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
             Verified
           </Badge>
         </div>

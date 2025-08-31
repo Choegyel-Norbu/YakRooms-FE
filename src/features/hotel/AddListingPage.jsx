@@ -230,6 +230,16 @@ const AddListingPage = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Validate file size (4MB limit per file)
+    const maxFileSize = 4 * 1024 * 1024; // 4MB in bytes
+    if (file.size > maxFileSize) {
+      setErrors((prev) => ({ 
+        ...prev, 
+        [field]: `File size too large: ${file.name}. File must be smaller than 4MB. Please compress your file and try again.`
+      }));
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [field]: {
@@ -253,6 +263,19 @@ const AddListingPage = () => {
     const files = Array.from(e.target.files);
     if (files.length + formData.photos.length > 5) {
       setErrors((prev) => ({ ...prev, photos: "Maximum 5 photos allowed" }));
+      return;
+    }
+
+    // Validate file sizes (4MB limit per file)
+    const maxFileSize = 4 * 1024 * 1024; // 4MB in bytes
+    const oversizedFiles = files.filter(file => file.size > maxFileSize);
+    
+    if (oversizedFiles.length > 0) {
+      const fileNames = oversizedFiles.map(file => file.name).join(', ');
+      setErrors((prev) => ({ 
+        ...prev, 
+        photos: `File size too large: ${fileNames}. Each image must be smaller than 4MB. Please compress your images and try again.`
+      }));
       return;
     }
 

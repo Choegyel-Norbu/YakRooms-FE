@@ -341,10 +341,10 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       return;
     }
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
+    // Validate file size (max 4MB)
+    if (file.size > 4 * 1024 * 1024) {
       toast.error("File Too Large", {
-        description: "Please upload an image smaller than 10MB",
+        description: "Please upload an image smaller than 4MB",
         duration: 6000
       });
       return;

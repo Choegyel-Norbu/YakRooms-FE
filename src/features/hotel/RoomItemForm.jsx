@@ -66,6 +66,17 @@ const RoomItemForm = ({ room = null, onSave, onCancel, isEditing = false }) => {
   // Handle image upload
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
+    
+    // Validate file sizes (4MB limit per file)
+    const maxFileSize = 4 * 1024 * 1024; // 4MB in bytes
+    const oversizedFiles = files.filter(file => file.size > maxFileSize);
+    
+    if (oversizedFiles.length > 0) {
+      const fileNames = oversizedFiles.map(file => file.name).join(', ');
+      alert(`File size too large: ${fileNames}\n\nEach image must be smaller than 4MB. Please compress your images and try again.`);
+      return;
+    }
+
     const newImages = files.map((file) => URL.createObjectURL(file));
     setFormData({
       ...formData,

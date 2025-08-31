@@ -16,7 +16,9 @@ import {
   TrendingUp,
   BarChart3,
   LineChart as LineChartIcon,
+  Download,
 } from "lucide-react";
+import * as XLSX from 'xlsx';
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/card";
 import api from "../../shared/services/Api";
 import { useAuth } from "@/features/authentication";
@@ -37,6 +39,85 @@ const BookingsTrendChart = () => {
       month: "short",
       year: "2-digit",
     });
+  };
+
+  // Export data to Excel
+  const exportToExcel = () => {
+    if (!data || data.length === 0) {
+      alert("No data available to export");
+      return;
+    }
+
+    try {
+      // Prepare data for Excel export
+      const exportData = data.map((item, index) => ({
+        'Month': item.monthLabel,
+        'Month-Year': item.month,
+        'Total Bookings': item.bookings,
+        'Rank': index + 1
+      }));
+
+      // Add summary statistics
+      const totalBookings = data.reduce((sum, item) => sum + item.bookings, 0);
+      const averageBookings = Math.round(totalBookings / data.length);
+      const peakBookings = Math.max(...data.map((item) => item.bookings));
+      const peakMonth = data.find(item => item.bookings === peakBookings)?.monthLabel || 'N/A';
+
+      // Add empty row and summary
+      exportData.push({});
+      exportData.push({
+        'Month': 'SUMMARY STATISTICS',
+        'Month-Year': '',
+        'Total Bookings': '',
+        'Rank': ''
+      });
+      exportData.push({
+        'Month': 'Total Bookings (12 months)',
+        'Month-Year': '',
+        'Total Bookings': totalBookings,
+        'Rank': ''
+      });
+      exportData.push({
+        'Month': 'Average per Month',
+        'Month-Year': '',
+        'Total Bookings': averageBookings,
+        'Rank': ''
+      });
+      exportData.push({
+        'Month': 'Peak Month',
+        'Month-Year': peakMonth,
+        'Total Bookings': peakBookings,
+        'Rank': ''
+      });
+
+      // Create workbook and worksheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
+
+      // Set column widths for better formatting
+      const colWidths = [
+        { wch: 15 }, // Month
+        { wch: 12 }, // Month-Year
+        { wch: 15 }, // Total Bookings
+        { wch: 8 }   // Rank
+      ];
+      ws['!cols'] = colWidths;
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Booking Trends");
+
+      // Generate filename with current date
+      const currentDate = new Date().toISOString().split('T')[0];
+      const filename = `booking-trends-report-${currentDate}.xlsx`;
+
+      // Save the file
+      XLSX.writeFile(wb, filename);
+
+      console.log(`Excel file exported successfully: ${filename}`);
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      alert("Failed to export data. Please try again.");
+    }
   };
 
   // Fetch data from API
@@ -181,44 +262,61 @@ const BookingsTrendChart = () => {
         </p>
 
         {/* Controls */}
-        <div className="flex flex-wrap items-center gap-4 mt-4">
-          {/* Chart Type Toggle */}
-          <div className="flex items-center gap-2">
-            <button
-              className={`px-3 py-2 text-sm rounded-md transition-colors ${
-                chartType === "bar"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-              onClick={() => setChartType("bar")}
-            >
-              <BarChart3 className="h-4 w-4 inline mr-1" />
-              Bar
-            </button>
-            <button
-              className={`px-3 py-2 text-sm rounded-md transition-colors ${
-                chartType === "line"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-              onClick={() => setChartType("line")}
-            >
-              <LineChartIcon className="h-4 w-4 inline mr-1" />
-              Line
-            </button>
+        <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Chart Type Toggle */}
+            <div className="flex items-center gap-2">
+              <button
+                className={`px-3 py-2 text-sm rounded-md transition-colors ${
+                  chartType === "bar"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+                onClick={() => setChartType("bar")}
+              >
+                <BarChart3 className="h-4 w-4 inline mr-1" />
+                Bar
+              </button>
+              <button
+                className={`px-3 py-2 text-sm rounded-md transition-colors ${
+                  chartType === "line"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+                onClick={() => setChartType("line")}
+              >
+                <LineChartIcon className="h-4 w-4 inline mr-1" />
+                Line
+              </button>
+            </div>
+
+            {/* Date Picker */}
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-gray-500" />
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                min="2025-01-01"
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+            </div>
           </div>
 
-          {/* Date Picker */}
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-gray-500" />
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              min="2025-01-01"
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-            />
-          </div>
+          {/* Export Button */}
+          <button
+            onClick={exportToExcel}
+            disabled={!data || data.length === 0}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              data && data.length > 0
+                ? "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
+            title={data && data.length > 0 ? "Export data to Excel" : "No data available to export"}
+          >
+            <Download className="h-4 w-4" />
+            Export Excel
+          </button>
         </div>
       </CardHeader>
 

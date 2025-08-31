@@ -317,6 +317,19 @@ const RoomManager = () => {
       return;
     }
 
+    // Validate file sizes (4MB limit per file)
+    const maxFileSize = 4 * 1024 * 1024; // 4MB in bytes
+    const oversizedFiles = selectedFiles.filter(file => file.size > maxFileSize);
+    
+    if (oversizedFiles.length > 0) {
+      const fileNames = oversizedFiles.map(file => file.name).join(', ');
+      toast.error(`File size too large: ${fileNames}`, {
+        description: "Each image must be smaller than 4MB. Please compress your images and try again.",
+        duration: 8000
+      });
+      return;
+    }
+
     const filesToAdd = selectedFiles.slice(0, remainingSlots);
 
     try {

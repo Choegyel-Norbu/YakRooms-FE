@@ -17,6 +17,8 @@ import {
   Navigation,
   ExternalLink,
   Home,
+  CalendarPlus,
+  RefreshCw,
 } from "lucide-react";
 import { Separator } from "@/shared/components/separator";
 import { Button } from "@/shared/components/button";
@@ -24,6 +26,7 @@ import { Link } from "react-router-dom";
 import api from "../../shared/services/Api";
 import { useAuth } from "../authentication";
 import { toast } from "sonner";
+import { CustomDatePicker } from "../../shared/components";
 
 // Number formatting function
 const formatCurrency = (amount) => {
@@ -36,7 +39,7 @@ const statusConfig = {
     label: "Confirmed",
     color: "bg-green-50 text-green-700 border border-green-200",
     icon: CheckCircle,
-    actions: ["view", "directions"],
+    actions: ["view", "directions", "extend"],
   },
   PENDING: {
     label: "Pending",
@@ -60,7 +63,7 @@ const statusConfig = {
     label: "Checked In",
     color: "bg-purple-50 text-purple-700 border border-purple-200",
     icon: CheckCircle,
-    actions: ["view", "directions"],
+    actions: ["view", "directions", "extend"],
   },
   CHECKED_OUT: {
     label: "Checked Out",
@@ -127,6 +130,7 @@ const ActionButton = ({ action, onClick, disabled = false }) => {
     directions: { label: "Directions", icon: Navigation, variant: "outline" },
     cancel: { label: "Cancel", icon: X, variant: "outline" },
     contact: { label: "Contact", icon: Phone, variant: "outline" },
+    extend: { label: "Extend", icon: CalendarPlus, variant: "outline" },
   };
 
   const config = buttonConfig[action];
@@ -293,15 +297,404 @@ const GoogleMapsModal = ({ booking, isOpen, onClose }) => {
   );
 };
 
+// Extend Booking Modal Component
+const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
+  const [newCheckOutDate, setNewCheckOutDate] = useState("");
+  const [bookedDates, setBookedDates] = useState([]);
+  const [isLoadingBookedDates, setIsLoadingBookedDates] = useState(false);
+  const [isExtending, setIsExtending] = useState(false);
+  const [error, setError] = useState("");
+  const [availabilityChecked, setAvailabilityChecked] = useState(false);
+
+  // Reset state when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setNewCheckOutDate("");
+      setBookedDates([]);
+      setError("");
+      setAvailabilityChecked(false);
+      if (booking) {
+        fetchBookedDates();
+      }
+    }
+  }, [isOpen, booking]);
+
+  // Fetch booked dates for the room
+  const fetchBookedDates = async () => {
+    if (!booking?.roomId) return;
+    
+    setIsLoadingBookedDates(true);
+    try {
+      const response = await api.get(`/rooms/${booking.roomId}/booked-dates`);
+      if (response.data && response.data.bookedDates) {
+        setBookedDates(response.data.bookedDates);
+        
+        // Check if extension is possible (tomorrow is available)
+        const currentCheckOut = new Date(booking.checkOutDate);
+        const tomorrow = new Date(currentCheckOut);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const tomorrowBlocked = response.data.bookedDates.some(blockedDate => {
+          const blocked = new Date(blockedDate);
+          return blocked.toDateString() === tomorrow.toDateString();
+        });
+        
+        if (tomorrowBlocked) {
+          setError("Unfortunately, your room is not available for extension as it's already booked from tomorrow onwards. We recommend making a new booking for your desired dates using our hotel search feature.");
+        }
+        
+        setAvailabilityChecked(true);
+      }
+    } catch (error) {
+      console.error('Failed to fetch booked dates:', error);
+      toast.error('Failed to load booking calendar', {
+        description: 'Could not fetch booked dates. Please try again.',
+        duration: 6000
+      });
+      setAvailabilityChecked(true);
+    } finally {
+      setIsLoadingBookedDates(false);
+    }
+  };
+
+  // Get minimum date for new checkout (day after current checkout)
+  const getMinCheckOutDate = () => {
+    if (!booking?.checkOutDate) return new Date();
+    const currentCheckOut = new Date(booking.checkOutDate);
+    const minDate = new Date(currentCheckOut);
+    minDate.setDate(minDate.getDate() + 1);
+    return minDate;
+  };
+
+  // Calculate additional nights and cost
+  const calculateExtension = () => {
+    if (!newCheckOutDate || !booking?.checkOutDate) return { nights: 0, cost: 0 };
+    
+    // Calculate extension from current checkout to new checkout
+    const currentCheckOut = new Date(booking.checkOutDate);
+    const newCheckOut = new Date(newCheckOutDate);
+    const diffTime = newCheckOut.getTime() - currentCheckOut.getTime();
+    const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Calculate cost based on original booking's per-night rate
+    const originalNights = calculateNights(booking.checkInDate, booking.checkOutDate);
+    const pricePerNight = booking.totalPrice / originalNights;
+    const cost = nights * pricePerNight;
+    
+    return { 
+      nights: nights > 0 ? nights : 0, 
+      cost: cost > 0 ? cost : 0
+    };
+  };
+
+  // Calculate nights between two dates
+  const calculateNights = (checkIn, checkOut) => {
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    const diffTime = checkOutDate - checkInDate;
+    const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return nights;
+  };
+
+  // Handle date selection
+  const handleDateSelect = (date) => {
+    if (!date) {
+      setNewCheckOutDate("");
+      setError("");
+      return;
+    }
+
+    // Format date to YYYY-MM-DD (this becomes the new checkout date)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateValue = `${year}-${month}-${day}`;
+    
+    setNewCheckOutDate(dateValue);
+    setError("");
+
+    // Check if there are any booked dates between current checkout and new checkout
+    const currentCheckOut = new Date(booking.checkOutDate);
+    const selectedDate = new Date(date);
+    
+    // Check for conflicts between current checkout and new checkout
+    const conflictingDates = [];
+    const hasConflict = bookedDates.some(blockedDate => {
+      const blocked = new Date(blockedDate);
+      if (blocked > currentCheckOut && blocked <= selectedDate) {
+        conflictingDates.push(blocked.toLocaleDateString());
+        return true;
+      }
+      return false;
+    });
+
+    if (hasConflict) {
+      // Check if tomorrow (first day after checkout) is blocked
+      const tomorrow = new Date(currentCheckOut);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowBlocked = bookedDates.some(blockedDate => {
+        const blocked = new Date(blockedDate);
+        return blocked.toDateString() === tomorrow.toDateString();
+      });
+
+      if (tomorrowBlocked) {
+        setError("You cannot select dates");
+      } else {
+        setError(`The selected extension period conflicts with existing bookings on: ${conflictingDates.join(', ')}. Please select a shorter extension period or make a new booking for your desired dates.`);
+      }
+    }
+  };
+
+  // Handle extend booking
+  const handleExtendBooking = async () => {
+    if (!newCheckOutDate || error) return;
+
+    const extension = calculateExtension();
+    if (extension.nights <= 0) {
+      setError("Please select a valid extension date.");
+      return;
+    }
+
+    setIsExtending(true);
+    try {
+      const payload = {
+        newCheckOutDate: newCheckOutDate,     
+        guests: booking.guests,               
+        phone: booking.phone,                 
+        destination: booking.destination,     
+        origin: booking.origin,               
+      };
+
+      const response = await api.put(`/bookings/${booking.id}/extend`, payload);
+      
+      if (response.status === 200) {
+        toast.success("Booking extended successfully!", {
+          description: `Your stay has been extended until ${new Date(newCheckOutDate).toLocaleDateString()}.`,
+          duration: 6000
+        });
+        onExtend(response.data);
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error extending booking:", error);
+      
+      // Handle specific error cases
+      if (error.response?.status === 409) {
+        setError("The selected dates are no longer available. Please choose different dates.");
+      } else if (error.response?.status === 400) {
+        setError(error.response.data?.message || "Invalid extension request. Please check your dates.");
+      } else {
+        toast.error("Failed to extend booking", {
+          description: "There was an error processing your extension. Please try again.",
+          duration: 6000
+        });
+      }
+    } finally {
+      setIsExtending(false);
+    }
+  };
+
+  // Check if extension is possible
+  const canExtend = () => {
+    if (!booking) return false;
+    const today = new Date();
+    const checkOutDate = new Date(booking.checkOutDate);
+    
+    // Can extend if checkout is today or in the future
+    return checkOutDate >= today;
+  };
+
+  if (!isOpen || !booking) return null;
+
+  const extension = calculateExtension();
+  const minDate = getMinCheckOutDate();
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-background rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto border">
+        {/* Header */}
+        <div className="flex justify-between items-center p-6 border-b">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">
+              Extend Your Stay
+            </h2>
+            <p className="text-sm text-muted-foreground">{booking.hotelName}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-accent rounded-md transition-colors cursor-pointer"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-4">
+          {!canExtend() && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <p className="text-sm text-red-800">
+                This booking cannot be extended as the checkout date has passed.
+              </p>
+            </div>
+          )}
+
+          {canExtend() && (
+            <>
+              {/* Current Booking Info */}
+              <div className="bg-muted/50 rounded-md p-4">
+                <h3 className="font-medium text-foreground mb-2">Current Booking</h3>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Check-in:</span>
+                    <span>{new Date(booking.checkInDate).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Current Check-out:</span>
+                    <span>{new Date(booking.checkOutDate).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Room:</span>
+                    <span>#{booking.roomNumber}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Loading indicator */}
+              {isLoadingBookedDates && (
+                <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />
+                  <span className="text-sm text-blue-700">Loading availability...</span>
+                </div>
+              )}
+
+              {/* Date Picker */}
+              {availabilityChecked && (
+                <div className="space-y-2">
+                  <CustomDatePicker
+                    selectedDate={newCheckOutDate ? new Date(newCheckOutDate + 'T12:00:00') : null}
+                    onDateSelect={handleDateSelect}
+                    blockedDates={bookedDates}
+                    minDate={minDate}
+                    placeholder="Select new checkout date"
+                    label="New Check-out Date *"
+                    error={error}
+                    disabled={isLoadingBookedDates}
+                    className="w-full"
+                  />
+                </div>
+              )}
+
+              {/* Extension Summary */}
+              {extension.nights > 0 && !error && (
+                <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                  <h4 className="font-medium text-green-800 mb-2">Extension Summary</h4>
+                  <div className="space-y-1 text-sm text-green-700">
+                    <div className="flex justify-between">
+                      <span>Current check-out:</span>
+                      <span className="font-medium">{new Date(booking.checkOutDate).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>New check-out:</span>
+                      <span className="font-medium">{new Date(newCheckOutDate).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Additional nights:</span>
+                      <span className="font-medium">{extension.nights}</span>
+                    </div>
+                    <div className="flex justify-between font-medium pt-2 border-t border-green-300">
+                      <span>Additional cost:</span>
+                      <span>{formatCurrency(extension.cost)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* No availability message */}
+              {availabilityChecked && bookedDates.length > 0 && !error && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                  <p className="text-sm text-yellow-800">
+                    <strong>Note:</strong> Some dates may not be available due to existing bookings. 
+                    If your desired extension dates are not available, consider making a new booking for alternative dates.
+                  </p>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <h4 className="font-medium text-red-800 mb-1">Extension Not Available</h4>
+                      <p className="text-sm text-red-700 mb-3">{error}</p>
+                      {error.includes("tomorrow onwards") && (
+                        <div className="bg-white border border-red-300 rounded-md p-3">
+                          <p className="text-sm text-red-800 font-medium mb-2">Alternative Options:</p>
+                          <ul className="text-sm text-red-700 space-y-1">
+                            <li>• Search for available rooms at this hotel for your desired dates</li>
+                            <li>• Browse other hotels in the same area</li>
+                            <li>• Consider flexible dates for better availability</li>
+                          </ul>
+                          <div className="mt-3 pt-3 border-t border-red-200">
+                            <Link 
+                              to="/hotel" 
+                              className="inline-flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-800 transition-colors"
+                            >
+                              <ExternalLink size={14} />
+                              Browse Available Hotels
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Footer */}
+        {canExtend() && (
+          <div className="flex gap-2 p-6 border-t">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-input bg-background hover:bg-accent rounded-md transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleExtendBooking}
+              disabled={!newCheckOutDate || extension.nights <= 0 || error || isExtending}
+              className="flex-1 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {isExtending ? (
+                <span className="flex items-center justify-center gap-2">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Extending...
+                </span>
+              ) : (
+                `Extend Stay (${formatCurrency(extension.cost)})`
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const BookingCard = ({
   booking,
   onViewDetails,
   onCancel,
   onContact,
   onDirections,
+  onExtend,
 }) => {
   const config = statusConfig[booking.status] || statusConfig.PENDING; // Fallback to PENDING if status not found
   const isDisabled = booking.status === "CANCELLED";
+  const isCheckedOut = booking.status === "CHECKED_OUT";
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -343,9 +736,11 @@ const BookingCard = ({
 
   return (
     <div
-      className={`bg-card rounded-lg border p-4 sm:p-6 transition-all hover:shadow-md ${
-        isDisabled ? "opacity-60" : ""
-      }`}
+      className={`rounded-lg border p-4 sm:p-6 transition-all hover:shadow-md ${
+        isCheckedOut 
+          ? "bg-red-50 border-red-200 hover:bg-red-100" 
+          : "bg-card"
+      } ${isDisabled ? "opacity-60" : ""}`}
     >
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
@@ -515,6 +910,7 @@ const BookingCard = ({
               if (action === "view") onViewDetails(booking);
               else if (action === "directions") onDirections(booking);
               else if (action === "contact") onContact(booking);
+              else if (action === "extend") onExtend(booking);
             }}
           />
         ))}
@@ -872,6 +1268,8 @@ const GuestDashboard = () => {
   const [isDirectionsModalOpen, setIsDirectionsModalOpen] = useState(false);
   const [selectedBookingForDirections, setSelectedBookingForDirections] =
     useState(null);
+  const [isExtendModalOpen, setIsExtendModalOpen] = useState(false);
+  const [selectedBookingForExtend, setSelectedBookingForExtend] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
@@ -980,6 +1378,18 @@ const GuestDashboard = () => {
     setIsDirectionsModalOpen(true);
   };
 
+  const handleExtend = (booking) => {
+    setSelectedBookingForExtend(booking);
+    setIsExtendModalOpen(true);
+  };
+
+  const handleExtendSuccess = (updatedBooking) => {
+    // Refresh the bookings list to show updated data
+    fetchBookings(currentPage);
+    setIsExtendModalOpen(false);
+    setSelectedBookingForExtend(null);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -1033,6 +1443,7 @@ const GuestDashboard = () => {
                     onCancel={handleCancel}
                     onContact={handleContact}
                     onDirections={handleDirections}
+                    onExtend={handleExtend}
                   />
                   {/* Mobile Separator between cards */}
                   {index < bookings.length - 1 && (
@@ -1073,6 +1484,14 @@ const GuestDashboard = () => {
         booking={selectedBookingForDirections}
         isOpen={isDirectionsModalOpen}
         onClose={() => setIsDirectionsModalOpen(false)}
+      />
+
+      {/* Extend Booking Modal */}
+      <ExtendBookingModal
+        booking={selectedBookingForExtend}
+        isOpen={isExtendModalOpen}
+        onClose={() => setIsExtendModalOpen(false)}
+        onExtend={handleExtendSuccess}
       />
     </div>
   );
