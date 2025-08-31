@@ -259,8 +259,14 @@ export default function RoomBookingCard({ room, hotelId }) {
 
     }
 
-    if (!bookingDetails.guests)
-      newErrors.guests = "Please select number of guests";
+    // Validate guest count
+    if (!bookingDetails.guests || bookingDetails.guests < 1) {
+      newErrors.guests = "Number of guests is required and must be at least 1";
+    } else if (room.maxGuests > 0 && bookingDetails.guests > room.maxGuests) {
+      newErrors.guests = `Maximum ${room.maxGuests} guests allowed for this room`;
+    } else if (bookingDetails.guests > 6) {
+      newErrors.guests = "Maximum 6 guests allowed";
+    }
     
     console.log("Validation errors:", newErrors);
     return newErrors;
@@ -347,12 +353,7 @@ export default function RoomBookingCard({ room, hotelId }) {
     }
   };
 
-  const handleSelectChange = (name, value) => {
-    setBookingDetails((prev) => ({
-      ...prev,
-      [name]: parseInt(value),
-    }));
-  };
+
 
   const handleImmediateInputChange = (e) => {
     const { name, value } = e.target;
@@ -739,7 +740,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                   </svg>
                 )}
-                {isLoadingBookedDates ? "Checking Availability..." : "Check Bookings"}
+                {isLoadingBookedDates ? "Checking Availability..." : "Check available dates"}
               </span>
             </Button>
           ) : (
@@ -969,36 +970,54 @@ export default function RoomBookingCard({ room, hotelId }) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="guests">Guests</Label>
+                  <Label htmlFor="guests" className="text-sm">
+                    Number of Guests <span className="text-destructive">*</span>
+                  </Label>
                   <Select
                     name="guests"
                     value={String(bookingDetails.guests)}
-                    onValueChange={(value) =>
-                      handleSelectChange("guests", value)
-                    }
+                    onValueChange={(value) => {
+                      const numGuests = parseInt(value);
+                      setBookingDetails((prev) => ({
+                        ...prev,
+                        guests: numGuests,
+                      }));
+                      // Clear error for this field
+                      if (errors.guests) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          guests: undefined
+                        }));
+                      }
+                    }}
                   >
-                    <SelectTrigger>
-                      {/* Removed Users icon */}
-                      <SelectValue
-                        placeholder="Select guests"
-                        className="pl-2"
-                      />
+                    <SelectTrigger className={`text-sm ${errors.guests ? "border-destructive" : ""}`}>
+                      <SelectValue placeholder="Select guests" />
                     </SelectTrigger>
                     <SelectContent>
-                      {[1, 2, 3, 4, 5, 6].map((num) => (
-                        <SelectItem key={num} value={String(num)}>
-                          {num} {num === 1 ? "guest" : "guests"}
-                        </SelectItem>
-                      ))}
+                      {(() => {
+                        const maxGuests = room.maxGuests > 0 ? Math.min(room.maxGuests, 6) : 6;
+                        return Array.from({ length: maxGuests }, (_, i) => i + 1).map((num) => (
+                          <SelectItem key={num} value={String(num)}>
+                            {num} {num === 1 ? "guest" : "guests"}
+                          </SelectItem>
+                        ));
+                      })()}
                     </SelectContent>
                   </Select>
+                  {errors.guests && (
+                    <p className="text-sm text-destructive">{errors.guests}</p>
+                  )}
+                  {room.maxGuests > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Maximum {room.maxGuests} guests allowed for this room
+                    </p>
+                  )}
                 </div>
                 {/* Removed numberOfRooms (room) field */}
               </div>
 
               <Separator className="my-2" />
-
-
 
               <div className="space-y-2 text-sm">
                 {bookingDetails.checkInDate && (

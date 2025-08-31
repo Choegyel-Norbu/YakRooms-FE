@@ -328,7 +328,7 @@ const BookingTable = ({ hotelId }) => {
               {bookings.map((booking) => (
                 <TableRow key={booking.id}>
                   <TableCell>
-                    <div className="font-medium">{booking.guestName}</div>
+                    <div className="font-medium">{booking.guestName} {booking.name}</div>
                     <div className="text-sm text-muted-foreground">
                       {booking.email}
                     </div>

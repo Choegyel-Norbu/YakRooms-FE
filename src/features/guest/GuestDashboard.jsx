@@ -786,9 +786,6 @@ const BookingCard = ({
               <p className="text-sm text-muted-foreground mb-1">
                 {booking.hotelDistrict && `${booking.hotelDistrict} District`}
               </p>
-              <p className="text-xs text-muted-foreground">
-                Room #{booking.roomNumber} • Booking ID: #{booking.id}
-              </p>
             </div>
           </div>
         </div>
@@ -920,7 +917,6 @@ const BookingCard = ({
       {/* Booking Date */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-muted-foreground mb-4 gap-1">
         <span>Booked on {formatDate(booking.createdAt)}</span>
-        <span>Room ID: {booking.roomId}</span>
       </div>
 
       {/* Actions */}

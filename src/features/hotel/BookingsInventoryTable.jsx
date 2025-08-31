@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Download, Search, Calendar, FileText, Loader2, ChevronLeft, ChevronRight, Filter, CalendarIcon, X } from "lucide-react";
+import { Download, Search, Calendar, FileText, Loader2, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
 import * as XLSX from "xlsx";
 import {
   Card,
@@ -10,11 +10,7 @@ import {
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
 import { Badge } from "@/shared/components/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/shared/components/popover";
+
 import {
   Select,
   SelectContent,
@@ -42,10 +38,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
   
-  // Date range search states
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [showDateRangePicker, setShowDateRangePicker] = useState(false);
+
 
   const pageSize = 10; // Number of bookings per page
 
@@ -73,14 +66,10 @@ const BookingsInventoryTable = ({ hotelId }) => {
           case "checkout":
             url = `/bookings/search/checkout-date?checkOutDate=${encodeURIComponent(searchParams.searchTerm)}&${baseParams}`;
             break;
-          case "status":
-            url = `/bookings/search/status?status=${encodeURIComponent(searchParams.searchTerm)}&${baseParams}`;
-            break;
           default:
             url = `/bookings/?${baseParams}`;
         }
-      } else if (searchParams.startDate && searchParams.endDate) {
-        url = `/bookings/search/date-range?startDate=${encodeURIComponent(searchParams.startDate)}&endDate=${encodeURIComponent(searchParams.endDate)}&${baseParams}`;
+
       } else {
         url = `/bookings/?${baseParams}`;
       }
@@ -114,14 +103,14 @@ const BookingsInventoryTable = ({ hotelId }) => {
   // Initial load and page changes
   useEffect(() => {
     // Only pass search params if we're maintaining an active search across page changes
-    const hasActiveSearch = searchTerm || (startDate && endDate);
+    const hasActiveSearch = searchTerm;
     const searchParams = hasActiveSearch ? getSearchParams() : {};
     fetchBookings(currentPage, searchParams);
   }, [hotelId, currentPage]);
 
   // Manual search function
   const handleSearch = () => {
-    if (searchTerm || (startDate && endDate)) {
+    if (searchTerm) {
       setCurrentPage(0); // Reset to first page when searching
       const searchParams = getSearchParams();
       fetchBookings(0, searchParams);
@@ -141,9 +130,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
 
   // Helper function to get current search parameters
   const getSearchParams = () => {
-    if (startDate && endDate) {
-      return { startDate, endDate };
-    } else if (searchTerm && searchOption !== "all") {
+    if (searchTerm && searchOption !== "all") {
       return { searchOption, searchTerm };
     }
     return {};
@@ -182,14 +169,10 @@ const BookingsInventoryTable = ({ hotelId }) => {
             case "checkout":
               url = `/bookings/search/checkout-date?checkOutDate=${encodeURIComponent(searchParams.searchTerm)}&${baseParams}`;
               break;
-            case "status":
-              url = `/bookings/search/status?status=${encodeURIComponent(searchParams.searchTerm)}&${baseParams}`;
-              break;
             default:
               url = `/bookings/?${baseParams}`;
           }
-        } else if (searchParams.startDate && searchParams.endDate) {
-          url = `/bookings/search/date-range?startDate=${encodeURIComponent(searchParams.startDate)}&endDate=${encodeURIComponent(searchParams.endDate)}&${baseParams}`;
+
         } else {
           url = `/bookings/?${baseParams}`;
         }
@@ -315,8 +298,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
     });
   };
 
-  // Get unique statuses for filter
-  const uniqueStatuses = [...new Set(bookings.map((booking) => booking.status))];
+
 
   // Pagination handlers
   const handlePreviousPage = () => {
@@ -365,10 +347,6 @@ const BookingsInventoryTable = ({ hotelId }) => {
         return "Enter check-in date (YYYY-MM-DD)...";
       case "checkout":
         return "Enter check-out date (YYYY-MM-DD)...";
-      case "status":
-        return "Enter booking status...";
-      case "daterange":
-        return "Select date range...";
       default:
         return "Select search criteria...";
     }
@@ -377,25 +355,13 @@ const BookingsInventoryTable = ({ hotelId }) => {
   // Clear search function
   const clearSearch = () => {
     setSearchTerm("");
-    setStartDate("");
-    setEndDate("");
     setSearchOption("all");
-    setShowDateRangePicker(false);
     // Immediately fetch all bookings when clearing
     setCurrentPage(0);
     fetchBookings(0);
   };
 
-  // Handle date range search
-  const handleDateRangeSearch = () => {
-    if (startDate && endDate) {
-      setSearchTerm(""); // Clear regular search when using date range
-      setShowDateRangePicker(false);
-      setCurrentPage(0);
-      const searchParams = { startDate, endDate };
-      fetchBookings(0, searchParams);
-    }
-  };
+
 
   if (loading) {
     return (
@@ -441,69 +407,11 @@ const BookingsInventoryTable = ({ hotelId }) => {
                   <SelectItem value="phone">Search by Phone</SelectItem>
                   <SelectItem value="checkin">Search by Check-in Date</SelectItem>
                   <SelectItem value="checkout">Search by Check-out Date</SelectItem>
-                  <SelectItem value="status">Search by Status</SelectItem>
-                  <SelectItem value="daterange">Date Range Search</SelectItem>
                 </SelectContent>
               </Select>
 
-              {/* Conditional Search Input or Date Range Picker */}
-              {searchOption === "daterange" ? (
-                <Popover open={showDateRangePicker} onOpenChange={setShowDateRangePicker}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="flex-1 justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate && endDate
-                        ? `${startDate} to ${endDate}`
-                        : "Select date range..."}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-4" align="start">
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-sm font-medium">Start Date</label>
-                          <Input
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">End Date</label>
-                          <Input
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={handleDateRangeSearch}
-                          disabled={!startDate || !endDate}
-                          size="sm"
-                        >
-                          Search
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            setStartDate("");
-                            setEndDate("");
-                            setShowDateRangePicker(false);
-                          }}
-                          variant="outline"
-                          size="sm"
-                        >
-                          Clear
-                        </Button>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              ) : searchOption !== "all" ? (
+              {/* Conditional Search Input */}
+              {searchOption !== "all" ? (
                 <div className="flex gap-2 flex-1">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -527,7 +435,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
               ) : null}
 
               {/* Clear Search Button */}
-              {(searchTerm || startDate || endDate) && (
+              {searchTerm && (
                 <Button
                   onClick={clearSearch}
                   variant="outline"
@@ -623,7 +531,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
                     {/* Guest Details */}
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="font-medium text-sm">{booking.name}</div>
+                        <div className="font-medium text-sm">{booking.name} {booking.guestName}</div>
                         <div className="text-xs text-muted-foreground">{booking.email}</div>
                         <div className="text-xs text-muted-foreground">{booking.phone}</div>
                       </div>
@@ -706,7 +614,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
         {bookings.length > 0 && (
           <div className="text-sm text-muted-foreground text-center">
             Showing {bookings.length} of {totalElements} bookings
-            {(searchTerm || startDate || endDate) && " (filtered)"}
+            {searchTerm && " (filtered)"}
           </div>
         )}
 
