@@ -39,7 +39,7 @@ const statusConfig = {
     label: "Confirmed",
     color: "bg-green-50 text-green-700 border border-green-200",
     icon: CheckCircle,
-    actions: ["view", "directions", "extend"],
+    actions: ["view", "directions", "extend", "cancel"],
   },
   PENDING: {
     label: "Pending",
@@ -786,6 +786,9 @@ const BookingCard = ({
               <p className="text-sm text-muted-foreground mb-1">
                 {booking.hotelDistrict && `${booking.hotelDistrict} District`}
               </p>
+              <p className="text-sm text-muted-foreground mb-1">
+                Room No: #{booking.roomNumber}
+              </p>
             </div>
           </div>
         </div>
@@ -797,8 +800,11 @@ const BookingCard = ({
       {/* Stay Details */}
       <div className="bg-muted/30 rounded-lg p-3 sm:p-4 mb-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          
           <div className="flex items-center gap-2">
             <Calendar className="text-primary flex-shrink-0" size={16} />
+            
+            
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Check-in</p>
               <p
@@ -1006,9 +1012,6 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
             <h2 className="text-xl font-semibold text-foreground">
               Booking Details
             </h2>
-            <p className="text-sm text-muted-foreground">
-              Booking ID: #{booking.id}
-            </p>
           </div>
           <button
             onClick={onClose}
@@ -1032,7 +1035,7 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
                   {booking.hotelDistrict && `${booking.hotelDistrict} District`}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Room #{booking.roomNumber} • Room ID: {booking.roomId}
+                  Room No: {booking.roomNumber}
                 </p>
                 <div className="mt-2">
                   <StatusBadge status={booking.status} />
@@ -1131,12 +1134,6 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
                 <p className="text-foreground">
                   {formatDateTime(booking.createdAt)}
                 </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">
-                  User ID
-                </label>
-                <p className="text-foreground">#{booking.userId}</p>
               </div>
             </div>
           </div>
