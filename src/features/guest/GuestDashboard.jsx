@@ -844,8 +844,8 @@ const BookingCard = ({
         <Separator className="my-3" />
       </div>
 
-      {/* Guest and Price Info */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+      {/* Guest, Price, and Passcode Info */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
         <div className="flex items-center gap-2">
           <User className="text-muted-foreground flex-shrink-0" size={16} />
           <div className="min-w-0">
@@ -875,6 +875,25 @@ const BookingCard = ({
             </p>
           </div>
         </div>
+        {booking.passcode && (
+          <div className="flex items-center gap-2">
+            <div className="bg-primary/10 text-primary p-1 rounded flex-shrink-0">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Room Passcode</p>
+              <p
+                className={`text-sm font-mono font-bold tracking-wider ${
+                  isDisabled ? "text-muted-foreground" : "text-primary"
+                }`}
+              >
+                {booking.passcode}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Mobile Separator */}
@@ -1051,6 +1070,26 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
                     </p>
                   </div>
                 </div>
+                {booking.passcode && (
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary/10 text-primary p-1 rounded">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Room Passcode
+                      </label>
+                      <p className="text-foreground font-mono font-bold text-lg tracking-wider text-primary">
+                        {booking.passcode}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Use this code to access your room
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">

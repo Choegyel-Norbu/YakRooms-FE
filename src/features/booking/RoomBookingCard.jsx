@@ -103,6 +103,45 @@ export default function RoomBookingCard({ room, hotelId }) {
     await fetchBookedDates();
   };
 
+  // Helper function to check if a date is between two booked dates
+  const isDateBetweenBookedDates = (dateString) => {
+    if (!dateString || bookedDates.length === 0) return false;
+    
+    const selectedDate = new Date(dateString);
+    const selectedDateString = selectedDate.getFullYear() + '-' + 
+      String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(selectedDate.getDate()).padStart(2, '0');
+    
+    // Sort booked dates to find consecutive bookings
+    const sortedBookedDates = [...bookedDates].sort();
+    
+    for (let i = 0; i < sortedBookedDates.length; i++) {
+      const currentBookedDate = new Date(sortedBookedDates[i]);
+      const nextDay = new Date(currentBookedDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      
+      const nextDayString = nextDay.getFullYear() + '-' + 
+        String(nextDay.getMonth() + 1).padStart(2, '0') + '-' + 
+        String(nextDay.getDate()).padStart(2, '0');
+      
+      // Check if selected date is the day after a booked date
+      if (selectedDateString === nextDayString) {
+        // Check if the day after selected date is also booked
+        const dayAfterSelected = new Date(selectedDate);
+        dayAfterSelected.setDate(dayAfterSelected.getDate() + 1);
+        const dayAfterSelectedString = dayAfterSelected.getFullYear() + '-' + 
+          String(dayAfterSelected.getMonth() + 1).padStart(2, '0') + '-' + 
+          String(dayAfterSelected.getDate()).padStart(2, '0');
+        
+        if (bookedDates.includes(dayAfterSelectedString)) {
+          return true; // Selected date is between two booked dates
+        }
+      }
+    }
+    
+    return false;
+  };
+
   // Get minimum date for check-out (must be after check-in)
   const getMinCheckOutDate = () => {
     if (!bookingDetails.checkInDate) {
@@ -119,12 +158,27 @@ export default function RoomBookingCard({ room, hotelId }) {
     return minCheckOut;
   };
 
+  // Check if checkout date picker should be hidden
+  const shouldHideCheckoutDate = () => {
+    return bookingDetails.checkInDate && isDateBetweenBookedDates(bookingDetails.checkInDate);
+  };
+
 
 
   const calculateDays = () => {
-    if (!bookingDetails.checkInDate || !bookingDetails.checkOutDate) {
+    if (!bookingDetails.checkInDate) {
       return 0;
     }
+    
+    // If check-in date is between booked dates, it's a single night stay
+    if (isDateBetweenBookedDates(bookingDetails.checkInDate)) {
+      return 1;
+    }
+    
+    if (!bookingDetails.checkOutDate) {
+      return 0;
+    }
+    
     const checkIn = new Date(bookingDetails.checkInDate);
     const checkOut = new Date(bookingDetails.checkOutDate);
     const timeDiff = checkOut.getTime() - checkIn.getTime();
@@ -228,10 +282,10 @@ export default function RoomBookingCard({ room, hotelId }) {
       }
     }
     
-    // Comprehensive check-out date validation
-    if (!bookingDetails.checkOutDate) {
+    // Comprehensive check-out date validation (skip if check-in is between booked dates)
+    if (!shouldHideCheckoutDate() && !bookingDetails.checkOutDate) {
       newErrors.checkOutDate = "Check-out date is required";
-    } else {
+    } else if (bookingDetails.checkOutDate) {
       const checkOutDate = new Date(bookingDetails.checkOutDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Set to start of day for proper comparison
@@ -304,16 +358,41 @@ export default function RoomBookingCard({ room, hotelId }) {
       dateValue = `${year}-${month}-${day}`;
     }
     
-    setBookingDetails((prev) => ({
-      ...prev,
-      [name]: dateValue,
-    }));
+    setBookingDetails((prev) => {
+      const newDetails = {
+        ...prev,
+        [name]: dateValue,
+      };
+      
+      // If selecting check-in date and it's between booked dates, set checkout to next day
+      if (name === "checkInDate" && dateValue && isDateBetweenBookedDates(dateValue)) {
+        const checkInDate = new Date(dateValue);
+        const checkOutDate = new Date(checkInDate);
+        checkOutDate.setDate(checkOutDate.getDate() + 1);
+        
+        const checkOutDateString = checkOutDate.getFullYear() + '-' + 
+          String(checkOutDate.getMonth() + 1).padStart(2, '0') + '-' + 
+          String(checkOutDate.getDate()).padStart(2, '0');
+        
+        newDetails.checkOutDate = checkOutDateString;
+      }
+      
+      return newDetails;
+    });
     
     // Clear error for this field
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
         [name]: undefined
+      }));
+    }
+    
+    // Clear checkout date error if check-in is between booked dates
+    if (name === "checkInDate" && dateValue && isDateBetweenBookedDates(dateValue)) {
+      setErrors((prev) => ({
+        ...prev,
+        checkOutDate: undefined
       }));
     }
     
@@ -329,8 +408,8 @@ export default function RoomBookingCard({ room, hotelId }) {
         }));
       }
       
-      // Also validate checkout if it exists
-      if (bookingDetails.checkOutDate) {
+      // Also validate checkout if it exists and check-in is not between booked dates
+      if (bookingDetails.checkOutDate && !isDateBetweenBookedDates(dateValue)) {
         const checkOutDate = new Date(bookingDetails.checkOutDate);
         if (checkOutDate <= date) {
           setErrors((prev) => ({
@@ -954,19 +1033,39 @@ export default function RoomBookingCard({ room, hotelId }) {
                 />
               </div>
 
-              <div className="grid gap-2">
-                <CustomDatePicker
-                  selectedDate={bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate + 'T12:00:00') : null}
-                  onDateSelect={(date) => handleDateSelect("checkOutDate", date)}
-                  blockedDates={bookedDates}
-                  minDate={getMinCheckOutDate()}
-                  placeholder="Select check-out date"
-                  label="Check-out *"
-                  error={errors.checkOutDate}
-                  disabled={isLoadingBookedDates}
-                  className="w-full"
-                />
-              </div>
+              {!shouldHideCheckoutDate() && (
+                <div className="grid gap-2">
+                  <CustomDatePicker
+                    selectedDate={bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate + 'T12:00:00') : null}
+                    onDateSelect={(date) => handleDateSelect("checkOutDate", date)}
+                    blockedDates={bookedDates}
+                    minDate={getMinCheckOutDate()}
+                    placeholder="Select check-out date"
+                    label="Check-out *"
+                    error={errors.checkOutDate}
+                    disabled={isLoadingBookedDates}
+                    className="w-full"
+                  />
+                </div>
+              )}
+              
+              {shouldHideCheckoutDate() && (
+                <div className="grid gap-2">
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div className="text-sm">
+                        <p className="font-medium text-blue-800">Single Night Stay</p>
+                        <p className="text-blue-700 mt-1">
+                          This date is available for one night only. Checkout date is automatically set to {bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate).toLocaleDateString() : 'the next day'}.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
