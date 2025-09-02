@@ -27,6 +27,16 @@ import api from "../../shared/services/Api";
 import { useAuth } from "../authentication";
 import { toast } from "sonner";
 import { CustomDatePicker } from "../../shared/components";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/components";
 
 // Number formatting function
 const formatCurrency = (amount) => {
@@ -967,6 +977,53 @@ const BookingCard = ({
   );
 };
 
+// Cancellation Confirmation Dialog Component
+const CancellationConfirmationDialog = ({ 
+  booking, 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  isCancelling = false 
+}) => {
+  if (!isOpen || !booking) return null;
+
+  return (
+    <AlertDialog open={isOpen} onOpenChange={onClose}>
+      <AlertDialogContent className="sm:max-w-md">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <XCircle className="h-5 w-5 text-red-500" />
+            Cancel Booking
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to cancel the booking?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isCancelling}>
+            Exit
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirm}
+            disabled={isCancelling}
+            className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
+          >
+            {isCancelling ? (
+              <span className="flex items-center gap-2">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Processing...
+              </span>
+            ) : (
+              "Proceed"
+            )}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
 // Booking details modal
 const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
   if (!isOpen || !booking) return null;
@@ -1329,6 +1386,9 @@ const GuestDashboard = () => {
     useState(null);
   const [isExtendModalOpen, setIsExtendModalOpen] = useState(false);
   const [selectedBookingForExtend, setSelectedBookingForExtend] = useState(null);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [selectedBookingForCancel, setSelectedBookingForCancel] = useState(null);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
@@ -1409,21 +1469,38 @@ const GuestDashboard = () => {
     setIsModalOpen(true);
   };
 
-  const handleCancel = async (booking) => {
+  const handleCancel = (booking) => {
+    setSelectedBookingForCancel(booking);
+    setIsCancelDialogOpen(true);
+  };
+
+  const handleConfirmCancellation = async () => {
+    if (!selectedBookingForCancel) return;
+
+    console.log("Starting cancellation for booking:", selectedBookingForCancel.id);
+    setIsCancelling(true);
     try {
-      const response = await api.post(`/bookings/${booking.id}/request-cancellation`, null, {
+      const response = await api.post(`/bookings/${selectedBookingForCancel.id}/request-cancellation`, null, {
         params: {
           userId: userId
         }
       });
       
-      if (response.data.success) {
+      console.log("Cancellation response:", response);
+      
+      // Check if the request was successful (status 200-299)
+      if (response.status >= 200 && response.status < 300) {
         toast.success("Cancellation Request Submitted", {
-          description: response.data.message,
+          description: response.data?.message || "Your cancellation request has been submitted successfully.",
           duration: 6000,
         });
         // Refresh current page
         fetchBookings(currentPage);
+        // Close dialog
+        setIsCancelDialogOpen(false);
+        setSelectedBookingForCancel(null);
+      } else {
+        throw new Error("Unexpected response status");
       }
     } catch (error) {
       console.error("Error requesting cancellation:", error);
@@ -1431,6 +1508,15 @@ const GuestDashboard = () => {
         description: "There was an error processing your request. Please contact support if the issue persists.",
         duration: 6000,
       });
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  const handleCancelDialogClose = () => {
+    if (!isCancelling) {
+      setIsCancelDialogOpen(false);
+      setSelectedBookingForCancel(null);
     }
   };
 
@@ -1560,6 +1646,15 @@ const GuestDashboard = () => {
         isOpen={isExtendModalOpen}
         onClose={() => setIsExtendModalOpen(false)}
         onExtend={handleExtendSuccess}
+      />
+
+      {/* Cancellation Confirmation Dialog */}
+      <CancellationConfirmationDialog
+        booking={selectedBookingForCancel}
+        isOpen={isCancelDialogOpen}
+        onClose={handleCancelDialogClose}
+        onConfirm={handleConfirmCancellation}
+        isCancelling={isCancelling}
       />
     </div>
   );
