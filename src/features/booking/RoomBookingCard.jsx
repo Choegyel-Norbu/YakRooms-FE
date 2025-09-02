@@ -936,7 +936,8 @@ export default function RoomBookingCard({ room, hotelId }) {
                 <div className="grid gap-2">
                   <Label className="text-sm">Nationality <span className="text-destructive">*</span></Label>
                   <div className="flex items-center space-x-3">
-                    <span className="text-sm text-muted-foreground">Other</span>
+                    {/* <span className="text-sm text-muted-foreground">Other</span> */}
+                    <span className="text-sm text-muted-foreground">Bhutanese</span>
                     <Switch
                       checked={bookingDetails.isBhutanese}
                       onCheckedChange={(checked) => {
@@ -955,7 +956,6 @@ export default function RoomBookingCard({ room, hotelId }) {
                         }
                       }}
                     />
-                    <span className="text-sm text-muted-foreground">Bhutanese</span>
                   </div>
                 </div>
 
@@ -1323,7 +1323,8 @@ export default function RoomBookingCard({ room, hotelId }) {
               <div className="grid gap-2">
                 <Label className="text-sm">Nationality <span className="text-destructive">*</span></Label>
                 <div className="flex items-center space-x-3">
-                  <span className="text-sm text-muted-foreground">Other</span>
+                  {/* <span className="text-sm text-muted-foreground">Other</span> */}
+                  <span className="text-sm text-muted-foreground">Bhutanese</span>
                   <Switch
                     checked={immediateBookingDetails.isBhutanese}
                     onCheckedChange={(checked) => {
@@ -1342,7 +1343,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                       }
                     }}
                   />
-                  <span className="text-sm text-muted-foreground">Bhutanese</span>
+                  
                 </div>
               </div>
 

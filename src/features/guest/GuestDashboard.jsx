@@ -51,6 +51,12 @@ const statusConfig = {
     icon: CheckCircle,
     actions: ["view", "directions", "extend", "cancel"],
   },
+  CANCELLATION_REQUESTED: {
+    label: "Cancellation Requested",
+    color: "bg-amber-50 text-amber-700 border border-amber-200",
+    icon: AlertCircle,
+    actions: ["view", "directions"],
+  },
   PENDING: {
     label: "Pending",
     color: "bg-yellow-50 text-yellow-700 border border-yellow-200",
@@ -729,7 +735,8 @@ const BookingCard = ({
   onExtend,
 }) => {
   const config = statusConfig[booking.status] || statusConfig.PENDING; // Fallback to PENDING if status not found
-  const isDisabled = booking.status === "CANCELLED";
+  const isCancellationRequested = booking.status === "CANCELLATION_REQUESTED";
+  const isDisabled = booking.status === "CANCELLED" || isCancellationRequested;
   const isCheckedOut = booking.status === "CHECKED_OUT";
 
   const formatDate = (dateString) => {
@@ -773,10 +780,12 @@ const BookingCard = ({
   return (
     <div
       className={`rounded-lg border p-4 sm:p-6 transition-all hover:shadow-md ${
-        isCheckedOut 
-          ? "bg-red-50 border-red-200 hover:bg-red-100" 
-          : "bg-card"
-      } ${isDisabled ? "opacity-60" : ""}`}
+        isCheckedOut
+          ? "bg-red-50 border-red-200 hover:bg-red-100"
+          : isCancellationRequested
+            ? "bg-amber-50 border-amber-200 hover:bg-amber-100"
+            : "bg-card"
+      } ${isDisabled ? "opacity-60 pointer-events-none" : ""}`}
     >
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
@@ -960,9 +969,7 @@ const BookingCard = ({
           <ActionButton
             key={action}
             action={action}
-            disabled={
-              isDisabled && action !== "view" && action !== "directions"
-            }
+            disabled={isDisabled}
             onClick={() => {
               if (action === "view") onViewDetails(booking);
               else if (action === "directions") onDirections(booking);
@@ -1489,13 +1496,19 @@ const GuestDashboard = () => {
       console.log("Cancellation response:", response);
       
       // Check if the request was successful (status 200-299)
-      if (response.status >= 200 && response.status < 300) {
+      if ((response.status >= 200 && response.status < 300) && (response.data?.success === true || !('success' in response.data))) {
         toast.success("Cancellation Request Submitted", {
           description: response.data?.message || "Your cancellation request has been submitted successfully.",
           duration: 6000,
         });
-        // Refresh current page
-        fetchBookings(currentPage);
+        // Optimistically update the local booking status so the card becomes inactive immediately
+        setBookings((prev) =>
+          prev.map((b) =>
+            b.id === selectedBookingForCancel.id
+              ? { ...b, status: "CANCELLATION_REQUESTED" }
+              : b
+          )
+        );
         // Close dialog
         setIsCancelDialogOpen(false);
         setSelectedBookingForCancel(null);

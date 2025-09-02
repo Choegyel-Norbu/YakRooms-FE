@@ -523,7 +523,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
                 <div className="grid gap-2">
                   <Label className="text-sm">Nationality <span className="text-destructive">*</span></Label>
                   <div className="flex items-center space-x-3">
-                    <span className="text-sm text-muted-foreground">Other</span>
+                  <span className="text-sm text-muted-foreground">Bhutanese</span>
                     <Switch
                       checked={bookingDetails.isBhutanese}
                       onCheckedChange={(checked) => {
@@ -542,7 +542,6 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
                         }
                       }}
                     />
-                    <span className="text-sm text-muted-foreground">Bhutanese</span>
                   </div>
                 </div>
 
