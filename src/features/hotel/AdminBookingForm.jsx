@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/shared/components/select";
 import { Separator } from "@/shared/components/separator";
+import { Switch } from "@/shared/components/switch";
 import { Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { CustomDatePicker } from "../../shared/components";
@@ -43,6 +44,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
     cid: "",
     destination: "",
     origin: "",
+    isBhutanese: true,
   });
   const [errors, setErrors] = useState({});
 
@@ -208,28 +210,30 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
       }
     }
 
-    // Validate CID Number (Bhutanese Citizen Identity Document)
-    if (!bookingDetails.cid.trim()) {
-      newErrors.cid = "CID number is required";
-    } else {
-      const cid = bookingDetails.cid.trim();
-      
-      // Rule 1: Must be exactly 11 digits
-      if (!/^\d{11}$/.test(cid)) {
-        newErrors.cid = "CID must be exactly 11 digits";
+    // Validate CID Number (only required for Bhutanese citizens)
+    if (bookingDetails.isBhutanese) {
+      if (!bookingDetails.cid.trim()) {
+        newErrors.cid = "CID number is required for Bhutanese citizens";
       } else {
-        // Rule 2: Dzongkhag code must be 01–20
-        const dzongkhagCode = parseInt(cid.substring(0, 2), 10);
-        if (dzongkhagCode < 1 || dzongkhagCode > 20) {
-          newErrors.cid = "Invalid Dzongkhag code (must be 01–20)";
+        const cid = bookingDetails.cid.trim();
+        
+        // Rule 1: Must be exactly 11 digits
+        if (!/^\d{11}$/.test(cid)) {
+          newErrors.cid = "CID must be exactly 11 digits";
+        } else {
+          // Rule 2: Dzongkhag code must be 01–20
+          const dzongkhagCode = parseInt(cid.substring(0, 2), 10);
+          if (dzongkhagCode < 1 || dzongkhagCode > 20) {
+            newErrors.cid = "Invalid Dzongkhag code (must be 01–20)";
+          }
+          // Additional validation: Check if it's not all zeros or all same digits
+          else if (/^0{11}$/.test(cid)) {
+            newErrors.cid = "CID number cannot be all zeros";
+          } else if (/^(\d)\1{10}$/.test(cid)) {
+            newErrors.cid = "CID number cannot be all same digits";
+          }
+          // CID is valid if it passes all the above checks
         }
-        // Additional validation: Check if it's not all zeros or all same digits
-        else if (/^0{11}$/.test(cid)) {
-          newErrors.cid = "CID number cannot be all zeros";
-        } else if (/^(\d)\1{10}$/.test(cid)) {
-          newErrors.cid = "CID number cannot be all same digits";
-        }
-        // CID is valid if it passes all the above checks
       }
     }
 
@@ -391,6 +395,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
           cid: "",
           destination: "",
           origin: "",
+          isBhutanese: true,
         });
         setErrors({});
         setOpenBookingDialog(false);
@@ -514,8 +519,37 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
 
               {/* Additional Information Fields */}
               <div className="grid grid-cols-1 gap-4">
+                {/* Nationality Selection */}
                 <div className="grid gap-2">
-                  <Label htmlFor="cid" className="text-sm">CID Number <span className="text-destructive">*</span></Label>
+                  <Label className="text-sm">Nationality <span className="text-destructive">*</span></Label>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-sm text-muted-foreground">Other</span>
+                    <Switch
+                      checked={bookingDetails.isBhutanese}
+                      onCheckedChange={(checked) => {
+                        setBookingDetails((prev) => ({
+                          ...prev,
+                          isBhutanese: checked,
+                          // Clear CID when switching to non-Bhutanese
+                          cid: checked ? prev.cid : ""
+                        }));
+                        // Clear CID error when switching nationality
+                        if (errors.cid) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            cid: undefined
+                          }));
+                        }
+                      }}
+                    />
+                    <span className="text-sm text-muted-foreground">Bhutanese</span>
+                  </div>
+                </div>
+
+                {/* CID Number - Only show for Bhutanese */}
+                {bookingDetails.isBhutanese && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="cid" className="text-sm">CID Number <span className="text-destructive">*</span></Label>
                   <Input
                     id="cid"
                     name="cid"
@@ -527,10 +561,11 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
                     className={`text-sm ${errors.cid ? "border-destructive" : ""}`}
                   />
                   
-                  {errors.cid && (
-                    <p className="text-sm text-destructive">{errors.cid}</p>
-                  )}
-                </div>
+                    {errors.cid && (
+                      <p className="text-sm text-destructive">{errors.cid}</p>
+                    )}
+                  </div>
+                )}
 
                 <div className="grid gap-2">
                   <Label htmlFor="destination" className="text-sm">Destination <span className="text-destructive">*</span></Label>

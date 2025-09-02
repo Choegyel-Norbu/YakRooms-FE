@@ -17,6 +17,7 @@ export { Popover, PopoverContent, PopoverTrigger } from './popover';
 export { Progress } from './progress';
 export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
 export { Separator } from './separator';
+export { Switch } from './switch';
 export { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './sheet';
 export { Skeleton } from './skeleton';
 export { default as StarRating } from './star-rating';

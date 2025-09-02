@@ -8,6 +8,7 @@ export { default as AddListingPage } from './AddListingPage';
 export { default as AdminBookingForm } from './AdminBookingForm';
 export { default as BookingsTrendChart } from './BookingsTrendChart';
 export { default as BookingTable } from './BookingTable';
+export { default as CancellationRequestsTable } from './CancellationRequestsTable';
 export { default as FilterSidebar } from './FilterSidebar';
 export { default as HotelInfoForm } from './HotelInfoForm';
 export { default as HotelReviewModal } from './HotelReviewModal';

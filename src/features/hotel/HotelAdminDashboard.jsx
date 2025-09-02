@@ -68,6 +68,7 @@ import {
 import HotelInfoForm from "./HotelInfoForm";
 import RoomManager from "../admin/RoomManager";
 import BookingTable from "./BookingTable";
+import CancellationRequestsTable from "./CancellationRequestsTable";
 import AdminBookingForm from "./AdminBookingForm";
 import QRCodeScanner from "./QRCodeScanner";
 import ScannedBookingModal from "./ScannedBookingModal";
@@ -1181,6 +1182,21 @@ const HotelAdminDashboard = () => {
                       onStatusChange={updateBookingStatus}
                       viewMode="compact"
                     />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Cancellation Requests Table */}
+              <Card>
+                <CardHeader className="">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <AlertTriangle className="h-4 w-4 text-primary" />
+                    Cancellation Requests
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 md:px-6 md:pb-6">
+                  <div className="overflow-x-auto">
+                    <CancellationRequestsTable hotelId={hotelId} />
                   </div>
                 </CardContent>
               </Card>

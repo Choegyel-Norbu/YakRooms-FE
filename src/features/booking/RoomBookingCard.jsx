@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/shared/components/select";
 import { Separator } from "@/shared/components/separator";
+import { Switch } from "@/shared/components/switch";
 import { CheckCircle, AlertTriangle, UserCheck } from "lucide-react";
 import LoginModal from "../authentication/LoginModal"; // Assuming this is your LoginModal component
 import { BookingSuccessModal, CustomDatePicker } from "../../shared/components";
@@ -47,7 +48,7 @@ export default function RoomBookingCard({ room, hotelId }) {
     destination: "",
     origin: "",
     guests: 1,
-    nationality: "bhutanese",
+    isBhutanese: true,
   });
   const [immediateBookingErrors, setImmediateBookingErrors] = useState({});
   const [bookingDetails, setBookingDetails] = useState({
@@ -59,7 +60,7 @@ export default function RoomBookingCard({ room, hotelId }) {
     cid: "",
     destination: "",
     origin: "",
-    nationality: "bhutanese",
+    isBhutanese: true,
   });
   const [errors, setErrors] = useState({});
 
@@ -208,7 +209,7 @@ export default function RoomBookingCard({ room, hotelId }) {
     };
 
     // Validate CID Number (only required for Bhutanese citizens)
-    if (bookingDetails.nationality === "bhutanese") {
+    if (bookingDetails.isBhutanese) {
       if (!bookingDetails.cid.trim()) {
         newErrors.cid = "CID number is required for Bhutanese citizens";
       } else {
@@ -490,7 +491,7 @@ export default function RoomBookingCard({ room, hotelId }) {
     };
 
     // Validate CID Number (only required for Bhutanese citizens)
-    if (immediateBookingDetails.nationality === "bhutanese") {
+    if (immediateBookingDetails.isBhutanese) {
       if (!immediateBookingDetails.cid.trim()) {
         newErrors.cid = "CID number is required for Bhutanese citizens";
       } else {
@@ -602,7 +603,7 @@ export default function RoomBookingCard({ room, hotelId }) {
           cid: "",
           destination: "",
           origin: "",
-          nationality: "bhutanese",
+          isBhutanese: true,
         });
         setErrors({});
         setOpenBookingDialog(false);
@@ -676,7 +677,7 @@ export default function RoomBookingCard({ room, hotelId }) {
           destination: "",
           origin: "",
           guests: 1,
-          nationality: "bhutanese",
+          isBhutanese: true,
         });
         setImmediateBookingErrors({});
         
@@ -934,37 +935,32 @@ export default function RoomBookingCard({ room, hotelId }) {
                 {/* Nationality Selection */}
                 <div className="grid gap-2">
                   <Label className="text-sm">Nationality <span className="text-destructive">*</span></Label>
-                  <Select
-                    name="nationality"
-                    value={bookingDetails.nationality}
-                    onValueChange={(value) => {
-                      setBookingDetails((prev) => ({
-                        ...prev,
-                        nationality: value,
-                        // Clear CID when switching to non-Bhutanese
-                        cid: value === "bhutanese" ? prev.cid : ""
-                      }));
-                      // Clear CID error when switching nationality
-                      if (errors.cid) {
-                        setErrors((prev) => ({
+                  <div className="flex items-center space-x-3">
+                    <span className="text-sm text-muted-foreground">Other</span>
+                    <Switch
+                      checked={bookingDetails.isBhutanese}
+                      onCheckedChange={(checked) => {
+                        setBookingDetails((prev) => ({
                           ...prev,
-                          cid: undefined
+                          isBhutanese: checked,
+                          // Clear CID when switching to non-Bhutanese
+                          cid: checked ? prev.cid : ""
                         }));
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="text-sm">
-                      <SelectValue placeholder="Select nationality" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="bhutanese">Bhutanese</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                        // Clear CID error when switching nationality
+                        if (errors.cid) {
+                          setErrors((prev) => ({
+                            ...prev,
+                            cid: undefined
+                          }));
+                        }
+                      }}
+                    />
+                    <span className="text-sm text-muted-foreground">Bhutanese</span>
+                  </div>
                 </div>
 
                 {/* CID Number - Only show for Bhutanese */}
-                {bookingDetails.nationality === "bhutanese" && (
+                {bookingDetails.isBhutanese && (
                   <div className="grid gap-2">
                     <Label htmlFor="cid" className="text-sm">CID Number <span className="text-destructive">*</span></Label>
                     <Input
@@ -1269,6 +1265,7 @@ export default function RoomBookingCard({ room, hotelId }) {
               destination: "",
               origin: "",
               guests: 1,
+              isBhutanese: true,
             });
             setImmediateBookingErrors({});
           }
@@ -1325,37 +1322,32 @@ export default function RoomBookingCard({ room, hotelId }) {
               {/* Nationality Selection */}
               <div className="grid gap-2">
                 <Label className="text-sm">Nationality <span className="text-destructive">*</span></Label>
-                <Select
-                  name="nationality"
-                  value={immediateBookingDetails.nationality}
-                  onValueChange={(value) => {
-                    setImmediateBookingDetails((prev) => ({
-                      ...prev,
-                      nationality: value,
-                      // Clear CID when switching to non-Bhutanese
-                      cid: value === "bhutanese" ? prev.cid : ""
-                    }));
-                    // Clear CID error when switching nationality
-                    if (immediateBookingErrors.cid) {
-                      setImmediateBookingErrors((prev) => ({
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm text-muted-foreground">Other</span>
+                  <Switch
+                    checked={immediateBookingDetails.isBhutanese}
+                    onCheckedChange={(checked) => {
+                      setImmediateBookingDetails((prev) => ({
                         ...prev,
-                        cid: undefined
+                        isBhutanese: checked,
+                        // Clear CID when switching to non-Bhutanese
+                        cid: checked ? prev.cid : ""
                       }));
-                    }
-                  }}
-                >
-                  <SelectTrigger className="text-sm">
-                    <SelectValue placeholder="Select nationality" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="bhutanese">Bhutanese</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+                      // Clear CID error when switching nationality
+                      if (immediateBookingErrors.cid) {
+                        setImmediateBookingErrors((prev) => ({
+                          ...prev,
+                          cid: undefined
+                        }));
+                      }
+                    }}
+                  />
+                  <span className="text-sm text-muted-foreground">Bhutanese</span>
+                </div>
               </div>
 
               {/* CID Number - Only show for Bhutanese */}
-              {immediateBookingDetails.nationality === "bhutanese" && (
+              {immediateBookingDetails.isBhutanese && (
                 <div className="grid gap-2">
                   <Label htmlFor="immediateCid" className="text-sm">
                     CID Number <span className="text-destructive">*</span>

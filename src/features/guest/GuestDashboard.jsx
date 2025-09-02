@@ -958,6 +958,7 @@ const BookingCard = ({
               else if (action === "directions") onDirections(booking);
               else if (action === "contact") onContact(booking);
               else if (action === "extend") onExtend(booking);
+              else if (action === "cancel") onCancel(booking);
             }}
           />
         ))}
@@ -1410,15 +1411,24 @@ const GuestDashboard = () => {
 
   const handleCancel = async (booking) => {
     try {
-      await api.delete(`/bookings/${booking.id}`);
-      toast.success("Booking cancelled successfully", {
-        duration: 6000,
+      const response = await api.post(`/bookings/${booking.id}/request-cancellation`, null, {
+        params: {
+          userId: userId
+        }
       });
-      // Refresh current page
-      fetchBookings(currentPage);
+      
+      if (response.data.success) {
+        toast.success("Cancellation Request Submitted", {
+          description: response.data.message,
+          duration: 6000,
+        });
+        // Refresh current page
+        fetchBookings(currentPage);
+      }
     } catch (error) {
-      console.error("Error cancelling booking:", error);
-      toast.error("Failed to cancel booking. Please try again.", {
+      console.error("Error requesting cancellation:", error);
+      toast.error("Failed to submit cancellation request. Please try again.", {
+        description: "There was an error processing your request. Please contact support if the issue persists.",
         duration: 6000,
       });
     }
@@ -1451,7 +1461,7 @@ const GuestDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-card shadow-sm border-b">
+      <div className="bg-card shadow-sm border-b sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           <div className="flex flex-row sm:items-center justify-between gap-3">
             <div>
