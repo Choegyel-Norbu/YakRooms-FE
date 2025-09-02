@@ -1,19 +1,57 @@
 import React, { useState } from "react";
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, signInWithRedirect, getRedirectResult } from "firebase/auth";
 import { auth, provider } from "../../shared/services/firebaseConfig";
 import axios from "axios";
 import { API_BASE_URL } from "../../shared/services/firebaseConfig";
 
+// iOS Detection Utility
+const isIOSDevice = () => {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+};
+
+// Check if we're in a PWA context
+const isPWAContext = () => {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+         window.navigator.standalone === true;
+};
+
+// Check if popup is likely to be blocked
+const isPopupBlocked = () => {
+  return isIOSDevice() || isPWAContext();
+};
+
 const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLoginComplete }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const handleGoogleSignIn = async () => {
-    try {
-      setIsLoading(true);
-      onLoginStart?.(); // Notify parent that login has started
-      
-      const result = await signInWithPopup(auth, provider);
-      const idToken = await result.user.getIdToken();
+  
+  // Handle redirect result on component mount (for iOS)
+  React.useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          setIsLoading(true);
+          onLoginStart?.();
+          
+          const idToken = await result.user.getIdToken();
+          await processAuthentication(idToken, onLoginSuccess, onClose);
+        }
+      } catch (error) {
+        console.error('Redirect authentication error:', error);
+      } finally {
+        setIsLoading(false);
+        onLoginComplete?.();
+      }
+    };
 
+    // Only check for redirect result on iOS or PWA
+    if (isPopupBlocked()) {
+      handleRedirectResult();
+    }
+  }, [onLoginSuccess, onClose, onLoginStart, onLoginComplete]);
+
+  const processAuthentication = async (idToken, onLoginSuccess, onClose) => {
+    try {
       const res = await axios.post(
         `${API_BASE_URL}/auth/firebase`,
         { idToken },
@@ -25,12 +63,12 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
       );
 
       if (res.status === 200) {
-        console.log("Success");
+        console.log("Authentication successful");
         await onLoginSuccess({
           token: res.data.token,
           email: res.data.user.email,
           userid: res.data.user.id,
-          roles: res.data.user.roles || [res.data.user.role], // Handle both roles array and single role
+          roles: res.data.user.roles || [res.data.user.role],
           userName: res.data.user.name,
           pictureURL: res.data.user.profilePicUrl,
           flag: res.data.user.registerFlag,
@@ -41,11 +79,54 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
         // Close modal after successful login
         setTimeout(() => {
           onClose();
-        }, 1000); // Close after 1 second
+        }, 1000);
       }
     } catch (error) {
-      console.log(error.message);
-      // Error handling is now managed by the parent LoginModal
+      console.error('Authentication processing error:', error);
+      throw error;
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      onLoginStart?.(); // Notify parent that login has started
+      
+      let result;
+      
+      // Use redirect for iOS/PWA, popup for others
+      if (isPopupBlocked()) {
+        console.log('Using redirect authentication for iOS/PWA');
+        await signInWithRedirect(auth, provider);
+        // Note: The actual authentication will be handled in the useEffect above
+        // when the user returns from the redirect
+        return; // Exit early, redirect will handle the rest
+      } else {
+        console.log('Using popup authentication for desktop/Android');
+        result = await signInWithPopup(auth, provider);
+      }
+      
+      // Process authentication for popup flow
+      if (result) {
+        const idToken = await result.user.getIdToken();
+        await processAuthentication(idToken, onLoginSuccess, onClose);
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      
+      // If popup fails and we're not on iOS, try redirect as fallback
+      if (!isIOSDevice() && error.code === 'auth/popup-blocked') {
+        console.log('Popup blocked, falling back to redirect');
+        try {
+          await signInWithRedirect(auth, provider);
+          return; // Exit early, redirect will handle the rest
+        } catch (redirectError) {
+          console.error('Redirect fallback failed:', redirectError);
+        }
+      }
+      
+      // Re-throw error for parent component to handle
+      throw error;
     } finally {
       setIsLoading(false);
       onLoginComplete?.(); // Notify parent that login process is complete
@@ -67,7 +148,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
         {isLoading ? (
           <>
             <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
-            Signing in...
+            {isPopupBlocked() ? 'Redirecting to Google...' : 'Signing in...'}
           </>
         ) : (
           <>

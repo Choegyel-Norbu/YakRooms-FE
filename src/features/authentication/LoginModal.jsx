@@ -70,6 +70,11 @@ const LoginModal = ({ onClose, flag }) => {
             </DialogTitle>
             <DialogDescription className="text-center text-sm">
               We'll sign you in or create an account if you don't have one yet.
+              {/iPad|iPhone|iPod/.test(navigator.userAgent) && (
+                <span className="block mt-2 text-xs text-muted-foreground">
+                  On iPhone/iPad, you'll be redirected to Google for authentication.
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
 

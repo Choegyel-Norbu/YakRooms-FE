@@ -377,7 +377,7 @@ const CancellationRequestsTable = ({ hotelId }) => {
                     <TableCell>{getStatusBadge(request.status)}</TableCell>
                     <TableCell>
                       <div className="text-sm text-muted-foreground">
-                        {formatDateTime(request.bookingCreatedAt)}
+                        {formatDate(request.bookingCreatedAt)}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">

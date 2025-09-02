@@ -156,7 +156,7 @@ const PasscodeVerification = () => {
   };
 
   return (
-    <div className="h-auto w-full flex items-center justify-center p-6">
+    <div className="h-auto w-full flex items-center justify-center sm:p-6">
       <div className="w-full max-w-2xl space-y-6">
         {/* Verification Form */}
         {!bookingData && (
@@ -277,12 +277,12 @@ const PasscodeVerification = () => {
                   <div className="space-y-3">
                     <h3 className="text-sm font-semibold">Guest Information</h3>
                     <div className="flex items-center gap-3 p-3 border rounded-lg">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <div>
+                      <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <div className="min-w-0">
                         <p className="text-xs text-muted-foreground">
                           Guest Name
                         </p>
-                        <p className="text-sm font-medium">
+                        <p className="text-sm font-medium truncate">
                           {bookingData.guestName}
                         </p>
                       </div>
@@ -295,20 +295,20 @@ const PasscodeVerification = () => {
                     <h3 className="text-sm font-semibold">
                       Accommodation Details
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="flex items-center gap-3 p-3 border rounded-lg">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <div>
+                        <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <div className="min-w-0">
                           <p className="text-xs text-muted-foreground">Hotel</p>
-                          <p className="text-sm font-medium">
+                          <p className="text-sm font-medium truncate">
                             {bookingData.hotelName}
                           </p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-3 p-3 border rounded-lg">
-                        <Bed className="h-4 w-4 text-muted-foreground" />
-                        <div>
+                        <Bed className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <div className="min-w-0">
                           <p className="text-xs text-muted-foreground">
                             Room Number
                           </p>
@@ -324,10 +324,10 @@ const PasscodeVerification = () => {
 
                   <div className="space-y-3">
                     <h3 className="text-sm font-semibold">Stay Duration</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="flex items-center gap-3 p-3 border rounded-lg">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <div>
+                        <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <div className="min-w-0">
                           <p className="text-xs text-muted-foreground">
                             Check-in Date
                           </p>
@@ -338,8 +338,8 @@ const PasscodeVerification = () => {
                       </div>
 
                       <div className="flex items-center gap-3 p-3 border rounded-lg">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <div>
+                        <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <div className="min-w-0">
                           <p className="text-xs text-muted-foreground">
                             Check-out Date
                           </p>
@@ -358,8 +358,8 @@ const PasscodeVerification = () => {
                       Booking Information
                     </h3>
                     <div className="flex items-center gap-3 p-3 border rounded-lg">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <div>
+                      <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <div className="min-w-0">
                         <p className="text-xs text-muted-foreground">
                           Booking Created
                         </p>
@@ -374,7 +374,7 @@ const PasscodeVerification = () => {
                 {/* Action Buttons */}
                 <div className="pt-4 space-y-3">
                   <Separator />
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <Button
                       variant="outline"
                       onClick={resetForm}
@@ -394,6 +394,11 @@ const PasscodeVerification = () => {
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Checking In...
+                        </>
+                      ) : bookingData?.status === "CHECKED_IN" ? (
+                        <>
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Checked In
                         </>
                       ) : (
                         "Check in"

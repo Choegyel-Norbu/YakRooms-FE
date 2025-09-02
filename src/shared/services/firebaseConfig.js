@@ -16,6 +16,13 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
+// Configure provider for better iOS compatibility
+provider.addScope('email');
+provider.addScope('profile');
+provider.setCustomParameters({
+  prompt: 'select_account'
+});
+
 // API configuration
 // const API_BASE_URL = "http://localhost:8080";
 const API_BASE_URL = "https://yakrooms-be-production.up.railway.app";
