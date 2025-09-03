@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
     "preview": "vite preview",
+    "lint": "eslint .",
     "test-pwa": "node scripts/test-pwa.js",
+    "test-safari": "node scripts/test-safari-browser.js",
     "generate-icons": "node scripts/generate-icons.js",
     "generate-yakrooms-icons": "node scripts/generate-yakrooms-icons.js"
   },

@@ -21,7 +21,7 @@ const TopHighlightsSection = () => {
   const [hotelsData, setHotelsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { updateTopHotelIds } = useAuth();
+  const { setTopHotelIds } = useAuth();
 
   useEffect(() => {
     const fetchHotels = async () => {
@@ -40,8 +40,8 @@ const TopHighlightsSection = () => {
         console.log("  - Raw response.data:", response.data);
         console.log("  - Extracted hotel IDs:", hotelIds);
         console.log("  - Hotel IDs types:", hotelIds.map(id => typeof id));
-        updateTopHotelIds(hotelIds);
-        console.log("  - Successfully called updateTopHotelIds");
+        setTopHotelIds(hotelIds);
+        console.log("  - Successfully called setTopHotelIds");
       } catch (e) {
         console.error("Failed to fetch hotels:", e);
         setError("Failed to load hotels. Please try again later.");

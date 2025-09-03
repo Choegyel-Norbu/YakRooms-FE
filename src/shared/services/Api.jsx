@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getStorageItem } from "@/shared/utils/safariLocalStorage";
 
 const api = axios.create({
   // baseURL: "http://localhost:8080/api",
@@ -11,12 +12,16 @@ const api = axios.create({
   timeout: 10000, // 10 second timeout
 });
 
-// Add request interceptor for token
+// Add request interceptor for token with Safari-specific handling
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    try {
+      const token = getStorageItem("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error("Failed to get token from storage:", error);
     }
     return config;
   },

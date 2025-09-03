@@ -4,10 +4,15 @@ import { auth, provider } from "../../shared/services/firebaseConfig";
 import axios from "axios";
 import { API_BASE_URL } from "../../shared/services/firebaseConfig";
 
-// iOS Detection Utility
+// Enhanced iOS Detection Utility
 const isIOSDevice = () => {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+};
+
+// Check if we're in Safari
+const isSafari = () => {
+  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 };
 
 // Check if we're in a PWA context
@@ -18,7 +23,13 @@ const isPWAContext = () => {
 
 // Check if popup is likely to be blocked
 const isPopupBlocked = () => {
-  return isIOSDevice() || isPWAContext();
+  return isIOSDevice() || isPWAContext() || (isIOSDevice() && isSafari());
+};
+
+// Check if we're in production
+const isProduction = () => {
+  return window.location.hostname !== 'localhost' && 
+         !window.location.hostname.includes('127.0.0.1');
 };
 
 const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLoginComplete }) => {
@@ -92,18 +103,39 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
       setIsLoading(true);
       onLoginStart?.(); // Notify parent that login has started
       
+      console.log('Authentication attempt:', {
+        isIOS: isIOSDevice(),
+        isSafari: isSafari(),
+        isPWA: isPWAContext(),
+        isProduction: isProduction(),
+        userAgent: navigator.userAgent
+      });
+      
       let result;
       
-      // Use redirect for iOS/PWA, popup for others
-      if (isPopupBlocked()) {
-        console.log('Using redirect authentication for iOS/PWA');
+      // Force redirect for iOS Safari (most reliable method)
+      if (isIOSDevice() && isSafari()) {
+        console.log('Using redirect authentication for iOS Safari');
         await signInWithRedirect(auth, provider);
-        // Note: The actual authentication will be handled in the useEffect above
-        // when the user returns from the redirect
         return; // Exit early, redirect will handle the rest
-      } else {
+      }
+      // Use redirect for PWA context
+      else if (isPWAContext()) {
+        console.log('Using redirect authentication for PWA');
+        await signInWithRedirect(auth, provider);
+        return; // Exit early, redirect will handle the rest
+      }
+      // Try popup for other platforms
+      else {
         console.log('Using popup authentication for desktop/Android');
-        result = await signInWithPopup(auth, provider);
+        try {
+          result = await signInWithPopup(auth, provider);
+        } catch (popupError) {
+          console.log('Popup failed, falling back to redirect:', popupError);
+          // Fallback to redirect if popup fails
+          await signInWithRedirect(auth, provider);
+          return; // Exit early, redirect will handle the rest
+        }
       }
       
       // Process authentication for popup flow
@@ -114,14 +146,14 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
     } catch (error) {
       console.error('Authentication error:', error);
       
-      // If popup fails and we're not on iOS, try redirect as fallback
-      if (!isIOSDevice() && error.code === 'auth/popup-blocked') {
-        console.log('Popup blocked, falling back to redirect');
+      // Enhanced error handling for iOS Safari
+      if (isIOSDevice() && isSafari()) {
+        console.log('iOS Safari authentication failed, attempting redirect fallback');
         try {
           await signInWithRedirect(auth, provider);
           return; // Exit early, redirect will handle the rest
         } catch (redirectError) {
-          console.error('Redirect fallback failed:', redirectError);
+          console.error('iOS Safari redirect fallback failed:', redirectError);
         }
       }
       

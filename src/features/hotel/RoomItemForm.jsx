@@ -1,6 +1,8 @@
 // RoomItemForm.jsx
 import React, { useState } from "react";
 import { FiPlus, FiTrash2, FiSave, FiX } from "react-icons/fi";
+import { uploadFile, deleteFileByUrl } from "../../shared/services/uploadService";
+import { toast } from "sonner";
 import {
   FaBed,
   FaTv,
@@ -34,6 +36,7 @@ const RoomItemForm = ({ room = null, onSave, onCancel, isEditing = false }) => {
     name: "",
     icon: "custom",
   });
+  const [deletingImageIndex, setDeletingImageIndex] = useState(null);
 
   // Standard amenities with icons
   const standardAmenities = [
@@ -85,13 +88,45 @@ const RoomItemForm = ({ room = null, onSave, onCancel, isEditing = false }) => {
   };
 
   // Remove an image
-  const removeImage = (index) => {
-    const updatedImages = [...formData.images];
-    updatedImages.splice(index, 1);
-    setFormData({
-      ...formData,
-      images: updatedImages,
-    });
+  const removeImage = async (index) => {
+    const imageUrl = formData.images[index];
+    
+    if (!imageUrl) {
+      toast.error("No image URL found to delete");
+      return;
+    }
+
+    setDeletingImageIndex(index);
+    
+    try {
+      // Delete the file from UploadThing
+      const result = await deleteFileByUrl(imageUrl);
+      
+      if (result.success) {
+        // Remove from local state only after successful deletion
+        const updatedImages = [...formData.images];
+        updatedImages.splice(index, 1);
+        setFormData({
+          ...formData,
+          images: updatedImages,
+        });
+        
+        toast.success(result.message || "Image deleted successfully", {
+          duration: 6000
+        });
+      } else {
+        toast.error(result.message || "Failed to delete image", {
+          duration: 6000
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting image:", error);
+      toast.error("Failed to delete image. Please try again.", {
+        duration: 6000
+      });
+    } finally {
+      setDeletingImageIndex(null);
+    }
   };
 
   // Toggle standard amenity
@@ -279,9 +314,14 @@ const RoomItemForm = ({ room = null, onSave, onCancel, isEditing = false }) => {
                 <button
                   type="button"
                   onClick={() => removeImage(index)}
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                  disabled={deletingImageIndex === index}
                 >
-                  <FiTrash2 size={14} />
+                  {deletingImageIndex === index ? (
+                    <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <FiTrash2 size={14} />
+                  )}
                 </button>
               </div>
             ))}

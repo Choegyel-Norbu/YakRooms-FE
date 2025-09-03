@@ -499,7 +499,6 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
               </div>
 
 
-
               <div className="grid gap-2">
                 <Label htmlFor="phone">Phone Number <span className="text-destructive">*</span></Label>
                 <div className="relative">

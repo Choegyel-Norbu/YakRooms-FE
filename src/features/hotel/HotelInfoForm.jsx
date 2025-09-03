@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../authentication";
 import api from "../../shared/services/Api";
-import { uploadFile } from "../../shared/services/uploadService";
+import { uploadFile, deleteFileByUrl } from "../../shared/services/uploadService";
 import { CheckCircle, XCircle, Upload, Plus, X } from "lucide-react";
 import {
   Card,
@@ -59,6 +59,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAmenities, setSelectedAmenities] = useState(hotel.amenities || []);
   const [availableAmenities] = useState(getCategorizedAmenities("hotel"));
+  const [deletingImageIndex, setDeletingImageIndex] = useState(null);
 
 
 
@@ -140,13 +141,45 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
     }
   };
 
-  const removeImage = (index) => {
-    const updatedPhotoUrls = formData.photoUrls.filter((_, i) => i !== index);
-    setFormData((prev) => ({
-      ...prev,
-      photoUrls: updatedPhotoUrls,
-    }));
-    form.setValue("photoUrls", updatedPhotoUrls);
+  const removeImage = async (index) => {
+    const imageUrl = formData.photoUrls[index];
+    
+    if (!imageUrl) {
+      toast.error("No image URL found to delete");
+      return;
+    }
+
+    setDeletingImageIndex(index);
+    
+    try {
+      // Delete the file from backend
+      const result = await deleteFileByUrl(imageUrl);
+      
+      if (result.success) {
+        // Remove from local state only after successful deletion
+        const updatedPhotoUrls = formData.photoUrls.filter((_, i) => i !== index);
+        setFormData((prev) => ({
+          ...prev,
+          photoUrls: updatedPhotoUrls,
+        }));
+        form.setValue("photoUrls", updatedPhotoUrls);
+        
+        toast.success(result.message || "Image deleted successfully", {
+          duration: 6000
+        });
+      } else {
+        toast.error(result.message || "Failed to delete image", {
+          duration: 6000
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting image:", error);
+      toast.error("Failed to delete image. Please try again.", {
+        duration: 6000
+      });
+    } finally {
+      setDeletingImageIndex(null);
+    }
   };
 
   const handleAmenityToggle = (amenity) => {
@@ -474,11 +507,15 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                         <Button
                           type="button"
                           onClick={() => removeImage(index)}
-                          className="absolute -top-2 -right-2 rounded-full w-5 h-5 flex items-center justify-center text-xs p-0"
+                          className="absolute -top-2 -right-2 rounded-full w-6 h-6 flex items-center justify-center text-xs p-0"
                           variant="destructive"
-                          disabled={isLoading}
+                          disabled={isLoading || deletingImageIndex === index}
                         >
-                          ×
+                          {deletingImageIndex === index ? (
+                            <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <X className="w-3 h-3" />
+                          )}
                         </Button>
                       )}
                     </div>

@@ -1,13 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { getStorageItem, setStorageItem } from "@/shared/utils/safariLocalStorage";
 
-const token = localStorage.getItem("token");
-const userId = localStorage.getItem("userId");
-const email = localStorage.getItem("email");
-const userName = localStorage.getItem("userName");
-const role = localStorage.getItem("role");
-const pictureURL = localStorage.getItem("pictureURL");
-const registerFlag = localStorage.getItem("registerFlag") === "true";
-const clientDetailSet = localStorage.getItem("clientDetailSet") === "true";
+const token = getStorageItem("token");
+const userId = getStorageItem("userId");
+const email = getStorageItem("email");
+const userName = getStorageItem("userName");
+const role = getStorageItem("role");
+const pictureURL = getStorageItem("pictureURL");
+const registerFlag = getStorageItem("registerFlag") === "true";
+const clientDetailSet = getStorageItem("clientDetailSet") === "true";
 
 const initialState = {
   loggedIn: !!token,
@@ -48,14 +49,15 @@ const authSlice = createSlice({
       state.registerFlag = registerFlag;
       state.clientDetailSet = clientDetailSet;
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("userId", userId);
-      localStorage.setItem("email", email);
-      localStorage.setItem("role", role);
-      localStorage.setItem("userName", userName);
-      localStorage.setItem("pictureURL", pictureURL);
-      localStorage.setItem("registerFlag", registerFlag.toString());
-      localStorage.setItem("clientDetailSet", clientDetailSet.toString());
+      // Store in localStorage using Safari-specific utilities
+      setStorageItem("token", token);
+      setStorageItem("userId", userId);
+      setStorageItem("email", email);
+      setStorageItem("role", role);
+      setStorageItem("userName", userName);
+      setStorageItem("pictureURL", pictureURL);
+      setStorageItem("registerFlag", registerFlag.toString());
+      setStorageItem("clientDetailSet", clientDetailSet.toString());
     },
     logout: (state) => {
       state.loggedIn = false;
@@ -68,7 +70,12 @@ const authSlice = createSlice({
       state.registerFlag = false;
       state.clientDetailSet = false;
 
-      localStorage.clear();
+      // Clear localStorage using Safari-specific utilities
+      try {
+        localStorage.clear();
+      } catch (error) {
+        console.error("Failed to clear localStorage:", error);
+      }
     },
   },
 });

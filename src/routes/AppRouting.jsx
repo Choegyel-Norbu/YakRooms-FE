@@ -11,6 +11,7 @@ import { HotelAdminDashboard } from "../features/hotel";
 import { SuperAdmin } from "../features/admin";
 import { GuestDashboard } from "../features/guest";
 import { PrivacyPolicy } from "../features/landing";
+import { SubscriptionPage } from "../features/subscription";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -77,6 +78,7 @@ const AppRouting = () => {
       <Route path="/hotels" element={<HotelListingPage />} />
       <Route path="/hotel/:id" element={<HotelDetailsPage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/subscription" element={<SubscriptionPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
       {/* Dashboard Route - Redirects based on active role */}

@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { 
+  getStorageItem, 
+  setStorageItem, 
+  removeStorageItem, 
+  clearStorage,
+  getAuthData,
+  setAuthData,
+  clearAuthData
+} from "@/shared/utils/safariLocalStorage";
 
 // === Constants ===
 const AUTH_STORAGE_KEYS = {
@@ -29,36 +38,28 @@ const isTokenExpired = (token) => {
   }
 };
 
-// === Utility to safely get from localStorage ===
-const getStorageItem = (key, defaultValue = '') => {
-  try {
-    return localStorage.getItem(key) || defaultValue;
-  } catch (error) {
-    console.error(`Failed to get ${key} from localStorage`, error);
-    return defaultValue;
-  }
-};
-
-// === Utility to safely set to localStorage ===
-const setStorageItem = (key, value) => {
-  try {
-    if (value === null || value === undefined) {
-      localStorage.removeItem(key);
-    } else {
-      localStorage.setItem(key, String(value));
-    }
-  } catch (error) {
-    console.error(`Failed to set ${key} in localStorage`, error);
-  }
-};
-
 // === Utility to parse roles from storage ===
 const parseRolesFromStorage = (rolesString) => {
   try {
     if (!rolesString) return [];
-    return JSON.parse(rolesString);
+    
+    // If it's already an array, return it
+    if (Array.isArray(rolesString)) return rolesString;
+    
+    // If it's a single string (not JSON), wrap it in an array
+    if (typeof rolesString === 'string' && !rolesString.startsWith('[')) {
+      return [rolesString];
+    }
+    
+    // Try to parse as JSON
+    const parsed = JSON.parse(rolesString);
+    return Array.isArray(parsed) ? parsed : [parsed];
   } catch (error) {
     console.error("Failed to parse roles from storage", error);
+    // If parsing fails, try to treat it as a single role string
+    if (typeof rolesString === 'string') {
+      return [rolesString];
+    }
     return [];
   }
 };
@@ -78,10 +79,24 @@ const stringifyRolesForStorage = (roles) => {
 const parseTopHotelIdsFromStorage = (topHotelIdsString) => {
   try {
     if (!topHotelIdsString) return [];
+    
+    // If it's already an array, return it
+    if (Array.isArray(topHotelIdsString)) return topHotelIdsString;
+    
+    // If it's a single string (not JSON), wrap it in an array
+    if (typeof topHotelIdsString === 'string' && !topHotelIdsString.startsWith('[')) {
+      return [topHotelIdsString];
+    }
+    
+    // Try to parse as JSON
     const parsed = JSON.parse(topHotelIdsString);
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? parsed : [parsed];
   } catch (error) {
     console.error("Failed to parse top hotel IDs from storage", error);
+    // If parsing fails, try to treat it as a single ID string
+    if (typeof topHotelIdsString === 'string') {
+      return [topHotelIdsString];
+    }
     return [];
   }
 };
@@ -119,17 +134,17 @@ const defaultAuthState = {
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
-  // Initialize auth state from localStorage
+  // Initialize auth state from localStorage with Safari-specific handling
   const [authState, setAuthState] = useState(() => {
     try {
       const token = getStorageItem(AUTH_STORAGE_KEYS.TOKEN);
       
       if (!token || isTokenExpired(token)) {
-        localStorage.clear();
+        clearAuthData();
         return defaultAuthState;
       }
 
-      return {
+      const authData = {
         isAuthenticated: true,
         token,
         email: getStorageItem(AUTH_STORAGE_KEYS.EMAIL),
@@ -144,6 +159,8 @@ export const AuthProvider = ({ children }) => {
         hotelId: getStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID) || null,
         topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)), // Load from localStorage
       };
+
+      return authData;
     } catch (error) {
       console.error("Failed to initialize auth state", error);
       return defaultAuthState;
@@ -151,7 +168,7 @@ export const AuthProvider = ({ children }) => {
   });
 
   const [lastLogin, setLastLogin] = useState(() => {
-    const stored = localStorage.getItem("lastLogin");
+    const stored = getStorageItem("lastLogin");
     return stored ? new Date(stored) : null;
   });
 
@@ -164,7 +181,7 @@ export const AuthProvider = ({ children }) => {
       const topHotelIds = getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS);
       console.log("🔒 [LOGOUT] Preserving top hotel IDs:", topHotelIds);
       
-      localStorage.clear();
+      clearAuthData();
       
       // Restore top hotel IDs after clearing
       if (topHotelIds) {
@@ -252,7 +269,7 @@ export const AuthProvider = ({ children }) => {
                                 roles.includes('GUEST') ? 'GUEST' :
                                 roles[0] || null);
 
-      // Store auth data
+      // Store auth data using Safari-specific utilities
       setStorageItem(AUTH_STORAGE_KEYS.TOKEN, authData.token);
       setStorageItem(AUTH_STORAGE_KEYS.USER_ID, authData.userid);
       setStorageItem(AUTH_STORAGE_KEYS.EMAIL, authData.email);
@@ -270,7 +287,7 @@ export const AuthProvider = ({ children }) => {
 
       const existingHotelId = getStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID);
 
-      setAuthState({
+      const newAuthState = {
         isAuthenticated: true,
         token: authData.token,
         email: authData.email,
@@ -284,7 +301,9 @@ export const AuthProvider = ({ children }) => {
         flag: true,
         hotelId: authData.hotelId || existingHotelId || null,
         topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)), // Preserve existing top hotel IDs on login
-      });
+      };
+
+      setAuthState(newAuthState);
 
       // Navigate only if not a first-time registration
       if (!authData.flag) {
@@ -293,7 +312,7 @@ export const AuthProvider = ({ children }) => {
 
       const now = new Date();
       setLastLogin(now);
-      localStorage.setItem("lastLogin", now.toISOString());
+      setStorageItem("lastLogin", now.toISOString());
 
     } catch (error) {
       console.error("Failed to login", error);
@@ -358,21 +377,14 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // === CHECK IF USER HAS ROLE (memoized) ===
-  const hasRole = useCallback((role) => {
-    return authState.roles.includes(role);
-  }, [authState.roles]);
-
   // === GET PRIMARY ROLE (memoized) ===
   const getPrimaryRole = useCallback(() => {
-    // Priority order: SUPER_ADMIN > HOTEL_ADMIN > STAFF > GUEST
-    const priorityOrder = ['SUPER_ADMIN', 'HOTEL_ADMIN', 'STAFF', 'GUEST'];
-    for (const role of priorityOrder) {
-      if (authState.roles.includes(role)) {
-        return role;
-      }
-    }
-    return authState.roles[0] || null;
+    const roles = authState.roles;
+    if (roles.includes('SUPER_ADMIN')) return 'SUPER_ADMIN';
+    if (roles.includes('HOTEL_ADMIN')) return 'HOTEL_ADMIN';
+    if (roles.includes('STAFF')) return 'STAFF';
+    if (roles.includes('GUEST')) return 'GUEST';
+    return roles[0] || null;
   }, [authState.roles]);
 
   // === SET ACTIVE ROLE (memoized) ===
@@ -444,81 +456,136 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // === TOP HOTELS MANAGEMENT ===
-  const updateTopHotelIds = useCallback((hotelIds) => {
+  // === SET TOP HOTEL IDS (memoized) ===
+  const setTopHotelIds = useCallback((hotelIds) => {
     try {
-      const idsArray = Array.isArray(hotelIds) ? hotelIds : [];
-      console.log("🔄 [AUTH PROVIDER] updateTopHotelIds called:");
-      console.log("  - Input hotelIds:", hotelIds);
-      console.log("  - Processed idsArray:", idsArray);
-      
-      // Persist to localStorage for eternity
-      setStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS, stringifyTopHotelIdsForStorage(idsArray));
-      console.log("  - Persisted to localStorage:", stringifyTopHotelIdsForStorage(idsArray));
-      
-      setAuthState(prev => {
-        console.log("  - Previous topHotelIds:", prev.topHotelIds);
-        const newState = {
-          ...prev,
-          topHotelIds: idsArray
-        };
-        console.log("  - New topHotelIds:", newState.topHotelIds);
-        return newState;
-      });
+      const hotelIdsArray = Array.isArray(hotelIds) ? hotelIds : [hotelIds];
+      setStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS, stringifyTopHotelIdsForStorage(hotelIdsArray));
+      setAuthState(prev => ({
+        ...prev,
+        topHotelIds: hotelIdsArray,
+      }));
     } catch (error) {
-      console.error("Failed to update top hotel IDs", error);
+      console.error("Failed to set top hotel IDs", error);
     }
   }, []);
 
-  const isTopHotel = useCallback((hotelId) => {
-    // Convert both to strings for consistent comparison
-    const hotelIdStr = String(hotelId);
-    const topHotelIdsStr = authState.topHotelIds.map(id => String(id));
-    const result = topHotelIdsStr.includes(hotelIdStr);
-    
-    console.log("🔍 [AUTH PROVIDER] isTopHotel called:");
-    console.log("  - Input hotelId:", hotelId, "(type:", typeof hotelId, ")");
-    console.log("  - Converted hotelId:", hotelIdStr);
-    console.log("  - Current topHotelIds:", authState.topHotelIds);
-    console.log("  - Converted topHotelIds:", topHotelIdsStr);
-    console.log("  - Result:", result);
-    return result;
-  }, [authState.topHotelIds]);
-
-  const clearTopHotelIds = useCallback(() => {
-    // Remove from localStorage
-    setStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS, '[]');
-    console.log("🗑️ [AUTH PROVIDER] clearTopHotelIds called - removed from localStorage");
-    
-    setAuthState(prev => ({
-      ...prev,
-      topHotelIds: []
-    }));
+  // === ADD TOP HOTEL ID (memoized) ===
+  const addTopHotelId = useCallback((hotelId) => {
+    try {
+      setAuthState(prev => {
+        const newTopHotelIds = [...prev.topHotelIds];
+        if (!newTopHotelIds.includes(hotelId)) {
+          newTopHotelIds.push(hotelId);
+          // Keep only top 3
+          if (newTopHotelIds.length > 3) {
+            newTopHotelIds.shift();
+          }
+          setStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS, stringifyTopHotelIdsForStorage(newTopHotelIds));
+        }
+        return { ...prev, topHotelIds: newTopHotelIds };
+      });
+    } catch (error) {
+      console.error("Failed to add top hotel ID", error);
+    }
   }, []);
 
-  // === Memoize context value to prevent unnecessary re-renders ===
+  // === REMOVE TOP HOTEL ID (memoized) ===
+  const removeTopHotelId = useCallback((hotelId) => {
+    try {
+      setAuthState(prev => {
+        const newTopHotelIds = prev.topHotelIds.filter(id => id !== hotelId);
+        setStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS, stringifyTopHotelIdsForStorage(newTopHotelIds));
+        return { ...prev, topHotelIds: newTopHotelIds };
+      });
+    } catch (error) {
+      console.error("Failed to remove top hotel ID", error);
+    }
+  }, []);
+
+  // === CHECK ROLE (memoized) ===
+  const hasRole = useCallback((roleToCheck) => {
+    return authState.roles.includes(roleToCheck);
+  }, [authState.roles]);
+
+  // === CHECK ANY ROLE (memoized) ===
+  const hasAnyRole = useCallback((rolesToCheck) => {
+    return rolesToCheck.some(role => authState.roles.includes(role));
+  }, [authState.roles]);
+
+  // === CHECK ALL ROLES (memoized) ===
+  const hasAllRoles = useCallback((rolesToCheck) => {
+    return rolesToCheck.every(role => authState.roles.includes(role));
+  }, [authState.roles]);
+
+  // === CHECK IF HOTEL IS TOP HOTEL (memoized) ===
+  const isTopHotel = useCallback((hotelIdToCheck) => {
+    if (!hotelIdToCheck || !authState.topHotelIds || !Array.isArray(authState.topHotelIds)) {
+      return false;
+    }
+    return authState.topHotelIds.includes(hotelIdToCheck.toString());
+  }, [authState.topHotelIds]);
+
+  // === MEMOIZED CONTEXT VALUE ===
   const contextValue = useMemo(() => ({
-    ...authState,
+    // State
+    isAuthenticated: authState.isAuthenticated,
+    token: authState.token,
+    email: authState.email,
+    userId: authState.userId,
+    userName: authState.userName,
+    roles: authState.roles,
+    activeRole: authState.activeRole,
     role, // Backward compatibility
+    pictureURL: authState.pictureURL,
+    registerFlag: authState.registerFlag,
+    clientDetailSet: authState.clientDetailSet,
+    flag: authState.flag,
+    hotelId: authState.hotelId,
+    topHotelIds: authState.topHotelIds,
+    lastLogin,
+
+    // Actions
     login,
     logout,
     setHotelId,
-    setRoles, // Changed from setRole
+    setRoles,
     addRole,
     removeRole,
-    hasRole,
-    getPrimaryRole,
     setActiveRole,
     getCurrentActiveRole,
     switchToRole,
     updateUserProfile,
-    lastLogin,
-    setLastLogin,
-    // Top hotels management
-    updateTopHotelIds,
+    setTopHotelIds,
+    addTopHotelId,
+    removeTopHotelId,
+
+    // Role checks
+    hasRole,
+    hasAnyRole,
+    hasAllRoles,
     isTopHotel,
-    clearTopHotelIds,
-  }), [authState, role, login, logout, setHotelId, setRoles, addRole, removeRole, hasRole, getPrimaryRole, setActiveRole, getCurrentActiveRole, switchToRole, updateUserProfile, lastLogin, setLastLogin, updateTopHotelIds, isTopHotel, clearTopHotelIds]);
+  }), [
+    authState,
+    lastLogin,
+    login,
+    logout,
+    setHotelId,
+    setRoles,
+    addRole,
+    removeRole,
+    setActiveRole,
+    getCurrentActiveRole,
+    switchToRole,
+    updateUserProfile,
+    setTopHotelIds,
+    addTopHotelId,
+    removeTopHotelId,
+    hasRole,
+    hasAnyRole,
+    hasAllRoles,
+    isTopHotel,
+  ]);
 
   return (
     <AuthContext.Provider value={contextValue}>
@@ -527,11 +594,10 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// === Custom hook with error handling ===
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

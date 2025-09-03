@@ -1,6 +1,6 @@
 ---
 description: Senior systems architect and mentor role with coding and design rules
-globs: ["**/*.{js,ts,jsx}"]
+globs: ["**/*.{js,jsx}"]
 alwaysApply: true
 ---
 

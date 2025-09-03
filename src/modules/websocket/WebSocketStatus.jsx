@@ -111,4 +111,4 @@ const WebSocketStatus = () => {
   );
 };
 
-export default WebSocketStatus; 
+export default WebSocketStatus;

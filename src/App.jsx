@@ -7,6 +7,7 @@ import { AuthProvider } from "./features/authentication";
 import { BookingProvider } from "./features/booking";
 import { PWARegistration } from "./modules/pwa";
 import { GlobalReviewSheet } from "./shared/components";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
@@ -17,7 +18,7 @@ function App() {
           <PWARegistration />
           <GlobalReviewSheet />
           <ToastContainer />
-          <Toaster 
+          <Toaster
             position="bottom-right"
             closeButton={true}
             duration={6000}

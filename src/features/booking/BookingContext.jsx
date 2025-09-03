@@ -33,8 +33,8 @@ export const BookingProvider = ({ children }) => {
       return;
     }
 
-    // Create WebSocket connection using API_BASE_URL from config
-    const wsUrl =  `${API_BASE_URL}/ws/bookings`;
+    // Create WebSocket connection using correct ws:// protocol
+    const wsUrl = API_BASE_URL.replace('http://', 'ws://').replace('https://', 'wss://') + '/ws/bookings';
     const newSocket = new WebSocket(wsUrl);
 
     newSocket.onopen = () => {

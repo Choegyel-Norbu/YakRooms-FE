@@ -1,24 +1,29 @@
 import React from 'react';
 import { useBookingContext } from './BookingContext';
-import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
-import { Badge } from '@/shared/components';
-import { Button } from '@/shared/components';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/card';
+import { Button } from '@/shared/components/button';
+import { Badge } from '@/shared/components/badge';
+import { CheckCircle, XCircle, AlertTriangle, Info, Bell, X } from 'lucide-react';
 
 const BookingNotifications = () => {
-  const { 
-    bookingNotifications, 
-    removeNotification, 
+  const {
+    bookingNotifications,
     clearNotifications,
-    isConnected 
+    removeNotification,
+    isConnected
   } = useBookingContext();
 
   const getNotificationIcon = (type) => {
     switch (type) {
-      case 'success':
+      case 'BOOKING_CONFIRMED':
+      case 'BOOKING_STATUS_UPDATE':
         return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'error':
-        return <AlertCircle className="h-4 w-4 text-red-600" />;
-      case 'warning':
+      case 'BOOKING_CANCELLED':
+      case 'BOOKING_REJECTED':
+        return <XCircle className="h-4 w-4 text-red-600" />;
+      case 'PAYMENT_REQUIRED':
+      case 'CHECK_IN_REMINDER':
+      case 'CHECK_OUT_REMINDER':
         return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
       default:
         return <Info className="h-4 w-4 text-blue-600" />;
@@ -27,11 +32,15 @@ const BookingNotifications = () => {
 
   const getNotificationColor = (type) => {
     switch (type) {
-      case 'success':
+      case 'BOOKING_CONFIRMED':
+      case 'BOOKING_STATUS_UPDATE':
         return 'border-green-200 bg-green-50';
-      case 'error':
+      case 'BOOKING_CANCELLED':
+      case 'BOOKING_REJECTED':
         return 'border-red-200 bg-red-50';
-      case 'warning':
+      case 'PAYMENT_REQUIRED':
+      case 'CHECK_IN_REMINDER':
+      case 'CHECK_OUT_REMINDER':
         return 'border-yellow-200 bg-yellow-50';
       default:
         return 'border-blue-200 bg-blue-50';
@@ -42,94 +51,105 @@ const BookingNotifications = () => {
     const date = new Date(timestamp);
     const now = new Date();
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`;
     return date.toLocaleDateString();
   };
 
-  if (bookingNotifications.length === 0) {
+  if (!bookingNotifications || bookingNotifications.length === 0) {
     return (
-      <div className="flex items-center justify-center p-4 text-gray-500">
-        <div className="text-center">
-          <Info className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-          <p className="text-sm">No booking notifications</p>
-          {!isConnected && (
-            <Badge variant="outline" className="mt-2">
-              WebSocket disconnected
-            </Badge>
-          )}
-        </div>
-      </div>
+      <Card className="w-full max-w-md">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Bell className="h-4 w-4" />
+            Booking Notifications
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground text-sm py-4">
+            No notifications yet
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-gray-900">
-          Booking Notifications ({bookingNotifications.length})
-        </h3>
-        <div className="flex items-center gap-2">
-          {!isConnected && (
-            <Badge variant="outline" className="text-xs">
-              Disconnected
+    <Card className="w-full max-w-md">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Bell className="h-4 w-4" />
+            Booking Notifications
+            <Badge variant="secondary" className="text-xs">
+              {bookingNotifications.length}
             </Badge>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearNotifications}
-            className="text-xs text-gray-500 hover:text-gray-700"
-          >
-            Clear all
-          </Button>
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Badge 
+              variant={isConnected ? "default" : "destructive"} 
+              className="text-xs"
+            >
+              {isConnected ? "Connected" : "Disconnected"}
+            </Badge>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearNotifications}
+              className="h-6 w-6 p-0"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
-      </div>
-      
-      <div className="space-y-2 max-h-96 overflow-y-auto">
-        {bookingNotifications.map((notification) => (
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {bookingNotifications.map((notification, index) => (
           <div
-            key={notification.id}
-            className={`p-3 rounded-lg border ${getNotificationColor(notification.type)} transition-all duration-200 hover:shadow-sm`}
+            key={index}
+            className={`p-3 rounded-lg border ${getNotificationColor(notification.type)}`}
           >
             <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3 flex-1">
+              <div className="flex items-start gap-2 flex-1">
                 {getNotificationIcon(notification.type)}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">
-                    {notification.message}
-                  </p>
-                  {notification.payload?.bookingId && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Booking ID: {notification.payload.bookingId}
-                    </p>
+                  <div className="font-medium text-sm">
+                    {notification.type.replace(/_/g, ' ')}
+                  </div>
+                  {notification.payload && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {notification.payload.bookingId && (
+                        <div>Booking: {notification.payload.bookingId}</div>
+                      )}
+                      {notification.payload.newStatus && (
+                        <div>Status: {notification.payload.newStatus}</div>
+                      )}
+                      {notification.payload.guestName && (
+                        <div>Guest: {notification.payload.guestName}</div>
+                      )}
+                    </div>
                   )}
-                  {notification.payload?.hotelId && (
-                    <p className="text-xs text-gray-500">
-                      Hotel ID: {notification.payload.hotelId}
-                    </p>
-                  )}
-                  <p className="text-xs text-gray-400 mt-1">
+                  <div className="text-xs text-muted-foreground mt-1">
                     {formatTimestamp(notification.timestamp)}
-                  </p>
+                  </div>
                 </div>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => removeNotification(notification.id)}
-                className="text-gray-400 hover:text-gray-600 ml-2"
+                onClick={() => removeNotification(index)}
+                className="h-6 w-6 p-0 ml-2"
               >
                 <X className="h-3 w-3" />
               </Button>
             </div>
           </div>
         ))}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
-export default BookingNotifications; 
+export default BookingNotifications;

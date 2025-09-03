@@ -1,18 +1,18 @@
+import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { Stomp } from '@stomp/stompjs';
 
 class WebSocketService {
   constructor() {
     this.stompClient = null;
     this.isConnected = false;
-    this.subscriptions = new Map();
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
     this.reconnectDelay = 5000;
+    this.subscriptions = new Map();
   }
 
   // Initialize STOMP connection
-  async connect(url = 'http://localhost:8080/ws', options = {}) {
+  async connect(url = 'ws://localhost:8080/ws', options = {}) {
     try {
       // Create SockJS connection
       const socket = new SockJS(url);
@@ -50,7 +50,7 @@ class WebSocketService {
   // Subscribe to a topic
   subscribe(topic, callback, options = {}) {
     if (!this.stompClient || !this.isConnected) {
-      console.warn('STOMP client not connected. Cannot subscribe to:', topic);
+      console.error('WebSocket not connected');
       return null;
     }
 
@@ -58,21 +58,17 @@ class WebSocketService {
       const subscription = this.stompClient.subscribe(topic, (message) => {
         try {
           const data = JSON.parse(message.body);
-          callback(data, message);
+          callback(data);
         } catch (error) {
-          console.error('Error parsing message from topic:', topic, error);
-          // Call callback with raw message if parsing fails
-          callback(message.body, message);
+          console.error('Error parsing message:', error);
+          callback(message.body);
         }
       }, options);
 
-      // Store subscription for cleanup
       this.subscriptions.set(topic, subscription);
-      console.log(`Subscribed to topic: ${topic}`);
-      
       return subscription;
     } catch (error) {
-      console.error('Error subscribing to topic:', topic, error);
+      console.error('Error subscribing to topic:', error);
       return null;
     }
   }
@@ -83,41 +79,31 @@ class WebSocketService {
     if (subscription) {
       subscription.unsubscribe();
       this.subscriptions.delete(topic);
-      console.log(`Unsubscribed from topic: ${topic}`);
     }
   }
 
   // Send message to a destination
-  send(destination, message, headers = {}) {
+  send(destination, message) {
     if (!this.stompClient || !this.isConnected) {
-      console.warn('STOMP client not connected. Cannot send message to:', destination);
+      console.error('WebSocket not connected');
       return false;
     }
 
     try {
-      this.stompClient.send(destination, headers, JSON.stringify(message));
-      console.log(`Message sent to ${destination}:`, message);
+      this.stompClient.send(destination, {}, JSON.stringify(message));
       return true;
     } catch (error) {
-      console.error('Error sending message to:', destination, error);
+      console.error('Error sending message:', error);
       return false;
     }
   }
 
-  // Disconnect from STOMP broker
+  // Disconnect
   disconnect() {
     if (this.stompClient) {
-      // Unsubscribe from all topics
-      this.subscriptions.forEach((subscription, topic) => {
-        subscription.unsubscribe();
-      });
-      this.subscriptions.clear();
-
-      // Disconnect STOMP client
       this.stompClient.disconnect();
-      this.stompClient = null;
       this.isConnected = false;
-      console.log('STOMP WebSocket disconnected');
+      this.subscriptions.clear();
     }
   }
 
@@ -128,9 +114,7 @@ class WebSocketService {
       console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
       
       setTimeout(() => {
-        this.connect().catch((error) => {
-          console.error('Reconnection failed:', error);
-        });
+        this.connect();
       }, this.reconnectDelay * this.reconnectAttempts);
     } else {
       console.error('Max reconnection attempts reached');
@@ -178,9 +162,7 @@ class WebSocketService {
 // Create singleton instance
 const webSocketService = new WebSocketService();
 
-export default webSocketService;
-
-// Export helper functions
+// Export utility functions
 export const createBookingSubscription = (userId, callbacks) => {
   return webSocketService.subscribeToBookingTopics(userId, callbacks);
 };
@@ -196,4 +178,6 @@ export const sendBookingStatusChange = (destination, bookingId, newStatus, previ
     previousStatus,
     timestamp: new Date().toISOString()
   });
-}; 
+};
+
+export default webSocketService;
