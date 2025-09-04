@@ -22,7 +22,8 @@ const AUTH_STORAGE_KEYS = {
   REGISTER_FLAG: 'registerFlag',
   CLIENT_DETAIL_SET: 'clientDetailSet',
   HOTEL_ID: 'hotelId',
-  TOP_HOTEL_IDS: 'topHotelIds' // New key for persistent top hotel IDs
+  TOP_HOTEL_IDS: 'topHotelIds', // New key for persistent top hotel IDs
+  REDIRECT_URL: 'redirectUrl' // New key for storing redirect URL after login
 };
 
 // === Utility to check token expiry ===
@@ -307,7 +308,15 @@ export const AuthProvider = ({ children }) => {
 
       // Navigate only if not a first-time registration
       if (!authData.flag) {
-        navigate("/");
+        // Check if there's a stored redirect URL
+        const redirectUrl = getStorageItem(AUTH_STORAGE_KEYS.REDIRECT_URL);
+        if (redirectUrl) {
+          // Clear the redirect URL after using it
+          removeStorageItem(AUTH_STORAGE_KEYS.REDIRECT_URL);
+          navigate(redirectUrl);
+        } else {
+          navigate("/");
+        }
       }
 
       const now = new Date();
@@ -331,6 +340,19 @@ export const AuthProvider = ({ children }) => {
       }));
     } catch (error) {
       console.error("Failed to set hotelId", error);
+    }
+  }, []);
+
+  // === SET REDIRECT URL (memoized) ===
+  const setRedirectUrl = useCallback((url) => {
+    try {
+      if (url) {
+        setStorageItem(AUTH_STORAGE_KEYS.REDIRECT_URL, url);
+      } else {
+        removeStorageItem(AUTH_STORAGE_KEYS.REDIRECT_URL);
+      }
+    } catch (error) {
+      console.error("Failed to set redirect URL", error);
     }
   }, []);
 
@@ -549,6 +571,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     setHotelId,
+    setRedirectUrl,
     setRoles,
     addRole,
     removeRole,
@@ -571,6 +594,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     setHotelId,
+    setRedirectUrl,
     setRoles,
     addRole,
     removeRole,

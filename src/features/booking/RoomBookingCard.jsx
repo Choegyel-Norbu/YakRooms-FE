@@ -29,7 +29,7 @@ import { BookingSuccessModal, CustomDatePicker } from "../../shared/components";
 import { toast } from "sonner"; // Using sonner for toasts
 
 export default function RoomBookingCard({ room, hotelId }) {
-  const { userId, isAuthenticated, getCurrentActiveRole, switchToRole, hasRole } = useAuth();
+  const { userId, isAuthenticated, getCurrentActiveRole, switchToRole, hasRole, setRedirectUrl } = useAuth();
   const [openBookingDialog, setOpenBookingDialog] = useState(false);
   const [openLoginModal, setOpenLoginModal] = useState(false);
   const [openRoleSwitchDialog, setOpenRoleSwitchDialog] = useState(false);
@@ -702,6 +702,8 @@ export default function RoomBookingCard({ room, hotelId }) {
   // --- Core logic change: Handle opening of modals ---
   const handleInstantBookingClick = async () => {
     if (!isAuthenticated) {
+      // Store current URL for redirect after login
+      setRedirectUrl(window.location.pathname + window.location.search);
       setOpenLoginModal(true);
       return;
     }
@@ -730,6 +732,8 @@ export default function RoomBookingCard({ room, hotelId }) {
   // Handle advanced booking - opens the detailed booking form
   const handleAdvancedBookingClick = async () => {
     if (!isAuthenticated) {
+      // Store current URL for redirect after login
+      setRedirectUrl(window.location.pathname + window.location.search);
       setOpenLoginModal(true);
       return;
     }
