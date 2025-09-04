@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Calendar,
   MapPin,
@@ -19,6 +19,7 @@ import {
   Home,
   CalendarPlus,
   RefreshCw,
+  Bell,
 } from "lucide-react";
 import { Separator } from "@/shared/components/separator";
 import { Button } from "@/shared/components/button";
@@ -37,6 +38,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shared/components";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
+import { API_BASE_URL } from "../../shared/services/firebaseConfig";
 
 // Number formatting function
 const formatCurrency = (amount) => {
@@ -56,6 +60,12 @@ const statusConfig = {
     color: "bg-amber-50 text-amber-700 border border-amber-200",
     icon: AlertCircle,
     actions: ["view", "directions"],
+  },
+  CANCELLATION_REJECTED: {
+    label: "Cancellation Rejected",
+    color: "bg-orange-50 text-orange-700 border border-orange-200",
+    icon: CheckCircle,
+    actions: ["view", "directions", "extend", "cancel"],
   },
   PENDING: {
     label: "Pending",
@@ -736,6 +746,7 @@ const BookingCard = ({
 }) => {
   const config = statusConfig[booking.status] || statusConfig.PENDING; // Fallback to PENDING if status not found
   const isCancellationRequested = booking.status === "CANCELLATION_REQUESTED";
+  const isCancellationRejected = booking.status === "CANCELLATION_REJECTED";
   const isDisabled = booking.status === "CANCELLED" || isCancellationRequested;
   const isCheckedOut = booking.status === "CHECKED_OUT";
 
@@ -784,7 +795,9 @@ const BookingCard = ({
           ? "bg-red-50 border-red-200 hover:bg-red-100"
           : isCancellationRequested
             ? "bg-amber-50 border-amber-200 hover:bg-amber-100"
-            : "bg-card"
+            : isCancellationRejected
+              ? "bg-orange-50 border-orange-200 hover:bg-orange-100"
+              : "bg-card"
       } ${isDisabled ? "opacity-60 pointer-events-none" : ""}`}
     >
       {/* Header */}
@@ -949,6 +962,23 @@ const BookingCard = ({
             <p className="text-sm text-green-800 font-medium">
               Check-in Today!
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Cancellation rejected indicator */}
+      {booking.status === "CANCELLATION_REJECTED" && (
+        <div className="bg-orange-50 border border-orange-200 rounded-md p-3 mb-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle className="text-orange-600 mt-0.5 flex-shrink-0" size={16} />
+            <div className="flex-1">
+              <p className="text-sm text-orange-800 font-medium mb-1">
+                Cancellation Request Rejected
+              </p>
+              <p className="text-xs text-orange-700">
+                Your cancellation request was not approved. Your booking remains active and you can proceed with your stay as planned.
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -1399,6 +1429,15 @@ const GuestDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
+  
+  // Notification state
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const clientRef = useRef(null);
+  const notificationRef = useRef(null);
+  
   const { userId } = useAuth();
 
   const itemsPerPage = 5;
@@ -1457,6 +1496,256 @@ const GuestDashboard = () => {
       fetchBookings(currentPage);
     }
   }, [userId, currentPage]);
+
+  // Fetch all notifications from backend when component mounts
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!userId) return;
+
+      try {
+        setLoadingNotifications(true);
+        const response = await api.get(`/notifications/user/${userId}`);
+        const fetchedNotifications = response.data;
+
+        // Sort notifications by createdAt (newest first) and calculate unread count
+        const sortedNotifications = fetchedNotifications.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        const unreadNotifications = sortedNotifications.filter(
+          (notif) => !notif.isRead
+        );
+
+        setNotifications(sortedNotifications);
+        setUnreadCount(unreadNotifications.length);
+
+        console.log("[API] Fetched notifications:", sortedNotifications);
+        console.log("[API] Unread count:", unreadNotifications.length);
+      } catch (error) {
+        console.error("[API] Error fetching notifications:", error);
+      } finally {
+        setLoadingNotifications(false);
+      }
+    };
+
+    fetchNotifications();
+  }, [userId]);
+
+  // Mark all notifications as read via API
+  const markAllNotificationsAsRead = async () => {
+    try {
+      await api.put(`/notifications/user/${userId}/markAllRead`);
+
+      // Update local state
+      setNotifications((prev) =>
+        prev.map((notif) => ({ ...notif, isRead: true }))
+      );
+      setUnreadCount(0);
+
+      console.log("[API] Successfully marked all notifications as read");
+    } catch (error) {
+      console.error("[API] Error marking notifications as read:", error);
+    }
+  };
+
+  // Delete all notifications via API
+  const deleteAllNotifications = async () => {
+    try {
+      await api.delete(`/notifications/user/${userId}`);
+
+      // Update local state
+      setNotifications([]);
+      setUnreadCount(0);
+
+      console.log("[API] Successfully deleted all notifications");
+    } catch (error) {
+      console.error("[API] Error deleting notifications:", error);
+    }
+  };
+
+  // Real-time notification WebSocket connection
+  useEffect(() => {
+    console.log("[WS] Initializing WebSocket Effect - userId:", userId);
+    if (!userId) {
+      console.log("[WS] No userId available, skipping WebSocket setup.");
+      return;
+    }
+
+    // Clean up any existing connection first
+    if (clientRef.current) {
+      console.log(
+        "[WS] Cleaning up existing WebSocket connection before creating new one"
+      );
+      if (clientRef.current.active) {
+        clientRef.current.deactivate();
+      }
+      clientRef.current = null;
+    }
+
+    // Create a unique client for guest notifications
+    const client = new Client({
+      webSocketFactory: () => {
+        console.log(`[WS] Creating SockJS connection to ${API_BASE_URL}/ws`);
+        return new SockJS(`${API_BASE_URL}/ws`);
+      },
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
+      debug: (str) => console.log("[WS] STOMP Debug:", str),
+
+      onConnect: (frame) => {
+        console.log("[WS] ✅ WebSocket Connected Successfully!");
+        console.log("[WS] Connection frame:", frame);
+
+        const subscriptionTopic = `/topic/notifications/${userId}`;
+        console.log("[WS] Subscribing to topic:", subscriptionTopic);
+
+        const subscription = client.subscribe(
+          subscriptionTopic,
+          (message) => {
+            console.log("=== [WS] 🔔 NOTIFICATION MESSAGE RECEIVED ===");
+            console.log("[WS] Raw STOMP Frame:", message);
+            console.log("[WS] Message Body:", message.body);
+            console.log("[WS] Message Headers:", message.headers);
+
+            try {
+              const notification = JSON.parse(message.body);
+              console.log(
+                "[WS] ✅ Successfully parsed notification:",
+                notification
+              );
+
+              // Add the notification to the state (it comes from backend with proper structure)
+              const notificationWithTimestamp = {
+                ...notification,
+                // Convert backend createdAt to display format
+                displayTime: new Date(notification.createdAt).toLocaleString(),
+              };
+
+              console.log(
+                "[WS] Notification with timestamp:",
+                notificationWithTimestamp
+              );
+
+              // Update state - add to beginning of array since it's newest
+              setNotifications((prev) => {
+                const updated = [notificationWithTimestamp, ...prev];
+                console.log("[WS] Updated notifications:", updated);
+                return updated;
+              });
+
+              // Only increment unread count if the notification is unread
+              if (!notification.isRead) {
+                setUnreadCount((prev) => {
+                  const updated = prev + 1;
+                  console.log("[WS] Updated unread count:", updated);
+                  return updated;
+                });
+              }
+
+              console.log("[WS] ✅ Notification processed successfully!");
+            } catch (error) {
+              console.error("[WS] ❌ Failed to parse notification:", error);
+              console.error("[WS] Invalid message body:", message.body);
+            }
+          },
+          {
+            id: `sub-${userId}-${Date.now()}`,
+            ack: "auto",
+          }
+        );
+
+        console.log("[WS] ✅ Subscription created:", subscription);
+
+        // Test the connection by sending a test message to ourselves (optional)
+        setTimeout(() => {
+          console.log("[WS] 🧪 Testing WebSocket connection...");
+          try {
+            // Send a ping to verify connection
+            client.publish({
+              destination: "/app/ping",
+              body: JSON.stringify({ userId, timestamp: Date.now() }),
+            });
+            console.log("[WS] Test ping sent");
+          } catch (e) {
+            console.log("[WS] Could not send test ping:", e);
+          }
+        }, 1000);
+      },
+
+      onDisconnect: (frame) => {
+        console.log("[WS] ❌ WebSocket Disconnected");
+        console.log("[WS] Disconnect frame:", frame);
+      },
+
+      onStompError: (frame) => {
+        console.error("[WS] ❌ STOMP Error:", frame.headers["message"]);
+        console.error("[WS] Error body:", frame.body);
+        console.error("[WS] Full error frame:", frame);
+      },
+
+      onWebSocketError: (event) => {
+        console.error("[WS] ❌ WebSocket Error:", event);
+      },
+
+      onWebSocketClose: (event) => {
+        console.log(
+          `[WS] WebSocket Closed - Code: ${event.code}, Reason: ${event.reason}, Clean: ${event.wasClean}`
+        );
+      },
+    });
+
+    // Activate the client
+    console.log("[WS] 🚀 Activating WebSocket client...");
+    clientRef.current = client;
+    client.activate();
+
+    // Cleanup
+    return () => {
+      console.log("[WS] 🧹 Cleanup: Deactivating WebSocket...");
+      if (clientRef.current && clientRef.current.active) {
+        clientRef.current.deactivate();
+        clientRef.current = null;
+        console.log("[WS] ✅ WebSocket deactivated");
+      }
+    };
+  }, [userId]);
+
+  // Close notification dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
+        setShowNotifications(false);
+      }
+    };
+
+    if (showNotifications) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showNotifications]);
+
+  // Handle notification dropdown click
+  const handleNotificationClick = async () => {
+    setShowNotifications((prev) => !prev);
+
+    // Mark all as read when opening dropdown (only if there are unread notifications)
+    if (!showNotifications && unreadCount > 0) {
+      await markAllNotificationsAsRead();
+    }
+  };
+
+  // Clear all notifications
+  const clearAllNotifications = async () => {
+    await deleteAllNotifications();
+    setShowNotifications(false);
+  };
 
   // Handle page change
   const handlePageChange = (newPage) => {
@@ -1569,6 +1858,112 @@ const GuestDashboard = () => {
               </h1>
             </div>
             <div className="flex items-center gap-2">
+              {/* Notification Bell */}
+              <div className="relative" ref={notificationRef}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative"
+                  onClick={handleNotificationClick}
+                  disabled={loadingNotifications}
+                >
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-[10px] text-white flex items-center justify-center font-bold">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
+                </Button>
+
+                {/* Notification Dropdown */}
+                {showNotifications && (
+                  <div className="fixed left-4 right-4 top-16 sm:absolute sm:right-0 sm:left-auto sm:top-auto sm:mt-2 w-auto sm:w-80 bg-card border rounded-lg shadow-lg z-50">
+                    <div className="p-3 sm:p-4 border-b">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-foreground text-sm sm:text-base">
+                          Notifications
+                        </h3>
+                        {notifications.length > 0 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-muted-foreground hover:text-foreground h-7 px-2"
+                            onClick={clearAllNotifications}
+                          >
+                            Clear all
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="max-h-64 sm:max-h-96 overflow-y-auto">
+                      {loadingNotifications ? (
+                        <div className="p-4 sm:p-6 text-center">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
+                          <p className="text-sm text-muted-foreground">
+                            Loading notifications...
+                          </p>
+                        </div>
+                      ) : notifications.length === 0 ? (
+                        <div className="p-4 sm:p-6 text-center">
+                          <Bell className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground/30 mx-auto mb-2" />
+                          <p className="text-sm text-muted-foreground">
+                            No notifications
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="divide-y">
+                          {notifications.map((notification) => (
+                            <div
+                              key={notification.id}
+                              className={`p-3 sm:p-4 transition-colors ${
+                                notification.isRead
+                                  ? "hover:bg-muted/50"
+                                  : "bg-blue-50/50 dark:bg-blue-950/20 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                              }`}
+                            >
+                              <div className="space-y-2">
+                                <div className="flex items-start gap-2">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <p className="font-medium text-sm flex-1 line-clamp-2">
+                                        {notification.title}
+                                      </p>
+                                      {!notification.isRead && (
+                                        <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0"></div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  {notification.username && (
+                                    <p className="text-sm text-muted-foreground">
+                                      <span className="font-medium">User:</span> {notification.username}
+                                    </p>
+                                  )}
+                                  {notification.roomNumber && (
+                                    <p className="text-sm text-muted-foreground">
+                                      <span className="font-medium">Room:</span> {notification.roomNumber}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex justify-end">
+                                  <span className="text-xs text-muted-foreground">
+                                    {notification.displayTime ||
+                                      new Date(
+                                        notification.createdAt
+                                      ).toLocaleString()}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <Button
                 variant="ghost"
                 size="sm"

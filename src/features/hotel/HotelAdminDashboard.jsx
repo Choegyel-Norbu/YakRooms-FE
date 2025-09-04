@@ -679,19 +679,21 @@ const HotelAdminDashboard = () => {
                                         <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0"></div>
                                       )}
                                     </div>
-                                    {notification.type && (
-                                      <Badge
-                                        variant="secondary"
-                                        className="text-xs mb-2"
-                                      >
-                                        {notification.type}
-                                      </Badge>
-                                    )}
+
                                   </div>
                                 </div>
-                                <p className="text-sm text-muted-foreground line-clamp-3">
-                                  {notification.message}
-                                </p>
+                                <div className="space-y-1">
+                                  {notification.username && (
+                                    <p className="text-sm text-muted-foreground">
+                                      <span className="font-medium">User:</span> {notification.username}
+                                    </p>
+                                  )}
+                                  {notification.roomNumber && (
+                                    <p className="text-sm text-muted-foreground">
+                                      <span className="font-medium">Room:</span> {notification.roomNumber}
+                                    </p>
+                                  )}
+                                </div>
                                 <div className="flex justify-end">
                                   <span className="text-xs text-muted-foreground">
                                     {notification.displayTime ||

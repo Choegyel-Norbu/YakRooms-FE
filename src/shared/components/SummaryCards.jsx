@@ -81,12 +81,20 @@ const SummaryCards = ({ rooms, bookings, notifications, markAsRead }) => {
                 className={`py-2 ${!notification.read ? "bg-amber-50" : ""}`}
                 onClick={() => markAsRead(notification.id)}
               >
-                <div className="flex justify-between items-center">
+                <div className="space-y-1">
                   <p className={`${!notification.read ? "font-medium" : ""}`}>
-                    {notification.message}
+                    {notification.title}
                   </p>
+                  <div className="text-xs text-gray-600 space-y-1">
+                    {notification.username && (
+                      <div><span className="font-medium">User:</span> {notification.username}</div>
+                    )}
+                    {notification.roomNumber && (
+                      <div><span className="font-medium">Room:</span> {notification.roomNumber}</div>
+                    )}
+                  </div>
                   <span className="text-xs text-gray-500">
-                    {notification.date}
+                    {notification.date || notification.createdAt}
                   </span>
                 </div>
               </li>

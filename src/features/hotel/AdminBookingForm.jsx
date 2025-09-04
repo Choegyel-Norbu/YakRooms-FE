@@ -264,8 +264,8 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
       if (!cleanPhone) return "Phone number is required";
       if (!/^\d+$/.test(cleanPhone)) return "Phone number should contain only digits";
       if (cleanPhone.length !== 8) return "Phone number must be exactly 8 digits";
-      const mobilePattern = /^(17|77)\d{6}$/;
-      if (!mobilePattern.test(cleanPhone)) return "Invalid Bhutanese mobile number. Must start with 17 or 77.";
+      const mobilePattern = /^(16|17|77)\d{6}$/;
+      if (!mobilePattern.test(cleanPhone)) return "Invalid Bhutanese mobile number. Must start with 16, 17, or 77.";
       return null;
     };
 
@@ -485,44 +485,100 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
                 {errors.roomNumber && <p className="text-sm text-destructive">{errors.roomNumber}</p>}
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="guestName">Guest Name <span className="text-destructive">*</span></Label>
-                <Input
-                  id="guestName"
-                  name="guestName"
-                  type="text"
-                  value={bookingDetails.guestName}
-                  onChange={handleInputChange}
-                  placeholder="Enter guest name"
-                />
-                {errors.guestName && <p className="text-sm text-destructive">{errors.guestName}</p>}
-              </div>
-
-
-              <div className="grid gap-2">
-                <Label htmlFor="phone">Phone Number <span className="text-destructive">*</span></Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">+975</span>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={bookingDetails.phone}
-                    onChange={handleInputChange}
-                    placeholder="17123456"
-                    className="pl-14"
+              {/* Date Selection - Moved to top after room selection */}
+              <div className="space-y-4">
+                <h3 className="text-base font-semibold text-foreground">Select Booking Dates</h3>
+                
+                <div className="grid gap-2">
+                  <CustomDatePicker
+                    selectedDate={bookingDetails.checkInDate ? new Date(bookingDetails.checkInDate + 'T12:00:00') : null}
+                    onDateSelect={(date) => handleDateSelect("checkInDate", date)}
+                    blockedDates={bookedDates}
+                    minDate={new Date()}
+                    placeholder="Select check-in date"
+                    label="Check-in Date *"
+                    error={errors.checkInDate}
+                    disabled={isLoadingBookedDates}
+                    className="w-full"
                   />
                 </div>
-                {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+
+                {!shouldHideCheckoutDate() && (
+                  <div className="grid gap-2">
+                    <CustomDatePicker
+                      selectedDate={bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate + 'T12:00:00') : null}
+                      onDateSelect={(date) => handleDateSelect("checkOutDate", date)}
+                      blockedDates={bookedDates}
+                      minDate={bookingDetails.checkInDate ? new Date(new Date(bookingDetails.checkInDate).getTime() + 24 * 60 * 60 * 1000) : new Date(new Date().getTime() + 24 * 60 * 60 * 1000)}
+                      placeholder="Select check-out date"
+                      label="Check-out Date *"
+                      error={errors.checkOutDate}
+                      disabled={isLoadingBookedDates}
+                      className="w-full"
+                    />
+                  </div>
+                )}
+                
+                {shouldHideCheckoutDate() && (
+                  <div className="grid gap-2">
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div className="text-sm">
+                          <p className="font-medium text-blue-800">Single Night Stay</p>
+                          <p className="text-blue-700 mt-1">
+                            This date is available for one night only. Checkout date is automatically set to {bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate).toLocaleDateString() : 'the next day'}.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Additional Information Fields */}
-              <div className="grid grid-cols-1 gap-4">
+              <Separator />
+
+              {/* Guest Information */}
+              <div className="space-y-4">
+                <h3 className="text-base font-semibold text-foreground">Guest Information</h3>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="guestName">Guest Name <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="guestName"
+                    name="guestName"
+                    type="text"
+                    value={bookingDetails.guestName}
+                    onChange={handleInputChange}
+                    placeholder="Enter guest name"
+                  />
+                  {errors.guestName && <p className="text-sm text-destructive">{errors.guestName}</p>}
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="phone">Phone Number <span className="text-destructive">*</span></Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">+975</span>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      value={bookingDetails.phone}
+                      onChange={handleInputChange}
+                      placeholder="17123456"
+                      className="pl-14"
+                    />
+                  </div>
+                  {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+                </div>
+
                 {/* Nationality Selection */}
                 <div className="grid gap-2">
                   <Label className="text-sm">Nationality <span className="text-destructive">*</span></Label>
                   <div className="flex items-center space-x-3">
-                  <span className="text-sm text-muted-foreground">Bhutanese</span>
+                    <span className="text-sm text-muted-foreground">Bhutanese</span>
                     <Switch
                       checked={bookingDetails.isBhutanese}
                       onCheckedChange={(checked) => {
@@ -548,17 +604,17 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
                 {bookingDetails.isBhutanese && (
                   <div className="grid gap-2">
                     <Label htmlFor="cid" className="text-sm">CID Number <span className="text-destructive">*</span></Label>
-                  <Input
-                    id="cid"
-                    name="cid"
-                    type="text"
-                    value={bookingDetails.cid}
-                    onChange={handleInputChange}
-                    placeholder="11 digits (e.g., 10901001065)"
-                    maxLength={11}
-                    className={`text-sm ${errors.cid ? "border-destructive" : ""}`}
-                  />
-                  
+                    <Input
+                      id="cid"
+                      name="cid"
+                      type="text"
+                      value={bookingDetails.cid}
+                      onChange={handleInputChange}
+                      placeholder="11 digits (e.g., 10901001065)"
+                      maxLength={11}
+                      className={`text-sm ${errors.cid ? "border-destructive" : ""}`}
+                    />
+                    
                     {errors.cid && (
                       <p className="text-sm text-destructive">{errors.cid}</p>
                     )}
@@ -596,74 +652,26 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
                     <p className="text-sm text-destructive">{errors.origin}</p>
                   )}
                 </div>
-              </div>
 
-              <div className="grid gap-2">
-                <CustomDatePicker
-                  selectedDate={bookingDetails.checkInDate ? new Date(bookingDetails.checkInDate + 'T12:00:00') : null}
-                  onDateSelect={(date) => handleDateSelect("checkInDate", date)}
-                  blockedDates={bookedDates}
-                  minDate={new Date()}
-                  placeholder="Select check-in date"
-                  label="Check-in Date"
-                  error={errors.checkInDate}
-                  disabled={isLoadingBookedDates}
-                  className="w-full"
-                />
-              </div>
-
-              {!shouldHideCheckoutDate() && (
                 <div className="grid gap-2">
-                  <CustomDatePicker
-                    selectedDate={bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate + 'T12:00:00') : null}
-                    onDateSelect={(date) => handleDateSelect("checkOutDate", date)}
-                    blockedDates={bookedDates}
-                    minDate={bookingDetails.checkInDate ? new Date(new Date(bookingDetails.checkInDate).getTime() + 24 * 60 * 60 * 1000) : new Date(new Date().getTime() + 24 * 60 * 60 * 1000)}
-                    placeholder="Select check-out date"
-                    label="Check-out Date"
-                    error={errors.checkOutDate}
-                    disabled={isLoadingBookedDates}
-                    className="w-full"
-                  />
+                  <Label htmlFor="guests">Number of Guests</Label>
+                  <Select
+                    name="guests"
+                    value={String(bookingDetails.guests)}
+                    onValueChange={(value) => setBookingDetails(prev => ({ ...prev, guests: parseInt(value) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select guests" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6].map((num) => (
+                        <SelectItem key={num} value={String(num)}>
+                          {num} {num === 1 ? "guest" : "guests"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
-              
-              {shouldHideCheckoutDate() && (
-                <div className="grid gap-2">
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <div className="text-sm">
-                        <p className="font-medium text-blue-800">Single Night Stay</p>
-                        <p className="text-blue-700 mt-1">
-                          This date is available for one night only. Checkout date is automatically set to {bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate).toLocaleDateString() : 'the next day'}.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="grid gap-2">
-                <Label htmlFor="guests">Number of Guests</Label>
-                <Select
-                  name="guests"
-                  value={String(bookingDetails.guests)}
-                  onValueChange={(value) => setBookingDetails(prev => ({ ...prev, guests: parseInt(value) }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select guests" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1, 2, 3, 4, 5, 6].map((num) => (
-                      <SelectItem key={num} value={String(num)}>
-                        {num} {num === 1 ? "guest" : "guests"}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
 
               <Separator className="my-2" />

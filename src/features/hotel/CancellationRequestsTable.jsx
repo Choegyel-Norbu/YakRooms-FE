@@ -243,24 +243,32 @@ const CancellationRequestsTable = ({ hotelId }) => {
   // --- Status Badge Styling ---
   const getStatusBadge = (status) => {
     let colorClass = "bg-slate-100 text-slate-700 border border-slate-200";
+    let icon = null;
+    let textClass = "";
     
     switch (status) {
-      case "CONFIRMED":
-        colorClass = "bg-emerald-50 text-emerald-700 border border-emerald-200";
-        break;
-      case "PENDING":
-        colorClass = "bg-amber-50 text-amber-700 border border-amber-200";
-        break;
       case "CANCELLED":
-        colorClass = "bg-red-50 text-red-700 border border-red-200";
+        colorClass = "bg-red-100 text-red-800 border border-red-300 shadow-sm";
+        icon = <XCircle className="h-3 w-3 mr-1" />;
+        break;
+      case "CANCELLATION_REJECTED":
+        colorClass = "bg-orange-100 text-orange-800 border border-orange-300 shadow-sm";
+        icon = <XCircle className="h-3 w-3 mr-1" />;
+        textClass = "line-through";
+        break;
+      case "CANCELLATION_REQUESTED":
+        colorClass = "bg-yellow-100 text-yellow-800 border border-yellow-300 shadow-sm";
+        icon = <AlertTriangle className="h-3 w-3 mr-1" />;
         break;
       default:
-        colorClass = "bg-slate-50 text-slate-600 border border-slate-200";
+        colorClass = "bg-slate-100 text-slate-700 border border-slate-200 shadow-sm";
+        icon = <Info className="h-3 w-3 mr-1" />;
     }
     
     return (
-      <Badge className={`${colorClass} px-3 py-1 rounded-full text-xs font-medium shadow-sm`}>
-        {status.replace("_", " ")}
+      <Badge className={`${colorClass} px-3 py-1.5 rounded-full text-xs font-semibold flex items-center justify-center`}>
+        {icon}
+        <span className={textClass}>{status.replace("_", " ")}</span>
       </Badge>
     );
   };
@@ -394,26 +402,30 @@ const CancellationRequestsTable = ({ hotelId }) => {
                           >
                             <Info className="h-4 w-4 mr-2" /> View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setRequestToAction(request);
-                              setActionType("approve");
-                              setActionDialog(true);
-                            }}
-                            className="text-green-600"
-                          >
-                            <CheckCircle className="h-4 w-4 mr-2" /> Approve
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setRequestToAction(request);
-                              setActionType("reject");
-                              setActionDialog(true);
-                            }}
-                            className="text-red-600"
-                          >
-                            <XCircle className="h-4 w-4 mr-2" /> Reject
-                          </DropdownMenuItem>
+                          {request.status !== "CANCELLATION_REJECTED" && request.status !== "CANCELLED" && (
+                            <>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setRequestToAction(request);
+                                  setActionType("approve");
+                                  setActionDialog(true);
+                                }}
+                                className="text-green-600"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" /> Approve
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setRequestToAction(request);
+                                  setActionType("reject");
+                                  setActionDialog(true);
+                                }}
+                                className="text-red-600"
+                              >
+                                <XCircle className="h-4 w-4 mr-2" /> Reject
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

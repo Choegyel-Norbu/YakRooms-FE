@@ -3,7 +3,7 @@ import { useBookingContext } from './BookingContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/card';
 import { Button } from '@/shared/components/button';
 import { Badge } from '@/shared/components/badge';
-import { CheckCircle, XCircle, AlertTriangle, Info, Bell, X } from 'lucide-react';
+import { Bell, X } from 'lucide-react';
 
 const BookingNotifications = () => {
   const {
@@ -13,38 +13,8 @@ const BookingNotifications = () => {
     isConnected
   } = useBookingContext();
 
-  const getNotificationIcon = (type) => {
-    switch (type) {
-      case 'BOOKING_CONFIRMED':
-      case 'BOOKING_STATUS_UPDATE':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'BOOKING_CANCELLED':
-      case 'BOOKING_REJECTED':
-        return <XCircle className="h-4 w-4 text-red-600" />;
-      case 'PAYMENT_REQUIRED':
-      case 'CHECK_IN_REMINDER':
-      case 'CHECK_OUT_REMINDER':
-        return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
-      default:
-        return <Info className="h-4 w-4 text-blue-600" />;
-    }
-  };
-
-  const getNotificationColor = (type) => {
-    switch (type) {
-      case 'BOOKING_CONFIRMED':
-      case 'BOOKING_STATUS_UPDATE':
-        return 'border-green-200 bg-green-50';
-      case 'BOOKING_CANCELLED':
-      case 'BOOKING_REJECTED':
-        return 'border-red-200 bg-red-50';
-      case 'PAYMENT_REQUIRED':
-      case 'CHECK_IN_REMINDER':
-      case 'CHECK_OUT_REMINDER':
-        return 'border-yellow-200 bg-yellow-50';
-      default:
-        return 'border-blue-200 bg-blue-50';
-    }
+  const getNotificationColor = () => {
+    return 'border-blue-200 bg-blue-50';
   };
 
   const formatTimestamp = (timestamp) => {
@@ -109,28 +79,36 @@ const BookingNotifications = () => {
         {bookingNotifications.map((notification, index) => (
           <div
             key={index}
-            className={`p-3 rounded-lg border ${getNotificationColor(notification.type)}`}
+            className={`p-3 rounded-lg border ${getNotificationColor()}`}
           >
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-2 flex-1">
-                {getNotificationIcon(notification.type)}
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm">
-                    {notification.type.replace(/_/g, ' ')}
+                
+                                  <div className="flex-1 min-w-0">
+                    {/* <div className="font-medium text-sm">
+                      {notification.title}
+                    </div> */}
+                  <div className="text-xs text-muted-foreground mt-1 space-y-1">
+                    {notification.username && (
+                      <div><span className="font-medium">User:</span> {notification.username}</div>
+                    )}
+                    {notification.roomNumber && (
+                      <div><span className="font-medium">Room:</span> {notification.roomNumber}</div>
+                    )}
+                    {notification.payload && (
+                      <>
+                        {notification.payload.bookingId && (
+                          <div><span className="font-medium">Booking:</span> {notification.payload.bookingId}</div>
+                        )}
+                        {notification.payload.newStatus && (
+                          <div><span className="font-medium">Status:</span> {notification.payload.newStatus}</div>
+                        )}
+                        {notification.payload.guestName && (
+                          <div><span className="font-medium">Guest:</span> {notification.payload.guestName}</div>
+                        )}
+                      </>
+                    )}
                   </div>
-                  {notification.payload && (
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {notification.payload.bookingId && (
-                        <div>Booking: {notification.payload.bookingId}</div>
-                      )}
-                      {notification.payload.newStatus && (
-                        <div>Status: {notification.payload.newStatus}</div>
-                      )}
-                      {notification.payload.guestName && (
-                        <div>Guest: {notification.payload.guestName}</div>
-                      )}
-                    </div>
-                  )}
                   <div className="text-xs text-muted-foreground mt-1">
                     {formatTimestamp(notification.timestamp)}
                   </div>
