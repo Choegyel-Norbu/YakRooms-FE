@@ -285,7 +285,8 @@ const BookingsInventoryTable = ({ hotelId }) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "BTN", // Bhutanese Ngultrum
-      minimumFractionDigits: 2,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
     }).format(amount);
   };
 
@@ -525,7 +526,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
                     {/* CID */}
                     <TableCell className="font-medium text-sm">
                       {booking.cid || (
-                        <span className="text-muted-foreground text-xs">-</span>
+                        <span className="text-muted-foreground text-xs">N/A</span>
                       )}
                     </TableCell>
                     {/* Guest Details */}

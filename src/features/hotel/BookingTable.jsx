@@ -14,6 +14,8 @@ import {
   MoreHorizontal,
   XCircle,
   Info,
+  Search,
+  X,
 } from "lucide-react";
 
 import api from "../../shared/services/Api"; // Your API service for making requests
@@ -30,6 +32,7 @@ import {
 } from "@/shared/components";
 import { Badge } from "@/shared/components";
 import { Button } from "@/shared/components";
+import { Input } from "@/shared/components";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -93,8 +96,50 @@ const BookingTable = ({ hotelId }) => {
   const [deleteDialog, setDeleteDialog] = useState(false); // Controls the delete confirmation dialog visibility
   const [bookingToDelete, setBookingToDelete] = useState(null); // Stores the ID of the booking to be deleted
   const [selectedBooking, setSelectedBooking] = useState(null); // Stores the booking to show details
+  
+  // Search functionality state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [lastSearchedQuery, setLastSearchedQuery] = useState("");
 
   const pageSize = 10; // Number of bookings per page
+
+  // --- Search Bookings by Room Number ---
+  const searchBookingsByRoom = async (roomNumber, page = 0) => {
+    setSearchLoading(true);
+    setError(null);
+
+    try {
+      const res = await api.get(`/bookings/search/room-number?roomNumber=${roomNumber}&hotelId=${hotelId}&page=${page}&size=${pageSize}`);
+      if (!res.data) {
+        throw new Error("Failed to search bookings");
+      }
+      const data = res.data;
+
+      if (data.content) {
+        setBookings(data.content);
+        setTotalPages(data.totalPages || 1);
+      } else if (Array.isArray(data)) {
+        // Fallback if API returns array directly
+        setBookings(data);
+        setTotalPages(Math.ceil(data.length / pageSize));
+      }
+    } catch (err) {
+      setError(err.message);
+      toast.error(
+        <div className="flex items-center gap-2">
+          <XCircle className="h-5 w-5 text-red-500" />
+          Failed to search bookings. Please try again.
+        </div>,
+        {
+          duration: 6000
+        }
+      );
+    } finally {
+      setSearchLoading(false);
+    }
+  };
 
   // --- Fetch Bookings Data ---
   const fetchBookings = async (page) => {
@@ -124,8 +169,14 @@ const BookingTable = ({ hotelId }) => {
   };
 
   useEffect(() => {
-    if (hotelId) fetchBookings(currentPage);
-  }, [currentPage, hotelId]);
+    if (hotelId) {
+      if (isSearchMode && lastSearchedQuery) {
+        searchBookingsByRoom(lastSearchedQuery, currentPage);
+      } else if (!isSearchMode) {
+        fetchBookings(currentPage);
+      }
+    }
+  }, [currentPage, hotelId, isSearchMode, lastSearchedQuery]);
 
   // --- Update Booking Status ---
   const updateBookingStatus = async (id, newStatus) => {
@@ -157,7 +208,12 @@ const BookingTable = ({ hotelId }) => {
           }
         );
       }
-      fetchBookings(currentPage); // Re-fetch to get updated data
+      // Re-fetch to get updated data
+      if (isSearchMode && lastSearchedQuery) {
+        searchBookingsByRoom(lastSearchedQuery, currentPage);
+      } else {
+        fetchBookings(currentPage);
+      }
     } catch (err) {
       toast.error(
         <div className="flex items-center gap-2">
@@ -191,7 +247,12 @@ const BookingTable = ({ hotelId }) => {
           duration: 6000
         }
       );
-      fetchBookings(currentPage); // Re-fetch to get updated data
+      // Re-fetch to get updated data
+      if (isSearchMode && lastSearchedQuery) {
+        searchBookingsByRoom(lastSearchedQuery, currentPage);
+      } else {
+        fetchBookings(currentPage);
+      }
     } catch (err) {
       toast.error(
         <div className="flex items-center gap-2">
@@ -207,6 +268,32 @@ const BookingTable = ({ hotelId }) => {
       setLoading(false);
       setDeleteDialog(false); // Close the dialog
       setBookingToDelete(null); // Reset the ID
+    }
+  };
+
+  // --- Search Handlers ---
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      setLastSearchedQuery(searchQuery.trim());
+      setIsSearchMode(true);
+      setCurrentPage(0); // Reset to first page when searching
+      // The useEffect will automatically trigger the search due to lastSearchedQuery change
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setLastSearchedQuery("");
+    setIsSearchMode(false);
+    setCurrentPage(0);
+  };
+
+  const handleSearchInputChange = (e) => {
+    setSearchQuery(e.target.value);
+    // Only clear search mode if input is completely empty
+    if (!e.target.value.trim()) {
+      setIsSearchMode(false);
     }
   };
 
@@ -296,6 +383,63 @@ const BookingTable = ({ hotelId }) => {
   return (
     <div>
       <div>
+        {/* --- Search Section --- */}
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4 items-end">
+            <div className="flex-1">
+              <label htmlFor="room-search" className="block text-sm font-medium text-gray-700 mb-2">
+                Search by Room Number
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="room-search"
+                  type="text"
+                  placeholder="Enter room number (e.g., 101, 205)"
+                  value={searchQuery}
+                  onChange={handleSearchInputChange}
+                  className="pl-10 pr-10"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button type="submit" disabled={!searchQuery.trim() || searchLoading}>
+                {searchLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Searching...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Search className="h-4 w-4" />
+                    Search
+                  </div>
+                )}
+              </Button>
+             
+            </div>
+          </form>
+          
+          {/* Search Results Info */}
+          {isSearchMode && (
+            <div className="mt-3 text-sm text-gray-600">
+              <span className="font-medium">Search Results:</span> Showing bookings for room number "{lastSearchedQuery}"
+              {bookings.length === 0 && !searchLoading && (
+                <span className="text-amber-600 ml-2">(No bookings found for this room)</span>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* --- Error Message Display --- */}
         {error && (
           <div
@@ -466,9 +610,20 @@ const BookingTable = ({ hotelId }) => {
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-muted-foreground">
-                Showing page{" "}
-                <span className="font-medium">{currentPage + 1}</span> of{" "}
-                <span className="font-medium">{totalPages}</span>
+                {isSearchMode ? (
+                  <>
+                    Showing search results page{" "}
+                    <span className="font-medium">{currentPage + 1}</span> of{" "}
+                    <span className="font-medium">{totalPages}</span>
+                    {" "}for room "{lastSearchedQuery}"
+                  </>
+                ) : (
+                  <>
+                    Showing page{" "}
+                    <span className="font-medium">{currentPage + 1}</span> of{" "}
+                    <span className="font-medium">{totalPages}</span>
+                  </>
+                )}
               </p>
             </div>
             <div>
