@@ -1507,8 +1507,13 @@ const GuestDashboard = () => {
         const response = await api.get(`/notifications/user/${userId}`);
         const fetchedNotifications = response.data;
 
+        // Filter notifications to only show BOOKING_CREATED type
+        const filteredNotifications = fetchedNotifications.filter(
+          (notif) => notif.type === "BOOKING_CREATED"
+        );
+
         // Sort notifications by createdAt (newest first) and calculate unread count
-        const sortedNotifications = fetchedNotifications.sort(
+        const sortedNotifications = filteredNotifications.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
 
@@ -1615,32 +1620,37 @@ const GuestDashboard = () => {
                 notification
               );
 
-              // Add the notification to the state (it comes from backend with proper structure)
-              const notificationWithTimestamp = {
-                ...notification,
-                // Convert backend createdAt to display format
-                displayTime: new Date(notification.createdAt).toLocaleString(),
-              };
+              // Only process BOOKING_CREATED notifications
+              if (notification.type === "BOOKING_CREATED") {
+                // Add the notification to the state (it comes from backend with proper structure)
+                const notificationWithTimestamp = {
+                  ...notification,
+                  // Convert backend createdAt to display format
+                  displayTime: new Date(notification.createdAt).toLocaleString(),
+                };
 
-              console.log(
-                "[WS] Notification with timestamp:",
-                notificationWithTimestamp
-              );
+                console.log(
+                  "[WS] Notification with timestamp:",
+                  notificationWithTimestamp
+                );
 
-              // Update state - add to beginning of array since it's newest
-              setNotifications((prev) => {
-                const updated = [notificationWithTimestamp, ...prev];
-                console.log("[WS] Updated notifications:", updated);
-                return updated;
-              });
-
-              // Only increment unread count if the notification is unread
-              if (!notification.isRead) {
-                setUnreadCount((prev) => {
-                  const updated = prev + 1;
-                  console.log("[WS] Updated unread count:", updated);
+                // Update state - add to beginning of array since it's newest
+                setNotifications((prev) => {
+                  const updated = [notificationWithTimestamp, ...prev];
+                  console.log("[WS] Updated notifications:", updated);
                   return updated;
                 });
+
+                // Only increment unread count if the notification is unread
+                if (!notification.isRead) {
+                  setUnreadCount((prev) => {
+                    const updated = prev + 1;
+                    console.log("[WS] Updated unread count:", updated);
+                    return updated;
+                  });
+                }
+              } else {
+                console.log("[WS] Ignoring notification of type:", notification.type);
               }
 
               console.log("[WS] ✅ Notification processed successfully!");
