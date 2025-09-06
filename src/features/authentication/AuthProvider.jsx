@@ -184,7 +184,7 @@ export const AuthProvider = ({ children }) => {
       setAuthState(prev => ({ ...prev, isValidatingAuth: true }));
       
       // Call backend to validate current authentication status via cookies
-      const response = await api.get('/auth/status');
+      const response = await get(`${API_BASE_URL}/api/auth/status`);
       
       if (response.status === 200 && response.data.success && response.data.user) {
         console.log("✅ Authentication validated successfully");
