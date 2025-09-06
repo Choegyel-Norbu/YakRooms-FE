@@ -28,6 +28,7 @@ import api from "../../shared/services/Api";
 import { useAuth } from "../authentication";
 import { toast } from "sonner";
 import { CustomDatePicker } from "../../shared/components";
+import AuthTest from "../../components/AuthTest";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1991,6 +1992,7 @@ const GuestDashboard = () => {
       <div className="block sm:hidden">
         <Separator />
       </div>
+
 
       {/* Bookings List */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
