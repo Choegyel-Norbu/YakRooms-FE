@@ -9,33 +9,37 @@ import {
   setAuthData,
   clearAuthData
 } from "@/shared/utils/safariLocalStorage";
+import api, { authService, enhancedApi } from "@/shared/services/Api";
 
 // === Constants ===
 const AUTH_STORAGE_KEYS = {
-  TOKEN: 'token',
   USER_ID: 'userId',
   EMAIL: 'email',
   ROLES: 'roles', 
-  ACTIVE_ROLE: 'activeRole', // New key for active role
+  ACTIVE_ROLE: 'activeRole',
   USER_NAME: 'userName',
   PICTURE_URL: 'pictureURL',
   REGISTER_FLAG: 'registerFlag',
   CLIENT_DETAIL_SET: 'clientDetailSet',
   HOTEL_ID: 'hotelId',
-  TOP_HOTEL_IDS: 'topHotelIds', // New key for persistent top hotel IDs
-  REDIRECT_URL: 'redirectUrl' // New key for storing redirect URL after login
+  TOP_HOTEL_IDS: 'topHotelIds',
+  REDIRECT_URL: 'redirectUrl',
+  LAST_AUTH_CHECK: 'lastAuthCheck'
 };
 
-// === Utility to check token expiry ===
-const isTokenExpired = (token) => {
-  if (!token) return true;
+// === Utility to check if we should validate authentication status ===
+const shouldCheckAuthStatus = () => {
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    const now = Math.floor(Date.now() / 1000);
-    return now >= payload.exp;
-  } catch (e) {
-    console.error("Failed to decode JWT", e);
-    return true; // fallback to expired
+    const lastCheck = getStorageItem(AUTH_STORAGE_KEYS.LAST_AUTH_CHECK);
+    if (!lastCheck) return true;
+    
+    const lastCheckTime = parseInt(lastCheck, 10);
+    const now = Date.now();
+    // Check every 5 minutes or if more than 5 minutes have passed
+    return (now - lastCheckTime) > (5 * 60 * 1000);
+  } catch (error) {
+    console.error("Failed to check last auth validation time", error);
+    return true; // fallback to checking
   }
 };
 
@@ -118,7 +122,6 @@ const AuthContext = createContext(null);
 
 const defaultAuthState = {
   isAuthenticated: false,
-  token: null,
   email: "",
   roles: [], // Changed from role to roles array
   activeRole: null, // New active role state
@@ -130,35 +133,36 @@ const defaultAuthState = {
   flag: false,
   hotelId: null,
   topHotelIds: [], // Store top three hotel IDs
+  isValidatingAuth: false, // New flag for auth validation state
 };
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
-  // Initialize auth state from localStorage with Safari-specific handling
+  // Initialize auth state from localStorage with cookie-based authentication
   const [authState, setAuthState] = useState(() => {
     try {
-      const token = getStorageItem(AUTH_STORAGE_KEYS.TOKEN);
+      // Check if we have basic user data stored (indicates previous authentication)
+      const userId = getStorageItem(AUTH_STORAGE_KEYS.USER_ID);
+      const email = getStorageItem(AUTH_STORAGE_KEYS.EMAIL);
       
-      if (!token || isTokenExpired(token)) {
-        clearAuthData();
-        return defaultAuthState;
-      }
+      // If we have user data, assume authenticated (server will validate via cookies)
+      const hasUserData = userId && email;
 
       const authData = {
-        isAuthenticated: true,
-        token,
-        email: getStorageItem(AUTH_STORAGE_KEYS.EMAIL),
-        roles: parseRolesFromStorage(getStorageItem(AUTH_STORAGE_KEYS.ROLES)), // Parse roles array
-        activeRole: getStorageItem(AUTH_STORAGE_KEYS.ACTIVE_ROLE), // Set active role
+        isAuthenticated: hasUserData,
+        email: email || "",
+        roles: parseRolesFromStorage(getStorageItem(AUTH_STORAGE_KEYS.ROLES)),
+        activeRole: getStorageItem(AUTH_STORAGE_KEYS.ACTIVE_ROLE),
         clientDetailSet: getStorageItem(AUTH_STORAGE_KEYS.CLIENT_DETAIL_SET) === "true",
-        userName: getStorageItem(AUTH_STORAGE_KEYS.USER_NAME),
+        userName: getStorageItem(AUTH_STORAGE_KEYS.USER_NAME) || "",
         registerFlag: getStorageItem(AUTH_STORAGE_KEYS.REGISTER_FLAG) === "true",
-        pictureURL: getStorageItem(AUTH_STORAGE_KEYS.PICTURE_URL),
-        userId: getStorageItem(AUTH_STORAGE_KEYS.USER_ID),
+        pictureURL: getStorageItem(AUTH_STORAGE_KEYS.PICTURE_URL) || "",
+        userId: userId || "",
         flag: false,
         hotelId: getStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID) || null,
-        topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)), // Load from localStorage
+        topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
+        isValidatingAuth: hasUserData, // Will validate with server if we think we're authenticated
       };
 
       return authData;
@@ -173,16 +177,94 @@ export const AuthProvider = ({ children }) => {
     return stored ? new Date(stored) : null;
   });
 
-  // === LOGOUT (memoized) ===
-  const logout = useCallback(() => {
+  // === VALIDATE AUTHENTICATION STATUS WITH SERVER ===
+  const validateAuthStatus = useCallback(async () => {
     try {
-      console.log("Logging out...");
+      console.log("🔍 Validating authentication status with server...");
+      setAuthState(prev => ({ ...prev, isValidatingAuth: true }));
+
+      // Since /auth/validate endpoint doesn't exist yet, we'll use a passive approach
+      // Try making a simple authenticated request to verify session
+      const response = await enhancedApi.get('/hotels/paginated?page=0&size=1');
+      
+      if (response.status === 200) {
+        console.log("✅ Authentication validated successfully - session is valid");
+        
+        // Update last check time and clear validation flag
+        setStorageItem(AUTH_STORAGE_KEYS.LAST_AUTH_CHECK, Date.now().toString());
+        setAuthState(prev => ({ ...prev, isValidatingAuth: false }));
+        
+        return true;
+      } else {
+        throw new Error('Authentication validation failed');
+      }
+    } catch (error) {
+      console.error("❌ Authentication validation failed:", error);
+      
+      // Only clear auth state if it's a 401/403 error (authentication issue)
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        console.log("🔐 Session invalid, clearing auth state");
+        setAuthState({
+          ...defaultAuthState,
+          topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS))
+        });
+        
+        // Clear user data but preserve top hotel IDs
+        const authKeys = Object.values(AUTH_STORAGE_KEYS).filter(key => 
+          key !== 'topHotelIds' && key !== 'lastAuthCheck'
+        );
+        authKeys.forEach(key => {
+          removeStorageItem(key);
+        });
+      } else {
+        // For other errors (network issues, etc.), just clear validation flag
+        console.log("⚠️ Validation failed due to network/server error, maintaining auth state");
+        setAuthState(prev => ({ ...prev, isValidatingAuth: false }));
+      }
+      
+      return false;
+    }
+  }, []);
+
+  // === LOGOUT (memoized) ===
+  const logout = useCallback(async () => {
+    try {
+      console.log("🚪 Logging out...");
       
       // Preserve top hotel IDs during logout
       const topHotelIds = getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS);
       console.log("🔒 [LOGOUT] Preserving top hotel IDs:", topHotelIds);
       
-      clearAuthData();
+      // Call backend logout endpoint to invalidate cookies
+      try {
+        await api.post('/auth/logout');
+        console.log("✅ Server-side logout successful");
+      } catch (logoutError) {
+        console.warn("⚠️ Server-side logout failed, continuing with client cleanup:", logoutError);
+      }
+      
+      // Clear all auth data from localStorage except top hotel IDs
+      const authKeys = Object.values(AUTH_STORAGE_KEYS).filter(key => 
+        key !== 'topHotelIds' && key !== 'lastAuthCheck'
+      );
+      authKeys.forEach(key => {
+        removeStorageItem(key);
+      });
+      
+      // Clear cookies by making them expire
+      const cookies = document.cookie.split(";");
+      for (let cookie of cookies) {
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+        // Clear cookie for current domain and path
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+        // Clear cookie for parent domain (if subdomain)
+        if (window.location.hostname.includes('.')) {
+          const parentDomain = window.location.hostname.substring(window.location.hostname.indexOf('.'));
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${parentDomain}`;
+        }
+      }
       
       // Restore top hotel IDs after clearing
       if (topHotelIds) {
@@ -192,48 +274,139 @@ export const AuthProvider = ({ children }) => {
       
       setAuthState({
         ...defaultAuthState,
-        topHotelIds: parseTopHotelIdsFromStorage(topHotelIds) // Preserve in state too
+        topHotelIds: parseTopHotelIdsFromStorage(topHotelIds)
       });
+      
       navigate("/");
+      
+      console.log("✅ Logout completed successfully");
     } catch (error) {
-      console.error("Failed to clear auth data", error);
+      console.error("❌ Failed to logout properly:", error);
+      
+      // Fallback cleanup if logout fails
+      try {
+        // Clear localStorage
+        const authKeys = Object.values(AUTH_STORAGE_KEYS).filter(key => 
+          key !== 'topHotelIds' && key !== 'lastAuthCheck'
+        );
+        authKeys.forEach(key => {
+          removeStorageItem(key);
+        });
+        
+        setAuthState({
+          ...defaultAuthState,
+          topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS))
+        });
+        navigate("/");
+      } catch (fallbackError) {
+        console.error("❌ Fallback logout cleanup failed:", fallbackError);
+        window.location.href = '/';
+      }
     }
   }, [navigate]);
 
-  // === Auto-check token expiry ===
+  // === Set global logout function for API interceptor ===
   useEffect(() => {
-    if (authState.token && isTokenExpired(authState.token)) {
-      console.warn("Token expired. Logging out...");
-      logout();
-    }
-  }, [authState.token, logout]);
+    window.authLogout = logout;
+    return () => {
+      window.authLogout = () => {
+        console.warn('Global logout function called but AuthProvider is unmounted');
+      };
+    };
+  }, [logout]);
+
+  // === Auto-validate authentication status ===
+  useEffect(() => {
+    const validateAuthentication = async () => {
+      try {
+        // Only validate if we think we're authenticated or if we're in validation state
+        if (!authState.isAuthenticated && !authState.isValidatingAuth) return;
+        
+        // Check if we should validate (not too frequently)
+        if (!shouldCheckAuthStatus() && authState.isAuthenticated && !authState.isValidatingAuth) {
+          return;
+        }
+        
+        console.log("🔍 Auto-validating authentication status...");
+        await validateAuthStatus();
+      } catch (error) {
+        console.error("❌ Auto-validation failed:", error);
+      }
+    };
+    
+    // Validate immediately if needed
+    validateAuthentication();
+    
+    // Set up periodic validation check (every 5 minutes)
+    const validationInterval = setInterval(validateAuthentication, 5 * 60 * 1000);
+    
+    return () => clearInterval(validationInterval);
+  }, [authState.isAuthenticated, authState.isValidatingAuth, validateAuthStatus]);
+
+  // === Proactive token refresh ===
+  useEffect(() => {
+    const proactiveRefresh = async () => {
+      try {
+        // Only refresh if authenticated and should refresh proactively
+        if (!authState.isAuthenticated) return;
+        
+        if (authService.shouldRefreshProactively()) {
+          console.log("🔄 Performing proactive token refresh...");
+          await authService.refreshToken();
+        }
+      } catch (error) {
+        console.warn("⚠️ Proactive token refresh failed:", error);
+        // Don't logout on proactive refresh failure - let the interceptor handle it
+      }
+    };
+    
+    // Check immediately if needed
+    proactiveRefresh();
+    
+    // Set up periodic proactive refresh (every 10 minutes)
+    const refreshInterval = setInterval(proactiveRefresh, 10 * 60 * 1000);
+    
+    return () => clearInterval(refreshInterval);
+  }, [authState.isAuthenticated]);
 
   // === Listen to storage changes (cross-tab sync) ===
   useEffect(() => {
     const handleStorageChange = (e) => {
-      if (e.key === AUTH_STORAGE_KEYS.TOKEN) {
-        const token = e.newValue;
+      // Listen for changes to user data keys
+      const userDataKeys = [
+        AUTH_STORAGE_KEYS.USER_ID,
+        AUTH_STORAGE_KEYS.EMAIL,
+        AUTH_STORAGE_KEYS.ROLES,
+        AUTH_STORAGE_KEYS.ACTIVE_ROLE,
+        AUTH_STORAGE_KEYS.USER_NAME,
+        AUTH_STORAGE_KEYS.PICTURE_URL
+      ];
+      
+      if (userDataKeys.includes(e.key)) {
+        const userId = getStorageItem(AUTH_STORAGE_KEYS.USER_ID);
+        const email = getStorageItem(AUTH_STORAGE_KEYS.EMAIL);
         
-        if (!token || isTokenExpired(token)) {
+        // If essential user data is cleared, logout
+        if (!userId || !email) {
           logout();
-        } else {
-          // Sync auth state with other tabs
-          setAuthState(prev => ({
-            ...prev,
-            isAuthenticated: true,
-            token,
-            email: getStorageItem(AUTH_STORAGE_KEYS.EMAIL),
-            roles: parseRolesFromStorage(getStorageItem(AUTH_STORAGE_KEYS.ROLES)), // Parse roles array
-            activeRole: getStorageItem(AUTH_STORAGE_KEYS.ACTIVE_ROLE), // Sync active role
-            userName: getStorageItem(AUTH_STORAGE_KEYS.USER_NAME),
-            userId: getStorageItem(AUTH_STORAGE_KEYS.USER_ID),
-            pictureURL: getStorageItem(AUTH_STORAGE_KEYS.PICTURE_URL),
-            clientDetailSet: getStorageItem(AUTH_STORAGE_KEYS.CLIENT_DETAIL_SET) === "true",
-            registerFlag: getStorageItem(AUTH_STORAGE_KEYS.REGISTER_FLAG) === "true",
-            hotelId: getStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID) || null,
-            topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)), // Sync from localStorage
-          }));
+          return;
         }
+        
+        // Sync auth state with other tabs
+        setAuthState(prev => ({
+          ...prev,
+          isAuthenticated: !!(userId && email),
+          email: email,
+          roles: parseRolesFromStorage(getStorageItem(AUTH_STORAGE_KEYS.ROLES)),
+          activeRole: getStorageItem(AUTH_STORAGE_KEYS.ACTIVE_ROLE),
+          userName: getStorageItem(AUTH_STORAGE_KEYS.USER_NAME) || "",
+          userId: userId,
+          pictureURL: getStorageItem(AUTH_STORAGE_KEYS.PICTURE_URL) || "",
+          clientDetailSet: getStorageItem(AUTH_STORAGE_KEYS.CLIENT_DETAIL_SET) === "true",
+          registerFlag: getStorageItem(AUTH_STORAGE_KEYS.REGISTER_FLAG) === "true",
+          hotelId: getStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID) || null,
+          topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
+        }));
       }
     };
 
@@ -244,16 +417,11 @@ export const AuthProvider = ({ children }) => {
   // === LOGIN (memoized) ===
   const login = useCallback(async (authData) => {
     try {
-      console.log("Logging in...");
+      console.log("🔐 Logging in with cookie-based authentication...");
 
       // Validate required fields
-      if (!authData.token || !authData.userid || !authData.email) {
+      if (!authData.userid || !authData.email) {
         throw new Error("Missing required authentication data");
-      }
-
-      // Check if token is already expired
-      if (isTokenExpired(authData.token)) {
-        throw new Error("Token is already expired");
       }
 
       // Handle roles - convert to array if it's a single role or already an array
@@ -270,38 +438,38 @@ export const AuthProvider = ({ children }) => {
                                 roles.includes('GUEST') ? 'GUEST' :
                                 roles[0] || null);
 
-      // Store auth data using Safari-specific utilities
-      setStorageItem(AUTH_STORAGE_KEYS.TOKEN, authData.token);
-      setStorageItem(AUTH_STORAGE_KEYS.USER_ID, authData.userid);
+      // Store user data in localStorage (tokens are in HTTP-only cookies)
+      setStorageItem(AUTH_STORAGE_KEYS.USER_ID, authData.userid.toString());
       setStorageItem(AUTH_STORAGE_KEYS.EMAIL, authData.email);
-      setStorageItem(AUTH_STORAGE_KEYS.ROLES, stringifyRolesForStorage(roles)); // Store roles array
-      setStorageItem(AUTH_STORAGE_KEYS.ACTIVE_ROLE, initialActiveRole); // Store initial active role
+      setStorageItem(AUTH_STORAGE_KEYS.ROLES, stringifyRolesForStorage(roles));
+      setStorageItem(AUTH_STORAGE_KEYS.ACTIVE_ROLE, initialActiveRole);
       setStorageItem(AUTH_STORAGE_KEYS.USER_NAME, authData.userName || "");
       setStorageItem(AUTH_STORAGE_KEYS.PICTURE_URL, authData.pictureURL || "");
       setStorageItem(AUTH_STORAGE_KEYS.REGISTER_FLAG, Boolean(authData.flag).toString());
       setStorageItem(AUTH_STORAGE_KEYS.CLIENT_DETAIL_SET, Boolean(authData.detailSet).toString());
+      setStorageItem(AUTH_STORAGE_KEYS.LAST_AUTH_CHECK, Date.now().toString());
       
-      // Preserve existing hotelId if not provided in authData
+      // Store hotel ID if provided
       if (authData.hotelId) {
-        setStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID, authData.hotelId);
+        setStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID, authData.hotelId.toString());
       }
 
       const existingHotelId = getStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID);
 
       const newAuthState = {
         isAuthenticated: true,
-        token: authData.token,
         email: authData.email,
-        userId: authData.userid,
+        userId: authData.userid.toString(),
         userName: authData.userName || "",
-        roles: roles, // Store roles array
-        activeRole: initialActiveRole, // Store initial active role
+        roles: roles,
+        activeRole: initialActiveRole,
         pictureURL: authData.pictureURL || "",
         registerFlag: Boolean(authData.flag),
         clientDetailSet: Boolean(authData.detailSet),
         flag: true,
-        hotelId: authData.hotelId || existingHotelId || null,
-        topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)), // Preserve existing top hotel IDs on login
+        hotelId: authData.hotelId?.toString() || existingHotelId || null,
+        topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
+        isValidatingAuth: false,
       };
 
       setAuthState(newAuthState);
@@ -322,9 +490,14 @@ export const AuthProvider = ({ children }) => {
       const now = new Date();
       setLastLogin(now);
       setStorageItem("lastLogin", now.toISOString());
+      
+      // Track token refresh timing for proactive refresh
+      localStorage.setItem('lastTokenRefresh', Date.now().toString());
+
+      console.log("✅ Login completed successfully with cookie-based auth");
 
     } catch (error) {
-      console.error("Failed to login", error);
+      console.error("❌ Failed to login:", error);
       throw error; // Re-throw to allow handling in the calling component
     }
   }, [navigate]);
@@ -552,7 +725,7 @@ export const AuthProvider = ({ children }) => {
   const contextValue = useMemo(() => ({
     // State
     isAuthenticated: authState.isAuthenticated,
-    token: authState.token,
+    isValidatingAuth: authState.isValidatingAuth,
     email: authState.email,
     userId: authState.userId,
     userName: authState.userName,
@@ -570,6 +743,7 @@ export const AuthProvider = ({ children }) => {
     // Actions
     login,
     logout,
+    validateAuthStatus,
     setHotelId,
     setRedirectUrl,
     setRoles,
@@ -593,6 +767,7 @@ export const AuthProvider = ({ children }) => {
     lastLogin,
     login,
     logout,
+    validateAuthStatus,
     setHotelId,
     setRedirectUrl,
     setRoles,

@@ -151,21 +151,25 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
           headers: {
             "Content-Type": "application/json",
           },
+          withCredentials: true, // Enable cookies for HTTP-only authentication
           timeout: 15000, // 15 second timeout for cross-platform compatibility
         }
       );
 
       if (res.status === 200) {
         console.log("Authentication successful:", res.data);
+        
+        // Handle HTTP-only cookie authentication
+        // Since tokens are stored in secure cookies, we don't need to pass token to AuthProvider
+        // The backend will handle token validation via cookies
         await onLoginSuccess({
-          token: res.data.token,
           email: res.data.user.email,
           userid: res.data.user.id,
-          roles: res.data.user.roles || [res.data.user.role],
+          roles: res.data.user.roles || [],
           userName: res.data.user.name,
           pictureURL: res.data.user.profilePicUrl,
-          flag: res.data.user.registerFlag,
-          detailSet: res.data.user.detailSet,
+          flag: res.data.user.registerFlag || false,
+          detailSet: res.data.user.detailSet || false,
           hotelId: res.data.user.hotelId,
         });
         

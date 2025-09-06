@@ -624,7 +624,11 @@ export const setAuthData = (authData) => {
 };
 
 export const clearAuthData = () => {
-  const authKeys = ['token', 'userId', 'email', 'roles', 'activeRole', 'userName', 'pictureURL', 'registerFlag', 'clientDetailSet', 'hotelId', 'topHotelIds'];
+  const authKeys = [
+    'token', 'accessToken', 'refreshToken', 'tokenExpiry', // Token keys
+    'userId', 'email', 'roles', 'activeRole', 'userName', 'pictureURL', 
+    'registerFlag', 'clientDetailSet', 'hotelId', 'topHotelIds'
+  ];
   
   authKeys.forEach(key => {
     removeStorageItem(key);
