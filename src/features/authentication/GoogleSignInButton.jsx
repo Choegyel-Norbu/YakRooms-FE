@@ -161,7 +161,9 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
         
         // Handle HTTP-only cookie authentication
         // Since tokens are stored in secure cookies, we don't need to pass token to AuthProvider
-        // The backend will handle token validation via cookies
+        // The backend handles token validation via cookies
+        console.log("🔑 Processing successful authentication with user data:", res.data.user);
+        
         await onLoginSuccess({
           email: res.data.user.email,
           userid: res.data.user.id,
