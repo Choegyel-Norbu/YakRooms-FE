@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import api from "../../shared/services/Api"; // Your API service for making requests
+import { useBookingContext } from "../../features/booking/BookingContext";
 
 // shadcn/ui components
 import {
@@ -86,6 +87,7 @@ const DeleteConfirmationDialog = ({
 };
 
 const BookingTable = ({ hotelId }) => {
+  const { socket } = useBookingContext();
   const [bookings, setBookings] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -182,6 +184,19 @@ const BookingTable = ({ hotelId }) => {
     try {
       const res = await api.put(`/bookings/${id}/status/${newStatus}`);
       if (res.status === 200) {
+        // Send WebSocket message to notify about status change
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({
+            type: 'BOOKING_STATUS_UPDATE',
+            payload: {
+              bookingId: id,
+              newStatus,
+              hotelId,
+              userId: res.data?.userId || null
+            }
+          }));
+        }
+        
         toast.success(
           <div className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-500" />

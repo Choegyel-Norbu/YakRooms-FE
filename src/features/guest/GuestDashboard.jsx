@@ -1566,6 +1566,8 @@ const GuestDashboard = () => {
     }
   };
 
+  // Note: Real-time notifications were previously handled via WebSocket
+  // For now, notifications will need to be fetched manually or via polling
 
   // Close notification dropdown when clicking outside
   useEffect(() => {
@@ -1791,9 +1793,9 @@ const GuestDashboard = () => {
                                   </div>
                                 </div>
                                 <div className="space-y-1">
-                                  {notification.hotelName && (
+                                  {notification.username && (
                                     <p className="text-sm text-muted-foreground">
-                                      <span className="font-medium">hotel: </span> {notification.hotelName}
+                                      <span className="font-medium">User:</span> {notification.username}
                                     </p>
                                   )}
                                   {notification.roomNumber && (

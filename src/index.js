@@ -10,6 +10,7 @@ export * from './features/landing';
 export * from './layouts';
 
 // Modules
+export * from './modules/websocket';
 export * from './modules/pwa';
 
 // Shared
