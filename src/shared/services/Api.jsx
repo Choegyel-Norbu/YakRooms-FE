@@ -57,13 +57,11 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Don't intercept auth endpoints to prevent infinite loops
+    // Don't intercept refresh token endpoint to prevent infinite loops
     const isRefreshTokenEndpoint = originalRequest.url?.includes('/auth/refresh-token');
-    const isStatusEndpoint = originalRequest.url?.includes('/auth/status');
     
     // Handle 401 Unauthorized responses (token expired)
-    // Skip auto-refresh for auth endpoints
-    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshTokenEndpoint && !isStatusEndpoint) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshTokenEndpoint) {
       if (isRefreshing) {
         // If already refreshing, queue the request
         return new Promise((resolve, reject) => {
