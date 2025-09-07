@@ -540,9 +540,9 @@ const HotelAdminDashboard = () => {
                                   </div>
                                 </div>
                                 <div className="space-y-1">
-                                  {notification.username && (
+                                  {notification.guestName && (
                                     <p className="text-sm text-muted-foreground">
-                                      <span className="font-medium">User:</span> {notification.username}
+                                      <span className="font-medium">Guest: </span> {notification.guestName}
                                     </p>
                                   )}
                                   {notification.roomNumber && (
