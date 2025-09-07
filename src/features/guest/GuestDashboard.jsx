@@ -39,8 +39,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/shared/components";
-import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
 import { API_BASE_URL } from "../../shared/services/firebaseConfig";
 
 // Number formatting function
@@ -1436,7 +1434,6 @@ const GuestDashboard = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
-  const clientRef = useRef(null);
   const notificationRef = useRef(null);
   
   const { userId } = useAuth();
@@ -1508,9 +1505,9 @@ const GuestDashboard = () => {
         const response = await api.get(`/notifications/user/${userId}`);
         const fetchedNotifications = response.data;
 
-        // Filter notifications to only show BOOKING_CREATED type
+        // Filter notifications to show HOTEL_BOOKING_CREATED and BOOKING_CANCELLATION_REJECTED types
         const filteredNotifications = fetchedNotifications.filter(
-          (notif) => notif.type === "BOOKING_CREATED"
+          (notif) => notif.type === "HOTEL_BOOKING_CREATED" || notif.type === "BOOKING_CANCELLATION_REJECTED"
         );
 
         // Sort notifications by createdAt (newest first) and calculate unread count
@@ -1569,158 +1566,8 @@ const GuestDashboard = () => {
     }
   };
 
-  // Real-time notification WebSocket connection
-  useEffect(() => {
-    console.log("[WS] Initializing WebSocket Effect - userId:", userId);
-    if (!userId) {
-      console.log("[WS] No userId available, skipping WebSocket setup.");
-      return;
-    }
-
-    // Clean up any existing connection first
-    if (clientRef.current) {
-      console.log(
-        "[WS] Cleaning up existing WebSocket connection before creating new one"
-      );
-      if (clientRef.current.active) {
-        clientRef.current.deactivate();
-      }
-      clientRef.current = null;
-    }
-
-    // Create a unique client for guest notifications
-    const client = new Client({
-      webSocketFactory: () => {
-        console.log(`[WS] Creating SockJS connection to ${API_BASE_URL}/ws`);
-        return new SockJS(`${API_BASE_URL}/ws`);
-      },
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-      debug: (str) => console.log("[WS] STOMP Debug:", str),
-
-      onConnect: (frame) => {
-        console.log("[WS] ✅ WebSocket Connected Successfully!");
-        console.log("[WS] Connection frame:", frame);
-
-        const subscriptionTopic = `/topic/notifications/${userId}`;
-        console.log("[WS] Subscribing to topic:", subscriptionTopic);
-
-        const subscription = client.subscribe(
-          subscriptionTopic,
-          (message) => {
-            console.log("=== [WS] 🔔 NOTIFICATION MESSAGE RECEIVED ===");
-            console.log("[WS] Raw STOMP Frame:", message);
-            console.log("[WS] Message Body:", message.body);
-            console.log("[WS] Message Headers:", message.headers);
-
-            try {
-              const notification = JSON.parse(message.body);
-              console.log(
-                "[WS] ✅ Successfully parsed notification:",
-                notification
-              );
-
-              // Only process BOOKING_CREATED notifications
-              if (notification.type === "BOOKING_CREATED") {
-                // Add the notification to the state (it comes from backend with proper structure)
-                const notificationWithTimestamp = {
-                  ...notification,
-                  // Convert backend createdAt to display format
-                  displayTime: new Date(notification.createdAt).toLocaleString(),
-                };
-
-                console.log(
-                  "[WS] Notification with timestamp:",
-                  notificationWithTimestamp
-                );
-
-                // Update state - add to beginning of array since it's newest
-                setNotifications((prev) => {
-                  const updated = [notificationWithTimestamp, ...prev];
-                  console.log("[WS] Updated notifications:", updated);
-                  return updated;
-                });
-
-                // Only increment unread count if the notification is unread
-                if (!notification.isRead) {
-                  setUnreadCount((prev) => {
-                    const updated = prev + 1;
-                    console.log("[WS] Updated unread count:", updated);
-                    return updated;
-                  });
-                }
-              } else {
-                console.log("[WS] Ignoring notification of type:", notification.type);
-              }
-
-              console.log("[WS] ✅ Notification processed successfully!");
-            } catch (error) {
-              console.error("[WS] ❌ Failed to parse notification:", error);
-              console.error("[WS] Invalid message body:", message.body);
-            }
-          },
-          {
-            id: `sub-${userId}-${Date.now()}`,
-            ack: "auto",
-          }
-        );
-
-        console.log("[WS] ✅ Subscription created:", subscription);
-
-        // Test the connection by sending a test message to ourselves (optional)
-        setTimeout(() => {
-          console.log("[WS] 🧪 Testing WebSocket connection...");
-          try {
-            // Send a ping to verify connection
-            client.publish({
-              destination: "/app/ping",
-              body: JSON.stringify({ userId, timestamp: Date.now() }),
-            });
-            console.log("[WS] Test ping sent");
-          } catch (e) {
-            console.log("[WS] Could not send test ping:", e);
-          }
-        }, 1000);
-      },
-
-      onDisconnect: (frame) => {
-        console.log("[WS] ❌ WebSocket Disconnected");
-        console.log("[WS] Disconnect frame:", frame);
-      },
-
-      onStompError: (frame) => {
-        console.error("[WS] ❌ STOMP Error:", frame.headers["message"]);
-        console.error("[WS] Error body:", frame.body);
-        console.error("[WS] Full error frame:", frame);
-      },
-
-      onWebSocketError: (event) => {
-        console.error("[WS] ❌ WebSocket Error:", event);
-      },
-
-      onWebSocketClose: (event) => {
-        console.log(
-          `[WS] WebSocket Closed - Code: ${event.code}, Reason: ${event.reason}, Clean: ${event.wasClean}`
-        );
-      },
-    });
-
-    // Activate the client
-    console.log("[WS] 🚀 Activating WebSocket client...");
-    clientRef.current = client;
-    client.activate();
-
-    // Cleanup
-    return () => {
-      console.log("[WS] 🧹 Cleanup: Deactivating WebSocket...");
-      if (clientRef.current && clientRef.current.active) {
-        clientRef.current.deactivate();
-        clientRef.current = null;
-        console.log("[WS] ✅ WebSocket deactivated");
-      }
-    };
-  }, [userId]);
+  // Note: Real-time notifications were previously handled via WebSocket
+  // For now, notifications will need to be fetched manually or via polling
 
   // Close notification dropdown when clicking outside
   useEffect(() => {
