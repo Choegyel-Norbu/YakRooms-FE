@@ -10,6 +10,8 @@ import {
   clearAuthData
 } from "@/shared/utils/safariLocalStorage";
 import api, { authService, enhancedApi } from "@/shared/services/Api";
+import axios from "axios";
+import { API_BASE_URL } from "@/shared/services/firebaseConfig";
 
 // === Constants ===
 const AUTH_STORAGE_KEYS = {
@@ -184,7 +186,12 @@ export const AuthProvider = ({ children }) => {
       setAuthState(prev => ({ ...prev, isValidatingAuth: true }));
       
       // Call backend to validate current authentication status via cookies
-      const response = await get(`${API_BASE_URL}/api/auth/status`);
+      const response = await axios.get(`${API_BASE_URL}/auth/status`, {
+        withCredentials: true, // Important: include cookies for authentication
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       
       if (response.status === 200 && response.data.success && response.data.user) {
         console.log("✅ Authentication validated successfully");
@@ -271,7 +278,12 @@ export const AuthProvider = ({ children }) => {
       
       // Call backend logout endpoint to invalidate cookies
       try {
-        await api.post('/auth/logout');
+        await axios.post(`${API_BASE_URL}/auth/logout`, {}, {
+          withCredentials: true, // Important: include cookies for authentication
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
         console.log("✅ Server-side logout successful");
       } catch (logoutError) {
         console.warn("⚠️ Server-side logout failed, continuing with client cleanup:", logoutError);
