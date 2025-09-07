@@ -175,7 +175,7 @@ const HotelAdminDashboard = () => {
 
         // Filter notifications to show BOOKING_CREATED and BOOKING_CANCELLATION_REQUEST types
         const filteredNotifications = fetchedNotifications.filter(
-          (notif) => notif.type === "BOOKING_CREATED" || notif.type === "BOOKING_CANCELLATION_REQUEST"
+          (notif) => notif.type === "HOTEL_BOOKING_CREATED" || notif.type === "BOOKING_CANCELLATION_REQUEST"
         );
 
         // Sort notifications by createdAt (newest first) and calculate unread count
