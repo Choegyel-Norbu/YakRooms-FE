@@ -120,17 +120,34 @@ api.interceptors.response.use(
     }
 
     // Handle refresh token endpoint failures specifically
-    if (isRefreshTokenEndpoint && (error.response?.status === 401 || error.response?.status === 403)) {
-      console.error('❌ Refresh token expired - logging out');
-      
-      // Trigger logout for expired refresh token
-      if (window.authLogout) {
-        window.authLogout();
-      } else {
+    if (isRefreshTokenEndpoint) {
+      if (error.response?.status === 401) {
+        console.error('❌ Refresh token expired (401) - logging out');
+        
+        // Trigger logout for expired refresh token
+        if (window.authLogout) {
+          window.authLogout();
+        } else {
+          window.location.href = '/';
+        }
+        
+        return Promise.reject(error);
+      } else if (error.response?.status === 403) {
+        console.error('❌ Refresh token forbidden (403) - clearing auth and redirecting');
+        
+        // For 403, clear auth data but don't trigger full logout flow
+        // This handles cases where refresh token is invalid/forbidden
+        try {
+          authService.clearAuthData();
+        } catch (clearError) {
+          console.warn('⚠️ Failed to clear auth data:', clearError);
+        }
+        
+        // Redirect to login page
         window.location.href = '/';
+        
+        return Promise.reject(error);
       }
-      
-      return Promise.reject(error);
     }
 
     return Promise.reject(error);
@@ -176,6 +193,17 @@ export const authService = {
       }
     } catch (error) {
       console.error('❌ Manual token refresh failed:', error);
+      
+      // Handle specific error cases
+      if (error.response?.status === 403) {
+        console.error('❌ Refresh token forbidden (403) - clearing auth data');
+        this.clearAuthData();
+        throw new Error('Refresh token is forbidden - please login again');
+      } else if (error.response?.status === 401) {
+        console.error('❌ Refresh token expired (401)');
+        throw new Error('Refresh token expired - please login again');
+      }
+      
       throw error;
     }
   },

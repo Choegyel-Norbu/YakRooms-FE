@@ -241,8 +241,8 @@ export const AuthProvider = ({ children }) => {
       console.error("❌ Auth validation failed:", error);
       
       // Check if it's a 401/403 (authentication expired) or other error
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        console.log("🚪 Authentication expired, clearing state");
+      if (error.response?.status === 401) {
+        console.log("🚪 Authentication expired (401), clearing state");
         
         // Clear auth state for expired authentication
         setAuthState({
@@ -257,6 +257,29 @@ export const AuthProvider = ({ children }) => {
         authKeys.forEach(key => {
           removeStorageItem(key);
         });
+      } else if (error.response?.status === 403) {
+        console.log("🚪 Authentication forbidden (403), clearing state");
+        
+        // For 403, clear auth data more aggressively
+        setAuthState({
+          ...defaultAuthState,
+          topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS))
+        });
+        
+        // Clear user data but preserve top hotel IDs
+        const authKeys = Object.values(AUTH_STORAGE_KEYS).filter(key => 
+          key !== 'topHotelIds' && key !== 'lastAuthCheck'
+        );
+        authKeys.forEach(key => {
+          removeStorageItem(key);
+        });
+        
+        // Also clear cookies for 403
+        try {
+          authService.clearAuthData();
+        } catch (clearError) {
+          console.warn('⚠️ Failed to clear auth data:', clearError);
+        }
       } else {
         // For other errors (network issues, etc.), just clear validation flag
         console.log("⚠️ Validation failed due to network/server error, maintaining auth state");
