@@ -45,6 +45,7 @@ const shouldCheckAuthStatus = () => {
   }
 };
 
+
 // === Utility to parse roles from storage ===
 const parseRolesFromStorage = (rolesString) => {
   try {
@@ -187,7 +188,7 @@ export const AuthProvider = ({ children }) => {
       
       // Call backend to validate current authentication status via cookies
       const response = await axios.get(`${API_BASE_URL}/auth/status`, {
-        withCredentials: true, // Important: include cookies for authentication
+        withCredentials: true,
         headers: {
           'Content-Type': 'application/json'
         }
@@ -279,7 +280,7 @@ export const AuthProvider = ({ children }) => {
       // Call backend logout endpoint to invalidate cookies
       try {
         await axios.post(`${API_BASE_URL}/auth/logout`, {}, {
-          withCredentials: true, // Important: include cookies for authentication
+          withCredentials: true,
           headers: {
             'Content-Type': 'application/json'
           }
@@ -480,6 +481,12 @@ export const AuthProvider = ({ children }) => {
       };
 
       setAuthState(newAuthState);
+
+      // Analyze cookies after login to ensure they're properly set
+      console.log("🔑 Analyzing cookies after login...");
+      setTimeout(() => {
+        analyzeCookies();
+      }, 500); // Small delay to ensure cookies are set
 
       // Navigate only if not a first-time registration
       if (!authData.flag) {

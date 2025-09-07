@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 
 import api from "../../shared/services/Api";
-import { useBookingContext } from "../booking/BookingContext";
 
 // shadcn/ui components
 import {
@@ -94,7 +93,6 @@ const ConfirmationDialog = ({
 };
 
 const CancellationRequestsTable = ({ hotelId }) => {
-  const { socket } = useBookingContext();
   const [cancellationRequests, setCancellationRequests] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -146,19 +144,6 @@ const CancellationRequestsTable = ({ hotelId }) => {
       if (action === "approve") {
         // Use the same API pattern as BookingTable for canceling the booking
         res = await api.put(`/bookings/${requestId}/status/CANCELLED`);
-        
-        // Send WebSocket message to notify about status change (same as BookingTable)
-        if (socket && socket.readyState === WebSocket.OPEN) {
-          socket.send(JSON.stringify({
-            type: 'BOOKING_STATUS_UPDATE',
-            payload: {
-              bookingId: requestId,
-              newStatus: 'CANCELLED',
-              hotelId,
-              userId: res.data?.userId || null
-            }
-          }));
-        }
         
         toast.success(
           <div className="flex items-center gap-2">

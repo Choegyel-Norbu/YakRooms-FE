@@ -1505,9 +1505,9 @@ const GuestDashboard = () => {
         const response = await api.get(`/notifications/user/${userId}`);
         const fetchedNotifications = response.data;
 
-        // Filter notifications to show HOTEL_BOOKING_CREATED and BOOKING_CANCELLATION_REJECTED types
+        // Filter notifications to only show BOOKING_CREATED type
         const filteredNotifications = fetchedNotifications.filter(
-          (notif) => notif.type === "BOOKING_CREATED" || notif.type === "BOOKING_CANCELLATION_REJECTED"
+          (notif) => notif.type === "BOOKING_CREATED"
         );
 
         // Sort notifications by createdAt (newest first) and calculate unread count
@@ -1791,9 +1791,9 @@ const GuestDashboard = () => {
                                   </div>
                                 </div>
                                 <div className="space-y-1">
-                                  {notification.hotelName && (
+                                  {notification.username && (
                                     <p className="text-sm text-muted-foreground">
-                                      <span className="font-medium">hotel: </span> {notification.hotelName}
+                                      <span className="font-medium">User:</span> {notification.username}
                                     </p>
                                   )}
                                   {notification.roomNumber && (

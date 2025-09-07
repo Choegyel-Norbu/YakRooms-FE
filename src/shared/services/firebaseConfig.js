@@ -165,7 +165,7 @@ const configureAuthPersistence = () => {
 configureAuthPersistence();
 
 // API configuration
-// const API_BASE_URL = "http://localhost:8080";
-const API_BASE_URL = "https://yakrooms-be-production.up.railway.app";
+const API_BASE_URL = "http://localhost:8080";
+// const API_BASE_URL = "https://yakrooms-be-production.up.railway.app";
 
 export { auth, provider, API_BASE_URL, handleAuthError, detectPlatform };
