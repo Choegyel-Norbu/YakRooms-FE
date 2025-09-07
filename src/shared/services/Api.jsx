@@ -57,11 +57,13 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Don't intercept refresh token endpoint to prevent infinite loops
+    // Don't intercept auth endpoints to prevent infinite loops
     const isRefreshTokenEndpoint = originalRequest.url?.includes('/auth/refresh-token');
+    const isStatusEndpoint = originalRequest.url?.includes('/auth/status');
     
     // Handle 401 Unauthorized responses (token expired)
-    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshTokenEndpoint) {
+    // Skip auto-refresh for auth endpoints
+    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshTokenEndpoint && !isStatusEndpoint) {
       if (isRefreshing) {
         // If already refreshing, queue the request
         return new Promise((resolve, reject) => {
@@ -80,7 +82,12 @@ api.interceptors.response.use(
         console.log('🔄 Access token expired, attempting refresh...');
         
         // Attempt to refresh the access token using cookie-based refresh
-        const response = await api.post('/auth/refresh-token');
+        const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
         
         if (response.status === 200) {
           console.log('✅ Token refreshed successfully via cookies');
@@ -154,7 +161,12 @@ export const authService = {
     try {
       console.log('🔄 Manually refreshing token...');
       
-      const response = await api.post('/auth/refresh-token');
+      const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       
       if (response.status === 200) {
         // Update last refresh time
