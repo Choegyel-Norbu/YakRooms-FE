@@ -64,7 +64,13 @@ const statusConfig = {
     label: "Cancellation Rejected",
     color: "bg-orange-50 text-orange-700 border border-orange-200",
     icon: CheckCircle,
-    actions: ["view", "directions", "extend", "cancel"],
+    actions: ["view", "directions", "extend"],
+  },
+  BOOKING_CANCELLATION_APPROVED: {
+    label: "Cancellation Approved",
+    color: "bg-green-50 text-green-700 border border-green-200",
+    icon: CheckCircle,
+    actions: ["view", "directions"],
   },
   PENDING: {
     label: "Pending",
@@ -746,7 +752,8 @@ const BookingCard = ({
   const config = statusConfig[booking.status] || statusConfig.PENDING; // Fallback to PENDING if status not found
   const isCancellationRequested = booking.status === "CANCELLATION_REQUESTED";
   const isCancellationRejected = booking.status === "CANCELLATION_REJECTED";
-  const isDisabled = booking.status === "CANCELLED" || isCancellationRequested;
+  const isCancellationApproved = booking.status === "BOOKING_CANCELLATION_APPROVED";
+  const isDisabled = booking.status === "CANCELLED" || isCancellationRequested || isCancellationApproved;
   const isCheckedOut = booking.status === "CHECKED_OUT";
 
   const formatDate = (dateString) => {
@@ -976,6 +983,23 @@ const BookingCard = ({
               </p>
               <p className="text-xs text-orange-700">
                 Your cancellation request was not approved. Your booking remains active and you can proceed with your stay as planned.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancellation approved indicator */}
+      {booking.status === "BOOKING_CANCELLATION_APPROVED" && (
+        <div className="bg-green-50 border border-green-200 rounded-md p-3 mb-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle className="text-green-600 mt-0.5 flex-shrink-0" size={16} />
+            <div className="flex-1">
+              <p className="text-sm text-green-800 font-medium mb-1">
+                Cancellation Request Approved
+              </p>
+              <p className="text-xs text-green-700">
+                Your cancellation request has been approved. Your booking has been cancelled and any applicable refunds will be processed according to our cancellation policy.
               </p>
             </div>
           </div>
@@ -1505,9 +1529,9 @@ const GuestDashboard = () => {
         const response = await api.get(`/notifications/user/${userId}`);
         const fetchedNotifications = response.data;
 
-        // Filter notifications to show HOTEL_BOOKING_CREATED and BOOKING_CANCELLATION_REJECTED types
+        // Filter notifications to show BOOKING_CREATED, BOOKING_CANCELLATION_REJECTED, and BOOKING_CANCELLATION_APPROVED types
         const filteredNotifications = fetchedNotifications.filter(
-          (notif) => notif.type === "BOOKING_CREATED" || notif.type === "BOOKING_CANCELLATION_REJECTED"
+          (notif) => notif.type === "BOOKING_CREATED" || notif.type === "BOOKING_CANCELLATION_REJECTED" || notif.type === "BOOKING_CANCELLATION_APPROVED"
         );
 
         // Sort notifications by createdAt (newest first) and calculate unread count

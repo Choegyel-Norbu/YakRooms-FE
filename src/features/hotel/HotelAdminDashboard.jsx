@@ -1046,7 +1046,7 @@ const HotelAdminDashboard = () => {
               </Card>
 
               {/* Cancellation Requests Table */}
-              <Card>
+              {/* <Card>
                 <CardHeader className="">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <AlertTriangle className="h-4 w-4 text-primary" />
@@ -1058,7 +1058,7 @@ const HotelAdminDashboard = () => {
                     <CancellationRequestsTable hotelId={hotelId} />
                   </div>
                 </CardContent>
-              </Card>
+              </Card> */}
             </div>
           )}
         </main>

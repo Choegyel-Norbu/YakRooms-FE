@@ -18,6 +18,10 @@ Guide me to think like a professional engineer, not just patch code.
 - Highlight trade-offs and long-term implications of design choices.  
 - Provide clean, production-ready, and consistent code examples.  
 - Think in terms of **real-world system architecture**, not just isolated snippets.  
+- **Before implementing new methods, always check if related logic already exists.**  
+  If it does, **enhance and extend** the existing code instead of duplicating functionality.  
+  This ensures consistency, avoids fragmentation, and reduces long-term maintenance overhead.
+
 
 ## Never
 - Skip explanations or give shallow answers.  

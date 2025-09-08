@@ -16,6 +16,8 @@ import {
   Info,
   Search,
   X,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react";
 
 import api from "../../shared/services/Api"; // Your API service for making requests
@@ -230,6 +232,33 @@ const BookingTable = ({ hotelId }) => {
     }
   };
 
+  // --- Handle Cancellation Request Actions ---
+  const handleCancellationRequestAction = async (bookingId, action) => {
+    try {
+      const res = await api.put(`/bookings/cancellation-requests/${bookingId}/${action}`);
+      
+      toast.success(
+        <div className="flex items-center gap-2">
+          <CheckCircle className="h-5 w-5 text-green-500" />
+          {res.data?.message || `Cancellation request ${action}d successfully`}
+        </div>,
+        {
+          duration: 6000
+        }
+      );
+    } catch (err) {
+      toast.error(
+        <div className="flex items-center gap-2">
+          <XCircle className="h-5 w-5 text-red-500" />
+          Failed to {action} cancellation request. Please try again.
+        </div>,
+        {
+          duration: 6000
+        }
+      );
+    }
+  };
+
   // --- Handle Booking Deletion ---
   // This function is called when the user confirms deletion from the dialog.
   const handleDeleteBooking = async () => {
@@ -336,6 +365,7 @@ const BookingTable = ({ hotelId }) => {
   // --- Status Badge Styling ---
   const getStatusBadge = (status) => {
     let colorClass = "bg-slate-100 text-slate-700 border border-slate-200";
+    let textClass = "";
     
     switch (status) {
       case "CONFIRMED":
@@ -353,13 +383,26 @@ const BookingTable = ({ hotelId }) => {
       case "CANCELLED":
         colorClass = "bg-red-50 text-red-700 border border-red-200";
         break;
+      case "APPROVED":
+        colorClass = "bg-green-50 text-green-700 border border-green-200";
+        break;
+      case "REJECTED":
+        colorClass = "bg-red-50 text-red-700 border border-red-200";
+        break;
+      case "CANCELLATION_REJECTED":
+        colorClass = "bg-orange-50 text-orange-700 border border-orange-200";
+        textClass = "line-through";
+        break;
+      case "CANCELLATION_APPROVED":
+        colorClass = "bg-green-50 text-green-700 border border-green-200";
+        break;
       default:
         colorClass = "bg-slate-50 text-slate-600 border border-slate-200";
     }
     
     return (
       <Badge className={`${colorClass} px-3 py-1 rounded-full text-xs font-medium shadow-sm`}>
-        {status.replace("_", " ")}
+        <span className={textClass}>{status.replace("_", " ")}</span>
       </Badge>
     );
   };
@@ -567,6 +610,24 @@ const BookingTable = ({ hotelId }) => {
                             }
                           >
                             <XCircle className="h-4 w-4 mr-2" /> Cancel
+                          </DropdownMenuItem>
+                        )}
+                        {booking.status === "CANCELLATION_REQUESTED" && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleCancellationRequestAction(booking.id, "approve")
+                            }
+                          >
+                            <ThumbsUp className="h-4 w-4 mr-2" /> Approve
+                          </DropdownMenuItem>
+                        )}
+                        {booking.status === "CANCELLATION_REQUESTED" && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleCancellationRequestAction(booking.id, "reject")
+                            }
+                          >
+                            <ThumbsDown className="h-4 w-4 mr-2" /> Reject
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem
