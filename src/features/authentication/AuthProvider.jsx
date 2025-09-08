@@ -37,8 +37,8 @@ const shouldCheckAuthStatus = () => {
     
     const lastCheckTime = parseInt(lastCheck, 10);
     const now = Date.now();
-    // Check every 5 minutes or if more than 5 minutes have passed
-    return (now - lastCheckTime) > (5 * 60 * 1000);
+    // Check every 13 minutes to align with token refresh cycle
+    return (now - lastCheckTime) > (13 * 60 * 1000);
   } catch (error) {
     console.error("Failed to check last auth validation time", error);
     return true; // fallback to checking
@@ -376,6 +376,39 @@ export const AuthProvider = ({ children }) => {
     };
   }, [logout]);
 
+  // === REFRESH TOKEN PERIODICALLY (memoized) ===
+  const refreshTokenPeriodically = useCallback(async () => {
+    try {
+      if (!authState.isAuthenticated) return;
+      
+      console.log("🔄 Periodically refreshing token...");
+      
+      // Call refresh token endpoint
+      const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.status === 200) {
+        console.log("✅ Periodic token refresh successful");
+        // Update last refresh time for tracking
+        setStorageItem(AUTH_STORAGE_KEYS.LAST_AUTH_CHECK, Date.now().toString());
+      } else {
+        console.warn("⚠️ Periodic token refresh returned non-200 status:", response.status);
+      }
+    } catch (error) {
+      console.error("❌ Periodic token refresh failed:", error);
+      
+      // If refresh fails with 401/403, trigger logout
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        console.log("🚪 Token refresh failed with auth error, logging out");
+        logout();
+      }
+    }
+  }, [authState.isAuthenticated, logout]);
+
   // === Auto-validate authentication status ===
   useEffect(() => {
     const validateAuthentication = async () => {
@@ -398,17 +431,31 @@ export const AuthProvider = ({ children }) => {
     // Validate immediately if needed
     validateAuthentication();
     
-    // Set up periodic validation (every 5 minutes)
+    // Set up periodic validation (every 13 minutes to align with token refresh)
     const validationInterval = setInterval(() => {
       if (authState.isAuthenticated && shouldCheckAuthStatus()) {
         validateAuthentication();
       }
-    }, 5 * 60 * 1000); // 5 minutes
+    }, 13 * 60 * 1000); // 13 minutes
     
     return () => {
       clearInterval(validationInterval);
     };
   }, [authState.isAuthenticated, authState.isValidatingAuth, validateAuthStatus]);
+
+  // === PERIODIC TOKEN REFRESH (separate from validation) ===
+  useEffect(() => {
+    if (!authState.isAuthenticated) return;
+    
+    // Set up periodic token refresh every 13 minutes
+    const refreshInterval = setInterval(() => {
+      refreshTokenPeriodically();
+    }, 13 * 60 * 1000); // 13 minutes
+    
+    return () => {
+      clearInterval(refreshInterval);
+    };
+  }, [authState.isAuthenticated, refreshTokenPeriodically]);
 
   // === Listen to storage changes (cross-tab sync) ===
   useEffect(() => {
