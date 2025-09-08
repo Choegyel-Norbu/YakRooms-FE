@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { useAuth } from "../../features/authentication";
-
 import { API_BASE_URL } from "../services/firebaseConfig";
 
 // The URL for the SockJS endpoint you configured in Spring Boot.

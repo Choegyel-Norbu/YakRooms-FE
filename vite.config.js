@@ -136,5 +136,22 @@ export default defineConfig({
   },
   server: {
     historyApiFallback: true,
+    // Proxy configuration for SameSite=Lax compatibility in development
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+        // This makes API requests appear same-origin, enabling SameSite=Lax
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            // Ensure cookies are forwarded properly
+            if (req.headers.cookie) {
+              proxyReq.setHeader('Cookie', req.headers.cookie);
+            }
+          });
+        }
+      }
+    }
   }
 });
