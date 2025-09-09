@@ -429,7 +429,7 @@ const BookingTable = ({ hotelId }) => {
         {/* --- Search Section --- */}
         <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
           <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4 items-end">
-            <div className="flex-1">
+            <div className="flex-1 w-full">
               <label htmlFor="room-search" className="block text-sm font-medium text-gray-700 mb-2">
                 Search by Room Number
               </label>
@@ -441,7 +441,7 @@ const BookingTable = ({ hotelId }) => {
                   placeholder="Enter room number (e.g., 101, 205)"
                   value={searchQuery}
                   onChange={handleSearchInputChange}
-                  className="pl-10 pr-10"
+                  className="pl-10 pr-10 text-sm"
                 />
                 {searchQuery && (
                   <button
@@ -600,16 +600,6 @@ const BookingTable = ({ hotelId }) => {
                             }
                           >
                             <LogOut className="h-4 w-4 mr-2" /> Check-out
-                          </DropdownMenuItem>
-                        )}
-                        {(booking.status === "PENDING" ||
-                          booking.status === "CONFIRMED") && (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              updateBookingStatus(booking.id, "CANCELLED")
-                            }
-                          >
-                            <XCircle className="h-4 w-4 mr-2" /> Cancel
                           </DropdownMenuItem>
                         )}
                         {booking.status === "CANCELLATION_REQUESTED" && (

@@ -165,6 +165,7 @@ const HotelListingPage = () => {
     hotels: [],
     loading: true,
     initialLoadDone: false,
+    isInitialLoad: true, // Track if we're in the initial load phase
     lastFetchKey: null, // Track last fetch to prevent duplicate calls
   });
 
@@ -186,6 +187,7 @@ const HotelListingPage = () => {
   const debounceTimerRef = useRef(null);
   const abortControllerRef = useRef(null);
   const lastRequestRef = useRef(null);
+  const pendingRequestRef = useRef(null); // Track pending requests to prevent duplicates
 
   // Memoized hotel types to prevent recreation on every render
   const hotelTypes = useMemo(() => [
@@ -207,8 +209,13 @@ const HotelListingPage = () => {
       // Generate unique key for this request
       const fetchKey = generateFetchKey(page, searchDistrict, searchLocality, searchHotelType, sortByParam);
       
-      // Prevent duplicate API calls
+      // Prevent duplicate API calls - check both completed and pending requests
       if (appState.lastFetchKey === fetchKey && !appState.loading) {
+        return;
+      }
+      
+      // Prevent duplicate pending requests
+      if (pendingRequestRef.current === fetchKey) {
         return;
       }
 
@@ -216,6 +223,9 @@ const HotelListingPage = () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
+      
+      // Mark this request as pending
+      pendingRequestRef.current = fetchKey;
 
       abortControllerRef.current = new AbortController();
       const signal = abortControllerRef.current.signal;
@@ -259,21 +269,36 @@ const HotelListingPage = () => {
 
         // Check if this is still the current request
         if (lastRequestRef.current?.fetchKey === fetchKey) {
+          // Handle new nested response structure
+          const hotelsData = response.data.content?.[0]?.content || response.data.content || [];
+          const pageData = response.data.page || response.data;
+          
           setAppState(prev => ({
             ...prev,
-            hotels: response.data.content || [],
+            hotels: hotelsData,
             loading: false,
           }));
 
           setPagination({
-            page: response.data.pageable?.pageNumber || 0,
-            size: response.data.size || 6,
-            totalPages: response.data.totalPages || 1,
-            totalElements: response.data.totalElements || 0,
+            page: pageData.pageable?.pageNumber || pageData.number || 0,
+            size: pageData.size || 6,
+            totalPages: pageData.totalPages || 1,
+            totalElements: pageData.totalElements || 0,
           });
         }
+        
+        // Clear pending request
+        if (pendingRequestRef.current === fetchKey) {
+          pendingRequestRef.current = null;
+        }
       } catch (error) {
-        if (error.name === 'AbortError') return; // Ignore aborted requests
+        if (error.name === 'AbortError') {
+          // Clear pending request for aborted requests
+          if (pendingRequestRef.current === fetchKey) {
+            pendingRequestRef.current = null;
+          }
+          return;
+        }
         
         console.error("Error fetching hotels:", error);
         if (lastRequestRef.current?.fetchKey === fetchKey) {
@@ -282,6 +307,11 @@ const HotelListingPage = () => {
             hotels: [],
             loading: true, // Keep loading to show YakRoomsLoader
           }));
+        }
+        
+        // Clear pending request on error
+        if (pendingRequestRef.current === fetchKey) {
+          pendingRequestRef.current = null;
         }
       }
     },
@@ -304,12 +334,18 @@ const HotelListingPage = () => {
     // Fetch initial data
     fetchHotels(0, districtParam, "", hotelTypeParam, "default");
     
-    setAppState(prev => ({ ...prev, initialLoadDone: true }));
+    // Mark initial load as complete and no longer in initial load phase
+    setAppState(prev => ({ 
+      ...prev, 
+      initialLoadDone: true,
+      isInitialLoad: false
+    }));
   }, []); // Only run on mount
 
   // Optimized search effect with debouncing
   useEffect(() => {
-    if (!appState.initialLoadDone) return;
+    // Don't run during initial load or if initial load not done
+    if (!appState.initialLoadDone || appState.isInitialLoad) return;
 
     // Clear existing timer
     if (debounceTimerRef.current) {
@@ -329,18 +365,19 @@ const HotelListingPage = () => {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [searchState.district, searchState.locality, searchState.hotelType, fetchHotels, appState.initialLoadDone]);
+  }, [searchState.district, searchState.locality, searchState.hotelType, fetchHotels, appState.initialLoadDone, appState.isInitialLoad]);
 
   // Separate effect for sort changes (no debounce needed)
   useEffect(() => {
-    if (!appState.initialLoadDone) return;
+    // Don't run during initial load or if initial load not done
+    if (!appState.initialLoadDone || appState.isInitialLoad) return;
     
     const isSearchActive = searchState.district.trim() || searchState.locality.trim() || 
       (searchState.hotelType && searchState.hotelType !== "all");
     if (!isSearchActive) {
       fetchHotels(0, searchState.district, searchState.locality, searchState.hotelType, searchState.sortBy);
     }
-  }, [searchState.sortBy, fetchHotels, appState.initialLoadDone, searchState.district, searchState.locality, searchState.hotelType]);
+  }, [searchState.sortBy, fetchHotels, appState.initialLoadDone, appState.isInitialLoad, searchState.district, searchState.locality, searchState.hotelType]);
 
   // Cleanup effect
   useEffect(() => {
@@ -351,6 +388,8 @@ const HotelListingPage = () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
+      // Clear pending request on cleanup
+      pendingRequestRef.current = null;
     };
   }, []);
 
@@ -435,12 +474,13 @@ const HotelListingPage = () => {
       locality: hotel.locality,
       price: hotel.lowestPrice,
       lowestPrice: hotel.lowestPrice,
-      image: hotel.photoUrl || 
+      image: hotel.photoUrl || hotel.photoUrls?.[0] || 
         `https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop&auto=format`,
       type: hotel.hotelType || "Hotel",
       amenities: hotel.amenities || [],
       address: hotel.address,
       averageRating: hotel.averageRating || 0,
+      verified: hotel.verified || hotel.isVerified || false,
     }));
   }, [appState.hotels]);
 
