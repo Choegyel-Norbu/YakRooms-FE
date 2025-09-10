@@ -5,15 +5,32 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <!-- PWA Meta Tags -->
+    <!-- Enhanced PWA Meta Tags for Cross-Platform Support -->
     <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1a1a1a" />
     <meta name="description" content="Discover Authentic Stays in Bhutan with YakRooms - Your convenient way to book locally" />
+    
+    <!-- iOS PWA Support -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="YakRooms" />
+    <meta name="format-detection" content="telephone=no" />
+    
+    <!-- Android PWA Support -->
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="YakRooms" />
+    
+    <!-- Windows PWA Support -->
     <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
     <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="msapplication-navbutton-color" content="#ffffff" />
+    <meta name="msapplication-starturl" content="/" />
+    
+    <!-- Cross-Platform Security Headers -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; connect-src 'self' https: wss: ws:; font-src 'self' https:; object-src 'none'; media-src 'self' https: data:; frame-src 'self' https:;" />
     
     <!-- PWA Icons -->
     <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />

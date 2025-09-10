@@ -82,13 +82,24 @@ const PWARegistration = () => {
       console.log('App is running in standalone mode');
     }
 
-    // Debug: Check PWA criteria
+    // Debug: Check PWA criteria and mobile authentication compatibility
     console.log('PWA Debug Info:');
     console.log('- User Agent:', navigator.userAgent);
     console.log('- Is Mobile:', isMobile);
     console.log('- Is iOS:', isIOS());
     console.log('- Display Mode:', window.matchMedia('(display-mode: standalone)').matches);
     console.log('- HTTPS:', window.location.protocol === 'https:');
+    console.log('- API Base URL:', window.API_DEBUG_URL || 'Not set');
+    
+    // Mobile authentication compatibility check
+    const authCompatibility = {
+      cookiesEnabled: navigator.cookieEnabled,
+      localStorageAvailable: typeof(Storage) !== "undefined",
+      serviceWorkerSupported: 'serviceWorker' in navigator,
+      notificationsSupported: 'Notification' in window,
+      orientationSupported: 'orientation' in window || 'onorientationchange' in window
+    };
+    console.log('Mobile Auth Compatibility:', authCompatibility);
     
     // Check if the app meets installability criteria
     const checkInstallability = () => {

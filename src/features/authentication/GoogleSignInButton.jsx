@@ -42,64 +42,99 @@ const isPWAContext = () => {
          document.referrer.includes('android-app://');
 };
 
-// Cross-platform authentication strategy
+// Enhanced cross-platform authentication strategy with mobile optimization
 const getAuthStrategy = () => {
   const platform = detectPlatform();
   const isPWA = isPWAContext();
   const isIOS = isIOSDevice();
   const isAndroid = isAndroidDevice();
+  const isMobile = isIOS || isAndroid;
 
-  // Platform-specific strategies
+  // Enhanced mobile detection and strategy
+  if (isPWA && isMobile) {
+    // PWA on mobile devices - always use redirect for reliability
+    return {
+      primary: 'redirect',
+      fallback: 'redirect',
+      reason: 'PWA on mobile requires redirect for auth reliability',
+      timeout: 30000, // Longer timeout for mobile networks
+      mobileOptimized: true
+    };
+  }
+
+  // Platform-specific strategies with mobile considerations
   switch (platform) {
     case 'ie':
-      // Internet Explorer - use redirect only
       return {
         primary: 'redirect',
         fallback: 'redirect',
-        reason: 'IE has limited popup support'
+        reason: 'IE has limited popup support',
+        timeout: 20000
       };
     
     case 'safari':
       if (isIOS) {
-        // iOS Safari - redirect is most reliable
         return {
           primary: 'redirect',
           fallback: 'redirect',
-          reason: 'iOS Safari has popup restrictions'
+          reason: 'iOS Safari has popup restrictions and third-party cookie limitations',
+          timeout: 25000,
+          mobileOptimized: true
         };
       } else {
-        // macOS Safari - try popup first, fallback to redirect
         return {
           primary: 'popup',
           fallback: 'redirect',
-          reason: 'macOS Safari popup support varies'
+          reason: 'macOS Safari popup support varies',
+          timeout: 15000
         };
       }
     
     case 'firefox':
-      // Firefox - popup works well, redirect as fallback
-      return {
-        primary: 'popup',
-        fallback: 'redirect',
-        reason: 'Firefox has good popup support'
-      };
+      if (isMobile) {
+        return {
+          primary: 'redirect',
+          fallback: 'popup',
+          reason: 'Mobile Firefox has better redirect support',
+          timeout: 20000,
+          mobileOptimized: true
+        };
+      } else {
+        return {
+          primary: 'popup',
+          fallback: 'redirect',
+          reason: 'Desktop Firefox has good popup support',
+          timeout: 15000
+        };
+      }
     
     case 'pwa':
-      // PWA contexts - redirect is most reliable
       return {
         primary: 'redirect',
         fallback: 'popup',
-        reason: 'PWA contexts have popup restrictions'
+        reason: 'PWA contexts have popup restrictions',
+        timeout: 25000,
+        mobileOptimized: true
       };
     
     case 'chrome':
     default:
-      // Chrome and Chromium-based browsers - popup first, redirect fallback
-      return {
-        primary: 'popup',
-        fallback: 'redirect',
-        reason: 'Chrome has excellent popup support'
-      };
+      if (isMobile) {
+        return {
+          primary: 'redirect',
+          fallback: 'popup',
+          reason: 'Mobile Chrome redirect is more reliable for cross-platform',
+          timeout: 20000,
+          mobileOptimized: true
+        };
+      } else {
+        return {
+          primary: 'popup',
+          fallback: 'redirect',
+          reason: 'Desktop Chrome has excellent popup support',
+          timeout: 15000
+        };
+      }
   }
 };
 
@@ -124,7 +159,8 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
           onLoginStart?.();
           
           const idToken = await result.user.getIdToken();
-          await processAuthentication(idToken, onLoginSuccess, onClose);
+          const strategy = getAuthStrategy();
+          await processAuthentication(idToken, onLoginSuccess, onClose, strategy);
         } else {
           console.log('No redirect result found');
         }
@@ -141,7 +177,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
     handleRedirectResult();
   }, [onLoginSuccess, onClose, onLoginStart, onLoginComplete]);
 
-  const processAuthentication = async (idToken, onLoginSuccess, onClose) => {
+  const processAuthentication = async (idToken, onLoginSuccess, onClose, strategy = null) => {
     try {
       console.log('Processing authentication with token...');
       const res = await axios.post(
@@ -152,7 +188,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
             "Content-Type": "application/json",
           },
           withCredentials: true, // Enable cookies for HTTP-only authentication
-          timeout: 15000, // 15 second timeout for cross-platform compatibility
+          timeout: strategy.timeout || 15000, // Dynamic timeout based on platform strategy
         }
       );
 
@@ -278,7 +314,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
       // Process authentication for popup flow
       if (result) {
         const idToken = await result.user.getIdToken();
-        await processAuthentication(idToken, onLoginSuccess, onClose);
+        await processAuthentication(idToken, onLoginSuccess, onClose, strategy);
       }
     } catch (error) {
       console.error('Cross-platform authentication error:', error);
