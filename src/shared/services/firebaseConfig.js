@@ -164,8 +164,38 @@ const configureAuthPersistence = () => {
 // Initialize platform-specific configurations
 configureAuthPersistence();
 
-// API configuration
-const API_BASE_URL = "http://localhost:8080";
-// const API_BASE_URL = "https://yakrooms-be-production.up.railway.app";
+// API configuration - Environment-based URL selection
+const getApiBaseUrl = () => {
+  // Check if we're in development environment
+  const isDevelopment = import.meta.env.DEV || 
+                       window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1';
+  
+  // Check if running in PWA mode (installed app)
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                window.navigator.standalone === true ||
+                document.referrer.includes('android-app://');
+  
+  // Use environment variable if available, otherwise use defaults
+  const developmentUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+  const productionUrl = import.meta.env.VITE_API_BASE_URL || "https://yakrooms-be-production.up.railway.app";
+  
+  // Force production URL for PWA installations and mobile contexts
+  if (isPWA || !isDevelopment) {
+    console.log('🌐 Using production API URL for cross-platform compatibility');
+    return productionUrl;
+  }
+  
+  console.log('🔧 Using development API URL');
+  return developmentUrl;
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+// Debug helper for PWA registration and mobile debugging
+if (typeof window !== 'undefined') {
+  window.API_DEBUG_URL = API_BASE_URL;
+  console.log('🔗 API Base URL configured:', API_BASE_URL);
+}
 
 export { auth, provider, API_BASE_URL, handleAuthError, detectPlatform };
