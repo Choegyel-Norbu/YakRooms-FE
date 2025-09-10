@@ -34,12 +34,11 @@ const isEdge = () => {
   return /Edge/.test(navigator.userAgent);
 };
 
-// Enhanced PWA context detection
+// Enhanced PWA context detection - more conservative approach
 const isPWAContext = () => {
+  // Only consider it PWA if actually running in standalone mode
   return window.matchMedia('(display-mode: standalone)').matches ||
-         window.navigator.standalone === true ||
-         window.location.search.includes('source=pwa') ||
-         document.referrer.includes('android-app://');
+         window.navigator.standalone === true;
 };
 
 // Enhanced cross-platform authentication strategy with mobile optimization
@@ -119,22 +118,14 @@ const getAuthStrategy = () => {
     
     case 'chrome':
     default:
-      if (isMobile) {
-        return {
-          primary: 'redirect',
-          fallback: 'popup',
-          reason: 'Mobile Chrome redirect is more reliable for cross-platform',
-          timeout: 20000,
-          mobileOptimized: true
-        };
-      } else {
-        return {
-          primary: 'popup',
-          fallback: 'redirect',
-          reason: 'Desktop Chrome has excellent popup support',
-          timeout: 15000
-        };
-      }
+      // Chrome mobile actually works well with popups, keep original behavior
+      return {
+        primary: 'popup',
+        fallback: 'redirect',
+        reason: isMobile ? 'Mobile Chrome has good popup support' : 'Desktop Chrome has excellent popup support',
+        timeout: isMobile ? 20000 : 15000,
+        mobileOptimized: isMobile
+      };
   }
 };
 
