@@ -34,11 +34,12 @@ const isEdge = () => {
   return /Edge/.test(navigator.userAgent);
 };
 
-// Enhanced PWA context detection - more conservative approach
+// Enhanced PWA context detection
 const isPWAContext = () => {
-  // Only consider it PWA if actually running in standalone mode
   return window.matchMedia('(display-mode: standalone)').matches ||
-         window.navigator.standalone === true;
+         window.navigator.standalone === true ||
+         window.location.search.includes('source=pwa') ||
+         document.referrer.includes('android-app://');
 };
 
 // Enhanced cross-platform authentication strategy with mobile optimization
@@ -118,14 +119,22 @@ const getAuthStrategy = () => {
     
     case 'chrome':
     default:
-      // Chrome mobile actually works well with popups, keep original behavior
-      return {
-        primary: 'popup',
-        fallback: 'redirect',
-        reason: isMobile ? 'Mobile Chrome has good popup support' : 'Desktop Chrome has excellent popup support',
-        timeout: isMobile ? 20000 : 15000,
-        mobileOptimized: isMobile
-      };
+      if (isMobile) {
+        return {
+          primary: 'redirect',
+          fallback: 'popup',
+          reason: 'Mobile Chrome redirect is more reliable for cross-platform',
+          timeout: 20000,
+          mobileOptimized: true
+        };
+      } else {
+        return {
+          primary: 'popup',
+          fallback: 'redirect',
+          reason: 'Desktop Chrome has excellent popup support',
+          timeout: 15000
+        };
+      }
   }
 };
 
@@ -135,7 +144,7 @@ const isProduction = () => {
          !window.location.hostname.includes('127.0.0.1');
 };
 
-const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLoginComplete, disabled = false }) => {
+const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLoginComplete }) => {
   const [isLoading, setIsLoading] = useState(false);
   
   // Handle redirect result on component mount
@@ -145,9 +154,9 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
         console.log('Checking for redirect result...');
         const result = await getRedirectResult(auth);
         if (result) {
-          console.log('✅ Redirect authentication successful:', result);
+          console.log('Redirect result found:', result);
           setIsLoading(true);
-          onLoginStart?.('redirect');
+          onLoginStart?.();
           
           const idToken = await result.user.getIdToken();
           const strategy = getAuthStrategy();
@@ -216,15 +225,11 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
+      onLoginStart?.();
       
       // Get platform-specific authentication strategy
       const strategy = getAuthStrategy();
       const platform = detectPlatform();
-      
-      // Notify parent component about the authentication type
-      onLoginStart?.(strategy.primary);
-      
-      console.log(`🔐 Starting ${strategy.primary} authentication for ${platform}`);
       
       // Enhanced debugging information
       const debugInfo = {
@@ -351,9 +356,9 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
     
     if (isLoading) {
       if (strategy.primary === 'redirect') {
-        return `Redirecting to Google... (${platform})`;
+        return 'Redirecting to Google...';
       } else {
-        return 'Opening Google Sign-in...';
+        return 'Signing in...';
       }
     }
     return 'Continue with Google';
@@ -363,9 +368,9 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
     <div className="space-y-3">
       <button
         onClick={handleGoogleSignIn}
-        disabled={isLoading || disabled}
+        disabled={isLoading}
         className={`w-full flex items-center justify-center gap-2 text-sm font-medium py-2.5 px-5 rounded-xl shadow-md transition duration-200 ease-in-out focus:outline-none border cursor-pointer ${
-          isLoading || disabled
+          isLoading 
             ? "bg-gray-100 text-gray-400 cursor-not-allowed" 
             : "text-black hover:shadow-lg border-transparent hover:border-[#cccccc]"
         }`}
