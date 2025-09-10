@@ -164,29 +164,50 @@ const configureAuthPersistence = () => {
 // Initialize platform-specific configurations
 configureAuthPersistence();
 
-// API configuration - Environment-based URL selection
+// Enhanced mobile device detection
+const isMobileDevice = () => {
+  return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+         window.matchMedia('(max-width: 768px)').matches;
+};
+
+// Enhanced PWA context detection
+const isPWAContext = () => {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+         window.navigator.standalone === true ||
+         document.referrer.includes('android-app://') ||
+         window.location.search.includes('source=pwa') ||
+         (window.matchMedia('(display-mode: fullscreen)').matches && isMobileDevice()) ||
+         window.matchMedia('(display-mode: minimal-ui)').matches;
+};
+
+// API configuration - Enhanced mobile-first URL selection
 const getApiBaseUrl = () => {
   // Check if we're in development environment
   const isDevelopment = import.meta.env.DEV || 
                        window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1';
   
-  // Check if running in PWA mode (installed app)
-  const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
-                window.navigator.standalone === true ||
-                document.referrer.includes('android-app://');
+  // Check mobile and PWA contexts
+  const isMobile = isMobileDevice();
+  const isPWA = isPWAContext();
   
   // Use environment variable if available, otherwise use defaults
   const developmentUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
   const productionUrl = import.meta.env.VITE_API_BASE_URL || "https://yakrooms-be-production.up.railway.app";
   
-  // Force production URL for PWA installations and mobile contexts
-  if (isPWA || !isDevelopment) {
-    console.log('🌐 Using production API URL for cross-platform compatibility');
+  // Force production URL for mobile devices, PWA installations, and production environment
+  if (isMobile || isPWA || !isDevelopment) {
+    console.log('🌐 Using production API URL for mobile/PWA compatibility', {
+      isMobile,
+      isPWA,
+      isDevelopment,
+      userAgent: navigator.userAgent.substring(0, 50) + '...'
+    });
     return productionUrl;
   }
   
-  console.log('🔧 Using development API URL');
+  console.log('🔧 Using development API URL for desktop development');
   return developmentUrl;
 };
 
@@ -198,4 +219,4 @@ if (typeof window !== 'undefined') {
   console.log('🔗 API Base URL configured:', API_BASE_URL);
 }
 
-export { auth, provider, API_BASE_URL, handleAuthError, detectPlatform };
+export { auth, provider, API_BASE_URL, handleAuthError, detectPlatform, isMobileDevice, isPWAContext };

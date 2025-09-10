@@ -25,13 +25,17 @@ function clearAllCookies() {
   }
 }
 
+// Enhanced mobile-aware API configuration
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
   withCredentials: true, // Enable cookies for HTTP-only authentication
   headers: {
     "Content-Type": "application/json",
+    // Add headers for better mobile compatibility
+    "Cache-Control": "no-cache",
+    "Pragma": "no-cache"
   },
-  timeout: 10000, // 10 second timeout
+  timeout: 30000, // Increased to 30 second timeout for mobile networks
 });
 
 // Add response interceptor for automatic token refresh
