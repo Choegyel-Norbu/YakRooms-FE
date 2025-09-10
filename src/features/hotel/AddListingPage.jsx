@@ -67,6 +67,8 @@ const AddListingPage = () => {
     cid: "",
     destination: "",
     origin: "",
+    checkinTime: "",
+    checkoutTime: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -390,8 +392,11 @@ const AddListingPage = () => {
       if (!formData.phone) newErrors.phone = "Phone is required";
       if (formData.photos.length === 0)
         newErrors.photos = "At least one photo is required";
-      if (listingType === "hotel" && !formData.hotelType) 
-        newErrors.hotelType = "Hotel type is required";
+      if (listingType === "hotel") {
+        if (!formData.hotelType) newErrors.hotelType = "Hotel type is required";
+        if (!formData.checkinTime) newErrors.checkinTime = "Check-in time is required";
+        if (!formData.checkoutTime) newErrors.checkoutTime = "Check-out time is required";
+      }
     }
 
     if (step === 3) {
@@ -516,6 +521,8 @@ const AddListingPage = () => {
                   longitude: "",
                   numberOfRooms: "",
                   roomTypesDescription: "",
+                  checkinTime: "",
+                  checkoutTime: "",
                 });
                 setErrors({});
               }}
@@ -940,42 +947,80 @@ const AddListingPage = () => {
                 </div>
 
                 {listingType === "hotel" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="hotelType">
-                      Hotel Type <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={formData.hotelType}
-                      onValueChange={(value) => {
-                        setFormData(prev => ({ ...prev, hotelType: value }));
-                        if (errors.hotelType) {
-                          setErrors(prev => {
-                            const newErrors = { ...prev };
-                            delete newErrors.hotelType;
-                            return newErrors;
-                          });
-                        }
-                      }}
-                    >
-                      <SelectTrigger className={errors.hotelType ? "border-destructive" : ""}>
-                        <SelectValue placeholder="Select Hotel Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ONE_STAR">One Star</SelectItem>
-                        <SelectItem value="TWO_STAR">Two Star</SelectItem>
-                        <SelectItem value="THREE_STAR">Three Star</SelectItem>
-                        <SelectItem value="FOUR_STAR">Four Star</SelectItem>
-                        <SelectItem value="FIVE_STAR">Five Star</SelectItem>
-                        <SelectItem value="BUDGET">Budget</SelectItem>
-                        <SelectItem value="BOUTIQUE">Boutique</SelectItem>
-                        <SelectItem value="RESORT">Resort</SelectItem>
-                        <SelectItem value="HOMESTAY">Homestay</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {errors.hotelType && (
-                      <p className="text-destructive text-sm">{errors.hotelType}</p>
-                    )}
-                  </div>
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="hotelType">
+                        Hotel Type <span className="text-destructive">*</span>
+                      </Label>
+                      <Select
+                        value={formData.hotelType}
+                        onValueChange={(value) => {
+                          setFormData(prev => ({ ...prev, hotelType: value }));
+                          if (errors.hotelType) {
+                            setErrors(prev => {
+                              const newErrors = { ...prev };
+                              delete newErrors.hotelType;
+                              return newErrors;
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger className={errors.hotelType ? "border-destructive" : ""}>
+                          <SelectValue placeholder="Select Hotel Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ONE_STAR">One Star</SelectItem>
+                          <SelectItem value="TWO_STAR">Two Star</SelectItem>
+                          <SelectItem value="THREE_STAR">Three Star</SelectItem>
+                          <SelectItem value="FOUR_STAR">Four Star</SelectItem>
+                          <SelectItem value="FIVE_STAR">Five Star</SelectItem>
+                          <SelectItem value="BUDGET">Budget</SelectItem>
+                          <SelectItem value="BOUTIQUE">Boutique</SelectItem>
+                          <SelectItem value="RESORT">Resort</SelectItem>
+                          <SelectItem value="HOMESTAY">Homestay</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {errors.hotelType && (
+                        <p className="text-destructive text-sm">{errors.hotelType}</p>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="checkinTime">
+                          Check-in Time <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          id="checkinTime"
+                          name="checkinTime"
+                          type="time"
+                          value={formData.checkinTime}
+                          onChange={handleChange}
+                          className={errors.checkinTime ? "border-destructive" : ""}
+                        />
+                        {errors.checkinTime && (
+                          <p className="text-destructive text-sm">{errors.checkinTime}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="checkoutTime">
+                          Check-out Time <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          id="checkoutTime"
+                          name="checkoutTime"
+                          type="time"
+                          value={formData.checkoutTime}
+                          onChange={handleChange}
+                          className={errors.checkoutTime ? "border-destructive" : ""}
+                        />
+                        {errors.checkoutTime && (
+                          <p className="text-destructive text-sm">{errors.checkoutTime}</p>
+                        )}
+                      </div>
+                    </div>
+                  </>
                 )}
 
                 {currentAmenities.length > 0 && (
@@ -1228,6 +1273,23 @@ const AddListingPage = () => {
                             <div>
                               <Label className="text-muted-foreground">Hotel Type</Label>
                               <p className="font-bold text-sm lg:text-base">{formData.hotelType.replace(/_/g, " ")}</p>
+                            </div>
+                          )}
+                          {(formData.checkinTime || formData.checkoutTime) && (
+                            <div>
+                              <Label className="text-muted-foreground">Check-in/Check-out Times</Label>
+                              <div className="space-y-1">
+                                {formData.checkinTime && (
+                                  <p className="font-bold text-sm lg:text-base">
+                                    Check-in: {formData.checkinTime}
+                                  </p>
+                                )}
+                                {formData.checkoutTime && (
+                                  <p className="font-bold text-sm lg:text-base">
+                                    Check-out: {formData.checkoutTime}
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>

@@ -744,7 +744,7 @@ const BookingTable = ({ hotelId }) => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Name:</span>
-                                            <span className="text-gray-900 text-sm">{selectedBooking.guestName || 'Not provided'}</span>
+                                            <span className="text-gray-900 text-sm">{selectedBooking.guestName || selectedBooking.name || 'Not provided'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Email:</span>
