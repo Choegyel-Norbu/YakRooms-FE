@@ -145,9 +145,9 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
         console.log('Checking for redirect result...');
         const result = await getRedirectResult(auth);
         if (result) {
-          console.log('Redirect result found:', result);
+          console.log('✅ Redirect authentication successful:', result);
           setIsLoading(true);
-          onLoginStart?.();
+          onLoginStart?.('redirect');
           
           const idToken = await result.user.getIdToken();
           const strategy = getAuthStrategy();
@@ -216,11 +216,15 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
-      onLoginStart?.();
       
       // Get platform-specific authentication strategy
       const strategy = getAuthStrategy();
       const platform = detectPlatform();
+      
+      // Notify parent component about the authentication type
+      onLoginStart?.(strategy.primary);
+      
+      console.log(`🔐 Starting ${strategy.primary} authentication for ${platform}`);
       
       // Enhanced debugging information
       const debugInfo = {
@@ -347,9 +351,9 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
     
     if (isLoading) {
       if (strategy.primary === 'redirect') {
-        return 'Redirecting to Google...';
+        return `Redirecting to Google... (${platform})`;
       } else {
-        return 'Signing in...';
+        return 'Opening Google Sign-in...';
       }
     }
     return 'Continue with Google';
