@@ -990,17 +990,58 @@ const BookingCard = ({
       )}
 
       {/* Cancellation approved indicator */}
-      {booking.status === "BOOKING_CANCELLATION_APPROVED" && (
-        <div className="bg-green-50 border border-green-200 rounded-md p-3 mb-4">
+      {booking.status === "CANCELLED" && (
+        <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
           <div className="flex items-start gap-3">
-            <CheckCircle className="text-green-600 mt-0.5 flex-shrink-0" size={16} />
+            <div className="bg-green-100 p-1.5 rounded-full flex-shrink-0">
+              <CheckCircle className="text-green-600" size={18} />
+            </div>
             <div className="flex-1">
-              <p className="text-sm text-green-800 font-medium mb-1">
-                Cancellation Request Approved
-              </p>
-              <p className="text-xs text-green-700">
-                Your cancellation request has been approved. Your booking has been cancelled and any applicable refunds will be processed according to our cancellation policy.
-              </p>
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-sm text-green-800 font-semibold">
+                  Cancellation Approved
+                </p>
+              </div>
+              
+              <div className="space-y-3">
+                <p className="text-sm text-green-700">
+                  Your cancellation request has been approved. Your booking has been cancelled.
+                </p>
+                
+                {/* Refund Information */}
+                <div className="bg-white/60 border border-green-300 rounded-lg p-3 space-y-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="text-green-600" size={14} />
+                    <span className="text-sm font-semibold text-green-800">Refund Information</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-green-800">Refund Amount:</span>
+                    <span className="text-sm font-bold text-green-800">
+                      {formatCurrency(booking.totalPrice)}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Contact Hotel Owner */}
+                <div className="bg-green-100/50 border border-green-300 rounded-md p-3">
+                  <div className="flex items-start gap-2">
+                    <div className="w-1 h-1 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
+                    <div className="text-xs text-green-700">
+                      <p className="font-medium mb-1">For refund details, please contact the hotel owner directly.</p>
+                      <p className="text-xs text-green-600 mt-1">
+                        The hotel owner will provide you with specific refund processing information and timeline.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Contact Hotel */}
+                <div className="flex items-center gap-2 text-xs text-green-600">
+                  <Phone size={12} />
+                  <span>Contact the hotel owner for refund-related questions and processing details.</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1800,7 +1841,9 @@ const GuestDashboard = () => {
                               className={`p-3 sm:p-4 transition-colors ${
                                 notification.isRead
                                   ? "hover:bg-muted/50"
-                                  : "bg-blue-50/50 dark:bg-blue-950/20 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                                  : notification.type === "BOOKING_CANCELLATION_APPROVED"
+                                    ? "bg-green-50/50 dark:bg-green-950/20 hover:bg-green-50 dark:hover:bg-green-950/30"
+                                    : "bg-blue-50/50 dark:bg-blue-950/20 hover:bg-blue-50 dark:hover:bg-blue-950/30"
                               }`}
                             >
                               <div className="space-y-2">
@@ -1811,23 +1854,78 @@ const GuestDashboard = () => {
                                         {notification.title}
                                       </p>
                                       {!notification.isRead && (
-                                        <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0"></div>
+                                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                          notification.type === "BOOKING_CANCELLATION_APPROVED" 
+                                            ? "bg-green-500" 
+                                            : "bg-blue-500"
+                                        }`}></div>
                                       )}
                                     </div>
                                   </div>
                                 </div>
-                                <div className="space-y-1">
-                                  {notification.hotelName && (
-                                    <p className="text-sm text-muted-foreground">
-                                      <span className="font-medium">Hotel:</span> {notification.hotelName}
-                                    </p>
-                                  )}
-                                  {notification.roomNumber && (
-                                    <p className="text-sm text-muted-foreground">
-                                      <span className="font-medium">Room:</span> {notification.roomNumber}
-                                    </p>
-                                  )}
-                                </div>
+                                
+                                {/* Enhanced display for cancellation approved notifications */}
+                                {notification.type === "BOOKING_CANCELLATION_APPROVED" ? (
+                                  <div className="space-y-3">
+                                    <div className="space-y-1">
+                                      {notification.hotelName && (
+                                        <p className="text-sm text-muted-foreground">
+                                          <span className="font-medium">Hotel:</span> {notification.hotelName}
+                                        </p>
+                                      )}
+                                      {notification.roomNumber && (
+                                        <p className="text-sm text-muted-foreground">
+                                          <span className="font-medium">Room:</span> {notification.roomNumber}
+                                        </p>
+                                      )}
+                                    </div>
+                                    
+                                    {/* Refund Details Section */}
+                                    <div className="bg-white/60 border border-green-300 rounded-lg p-3 space-y-2">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <CheckCircle className="text-green-600" size={14} />
+                                        <span className="text-xs font-semibold text-green-800">Refund Information</span>
+                                      </div>
+                                      
+                                      <div className="space-y-1">
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-xs font-medium text-green-800">Refund Amount:</span>
+                                          <span className="text-xs font-bold text-green-800">
+                                            {notification.refundAmount ? formatCurrency(notification.refundAmount) : 'Contact hotel owner'}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Contact Hotel Owner */}
+                                    <div className="bg-green-100/50 border border-green-300 rounded-md p-2">
+                                      <div className="flex items-start gap-2">
+                                        <div className="w-1 h-1 bg-green-600 rounded-full mt-1.5 flex-shrink-0"></div>
+                                        <div className="text-xs text-green-700">
+                                          <p className="font-medium mb-1">For refund details, contact the hotel owner directly.</p>
+                                          <p className="text-xs text-green-600">
+                                            The hotel owner will provide specific refund processing information and timeline.
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  /* Standard notification display for other types */
+                                  <div className="space-y-1">
+                                    {notification.hotelName && (
+                                      <p className="text-sm text-muted-foreground">
+                                        <span className="font-medium">Hotel:</span> {notification.hotelName}
+                                      </p>
+                                    )}
+                                    {notification.roomNumber && (
+                                      <p className="text-sm text-muted-foreground">
+                                        <span className="font-medium">Room:</span> {notification.roomNumber}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+                                
                                 <div className="flex justify-end">
                                   <span className="text-xs text-muted-foreground">
                                     {notification.displayTime ||

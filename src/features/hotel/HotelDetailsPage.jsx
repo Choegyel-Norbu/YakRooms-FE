@@ -62,6 +62,57 @@ import {
 } from "@/shared/components/sheet";
 import { useAuth } from "../authentication";
 
+// Utility function to format time from 24-hour to 12-hour format with descriptive text
+const formatTimeWithDescription = (timeString) => {
+  if (!timeString) return "Not specified";
+  
+  try {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const formattedMinutes = minutes.toString().padStart(2, '0');
+    
+    let description = '';
+    if (hours === 0) {
+      description = '(Midnight)';
+    } else if (hours >= 1 && hours < 6) {
+      description = '(Early Morning)';
+    } else if (hours >= 6 && hours < 12) {
+      description = '(Morning)';
+    } else if (hours === 12) {
+      description = '(Noon)';
+    } else if (hours >= 13 && hours < 17) {
+      description = '(Afternoon)';
+    } else if (hours >= 17 && hours < 21) {
+      description = '(Evening)';
+    } else {
+      description = '(Night)';
+    }
+    
+    return `${hour12}:${formattedMinutes} ${ampm} ${description}`;
+  } catch (error) {
+    console.error('Error formatting time:', error);
+    return "Invalid time";
+  }
+};
+
+// Simple time formatter for sidebar (without description)
+const formatTime = (timeString) => {
+  if (!timeString) return "Not specified";
+  
+  try {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const formattedMinutes = minutes.toString().padStart(2, '0');
+    
+    return `${hour12}:${formattedMinutes} ${ampm}`;
+  } catch (error) {
+    console.error('Error formatting time:', error);
+    return "Invalid time";
+  }
+};
+
 // Room Image Carousel Component
 const RoomImageCarousel = ({ images, roomNumber, roomType }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -890,7 +941,7 @@ const HotelDetailsPage = () => {
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-slate-800">Check-in Time</h4>
-                      <p className="text-sm text-slate-600">12:00 AM (Midnight)</p>
+                      <p className="text-sm text-slate-600">{formatTimeWithDescription(appState.hotel?.checkinTime)}</p>
                     </div>
                   </div>
                   
@@ -900,7 +951,7 @@ const HotelDetailsPage = () => {
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-slate-800">Check-out Time</h4>
-                      <p className="text-sm text-slate-600">2:00 PM (Afternoon)</p>
+                      <p className="text-sm text-slate-600">{formatTimeWithDescription(appState.hotel?.checkoutTime)}</p>
                     </div>
                   </div>
                 </div>
@@ -1296,11 +1347,11 @@ const HotelDetailsPage = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Check-in Time</span>
-                  <span className="text-sm">12:00 AM</span>
+                  <span className="text-sm">{formatTime(appState.hotel?.checkinTime)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Check-out Time</span>
-                  <span className="text-sm">2:00 PM</span>
+                  <span className="text-sm">{formatTime(appState.hotel?.checkoutTime)}</span>
                 </div>
               </CardContent>
             </Card>
