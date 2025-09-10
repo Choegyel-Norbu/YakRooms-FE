@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { signInWithPopup, signInWithRedirect, getRedirectResult } from "firebase/auth";
-import { auth, provider, handleAuthError, detectPlatform, isMobileDevice, isPWAContext } from "../../shared/services/firebaseConfig";
+import { auth, provider, handleAuthError, detectPlatform } from "../../shared/services/firebaseConfig";
 import axios from "axios";
 import { API_BASE_URL } from "../../shared/services/firebaseConfig";
 
@@ -34,18 +34,12 @@ const isEdge = () => {
   return /Edge/.test(navigator.userAgent);
 };
 
-// Network quality detection for mobile optimization
-const getNetworkQuality = () => {
-  if ('connection' in navigator) {
-    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    return {
-      effectiveType: connection?.effectiveType || 'unknown',
-      downlink: connection?.downlink || 0,
-      rtt: connection?.rtt || 0,
-      saveData: connection?.saveData || false
-    };
-  }
-  return { effectiveType: 'unknown', downlink: 0, rtt: 0, saveData: false };
+// Enhanced PWA context detection
+const isPWAContext = () => {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+         window.navigator.standalone === true ||
+         window.location.search.includes('source=pwa') ||
+         document.referrer.includes('android-app://');
 };
 
 // Enhanced cross-platform authentication strategy with mobile optimization
@@ -54,77 +48,93 @@ const getAuthStrategy = () => {
   const isPWA = isPWAContext();
   const isIOS = isIOSDevice();
   const isAndroid = isAndroidDevice();
-  const isMobile = isMobileDevice();
-  const networkQuality = getNetworkQuality();
+  const isMobile = isIOS || isAndroid;
 
-  // Calculate dynamic timeout based on network quality
-  const calculateTimeout = (baseTimeout) => {
-    if (networkQuality.effectiveType === 'slow-2g') return baseTimeout * 2;
-    if (networkQuality.effectiveType === '2g') return baseTimeout * 1.8;
-    if (networkQuality.effectiveType === '3g') return baseTimeout * 1.5;
-    if (networkQuality.saveData) return baseTimeout * 1.3;
-    return baseTimeout;
-  };
-
-  // MOBILE-FIRST: Always use redirect for any mobile device
-  if (isMobile) {
-    const baseTimeout = isPWA ? 45000 : 40000; // Increased timeouts for mobile
+  // Enhanced mobile detection and strategy
+  if (isPWA && isMobile) {
+    // PWA on mobile devices - always use redirect for reliability
     return {
       primary: 'redirect',
       fallback: 'redirect',
-      reason: 'Mobile devices require redirect for authentication reliability',
-      timeout: calculateTimeout(baseTimeout),
-      mobileOptimized: true,
-      networkOptimized: true
+      reason: 'PWA on mobile requires redirect for auth reliability',
+      timeout: 30000, // Longer timeout for mobile networks
+      mobileOptimized: true
     };
   }
 
-  // PWA on desktop - still prefer redirect
-  if (isPWA) {
-    return {
-      primary: 'redirect',
-      fallback: 'popup',
-      reason: 'PWA contexts have popup restrictions',
-      timeout: calculateTimeout(30000),
-      mobileOptimized: false,
-      networkOptimized: true
-    };
-  }
-
-  // Desktop platform-specific strategies
+  // Platform-specific strategies with mobile considerations
   switch (platform) {
     case 'ie':
       return {
         primary: 'redirect',
         fallback: 'redirect',
         reason: 'IE has limited popup support',
-        timeout: calculateTimeout(25000)
+        timeout: 20000
       };
     
     case 'safari':
-      return {
-        primary: 'popup',
-        fallback: 'redirect',
-        reason: 'macOS Safari popup support with redirect fallback',
-        timeout: calculateTimeout(20000)
-      };
+      if (isIOS) {
+        return {
+          primary: 'redirect',
+          fallback: 'redirect',
+          reason: 'iOS Safari has popup restrictions and third-party cookie limitations',
+          timeout: 25000,
+          mobileOptimized: true
+        };
+      } else {
+        return {
+          primary: 'popup',
+          fallback: 'redirect',
+          reason: 'macOS Safari popup support varies',
+          timeout: 15000
+        };
+      }
     
     case 'firefox':
+      if (isMobile) {
+        return {
+          primary: 'redirect',
+          fallback: 'popup',
+          reason: 'Mobile Firefox has better redirect support',
+          timeout: 20000,
+          mobileOptimized: true
+        };
+      } else {
+        return {
+          primary: 'popup',
+          fallback: 'redirect',
+          reason: 'Desktop Firefox has good popup support',
+          timeout: 15000
+        };
+      }
+    
+    case 'pwa':
       return {
-        primary: 'popup',
-        fallback: 'redirect',
-        reason: 'Desktop Firefox has good popup support',
-        timeout: calculateTimeout(18000)
+        primary: 'redirect',
+        fallback: 'popup',
+        reason: 'PWA contexts have popup restrictions',
+        timeout: 25000,
+        mobileOptimized: true
       };
     
     case 'chrome':
     default:
-      return {
-        primary: 'popup',
-        fallback: 'redirect',
-        reason: 'Desktop Chrome has excellent popup support',
-        timeout: calculateTimeout(15000)
-      };
+      if (isMobile) {
+        return {
+          primary: 'redirect',
+          fallback: 'popup',
+          reason: 'Mobile Chrome redirect is more reliable for cross-platform',
+          timeout: 20000,
+          mobileOptimized: true
+        };
+      } else {
+        return {
+          primary: 'popup',
+          fallback: 'redirect',
+          reason: 'Desktop Chrome has excellent popup support',
+          timeout: 15000
+        };
+      }
   }
 };
 
@@ -169,12 +179,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
 
   const processAuthentication = async (idToken, onLoginSuccess, onClose, strategy = null) => {
     try {
-      console.log('Processing authentication with token...', {
-        strategy: strategy?.reason,
-        timeout: strategy?.timeout,
-        mobileOptimized: strategy?.mobileOptimized
-      });
-      
+      console.log('Processing authentication with token...');
       const res = await axios.post(
         `${API_BASE_URL}/auth/firebase`,
         { idToken },
@@ -183,7 +188,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
             "Content-Type": "application/json",
           },
           withCredentials: true, // Enable cookies for HTTP-only authentication
-          timeout: strategy?.timeout || 40000, // Use strategy timeout or fallback to 40s for mobile
+          timeout: strategy.timeout || 15000, // Dynamic timeout based on platform strategy
         }
       );
 
@@ -232,7 +237,6 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
         strategy,
         isIOS: isIOSDevice(),
         isAndroid: isAndroidDevice(),
-        isMobile: isMobileDevice(),
         isSafari: isSafari(),
         isChrome: isChrome(),
         isFirefox: isFirefox(),
@@ -240,13 +244,11 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
         isEdge: isEdge(),
         isPWA: isPWAContext(),
         isProduction: isProduction(),
-        networkQuality: getNetworkQuality(),
-        userAgent: navigator.userAgent.substring(0, 100) + '...',
+        userAgent: navigator.userAgent,
         displayMode: window.matchMedia('(display-mode: standalone)').matches,
         standalone: window.navigator.standalone,
         referrer: document.referrer,
-        url: window.location.href,
-        apiUrl: API_BASE_URL
+        url: window.location.href
       };
       
       console.log('Cross-platform authentication attempt:', debugInfo);

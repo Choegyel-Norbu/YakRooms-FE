@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { registerSW } from 'virtual:pwa-register';
 import { toast } from 'sonner';
 import useMediaQuery from '@/shared/hooks/useMediaQuery';
-import { isMobileDevice, isPWAContext } from '@/shared/services/firebaseConfig';
 
 // Helper function to detect iOS
 const isIOS = () => {
@@ -83,30 +82,24 @@ const PWARegistration = () => {
       console.log('App is running in standalone mode');
     }
 
-    // Enhanced Debug: Check PWA criteria and mobile authentication compatibility
-    console.log('🔍 PWA Debug Info:');
-    console.log('- User Agent:', navigator.userAgent.substring(0, 100) + '...');
-    console.log('- Is Mobile (Media Query):', isMobile);
-    console.log('- Is Mobile (Enhanced):', isMobileDevice());
+    // Debug: Check PWA criteria and mobile authentication compatibility
+    console.log('PWA Debug Info:');
+    console.log('- User Agent:', navigator.userAgent);
+    console.log('- Is Mobile:', isMobile);
     console.log('- Is iOS:', isIOS());
-    console.log('- Is PWA Context:', isPWAContext());
     console.log('- Display Mode:', window.matchMedia('(display-mode: standalone)').matches);
     console.log('- HTTPS:', window.location.protocol === 'https:');
     console.log('- API Base URL:', window.API_DEBUG_URL || 'Not set');
     
-    // Enhanced mobile authentication compatibility check
+    // Mobile authentication compatibility check
     const authCompatibility = {
       cookiesEnabled: navigator.cookieEnabled,
       localStorageAvailable: typeof(Storage) !== "undefined",
       serviceWorkerSupported: 'serviceWorker' in navigator,
       notificationsSupported: 'Notification' in window,
-      orientationSupported: 'orientation' in window || 'onorientationchange' in window,
-      connectionType: navigator.connection?.effectiveType || 'unknown',
-      touchSupported: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
-      standalone: window.navigator.standalone,
-      crossOriginIsolated: window.crossOriginIsolated
+      orientationSupported: 'orientation' in window || 'onorientationchange' in window
     };
-    console.log('🔧 Enhanced Mobile Auth Compatibility:', authCompatibility);
+    console.log('Mobile Auth Compatibility:', authCompatibility);
     
     // Check if the app meets installability criteria
     const checkInstallability = () => {
