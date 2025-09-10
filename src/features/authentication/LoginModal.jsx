@@ -22,14 +22,16 @@ const LoginModal = ({ onClose, flag }) => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [authType, setAuthType] = useState(null); // 'popup' or 'redirect'
   const [redirectCountdown, setRedirectCountdown] = useState(5);
+  const [isLoginSuccessful, setIsLoginSuccessful] = useState(false);
 
-  useOutsideClick(modalRef, isLoggingIn ? () => {} : onClose);
+  useOutsideClick(modalRef, isLoggingIn || isLoginSuccessful ? () => {} : onClose);
 
   const handleLoginStart = (type = 'popup') => {
     setIsLoggingIn(true);
     setAuthType(type);
     setError("");
     setMessage("");
+    setIsLoginSuccessful(false);
     
     // Set appropriate message based on auth type
     if (type === 'redirect') {
@@ -43,13 +45,23 @@ const LoginModal = ({ onClose, flag }) => {
     setIsLoggingIn(false);
     setAuthType(null);
     setMessage("");
+    setIsLoginSuccessful(false);
   };
 
   const handleLoginSuccess = async (authData) => {
     try {
-      await login(authData);
+      setIsLoggingIn(false);
+      setIsLoginSuccessful(true);
       setMessage("Login successful! Redirecting...");
+      
+      await login(authData);
+      
+      // Show success message for 2 seconds before closing
+      setTimeout(() => {
+        onClose();
+      }, 2000);
     } catch (error) {
+      setIsLoginSuccessful(false);
       setError("Login failed. Please try again.");
       console.error("Login error:", error);
     }
@@ -83,7 +95,7 @@ const LoginModal = ({ onClose, flag }) => {
   }, [authType]);
 
   return (
-    <Dialog open={true} onOpenChange={isLoggingIn ? () => {} : onClose}>
+    <Dialog open={true} onOpenChange={isLoggingIn || isLoginSuccessful ? () => {} : onClose}>
       <DialogContent 
         ref={modalRef}
         className="sm:max-w-md w-full p-0 gap-0"
@@ -91,11 +103,11 @@ const LoginModal = ({ onClose, flag }) => {
         {/* Custom close button to match original design */}
         <Button
           onClick={onClose}
-          disabled={isLoggingIn}
+          disabled={isLoggingIn || isLoginSuccessful}
           variant="ghost"
           size="icon"
           className={`absolute right-2 top-2 h-8 w-8 rounded-full ${
-            isLoggingIn ? "opacity-50 cursor-not-allowed" : ""
+            isLoggingIn || isLoginSuccessful ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >
           <X className="h-4 w-4" />
@@ -108,14 +120,16 @@ const LoginModal = ({ onClose, flag }) => {
               <YakRoomsText size="default" />
             </DialogTitle>
             <DialogDescription className="text-center text-sm">
-              {isLoggingIn && authType === 'redirect' ? (
+              {isLoginSuccessful ? (
+                "Welcome to YakRooms! You're being redirected..."
+              ) : isLoggingIn && authType === 'redirect' ? (
                 "Please wait while we redirect you to Google for secure authentication..."
               ) : (
                 "We'll sign you in or create an account if you don't have one yet."
               )}
               
               {/* Show platform-specific guidance */}
-              {!isLoggingIn && /iPad|iPhone|iPod/.test(navigator.userAgent) && (
+              {!isLoggingIn && !isLoginSuccessful && /iPad|iPhone|iPod/.test(navigator.userAgent) && (
                 <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-xs text-blue-800 font-medium mb-1">
                     📱 iPhone/iPad Users:
@@ -153,33 +167,43 @@ const LoginModal = ({ onClose, flag }) => {
 
             {message && (
               <Alert className={`${
-                authType === 'redirect' && isLoggingIn
+                isLoginSuccessful
+                  ? "border-green-200 bg-green-50"
+                  : authType === 'redirect' && isLoggingIn
                   ? "border-blue-200 bg-blue-50"
                   : "border-emerald-200 bg-emerald-50"
               }`}>
                 <AlertDescription className={`text-sm ${
-                  authType === 'redirect' && isLoggingIn
+                  isLoginSuccessful
+                    ? "text-green-700"
+                    : authType === 'redirect' && isLoggingIn
                     ? "text-blue-700"
                     : "text-emerald-600"
                 }`}>
                   <div className="flex items-center gap-2">
-                    {isLoggingIn && authType === 'redirect' && (
+                    {isLoginSuccessful && (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="font-medium">{message}</span>
+                      </div>
+                    )}
+                    {isLoggingIn && authType === 'redirect' && !isLoginSuccessful && (
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                         <span className="font-medium">Redirecting to Google...</span>
                       </div>
                     )}
-                    {isLoggingIn && authType === 'popup' && (
+                    {isLoggingIn && authType === 'popup' && !isLoginSuccessful && (
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
                         <span>{message}</span>
                       </div>
                     )}
-                    {!isLoggingIn && (
+                    {!isLoggingIn && !isLoginSuccessful && (
                       <span>{message}</span>
                     )}
                   </div>
-                  {authType === 'redirect' && isLoggingIn && redirectCountdown > 0 && (
+                  {authType === 'redirect' && isLoggingIn && !isLoginSuccessful && redirectCountdown > 0 && (
                     <div className="mt-2 text-xs text-blue-600">
                       <div className="flex items-center justify-between">
                         <span>You'll be redirected in {redirectCountdown} seconds...</span>
@@ -205,6 +229,7 @@ const LoginModal = ({ onClose, flag }) => {
               onLoginStart={handleLoginStart}
               onLoginComplete={handleLoginComplete}
               flag={flag}
+              disabled={isLoginSuccessful}
             />
 
             <p className="text-xs text-center text-muted-foreground">
