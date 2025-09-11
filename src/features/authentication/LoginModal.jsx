@@ -70,17 +70,6 @@ const LoginModal = ({ onClose, flag }) => {
             </DialogTitle>
             <DialogDescription className="text-center text-sm">
               We'll sign you in or create an account if you don't have one yet.
-              {/iPad|iPhone|iPod/.test(navigator.userAgent) && (
-                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-xs text-blue-800 font-medium mb-1">
-                    📱 iPhone/iPad Users:
-                  </p>
-                  <p className="text-xs text-blue-700">
-                    You'll be redirected to Google for secure authentication. 
-                    After signing in, you'll return to YakRooms automatically.
-                  </p>
-                </div>
-              )}
             </DialogDescription>
           </DialogHeader>
 
