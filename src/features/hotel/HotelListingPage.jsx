@@ -646,15 +646,7 @@ const HotelListingPage = () => {
                 <h1 className="text-2xl md:text-xl font-semibold tracking-tight">
                   {pageTitle}
                 </h1>
-                <p className="text-muted-foreground mt-1">
-                  {appState.loading
-                    ? "Searching..."
-                    : isSearchActive && pagination.totalElements === 0
-                    ? "No lodges found for this search"
-                    : `${pagination.totalElements} ${
-                        pagination.totalElements === 1 ? "lodge" : "lodges"
-                      } found`}
-                </p>
+              
 
                 {/* Active filters display */}
                 {isSearchActive && !appState.loading && (

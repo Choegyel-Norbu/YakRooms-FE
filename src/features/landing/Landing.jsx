@@ -12,6 +12,7 @@ import Navbar from "../../layouts/Navbar";
 import FeatureSection from "./FeatureSection";
 import TopHighlightsSection from "./TopHighlightsSection";
 import ListYourPropertySection from "./ListYourPropertySection";
+import { getStorageItem } from "@/shared/utils/safariLocalStorage";
 import { useAuth } from "../authentication";
 
 const Landing = () => {
@@ -25,7 +26,7 @@ const Landing = () => {
   const homeRef = useRef(null);
   const footerRef = useRef(null);
   const [hasRated, setHasRated] = useState(
-    localStorage.getItem("hasRated") === "true"
+    getStorageItem("hasRated") === "true"
   );
 
   const { pathname } = useLocation();

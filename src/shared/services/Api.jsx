@@ -160,7 +160,7 @@ export const authService = {
   shouldRefreshProactively() {
     // Since we can't read HTTP-only cookies, we'll use a time-based approach
     // Refresh every 13 minutes (2 minutes before 15-minute expiry)
-    const lastRefresh = localStorage.getItem('lastTokenRefresh');
+    const lastRefresh = getStorageItem('lastTokenRefresh');
     if (!lastRefresh) return true;
     
     const lastRefreshTime = parseInt(lastRefresh, 10);
@@ -185,7 +185,7 @@ export const authService = {
       
       if (response.status === 200) {
         // Update last refresh time
-        localStorage.setItem('lastTokenRefresh', Date.now().toString());
+        setStorageItem('lastTokenRefresh', Date.now().toString());
         console.log('✅ Manual token refresh successful');
         return true;
       } else {
@@ -215,8 +215,14 @@ export const authService = {
       clearAllCookies();
       
       // Clear sessionStorage and refresh tracking
-      sessionStorage.clear();
-      localStorage.removeItem('lastTokenRefresh');
+      try {
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.clear();
+        }
+      } catch (sessionError) {
+        console.warn('Failed to clear sessionStorage:', sessionError);
+      }
+      removeStorageItem('lastTokenRefresh');
       
       console.log('🧹 Authentication data cleared successfully');
     } catch (error) {

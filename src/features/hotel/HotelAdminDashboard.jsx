@@ -74,6 +74,7 @@ import QRCodeScanner from "./QRCodeScanner";
 import ScannedBookingModal from "./ScannedBookingModal";
 import BookingsInventoryTable from "./BookingsInventoryTable";
 import { useAuth } from "../authentication";
+import { getStorageItem, clearStorage } from "@/shared/utils/safariLocalStorage";
 import api from "../../shared/services/Api";
 import { TopHotelBadge } from "../../shared/components";
 import { API_BASE_URL } from "../../shared/services/firebaseConfig";
@@ -119,7 +120,7 @@ const HotelAdminDashboard = () => {
       : false;
 
   useEffect(() => {
-    console.log("Hotel id :" + localStorage.getItem("hotelId"));
+    console.log("Hotel id :" + getStorageItem("hotelId"));
   }, [userId]);
 
   // Debug logging for top hotel functionality
@@ -316,8 +317,8 @@ const HotelAdminDashboard = () => {
         duration: 4000,
       });
 
-      // Clear local storage
-      localStorage.clear();
+      // Clear local storage using cross-browser utilities
+      clearStorage();
 
       setTimeout(() => {
         window.location.href = "/";
@@ -1044,21 +1045,6 @@ const HotelAdminDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Cancellation Requests Table */}
-              {/* <Card>
-                <CardHeader className="">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <AlertTriangle className="h-4 w-4 text-primary" />
-                    Cancellation Requests
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 md:px-6 md:pb-6">
-                  <div className="overflow-x-auto">
-                    <CancellationRequestsTable hotelId={hotelId} />
-                  </div>
-                </CardContent>
-              </Card> */}
             </div>
           )}
         </main>

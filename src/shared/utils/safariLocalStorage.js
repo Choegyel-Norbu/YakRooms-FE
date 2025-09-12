@@ -11,6 +11,12 @@ class CrossBrowserStorage {
     this.isPWA = this.checkPWAContext();
     this.isAndroid = this.checkAndroidDevice();
     this.isIOS = this.checkIOSDevice();
+    this.quotaExceededCount = 0;
+    this.isPrivateBrowsing = this.checkPrivateBrowsing();
+    this.maxQuotaRetries = 3;
+    
+    // Initialize storage cleanup on quota issues
+    this.initializeQuotaManagement();
   }
 
   // Detect platform
@@ -56,6 +62,75 @@ class CrossBrowserStorage {
   checkIOSDevice() {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  // Check if we're in private browsing mode
+  checkPrivateBrowsing() {
+    try {
+      // Safari private browsing check
+      if (this.platform === 'safari') {
+        const testKey = '__private_test_' + Date.now();
+        localStorage.setItem(testKey, '1');
+        localStorage.removeItem(testKey);
+        return false;
+      }
+      
+      // Firefox private browsing check
+      if (this.platform === 'firefox') {
+        return 'MozAppearance' in document.documentElement.style && !window.indexedDB;
+      }
+      
+      // Chrome incognito check (less reliable)
+      if (this.platform === 'chrome') {
+        return !window.requestFileSystem && !window.webkitRequestFileSystem;
+      }
+      
+      return false;
+    } catch (error) {
+      // If localStorage.setItem throws, we're likely in private browsing
+      return true;
+    }
+  }
+
+  // Initialize quota management
+  initializeQuotaManagement() {
+    // Set up periodic cleanup for old data
+    if (typeof window !== 'undefined') {
+      setInterval(() => {
+        this.cleanupOldData();
+      }, 24 * 60 * 60 * 1000); // Daily cleanup
+    }
+  }
+
+  // Clean up old data to free space
+  cleanupOldData() {
+    try {
+      const now = Date.now();
+      const maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+      
+      // Only clean up non-essential keys
+      const protectedKeys = [
+        'userId', 'email', 'roles', 'activeRole', 'userName', 'pictureURL',
+        'registerFlag', 'clientDetailSet', 'hotelId', 'topHotelIds'
+      ];
+      
+      if (this.storageAvailable) {
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const key = localStorage.key(i);
+          if (key && !protectedKeys.includes(key)) {
+            // Check if it's a timestamped entry
+            if (key.includes('_timestamp_')) {
+              const timestamp = parseInt(key.split('_timestamp_')[1], 10);
+              if (timestamp && (now - timestamp) > maxAge) {
+                localStorage.removeItem(key);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to cleanup old data:', error);
+    }
   }
 
   // Platform-specific storage strategies
@@ -229,8 +304,8 @@ class CrossBrowserStorage {
   setItem(key, value) {
     const strategy = this.getStorageStrategy();
     
-    if (!this.storageAvailable) {
-      console.warn(`localStorage not available for setting key: ${key} on ${this.platform}`);
+    if (!this.storageAvailable || this.isPrivateBrowsing) {
+      console.warn(`localStorage not available for setting key: ${key} on ${this.platform} (private: ${this.isPrivateBrowsing})`);
       return this.setItemFallback(key, value, strategy);
     }
 
@@ -238,12 +313,21 @@ class CrossBrowserStorage {
       const stringValue = this.stringifyValue(value);
       localStorage.setItem(key, stringValue);
       
+      // Reset quota exceeded count on successful write
+      this.quotaExceededCount = 0;
+      
       // Platform-specific backup strategies
       this.createBackup(key, stringValue, strategy);
       
       return true;
     } catch (error) {
       console.error(`Failed to set ${key} in localStorage on ${this.platform}:`, error);
+      
+      // Handle quota exceeded specifically
+      if (this.isQuotaExceededError(error)) {
+        return this.handleQuotaExceeded(key, value, strategy);
+      }
+      
       return this.setItemFallback(key, value, strategy);
     }
   }
@@ -552,14 +636,104 @@ class CrossBrowserStorage {
     }
   }
 
+  // Check if error is quota exceeded
+  isQuotaExceededError(error) {
+    return error && (
+      error.code === 22 ||
+      error.code === 1014 ||
+      error.name === 'QuotaExceededError' ||
+      error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      error.message.includes('quota') ||
+      error.message.includes('storage')
+    );
+  }
+
+  // Handle quota exceeded errors
+  handleQuotaExceeded(key, value, strategy) {
+    console.warn(`Storage quota exceeded for key: ${key}. Attempting cleanup...`);
+    
+    this.quotaExceededCount++;
+    
+    if (this.quotaExceededCount <= this.maxQuotaRetries) {
+      // Try to free up space
+      this.cleanupOldData();
+      
+      // Try again after cleanup
+      try {
+        const stringValue = this.stringifyValue(value);
+        localStorage.setItem(key, stringValue);
+        console.log(`Successfully stored ${key} after cleanup`);
+        return true;
+      } catch (retryError) {
+        console.error(`Retry failed for ${key}:`, retryError);
+      }
+    }
+    
+    // Fallback to other storage methods
+    return this.setItemFallback(key, value, strategy);
+  }
+
+  // Enhanced browser detection with version info
+  getBrowserInfo() {
+    const userAgent = navigator.userAgent;
+    let browser = 'unknown';
+    let version = '0';
+    
+    if (userAgent.includes('Firefox/')) {
+      browser = 'firefox';
+      version = userAgent.match(/Firefox\/(\d+)/)?.[1] || '0';
+    } else if (userAgent.includes('Chrome/') && !userAgent.includes('Edg')) {
+      browser = 'chrome';
+      version = userAgent.match(/Chrome\/(\d+)/)?.[1] || '0';
+    } else if (userAgent.includes('Safari/') && !userAgent.includes('Chrome')) {
+      browser = 'safari';
+      version = userAgent.match(/Version\/(\d+)/)?.[1] || '0';
+    } else if (userAgent.includes('Edg')) {
+      browser = 'edge';
+      version = userAgent.match(/Edg\/(\d+)/)?.[1] || '0';
+    }
+    
+    return { browser, version: parseInt(version, 10) };
+  }
+
+  // Get storage capacity info
+  async getStorageInfo() {
+    try {
+      if ('storage' in navigator && 'estimate' in navigator.storage) {
+        const estimate = await navigator.storage.estimate();
+        return {
+          quota: estimate.quota,
+          usage: estimate.usage,
+          available: estimate.quota - estimate.usage,
+          usagePercent: Math.round((estimate.usage / estimate.quota) * 100)
+        };
+      }
+    } catch (error) {
+      console.warn('Failed to get storage info:', error);
+    }
+    
+    return {
+      quota: 'unknown',
+      usage: 'unknown',
+      available: 'unknown',
+      usagePercent: 'unknown'
+    };
+  }
+
   // Get platform information
   getPlatformInfo() {
+    const browserInfo = this.getBrowserInfo();
+    
     return {
       platform: this.platform,
+      browser: browserInfo.browser,
+      browserVersion: browserInfo.version,
       isPWA: this.isPWA,
       isAndroid: this.isAndroid,
       isIOS: this.isIOS,
+      isPrivateBrowsing: this.isPrivateBrowsing,
       storageAvailable: this.storageAvailable,
+      quotaExceededCount: this.quotaExceededCount,
       strategy: this.getStorageStrategy()
     };
   }
@@ -605,6 +779,26 @@ export const getPlatformInfo = () => {
   return crossBrowserStorage.getPlatformInfo();
 };
 
+// Enhanced storage information
+export const getStorageInfo = async () => {
+  return await crossBrowserStorage.getStorageInfo();
+};
+
+// Force cleanup of old data
+export const cleanupStorage = () => {
+  return crossBrowserStorage.cleanupOldData();
+};
+
+// Check if we're in private browsing
+export const isPrivateBrowsing = () => {
+  return crossBrowserStorage.isPrivateBrowsing;
+};
+
+// Browser-specific storage test
+export const testStorageCompatibility = () => {
+  return crossBrowserStorage.validateStorage();
+};
+
 // Authentication storage helpers
 export const getAuthData = () => {
   const authKeys = ['token', 'userId', 'email', 'roles', 'activeRole', 'userName', 'pictureURL', 'registerFlag', 'clientDetailSet', 'hotelId', 'topHotelIds'];
@@ -627,12 +821,45 @@ export const clearAuthData = () => {
   const authKeys = [
     'token', 'accessToken', 'refreshToken', 'tokenExpiry', // Token keys
     'userId', 'email', 'roles', 'activeRole', 'userName', 'pictureURL', 
-    'registerFlag', 'clientDetailSet', 'hotelId', 'topHotelIds'
+    'registerFlag', 'clientDetailSet', 'hotelId', 'topHotelIds',
+    'lastTokenRefresh', 'lastAuthCheck' // Include API service keys
   ];
   
   authKeys.forEach(key => {
     removeStorageItem(key);
   });
+};
+
+// Safe storage operations with retries
+export const setStorageItemSafe = async (key, value, retries = 3) => {
+  for (let i = 0; i < retries; i++) {
+    const success = setStorageItem(key, value);
+    if (success) return true;
+    
+    // Wait a bit before retrying
+    await new Promise(resolve => setTimeout(resolve, 100 * (i + 1)));
+  }
+  
+  console.error(`Failed to store ${key} after ${retries} retries`);
+  return false;
+};
+
+// Batch storage operations
+export const setStorageItems = (items) => {
+  const results = {};
+  Object.entries(items).forEach(([key, value]) => {
+    results[key] = setStorageItem(key, value);
+  });
+  return results;
+};
+
+// Get multiple storage items
+export const getStorageItems = (keys) => {
+  const results = {};
+  keys.forEach(key => {
+    results[key] = getStorageItem(key);
+  });
+  return results;
 };
 
 export default crossBrowserStorage;
