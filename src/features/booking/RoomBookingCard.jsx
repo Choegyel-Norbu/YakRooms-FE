@@ -192,6 +192,65 @@ export default function RoomBookingCard({ room, hotelId }) {
     return days * room.price * bookingDetails.numberOfRooms;
   };
 
+  // Helper function to scroll to and focus the first error field
+  const scrollToFirstError = (errors) => {
+    const errorFields = Object.keys(errors);
+    if (errorFields.length === 0) return;
+
+    // Define field priority order for scrolling
+    const fieldPriority = [
+      'checkInDate',
+      'checkOutDate', 
+      'phone',
+      'cid',
+      'destination',
+      'origin',
+      'guests'
+    ];
+
+    // Find the first error field based on priority
+    const firstErrorField = fieldPriority.find(field => errors[field]);
+    
+    if (firstErrorField) {
+      // Small delay to ensure DOM is updated with error states
+      setTimeout(() => {
+        let elementToFocus = null;
+        
+        // Handle different field types
+        if (firstErrorField === 'checkInDate' || firstErrorField === 'checkOutDate') {
+          // For date pickers, try to find the input element
+          elementToFocus = document.querySelector(`[data-field="${firstErrorField}"] input`) ||
+                          document.querySelector(`[data-field="${firstErrorField}"] button`) ||
+                          document.querySelector(`[data-field="${firstErrorField}"]`);
+        } else if (firstErrorField === 'guests') {
+          // For select fields
+          elementToFocus = document.querySelector(`[name="${firstErrorField}"]`) ||
+                          document.querySelector(`#${firstErrorField}`) ||
+                          document.querySelector(`[data-field="${firstErrorField}"]`);
+        } else {
+          // For regular input fields
+          elementToFocus = document.querySelector(`[name="${firstErrorField}"]`) ||
+                          document.querySelector(`#${firstErrorField}`) ||
+                          document.querySelector(`[data-field="${firstErrorField}"]`);
+        }
+
+        if (elementToFocus) {
+          // Scroll to the element
+          elementToFocus.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+          
+          // Focus the element after scrolling
+          setTimeout(() => {
+            elementToFocus.focus();
+          }, 300);
+        }
+      }, 100);
+    }
+  };
+
   const validateForm = () => {
     console.log("Validating form with data:", bookingDetails);
     const newErrors = {};
@@ -473,6 +532,58 @@ export default function RoomBookingCard({ room, hotelId }) {
     };
   };
 
+  // Helper function to scroll to and focus the first error field for immediate booking
+  const scrollToFirstImmediateError = (errors) => {
+    const errorFields = Object.keys(errors);
+    if (errorFields.length === 0) return;
+
+    // Define field priority order for scrolling (immediate booking specific)
+    const fieldPriority = [
+      'phone',
+      'cid',
+      'destination',
+      'origin',
+      'guests'
+    ];
+
+    // Find the first error field based on priority
+    const firstErrorField = fieldPriority.find(field => errors[field]);
+    
+    if (firstErrorField) {
+      // Small delay to ensure DOM is updated with error states
+      setTimeout(() => {
+        let elementToFocus = null;
+        
+        // Handle different field types for immediate booking
+        if (firstErrorField === 'guests') {
+          // For select fields
+          elementToFocus = document.querySelector(`[name="${firstErrorField}"]`) ||
+                          document.querySelector(`#immediate${firstErrorField.charAt(0).toUpperCase() + firstErrorField.slice(1)}`) ||
+                          document.querySelector(`[data-field="${firstErrorField}"]`);
+        } else {
+          // For regular input fields (with immediate prefix)
+          elementToFocus = document.querySelector(`#immediate${firstErrorField.charAt(0).toUpperCase() + firstErrorField.slice(1)}`) ||
+                          document.querySelector(`[name="${firstErrorField}"]`) ||
+                          document.querySelector(`[data-field="${firstErrorField}"]`);
+        }
+
+        if (elementToFocus) {
+          // Scroll to the element
+          elementToFocus.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+          
+          // Focus the element after scrolling
+          setTimeout(() => {
+            elementToFocus.focus();
+          }, 300);
+        }
+      }, 100);
+    }
+  };
+
   const validateImmediateBooking = () => {
     const newErrors = {};
     
@@ -556,6 +667,8 @@ export default function RoomBookingCard({ room, hotelId }) {
     if (Object.keys(formErrors).length > 0) {
       console.log("Setting errors:", formErrors);
       setErrors(formErrors);
+      // Scroll to the first error field
+      scrollToFirstError(formErrors);
       return;
     }
 
@@ -624,6 +737,8 @@ export default function RoomBookingCard({ room, hotelId }) {
     const formErrors = validateImmediateBooking();
     if (Object.keys(formErrors).length > 0) {
       setImmediateBookingErrors(formErrors);
+      // Scroll to the first error field
+      scrollToFirstImmediateError(formErrors);
       return;
     }
 
@@ -917,32 +1032,36 @@ export default function RoomBookingCard({ room, hotelId }) {
                 <h3 className="text-base font-semibold text-foreground">Select Your Dates</h3>
                 
                 <div className="grid gap-2">
-                  <CustomDatePicker
-                    selectedDate={bookingDetails.checkInDate ? new Date(bookingDetails.checkInDate + 'T12:00:00') : null}
-                    onDateSelect={(date) => handleDateSelect("checkInDate", date)}
-                    blockedDates={bookedDates}
-                    minDate={new Date()}
-                    placeholder="Select check-in date"
-                    label="Check-in Date *"
-                    error={errors.checkInDate}
-                    disabled={isLoadingBookedDates}
-                    className="w-full"
-                  />
+                  <div data-field="checkInDate">
+                    <CustomDatePicker
+                      selectedDate={bookingDetails.checkInDate ? new Date(bookingDetails.checkInDate + 'T12:00:00') : null}
+                      onDateSelect={(date) => handleDateSelect("checkInDate", date)}
+                      blockedDates={bookedDates}
+                      minDate={new Date()}
+                      placeholder="Select check-in date"
+                      label="Check-in Date *"
+                      error={errors.checkInDate}
+                      disabled={isLoadingBookedDates}
+                      className="w-full"
+                    />
+                  </div>
                 </div>
 
                 {!shouldHideCheckoutDate() && (
                   <div className="grid gap-2">
-                    <CustomDatePicker
-                      selectedDate={bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate + 'T12:00:00') : null}
-                      onDateSelect={(date) => handleDateSelect("checkOutDate", date)}
-                      blockedDates={bookedDates}
-                      minDate={getMinCheckOutDate()}
-                      placeholder="Select check-out date"
-                      label="Check-out Date *"
-                      error={errors.checkOutDate}
-                      disabled={isLoadingBookedDates}
-                      className="w-full"
-                    />
+                    <div data-field="checkOutDate">
+                      <CustomDatePicker
+                        selectedDate={bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate + 'T12:00:00') : null}
+                        onDateSelect={(date) => handleDateSelect("checkOutDate", date)}
+                        blockedDates={bookedDates}
+                        minDate={getMinCheckOutDate()}
+                        placeholder="Select check-out date"
+                        label="Check-out Date *"
+                        error={errors.checkOutDate}
+                        disabled={isLoadingBookedDates}
+                        className="w-full"
+                      />
+                    </div>
                   </div>
                 )}
                 
@@ -971,7 +1090,7 @@ export default function RoomBookingCard({ room, hotelId }) {
               <div className="space-y-4">
                 <h3 className="text-base font-semibold text-foreground">Guest Information</h3>
                 
-                <div className="grid gap-2">
+                <div className="grid gap-2" data-field="phone">
                   <Label htmlFor="phone">
                     Phone Number <span className="text-destructive">*</span>
                   </Label>
@@ -1022,7 +1141,7 @@ export default function RoomBookingCard({ room, hotelId }) {
 
                 {/* CID Number - Only show for Bhutanese */}
                 {bookingDetails.isBhutanese && (
-                  <div className="grid gap-2">
+                  <div className="grid gap-2" data-field="cid">
                     <Label htmlFor="cid" className="text-sm">CID Number <span className="text-destructive">*</span></Label>
                     <Input
                       id="cid"
@@ -1041,7 +1160,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                   </div>
                 )}
 
-                <div className="grid gap-2">
+                <div className="grid gap-2" data-field="destination">
                   <Label htmlFor="destination" className="text-sm">Destination <span className="text-destructive">*</span></Label>
                   <Input
                     id="destination"
@@ -1057,7 +1176,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                   )}
                 </div>
 
-                <div className="grid gap-2">
+                <div className="grid gap-2" data-field="origin">
                   <Label htmlFor="origin" className="text-sm">Origin <span className="text-destructive">*</span></Label>
                   <Input
                     id="origin"
@@ -1073,7 +1192,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                   )}
                 </div>
 
-                <div className="grid gap-2">
+                <div className="grid gap-2" data-field="guests">
                   <Label htmlFor="guests" className="text-sm">
                     Number of Guests <span className="text-destructive">*</span>
                   </Label>
@@ -1304,7 +1423,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                 </div>
               )}
               {/* Phone Number */}
-              <div className="grid gap-2">
+              <div className="grid gap-2" data-field="phone">
                 <Label htmlFor="immediatePhone">
                   Phone Number <span className="text-destructive">*</span>
                 </Label>
@@ -1357,7 +1476,7 @@ export default function RoomBookingCard({ room, hotelId }) {
 
               {/* CID Number - Only show for Bhutanese */}
               {immediateBookingDetails.isBhutanese && (
-                <div className="grid gap-2">
+                <div className="grid gap-2" data-field="cid">
                   <Label htmlFor="immediateCid" className="text-sm">
                     CID Number <span className="text-destructive">*</span>
                   </Label>
@@ -1378,7 +1497,7 @@ export default function RoomBookingCard({ room, hotelId }) {
               )}
 
               {/* Destination */}
-              <div className="grid gap-2">
+              <div className="grid gap-2" data-field="destination">
                 <Label htmlFor="immediateDestination" className="text-sm">
                   Destination <span className="text-destructive">*</span>
                 </Label>
@@ -1397,7 +1516,7 @@ export default function RoomBookingCard({ room, hotelId }) {
               </div>
 
               {/* Origin */}
-              <div className="grid gap-2">
+              <div className="grid gap-2" data-field="origin">
                 <Label htmlFor="immediateOrigin" className="text-sm">
                   Origin <span className="text-destructive">*</span>
                 </Label>
@@ -1416,7 +1535,7 @@ export default function RoomBookingCard({ room, hotelId }) {
               </div>
 
               {/* Number of Guests */}
-              <div className="grid gap-2">
+              <div className="grid gap-2" data-field="guests">
                 <Label htmlFor="immediateGuests" className="text-sm">
                   Number of Guests <span className="text-destructive">*</span>
                 </Label>

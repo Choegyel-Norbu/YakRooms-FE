@@ -172,6 +172,67 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
     return days * selectedRoom.price;
   };
 
+  // Helper function to scroll to and focus the first error field
+  const scrollToFirstError = (errors) => {
+    const errorFields = Object.keys(errors);
+    if (errorFields.length === 0) return;
+
+    // Define field priority order for scrolling
+    const fieldPriority = [
+      'roomNumber',
+      'checkInDate',
+      'checkOutDate', 
+      'guestName',
+      'phone',
+      'cid',
+      'destination',
+      'origin'
+    ];
+
+    // Find the first error field based on priority
+    const firstErrorField = fieldPriority.find(field => errors[field]);
+    
+    if (firstErrorField) {
+      // Small delay to ensure DOM is updated with error states
+      setTimeout(() => {
+        let elementToFocus = null;
+        
+        // Handle different field types
+        if (firstErrorField === 'checkInDate' || firstErrorField === 'checkOutDate') {
+          // For date pickers, try to find the input element
+          elementToFocus = document.querySelector(`[data-field="${firstErrorField}"] input`) ||
+                          document.querySelector(`[data-field="${firstErrorField}"] button`) ||
+                          document.querySelector(`[data-field="${firstErrorField}"]`);
+        } else if (firstErrorField === 'roomNumber') {
+          // For room select field
+          elementToFocus = document.querySelector(`[data-field="${firstErrorField}"] button`) ||
+                          document.querySelector(`[data-field="${firstErrorField}"]`) ||
+                          document.querySelector(`[name="${firstErrorField}"]`);
+        } else {
+          // For regular input fields
+          elementToFocus = document.querySelector(`[data-field="${firstErrorField}"] input`) ||
+                          document.querySelector(`[name="${firstErrorField}"]`) ||
+                          document.querySelector(`#${firstErrorField}`) ||
+                          document.querySelector(`[data-field="${firstErrorField}"]`);
+        }
+
+        if (elementToFocus) {
+          // Scroll to the element
+          elementToFocus.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+          
+          // Focus the element after scrolling
+          setTimeout(() => {
+            elementToFocus.focus();
+          }, 300);
+        }
+      }, 100);
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
     
@@ -355,6 +416,8 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
+      // Scroll to the first error field
+      scrollToFirstError(formErrors);
       return;
     }
 
@@ -459,7 +522,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
                   <span className="text-sm text-blue-700">Loading booking calendar...</span>
                 </div>
               )}
-              <div className="grid gap-2">
+              <div className="grid gap-2" data-field="roomNumber">
                 <Label htmlFor="roomNumber">Room Number <span className="text-destructive">*</span></Label>
                 <Select
                   value={bookingDetails.roomNumber}
@@ -490,32 +553,36 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
                 <h3 className="text-base font-semibold text-foreground">Select Booking Dates</h3>
                 
                 <div className="grid gap-2">
-                  <CustomDatePicker
-                    selectedDate={bookingDetails.checkInDate ? new Date(bookingDetails.checkInDate + 'T12:00:00') : null}
-                    onDateSelect={(date) => handleDateSelect("checkInDate", date)}
-                    blockedDates={bookedDates}
-                    minDate={new Date()}
-                    placeholder="Select check-in date"
-                    label="Check-in Date *"
-                    error={errors.checkInDate}
-                    disabled={isLoadingBookedDates}
-                    className="w-full"
-                  />
+                  <div data-field="checkInDate">
+                    <CustomDatePicker
+                      selectedDate={bookingDetails.checkInDate ? new Date(bookingDetails.checkInDate + 'T12:00:00') : null}
+                      onDateSelect={(date) => handleDateSelect("checkInDate", date)}
+                      blockedDates={bookedDates}
+                      minDate={new Date()}
+                      placeholder="Select check-in date"
+                      label="Check-in Date *"
+                      error={errors.checkInDate}
+                      disabled={isLoadingBookedDates}
+                      className="w-full"
+                    />
+                  </div>
                 </div>
 
                 {!shouldHideCheckoutDate() && (
                   <div className="grid gap-2">
-                    <CustomDatePicker
-                      selectedDate={bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate + 'T12:00:00') : null}
-                      onDateSelect={(date) => handleDateSelect("checkOutDate", date)}
-                      blockedDates={bookedDates}
-                      minDate={bookingDetails.checkInDate ? new Date(new Date(bookingDetails.checkInDate).getTime() + 24 * 60 * 60 * 1000) : new Date(new Date().getTime() + 24 * 60 * 60 * 1000)}
-                      placeholder="Select check-out date"
-                      label="Check-out Date *"
-                      error={errors.checkOutDate}
-                      disabled={isLoadingBookedDates}
-                      className="w-full"
-                    />
+                    <div data-field="checkOutDate">
+                      <CustomDatePicker
+                        selectedDate={bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate + 'T12:00:00') : null}
+                        onDateSelect={(date) => handleDateSelect("checkOutDate", date)}
+                        blockedDates={bookedDates}
+                        minDate={bookingDetails.checkInDate ? new Date(new Date(bookingDetails.checkInDate).getTime() + 24 * 60 * 60 * 1000) : new Date(new Date().getTime() + 24 * 60 * 60 * 1000)}
+                        placeholder="Select check-out date"
+                        label="Check-out Date *"
+                        error={errors.checkOutDate}
+                        disabled={isLoadingBookedDates}
+                        className="w-full"
+                      />
+                    </div>
                   </div>
                 )}
                 
@@ -544,7 +611,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
               <div className="space-y-4">
                 <h3 className="text-base font-semibold text-foreground">Guest Information</h3>
                 
-                <div className="grid gap-2">
+                <div className="grid gap-2" data-field="guestName">
                   <Label htmlFor="guestName">Guest Name <span className="text-destructive">*</span></Label>
                   <Input
                     id="guestName"
@@ -557,7 +624,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
                   {errors.guestName && <p className="text-sm text-destructive">{errors.guestName}</p>}
                 </div>
 
-                <div className="grid gap-2">
+                <div className="grid gap-2" data-field="phone">
                   <Label htmlFor="phone">Phone Number <span className="text-destructive">*</span></Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">+975</span>
@@ -602,7 +669,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
 
                 {/* CID Number - Only show for Bhutanese */}
                 {bookingDetails.isBhutanese && (
-                  <div className="grid gap-2">
+                  <div className="grid gap-2" data-field="cid">
                     <Label htmlFor="cid" className="text-sm">CID Number <span className="text-destructive">*</span></Label>
                     <Input
                       id="cid"
@@ -621,7 +688,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
                   </div>
                 )}
 
-                <div className="grid gap-2">
+                <div className="grid gap-2" data-field="destination">
                   <Label htmlFor="destination" className="text-sm">Destination <span className="text-destructive">*</span></Label>
                   <Input
                     id="destination"
@@ -637,7 +704,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
                   )}
                 </div>
 
-                <div className="grid gap-2">
+                <div className="grid gap-2" data-field="origin">
                   <Label htmlFor="origin" className="text-sm">Origin <span className="text-destructive">*</span></Label>
                   <Input
                     id="origin"
