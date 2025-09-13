@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getStorageItem, setStorageItem } from "@/shared/utils/safariLocalStorage";
+import { getStorageItem, setStorageItem, clearStorage } from "@/shared/utils/safariLocalStorage";
 
 const token = getStorageItem("token");
 const userId = getStorageItem("userId");
@@ -70,9 +70,9 @@ const authSlice = createSlice({
       state.registerFlag = false;
       state.clientDetailSet = false;
 
-      // Clear localStorage using Safari-specific utilities
+      // Clear localStorage using cross-browser utilities
       try {
-        localStorage.clear();
+        clearStorage();
       } catch (error) {
         console.error("Failed to clear localStorage:", error);
       }

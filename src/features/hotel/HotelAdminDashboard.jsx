@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Home,
   Calendar,
@@ -13,7 +13,6 @@ import {
   X,
   Bell,
   Trash2,
-  AlertTriangle,
   QrCode,
 } from "lucide-react";
 import {
@@ -42,17 +41,6 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/dropdown-menu";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/shared/components/alert-dialog";
-import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -74,6 +62,7 @@ import QRCodeScanner from "./QRCodeScanner";
 import ScannedBookingModal from "./ScannedBookingModal";
 import BookingsInventoryTable from "./BookingsInventoryTable";
 import { useAuth } from "../authentication";
+import { getStorageItem, clearStorage } from "@/shared/utils/safariLocalStorage";
 import api from "../../shared/services/Api";
 import { TopHotelBadge } from "../../shared/components";
 import { API_BASE_URL } from "../../shared/services/firebaseConfig";
@@ -81,6 +70,7 @@ import { toast } from "sonner";
 import { YakRoomsText } from "@/shared/components";
 
 const HotelAdminDashboard = () => {
+  const navigate = useNavigate();
   const {
     userId,
     userName,
@@ -107,8 +97,6 @@ const HotelAdminDashboard = () => {
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const notificationRef = useRef(null);
   const [showStaffGrid, setShowStaffGrid] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [scannedBookingData, setScannedBookingData] = useState(null);
   const [showScannedBookingModal, setShowScannedBookingModal] = useState(false);
   const [verificationTab, setVerificationTab] = useState("qr-scanner"); // "qr-scanner" or "passcode"
@@ -119,7 +107,7 @@ const HotelAdminDashboard = () => {
       : false;
 
   useEffect(() => {
-    console.log("Hotel id :" + localStorage.getItem("hotelId"));
+    console.log("Hotel id :" + getStorageItem("hotelId"));
   }, [userId]);
 
   // Debug logging for top hotel functionality
@@ -296,39 +284,9 @@ const HotelAdminDashboard = () => {
     setShowScannedBookingModal(true);
   };
 
-  // Delete account/hotel function
-  const handleDeleteAccount = async () => {
-    if (!userId || !hotelId) {
-      console.error("Missing userId or hotelId for deletion");
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      // First, delete the hotel
-      await api.delete(`/hotels/${hotelId}`);
-      console.log("Hotel deleted successfully");
-
-      // Show toast before redirect
-      toast("Your hotel account and all associated data have been deleted.", {
-        description:
-          "We're sorry to see you go. You will be redirected to the homepage.",
-        duration: 4000,
-      });
-
-      // Clear local storage
-      localStorage.clear();
-
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 2000);
-    } catch (error) {
-      console.error("Error deleting account/hotel:", error);
-      alert("Failed to delete account. Please try again or contact support.");
-    } finally {
-      setIsDeleting(false);
-      setShowDeleteDialog(false);
-    }
+  // Navigate to account deletion page
+  const handleDeleteAccount = () => {
+    navigate("/account-deletion");
   };
 
   const formatLoginTime = (date) => {
@@ -632,61 +590,15 @@ const HotelAdminDashboard = () => {
                         </Button>
                       </Link>
 
-                      <AlertDialog
-                        open={showDeleteDialog}
-                        onOpenChange={setShowDeleteDialog}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={handleDeleteAccount}
                       >
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Account
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle className="flex items-center gap-2">
-                              <AlertTriangle className="h-5 w-5 text-destructive" />
-                              Delete Account & Hotel
-                            </AlertDialogTitle>
-                            <AlertDialogDescription className="text-left">
-                              This action cannot be undone. This will
-                              permanently delete your:
-                              <ul className="list-disc list-inside mt-2 space-y-1">
-                                <li>Hotel account and all associated data</li>
-                                <li>User account and profile</li>
-                                <li>All bookings and customer information</li>
-                                <li>Staff accounts and permissions</li>
-                              </ul>
-                              <p className="mt-3 font-medium text-destructive">
-                                Are you absolutely sure you want to proceed?
-                              </p>
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel disabled={isDeleting}>
-                              Cancel
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={handleDeleteAccount}
-                              disabled={isDeleting}
-                              className="bg-destructive text-destructive-foreground"
-                            >
-                              {isDeleting ? (
-                                <>
-                                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
-                                  Deleting...
-                                </>
-                              ) : (
-                                "Delete Account"
-                              )}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Account
+                      </Button>
                     </div>
                   </div>
                 </SheetContent>
@@ -730,60 +642,13 @@ const HotelAdminDashboard = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <AlertDialog
-                    open={showDeleteDialog}
-                    onOpenChange={setShowDeleteDialog}
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive cursor-pointer"
+                    onClick={handleDeleteAccount}
                   >
-                    <AlertDialogTrigger asChild>
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive cursor-pointer"
-                        onSelect={(e) => e.preventDefault()}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        <span>Delete Account</span>
-                      </DropdownMenuItem>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle className="flex items-center gap-2">
-                          <AlertTriangle className="h-5 w-5 text-destructive" />
-                          Delete Account & Hotel
-                        </AlertDialogTitle>
-                        <AlertDialogDescription className="text-left">
-                          This action cannot be undone. This will permanently
-                          delete your:
-                          <ul className="list-disc list-inside mt-2 space-y-1">
-                            <li>Hotel account and all associated data</li>
-                            <li>User account and profile</li>
-                            <li>All bookings and customer information</li>
-                            <li>Staff accounts and permissions</li>
-                          </ul>
-                          <p className="mt-3 font-medium text-destructive">
-                            Are you absolutely sure you want to proceed?
-                          </p>
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isDeleting}>
-                          Cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={handleDeleteAccount}
-                          disabled={isDeleting}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
-                        >
-                          {isDeleting ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
-                              Deleting...
-                            </>
-                          ) : (
-                            "Delete Account"
-                          )}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    <span>Delete Account</span>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -1044,21 +909,6 @@ const HotelAdminDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Cancellation Requests Table */}
-              {/* <Card>
-                <CardHeader className="">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <AlertTriangle className="h-4 w-4 text-primary" />
-                    Cancellation Requests
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 md:px-6 md:pb-6">
-                  <div className="overflow-x-auto">
-                    <CancellationRequestsTable hotelId={hotelId} />
-                  </div>
-                </CardContent>
-              </Card> */}
             </div>
           )}
         </main>

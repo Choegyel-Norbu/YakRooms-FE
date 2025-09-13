@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaStar } from "react-icons/fa";
+import { getStorageItem, setStorageItem } from "@/shared/utils/safariLocalStorage";
 import api from "../../shared/services/Api";
 
 const RatingWidget = ({ onClose }) => {
@@ -37,11 +38,11 @@ const RatingWidget = ({ onClose }) => {
       });
       if (res.data) {
         setSubmitted(true);
-        localStorage.setItem("hasRated", "true");
+        setStorageItem("hasRated", "true");
 
         console.log(
-          "Fetching from localstorage, Rated? - ",
-          localStorage.getItem("hasRated")
+          "Fetching from storage, Rated? - ",
+          getStorageItem("hasRated")
         );
 
         setTimeout(() => {

@@ -975,22 +975,17 @@ const HotelDetailsPage = () => {
               <div className="mt-6 pt-4 border-t border-slate-200">
                 <div className="flex flex-col sm:flex-row sm:items-center  gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100">
-                      <Clock className="h-5 w-5 text-blue-600" />
-                    </div>
+                    
                     <div>
                       <h4 className="text-sm font-medium text-slate-800">Check-in Time</h4>
-                      <p className="text-sm text-slate-600">{formatTimeWithDescription(appState.hotel?.checkinTime)}</p>
+                      <p className="text-sm text-slate-600">- {formatTimeWithDescription(appState.hotel?.checkinTime)}</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-green-100 to-emerald-100">
-                      <Clock className="h-5 w-5 text-green-600" />
-                    </div>
                     <div>
                       <h4 className="text-sm font-medium text-slate-800">Check-out Time</h4>
-                      <p className="text-sm text-slate-600">{formatTimeWithDescription(appState.hotel?.checkoutTime)}</p>
+                      <p className="text-sm text-slate-600">- {formatTimeWithDescription(appState.hotel?.checkoutTime)}</p>
                     </div>
                   </div>
                 </div>

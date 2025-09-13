@@ -7,7 +7,7 @@ import { AboutUs } from "../features/landing";
 import { HotelListingPage } from "../features/hotel";
 import { HotelDetailsPage } from "../features/hotel";
 import { AddListingPage } from "../features/hotel";
-import { HotelAdminDashboard } from "../features/hotel";
+import { HotelAdminDashboard, AccountDeletionPage } from "../features/hotel";
 import { SuperAdmin } from "../features/admin";
 import { GuestDashboard } from "../features/guest";
 import { PrivacyPolicy } from "../features/landing";
@@ -119,6 +119,15 @@ const AppRouting = () => {
         element={
           <ProtectedRoute allowedRoles={["GUEST"]}>
             <GuestDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/account-deletion"
+        element={
+          <ProtectedRoute allowedRoles={["HOTEL_ADMIN"]}>
+            <AccountDeletionPage />
           </ProtectedRoute>
         }
       />
