@@ -15,6 +15,7 @@ export { Label } from './label';
 export { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from './pagination';
 export { Popover, PopoverContent, PopoverTrigger } from './popover';
 export { Progress } from './progress';
+export { RadioGroup, RadioGroupItem } from './radio-group';
 export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
 export { Separator } from './separator';
 export { Switch } from './switch';

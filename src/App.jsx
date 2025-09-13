@@ -7,6 +7,7 @@ import { AuthProvider } from "./features/authentication";
 import { BookingProvider } from "./features/booking";
 import { PWARegistration } from "./modules/pwa";
 import { GlobalReviewSheet } from "./shared/components";
+import InternetConnectionMonitor from "./shared/components/InternetConnectionMonitor";
 import "react-toastify/dist/ReactToastify.css";
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
           <AppRouting />
           <PWARegistration />
           <GlobalReviewSheet />
+          <InternetConnectionMonitor />
           <ToastContainer />
           <Toaster
             position="bottom-right"

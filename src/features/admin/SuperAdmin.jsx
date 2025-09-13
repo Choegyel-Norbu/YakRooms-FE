@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import api from "../../shared/services/Api";
-import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft, Eye, X, MapPin, Phone, Mail, Globe, Calendar, Star } from "lucide-react";
+import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft, Eye, X, MapPin, Phone, Mail, Globe, Calendar, Star, Bell, Trash2 } from "lucide-react";
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
 import { Link } from "react-router-dom";
@@ -28,6 +28,17 @@ import {
   DialogTrigger,
 } from "@/shared/components/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/shared/components/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -49,6 +60,24 @@ const SuperAdmin = () => {
   const [selectedHotel, setSelectedHotel] = useState(null); // For hotel details modal
   const [showHotelDetails, setShowHotelDetails] = useState(false); // Modal state
 
+  // Notification states
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const notificationRef = useRef(null);
+
+  // Hotel deletion requests states
+  const [deletionRequests, setDeletionRequests] = useState([]);
+  const [loadingDeletionRequests, setLoadingDeletionRequests] = useState(false);
+  const [deletingHotelId, setDeletingHotelId] = useState(null); // Track which hotel is being deleted
+  const [deletionRequestsPagination, setDeletionRequestsPagination] = useState({
+    pageNumber: 0,
+    pageSize: 10,
+    totalPages: 1,
+    totalElements: 0,
+  });
+
   const [pagination, setPagination] = useState({
     pageNumber: 0,
     pageSize: 10,
@@ -59,6 +88,100 @@ const SuperAdmin = () => {
     verified: "",
     searchQuery: "",
   });
+
+  // Fetch notifications for super admin
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        setLoadingNotifications(true);
+        const response = await api.get("/notifications/hotel-deletion-requests");
+        const fetchedNotifications = response.data;
+
+        // Filter notifications to show only HOTEL_DELETION_REQUEST type
+        const filteredNotifications = fetchedNotifications.filter(
+          (notif) => notif.type === "HOTEL_DELETION_REQUEST"
+        );
+
+        // Sort notifications by createdAt (newest first) and calculate unread count
+        const sortedNotifications = filteredNotifications.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        const unreadNotifications = sortedNotifications.filter(
+          (notif) => !notif.isRead
+        );
+
+        setNotifications(sortedNotifications);
+        setUnreadCount(unreadNotifications.length);
+
+        console.log("[API] Fetched super admin notifications:", sortedNotifications);
+        console.log("[API] Unread count:", unreadNotifications.length);
+      } catch (error) {
+        console.error("[API] Error fetching notifications:", error);
+      } finally {
+        setLoadingNotifications(false);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
+  // Fetch hotel deletion requests
+  useEffect(() => {
+    const fetchDeletionRequests = async () => {
+      try {
+        setLoadingDeletionRequests(true);
+        const params = {
+          page: deletionRequestsPagination.pageNumber,
+          size: deletionRequestsPagination.pageSize,
+        };
+
+        const response = await api.get("/hotels/deletion-requests", { params });
+        
+        console.log("[DEBUG] Raw API response:", response.data);
+        console.log("[DEBUG] Content array:", response.data.content);
+        
+        // For debugging - show all hotels first, then filter
+        const allHotels = response.data.content || [];
+        console.log("[DEBUG] All hotels:", allHotels);
+        console.log("[DEBUG] All hotels length:", allHotels.length);
+        
+        // Check each hotel's deletionRequested status
+        allHotels.forEach((hotel, index) => {
+          console.log(`[DEBUG] Hotel ${index}:`, {
+            id: hotel.id,
+            name: hotel.name,
+            deletionRequested: hotel.deletionRequested,
+            deletionReason: hotel.deletionReason,
+            deletionRequestedAt: hotel.deletionRequestedAt
+          });
+        });
+        
+        // Filter hotels that have deletion requests
+        const hotelsWithDeletionRequests = allHotels.filter(
+          hotel => hotel.deletionRequested === true
+        );
+        
+        console.log("[DEBUG] Filtered hotels with deletion requests:", hotelsWithDeletionRequests);
+        console.log("[DEBUG] Number of hotels with deletion requests:", hotelsWithDeletionRequests.length);
+        
+        // TEMPORARY: Set all hotels for debugging
+        setDeletionRequests(allHotels);
+        setDeletionRequestsPagination((prev) => ({
+          ...prev,
+          totalPages: response.data.page?.totalPages || 1,
+          totalElements: response.data.page?.totalElements || 0,
+        }));
+      } catch (err) {
+        console.error("Error fetching deletion requests:", err);
+        toast.error("Failed to fetch deletion requests");
+      } finally {
+        setLoadingDeletionRequests(false);
+      }
+    };
+
+    fetchDeletionRequests();
+  }, [deletionRequestsPagination.pageNumber]);
 
   useEffect(() => {
     const fetchHotels = async () => {
@@ -158,6 +281,97 @@ const SuperAdmin = () => {
   const handleViewDetails = (hotel) => {
     setSelectedHotel(hotel);
     setShowHotelDetails(true);
+  };
+
+  // Notification handling functions
+  const deleteAllNotifications = async () => {
+    try {
+      // Extract notification IDs
+      const notificationIds = notifications.map(notif => notif.id);
+      
+      console.log("[DEBUG] Deleting notifications with IDs:", notificationIds);
+      
+      await api.delete("/notifications/bulk", {
+        data: notificationIds
+      });
+      setNotifications([]);
+      setUnreadCount(0);
+      console.log("[API] Successfully deleted all notifications");
+    } catch (error) {
+      console.error("[API] Error deleting notifications:", error);
+    }
+  };
+
+  // Close notification dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
+        setShowNotifications(false);
+      }
+    };
+
+    if (showNotifications) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showNotifications]);
+
+  // Handle notification dropdown click
+  const handleNotificationClick = async () => {
+    setShowNotifications((prev) => !prev);
+  };
+
+  // Clear all notifications
+  const clearAllNotifications = async () => {
+    await deleteAllNotifications();
+    setShowNotifications(false);
+  };
+
+  // Handle deletion requests pagination
+  const handleDeletionRequestsPageChange = (newPage) => {
+    setDeletionRequestsPagination((prev) => ({ ...prev, pageNumber: newPage }));
+  };
+
+  // Handle hotel deletion approval
+  const handleApproveDeletion = async (hotelId, hotelName) => {
+    setDeletingHotelId(hotelId);
+    try {
+      const response = await api.delete(`/hotels/${hotelId}`);
+      
+      if (response.status === 200) {
+        toast.success("Hotel Deleted Successfully", {
+          description: `${hotelName} has been permanently deleted from the system.`,
+          icon: <Trash2 className="text-green-600" />,
+          duration: 6000,
+        });
+
+        // Remove the deleted hotel from the deletion requests list
+        setDeletionRequests((prev) => 
+          prev.filter((hotel) => hotel.id !== hotelId)
+        );
+
+        // Update pagination if needed
+        setDeletionRequestsPagination((prev) => ({
+          ...prev,
+          totalElements: prev.totalElements - 1,
+        }));
+      }
+    } catch (err) {
+      console.error("Error deleting hotel:", err);
+      toast.error("Failed to Delete Hotel", {
+        description: "There was an error deleting the hotel. Please try again.",
+        icon: <XCircle className="text-red-600" />,
+        duration: 6000,
+      });
+    } finally {
+      setDeletingHotelId(null);
+    }
   };
 
   // Hotel Details Modal Component
@@ -591,6 +805,244 @@ const SuperAdmin = () => {
     );
   };
 
+  const DeletionRequestsPaginationControls = () => {
+    const handlePrevious = () => {
+      if (deletionRequestsPagination.pageNumber > 0) {
+        handleDeletionRequestsPageChange(deletionRequestsPagination.pageNumber - 1);
+      }
+    };
+
+    const handleNext = () => {
+      if (deletionRequestsPagination.pageNumber < deletionRequestsPagination.totalPages - 1) {
+        handleDeletionRequestsPageChange(deletionRequestsPagination.pageNumber + 1);
+      }
+    };
+
+    return (
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex-1 flex justify-between md:hidden">
+          <Button
+            onClick={handlePrevious}
+            disabled={deletionRequestsPagination.pageNumber === 0}
+            variant="outline"
+          >
+            Previous
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={deletionRequestsPagination.pageNumber === deletionRequestsPagination.totalPages - 1}
+            variant="outline"
+          >
+            Next
+          </Button>
+        </div>
+        <div className="hidden md:flex flex-1 items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Page{" "}
+              <span className="font-medium">{deletionRequestsPagination.pageNumber + 1}</span>{" "}
+              of <span className="font-medium">{deletionRequestsPagination.totalPages}</span>
+            </p>
+          </div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={handlePrevious}
+                disabled={deletionRequestsPagination.pageNumber === 0}
+              >
+                <span className="sr-only">Go to previous page</span>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: deletionRequestsPagination.totalPages }, (_, i) => (
+                <Button
+                  key={i}
+                  variant={deletionRequestsPagination.pageNumber === i ? "default" : "outline"}
+                  className="h-8 w-8 p-0"
+                  onClick={() => handleDeletionRequestsPageChange(i)}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={handleNext}
+                disabled={deletionRequestsPagination.pageNumber === deletionRequestsPagination.totalPages - 1}
+              >
+                <span className="sr-only">Go to next page</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const HotelDeletionRequestsTable = () => {
+    console.log("[DEBUG] HotelDeletionRequestsTable render - deletionRequests:", deletionRequests);
+    console.log("[DEBUG] HotelDeletionRequestsTable render - loadingDeletionRequests:", loadingDeletionRequests);
+    console.log("[DEBUG] HotelDeletionRequestsTable render - deletionRequests.length:", deletionRequests.length);
+    
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trash2 className="h-5 w-5 text-red-500" />
+            Hotel Deletion Requests
+          </CardTitle>
+          <CardDescription>
+            Manage hotel account deletion requests from hotel owners
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingDeletionRequests ? (
+            <div className="flex justify-center items-center py-8">
+              <YakRoomsLoader size={64} showTagline={false} loadingText="" />
+            </div>
+          ) : deletionRequests.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No deletion requests found
+            </div>
+          ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Hotel</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Request Date</TableHead>
+                <TableHead>Reason</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {deletionRequests.map((hotel) => (
+                <TableRow key={hotel.id}>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 h-10 w-10">
+                        {hotel.photoUrls?.length > 0 ? (
+                          <img
+                            className="h-10 w-10 rounded-full object-cover"
+                            src={hotel.photoUrls[0]}
+                            alt="Hotel"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500">
+                            No photo
+                          </div>
+                        )}
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium">
+                          {hotel.name || "Unknown Hotel"}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {hotel.district || "Unknown Location"}
+                        </div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm font-medium">
+                      {hotel.email || "No email"}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {hotel.phone || "No phone"}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      {hotel.deletionRequestedAt 
+                        ? format(new Date(hotel.deletionRequestedAt), "dd MMM yyyy")
+                        : "Not available"
+                      }
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {hotel.deletionRequestedAt 
+                        ? format(new Date(hotel.deletionRequestedAt), "HH:mm")
+                        : ""
+                      }
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm max-w-xs truncate">
+                      {hotel.deletionReason || "No reason provided"}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        onClick={() => handleViewDetails(hotel)}
+                        variant="outline"
+                        size="sm"
+                        className="cursor-pointer"
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View Hotel
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="cursor-pointer"
+                            disabled={deletingHotelId === hotel.id}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            {deletingHotelId === hotel.id ? "Deleting..." : "Approve"}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="flex items-center gap-2">
+                              <Trash2 className="h-5 w-5 text-red-500" />
+                              Confirm Hotel Deletion
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="space-y-2">
+                              <p>
+                                Are you sure you want to permanently delete <strong>{hotel.name}</strong>?
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                This action cannot be undone. All hotel data, bookings, and associated information will be permanently removed from the system.
+                              </p>
+                              {hotel.deletionReason && (
+                                <div className="mt-3 p-3 bg-muted rounded-md">
+                                  <p className="text-sm font-medium">Deletion Reason:</p>
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    "{hotel.deletionReason}"
+                                  </p>
+                                </div>
+                              )}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleApproveDeletion(hotel.id, hotel.name)}
+                              className="bg-red-600 hover:bg-red-700"
+                              disabled={deletingHotelId === hotel.id}
+                            >
+                              {deletingHotelId === hotel.id ? "Deleting..." : "Delete Hotel"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          )}
+        </CardContent>
+        {deletionRequests.length > 0 && <DeletionRequestsPaginationControls />}
+      </Card>
+    );
+  };
+
   const HotelTable = () => (
     <Card className="mb-6">
       <Table>
@@ -736,15 +1188,105 @@ const SuperAdmin = () => {
               Admin Dashboard
             </h1>
           </div>
-          <Link to="/" className="flex-shrink-0">
-            <Button variant="ghost" size="sm" className="flex items-center gap-2 px-3">
-              <Home className="h-4 w-4" />
-              <span className="hidden sm:inline">Home</span>
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            {/* Notification Bell */}
+            <div className="relative" ref={notificationRef}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative"
+                onClick={handleNotificationClick}
+                disabled={loadingNotifications}
+              >
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-[10px] text-white flex items-center justify-center font-bold">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </Button>
+
+              {/* Notification Dropdown */}
+              {showNotifications && (
+                <div className="fixed left-4 right-4 top-16 sm:absolute sm:right-0 sm:left-auto sm:top-auto sm:mt-2 w-auto sm:w-80 bg-card border rounded-lg shadow-lg z-50">
+                  <div className="p-4 border-b">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold">Notifications</h3>
+                      <div className="flex gap-2">
+                        {notifications.length > 0 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={clearAllNotifications}
+                            className="text-xs"
+                          >
+                            Clear All
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="max-h-80 overflow-y-auto">
+                    {loadingNotifications ? (
+                      <div className="p-4 text-center">
+                        <YakRoomsLoader size={32} showTagline={false} loadingText="" />
+                      </div>
+                    ) : notifications.length === 0 ? (
+                      <div className="p-4 text-center text-muted-foreground">
+                        <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No notifications</p>
+                      </div>
+                    ) : (
+                      <div className="divide-y">
+                        {notifications.map((notification) => (
+                          <div
+                            key={notification.id}
+                            className={`p-3 sm:p-4 transition-colors ${
+                              notification.isRead
+                                ? "hover:bg-muted/50"
+                                : "bg-blue-50/50 dark:bg-blue-950/20 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                            }`}
+                          >
+                            <div className="space-y-2">
+                              <div className="flex items-start gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <p className="font-medium text-sm flex-1 line-clamp-2">
+                                      {notification.title}
+                                    </p>
+                                    {!notification.isRead && (
+                                      <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0"></div>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">
+                                    {format(new Date(notification.createdAt), "dd MMM yyyy, HH:mm")}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <Link to="/" className="flex-shrink-0">
+              <Button variant="ghost" size="sm" className="flex items-center gap-2 px-3">
+                <Home className="h-4 w-4" />
+                <span className="hidden sm:inline">Home</span>
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <SearchFilters />
+
+        {/* Hotel Deletion Requests Section */}
+        <HotelDeletionRequestsTable />
 
         {loading ? (
           <LoadingSpinner />

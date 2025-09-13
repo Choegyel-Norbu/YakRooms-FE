@@ -3,6 +3,7 @@ export { default as HotelAdminDashboard } from './HotelAdminDashboard';
 export { default as HotelDetailsPage } from './HotelDetailsPage';
 export { default as HotelListingPage } from './HotelListingPage';
 export { default as AddListingPage } from './AddListingPage';
+export { default as AccountDeletionPage } from './AccountDeletionPage';
 
 // Hotel Components
 export { default as AdminBookingForm } from './AdminBookingForm';
