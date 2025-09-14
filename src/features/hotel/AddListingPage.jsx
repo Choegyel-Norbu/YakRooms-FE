@@ -30,6 +30,7 @@ import { Textarea } from "@/shared/components/textarea";
 import { Badge } from "@/shared/components/badge";
 import { Checkbox } from "@/shared/components/checkbox";
 import { Alert, AlertDescription } from "@/shared/components/alert";
+import { TimePicker } from "@/shared/components/TimePicker";
 import {
   Select,
   SelectContent,
@@ -990,13 +991,14 @@ const AddListingPage = () => {
                         <Label htmlFor="checkinTime">
                           Check-in Time <span className="text-destructive">*</span>
                         </Label>
-                        <Input
+                        <TimePicker
                           id="checkinTime"
                           name="checkinTime"
-                          type="time"
                           value={formData.checkinTime}
                           onChange={handleChange}
-                          className={errors.checkinTime ? "border-destructive" : ""}
+                          placeholder="Select check-in time"
+                          format24h={false}
+                          error={!!errors.checkinTime}
                         />
                         {errors.checkinTime && (
                           <p className="text-destructive text-sm">{errors.checkinTime}</p>
@@ -1007,13 +1009,14 @@ const AddListingPage = () => {
                         <Label htmlFor="checkoutTime">
                           Check-out Time <span className="text-destructive">*</span>
                         </Label>
-                        <Input
+                        <TimePicker
                           id="checkoutTime"
                           name="checkoutTime"
-                          type="time"
                           value={formData.checkoutTime}
                           onChange={handleChange}
-                          className={errors.checkoutTime ? "border-destructive" : ""}
+                          placeholder="Select check-out time"
+                          format24h={false}
+                          error={!!errors.checkoutTime}
                         />
                         {errors.checkoutTime && (
                           <p className="text-destructive text-sm">{errors.checkoutTime}</p>

@@ -25,6 +25,7 @@ export { default as StarRating } from './star-rating';
 export { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './table';
 export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
 export { Textarea } from './textarea';
+export { TimePicker } from './TimePicker';
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip';
 
 // Card Components
