@@ -350,6 +350,7 @@ const HotelDetailsPage = () => {
     isFavorite: false,
     showImageModal: false,
     reviewSheetOpen: false,
+    isDescriptionExpanded: false,
   });
 
   // Separate state for room image modal to avoid conflicts
@@ -683,6 +684,10 @@ const HotelDetailsPage = () => {
     }
   }, [appState.hotel?.phone, appState.hotel?.name]);
 
+  const toggleDescription = useCallback(() => {
+    setUiState(prev => ({ ...prev, isDescriptionExpanded: !prev.isDescriptionExpanded }));
+  }, []);
+
   // Loading state - show YakRooms loader while fetching critical hotel data
   if (appState.loading && !appState.criticalDataLoaded) {
     return (
@@ -923,9 +928,43 @@ const HotelDetailsPage = () => {
 
               <div className="relative">
                 <div className="prose prose-slate prose-sm sm:prose-base max-w-none">
-                  <p className="text-slate-600 leading-relaxed text-sm font-normal tracking-wide">
-                    {transformedHotel.description}
-                  </p>
+                  <div className="text-slate-600 leading-relaxed text-sm font-normal tracking-wide">
+                    {transformedHotel.description && transformedHotel.description.split(' ').length > 50 ? (
+                      <div>
+                        <div 
+                          className={`transition-all duration-300 ease-in-out ${
+                            uiState.isDescriptionExpanded 
+                              ? 'max-h-none' 
+                              : 'max-h-[1.5rem] overflow-hidden'
+                          }`}
+                        >
+                          <p>{transformedHotel.description}</p>
+                        </div>
+                        <button
+                          onClick={toggleDescription}
+                          className="mt-2 text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-sm px-1 py-0.5 inline-flex items-center gap-1"
+                        >
+                          {uiState.isDescriptionExpanded ? (
+                            <>
+                              <span>Read Less</span>
+                              <svg className="w-4 h-4 transform rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </>
+                          ) : (
+                            <>
+                              <span>Read More</span>
+                              <svg className="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    ) : (
+                      <p>{transformedHotel.description}</p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="absolute -top-2 -left-2 w-16 h-16 bg-gradient-to-br from-blue-100/30 to-purple-100/30 rounded-full blur-xl -z-10"></div>
