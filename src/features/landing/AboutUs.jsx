@@ -106,8 +106,8 @@ const AboutUs = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Developed by experienced Bhutanese professionals with deep expertise in 
-                  hospitality technology and international tourism standards.
+                  Created by Bhutanese developers who understand both local hospitality 
+                  and international travel needs.
                 </p>
               </CardContent>
             </Card>
