@@ -137,6 +137,14 @@ export default defineConfig({
   },
   server: {
     historyApiFallback: true,
+    // Allow ngrok and other tunneling services
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      '.ngrok.io',
+      '.ngrok-free.app',
+      '.ngrok.app'
+    ],
     // Proxy configuration for SameSite=Lax compatibility in development
     proxy: {
       '/api': {

@@ -24,7 +24,7 @@ function App() {
             position="bottom-right"
             closeButton={true}
             duration={6000}
-            richColors={true}
+            richColors={false}
           />
         </BookingProvider>
       </AuthProvider>

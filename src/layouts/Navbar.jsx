@@ -11,7 +11,7 @@ import {
   User,
   Home,
   Hotel,
-  UtensilsCrossed,
+  UserPlus,
   Mail,
   ChevronRight,
   MessageCircle,
@@ -49,12 +49,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/components/dialog";
-import { YakRoomsText } from "@/shared/components";
+import { EzeeRoomLogo } from "@/shared/components";
 
 const Navbar = ({ onLoginClick, onContactClick }) => {
   const { isAuthenticated, logout, userName, email, roles, pictureURL, hasRole, getPrimaryRole, getCurrentActiveRole, switchToRole } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [theme, setTheme] = useState("light");
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const [isLogoutConfirmationOpen, setIsLogoutConfirmationOpen] = useState(false);
@@ -80,7 +81,9 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      const scrollY = window.scrollY;
+      setIsScrolled(scrollY > 10);
+      setIsVisible(scrollY > 50); // Show navbar after scrolling 50px
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -107,9 +110,8 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
   const navLinks = [
     { name: "Home", path: "/", icon: Home, description: "Back to homepage" },
     { name: "Hotels", path: "/hotels", icon: Hotel, description: "Find accommodations" },
-    { name: "Restaurants", path: "/restaurants", icon: UtensilsCrossed, description: "Discover local dining" },
     { name: "About", path: "/aboutus", icon: Info, description: "Learn about us" },
-    { name: "Contact", path: "/contact", icon: Mail, description: "Get in touch", isContact: true },
+    { name: "Contact", path: "/contact", icon: Mail, description: "Get in touch" },
   ];
 
   // Helper function to get role display info
@@ -501,7 +503,10 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
   return (
     <header
       className={cn(
-        "fixed w-full z-50 transition-all duration-300",
+        "fixed w-full z-50 transition-all duration-500 ease-in-out",
+        isVisible 
+          ? "translate-y-0 opacity-100" 
+          : "-translate-y-full opacity-0",
         isScrolled
           ? "bg-background/80 shadow-md backdrop-blur-sm"
           : "bg-background/95"
@@ -516,36 +521,40 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
       <div className="w-full px-3 lg:px-8">
         {/* Slightly reduced navbar height for mobile */}
         <div className="flex h-14 sm:h-16 items-center justify-between">
-          <Link to="/" className="flex items-center text-primary">
-            <YakRoomsText size="default" />
+          <Link to="/" className="flex items-center">
+            <EzeeRoomLogo size="default" />
           </Link>
 
           <nav className="hidden md:flex items-center gap-2">
             {navLinks.map((link) => (
-              link.isContact ? (
-                <Button key={link.name} variant="ghost" onClick={onContactClick}>
-                  <span className="text-sm font-medium transition-colors text-muted-foreground hover:text-primary">{link.name}</span>
-                </Button>
-              ) : (
-                <Button key={link.name} variant="ghost" asChild>
-                  <NavLink
-                    to={link.path}
-                    className={({ isActive }) =>
-                      cn(
-                        "text-sm font-medium transition-colors",
-                        isActive ? "text-primary" : "text-muted-foreground"
-                      )
-                    }
-                  >
-                    {link.name}
-                  </NavLink>
-                </Button>
-              )
+              <Button key={link.name} variant="ghost" asChild>
+                <NavLink
+                  to={link.path}
+                  className={({ isActive }) =>
+                    cn(
+                      "text-sm font-medium transition-colors",
+                      isActive ? "text-primary" : "text-muted-foreground"
+                    )
+                  }
+                >
+                  {link.name}
+                </NavLink>
+              </Button>
             ))}
           </nav>
 
           <div className="flex items-center gap-2">
             <div className="hidden md:block">{/* <ThemeToggle /> */}</div>
+
+            {/* Become a Host Button */}
+            {/* <div className="hidden md:block">
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/add-listing" className="flex items-center gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Become a Host
+                </Link>
+              </Button>
+            </div> */}
 
             <div className="hidden md:block">
               <UserNav />
@@ -559,7 +568,6 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                     <span className="sr-only">Toggle menu</span>
                   </Button>
                 </SheetTrigger>
-                {/* Reduced mobile sheet width for better mobile experience */}
                 <SheetContent side="right" className="w-[300px] sm:w-[320px] flex flex-col">
                   {/* Reduced header padding */}
                   <SheetHeader className="border-b pb-3 flex-shrink-0">
@@ -569,7 +577,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                         className="flex items-center gap-3"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <YakRoomsText size="small" />
+                        <EzeeRoomLogo size="small" />
                       </Link>
                     </SheetTitle>
                   </SheetHeader>
@@ -579,9 +587,16 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                     <div className="py-4">
                       <MobileUserSection />
                       
-                      {/* Reduced navigation spacing */}
+                      <div className="px-6 py-3">
+                        <Button variant="outline" size="sm" className="w-full" asChild>
+                          <Link to="/add-listing" onClick={() => setIsMobileMenuOpen(false)}>
+                            <UserPlus className="h-4 w-4 mr-2" />
+                            Become a Host
+                          </Link>
+                        </Button>
+                      </div>
+                      
                       <nav className="space-y-1.5 pt-4">
-                        {/* Fixed uniform left padding */}
                         <div className="px-6 pb-1">
                           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                             Navigation
@@ -591,11 +606,9 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                           <SheetClose key={link.name} asChild>
                             <Link
                               to={link.path}
-                              // Fixed uniform horizontal margin for mobile
                               className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group mx-6"
                             >
                               <div className="flex items-center">
-                                {/* Reduced icon container padding */}
                                 <div className="p-1.5 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
                                   <link.icon className="h-4 w-4 group-hover:text-primary transition-colors" />
                                 </div>

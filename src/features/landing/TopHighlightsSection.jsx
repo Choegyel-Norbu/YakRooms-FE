@@ -14,7 +14,7 @@ import {
 import { Button } from "@/shared/components/button";
 import StarRating from "@/shared/components/star-rating";
 import api from "../../shared/services/Api";
-import YakRoomsLoader from "@/shared/components/YakRoomsLoader";
+import SimpleSpinner from "@/shared/components/SimpleSpinner";
 import { useAuth } from "../authentication";
 
 const TopHighlightsSection = () => {
@@ -80,10 +80,9 @@ const TopHighlightsSection = () => {
 
           {loading && (
             <div className="flex justify-center items-center py-8">
-              <YakRoomsLoader 
-                size={112} 
-                showTagline={false} 
-                loadingText=""
+              <SimpleSpinner 
+                size={32} 
+                text="Loading highlights..."
                 className="mb-4"
               />
             </div>

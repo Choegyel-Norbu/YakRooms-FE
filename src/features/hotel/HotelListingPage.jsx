@@ -8,7 +8,7 @@ import {
   X,
   Clock,
 } from "lucide-react";
-import YakRoomsLoader from "@/shared/components/YakRoomsLoader";
+import SimpleSpinner from "@/shared/components/SimpleSpinner";
 import StarRating from "@/shared/components/star-rating";
 import { SearchButton } from "@/shared/components";
 
@@ -43,7 +43,6 @@ import {
 } from "@/shared/components/pagination";
 
 import api from "../../shared/services/Api";
-import { YakRoomsText } from "@/shared/components";
 
 // Memoized HotelCard component to prevent unnecessary re-renders
 const HotelCard = React.memo(({ hotel }) => (
@@ -547,7 +546,10 @@ const HotelListingPage = () => {
             {/* Left side - Brand and Navigation */}
             <div className="flex items-center gap-4">
               <Link to="/" className="flex items-center gap-2">
-                <YakRoomsText size="default" />
+                <div className="text-xl font-bold font-sans tracking-tight">
+                  <span className="text-blue-600">Ezee</span>
+                  <span className="text-yellow-500">Room</span>
+                </div>
               </Link>
             </div>
 
@@ -692,10 +694,9 @@ const HotelListingPage = () => {
           {/* Results */}
           {appState.loading ? (
             <div className="flex flex-col items-center justify-center h-96">
-              <YakRoomsLoader 
-                size={112} 
-                showTagline={false} 
-                loadingText=""
+              <SimpleSpinner 
+                size={32} 
+                text="Loading hotels..."
                 className="mb-4"
               />
             </div>
@@ -721,13 +722,11 @@ const HotelListingPage = () => {
                           ? "No Hotels Found" 
                           : (
                             <div className="flex flex-col items-center justify-center">
-                              <YakRoomsLoader 
-                                size={40} 
-                                showTagline={false} 
-                                loadingText=""
+                              <SimpleSpinner 
+                                size={24} 
+                                text="Loading hotels..."
                                 className="mb-2"
                               />
-                              <span>Loading Hotels...</span>
                             </div>
                           )
                         }

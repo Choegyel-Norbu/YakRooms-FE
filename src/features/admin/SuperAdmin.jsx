@@ -49,7 +49,7 @@ import {
 import { Badge } from "@/shared/components/badge";
 import { Label } from "@/shared/components/label";
 import { toast } from "sonner";
-import YakRoomsLoader from "@/shared/components/YakRoomsLoader";
+import SimpleSpinner from "@/shared/components/SimpleSpinner";
 import { SearchButton } from "@/shared/components";
 
 const SuperAdmin = () => {
@@ -606,10 +606,9 @@ const SuperAdmin = () => {
 
   const LoadingSpinner = () => (
     <div className="flex justify-center items-center py-12">
-      <YakRoomsLoader 
-        size={112} 
-        showTagline={false} 
-        loadingText=""
+      <SimpleSpinner 
+        size={32} 
+        text="Loading..."
         className="mb-4"
       />
     </div>
@@ -900,7 +899,7 @@ const SuperAdmin = () => {
         <CardContent>
           {loadingDeletionRequests ? (
             <div className="flex justify-center items-center py-8">
-              <YakRoomsLoader size={64} showTagline={false} loadingText="" />
+              <SimpleSpinner size={24} text="Loading deletion requests..." />
             </div>
           ) : deletionRequests.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
@@ -1230,7 +1229,7 @@ const SuperAdmin = () => {
                   <div className="max-h-80 overflow-y-auto">
                     {loadingNotifications ? (
                       <div className="p-4 text-center">
-                        <YakRoomsLoader size={32} showTagline={false} loadingText="" />
+                        <SimpleSpinner size={20} text="Loading notifications..." />
                       </div>
                     ) : notifications.length === 0 ? (
                       <div className="p-4 text-center text-muted-foreground">

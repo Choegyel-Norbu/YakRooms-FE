@@ -22,7 +22,7 @@ import {
   Mail,
   ArrowLeft
 } from 'lucide-react';
-import { YakRoomsText } from "@/shared/components";
+import { EzeeRoomLogo } from "@/shared/components";
 
 const AboutUs = () => {
   return (
@@ -39,7 +39,7 @@ const AboutUs = () => {
               </Link>
             </Button>
             <div className="text-center">
-              <YakRoomsText size="large" />
+              <EzeeRoomLogo size="large" />
             </div>
             {/* Empty div for balance */}
             <div className="w-9"></div>
@@ -63,7 +63,7 @@ const AboutUs = () => {
               {/* YakRooms Title - Centered */}
               <div className="flex justify-center">
                 <div className="text-center">
-                  <YakRoomsText size="large" />
+                  <EzeeRoomLogo size="large" />
                 </div>
               </div>
               

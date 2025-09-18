@@ -20,6 +20,7 @@ import {
   CalendarPlus,
   RefreshCw,
   Bell,
+  Star,
 } from "lucide-react";
 import { Separator } from "@/shared/components/separator";
 import { Button } from "@/shared/components/button";
@@ -40,6 +41,7 @@ import {
   AlertDialogTitle,
 } from "@/shared/components";
 import { API_BASE_URL } from "../../shared/services/firebaseConfig";
+import HotelReviewSheet from "../hotel/HotelReviewSheet";
 
 // Number formatting function
 const formatCurrency = (amount) => {
@@ -94,13 +96,13 @@ const statusConfig = {
     label: "Checked In",
     color: "bg-purple-50 text-purple-700 border border-purple-200",
     icon: CheckCircle,
-    actions: ["view", "directions", "extend"],
+    actions: ["view", "directions", "extend", "review"],
   },
   CHECKED_OUT: {
     label: "Checked Out",
     color: "bg-gray-50 text-gray-700 border border-gray-200",
     icon: CheckCircle,
-    actions: ["view", "directions"],
+    actions: ["view", "directions", "review"],
   },
 };
 
@@ -162,6 +164,7 @@ const ActionButton = ({ action, onClick, disabled = false }) => {
     cancel: { label: "Cancel", icon: X, variant: "outline" },
     contact: { label: "Contact", icon: Phone, variant: "outline" },
     extend: { label: "Extend", icon: CalendarPlus, variant: "outline" },
+    review: { label: "Review", icon: Star, variant: "outline" },
   };
 
   const config = buttonConfig[action];
@@ -746,6 +749,7 @@ const BookingCard = ({
   onContact,
   onDirections,
   onExtend,
+  onReview,
 }) => {
   const config = statusConfig[booking.status] || statusConfig.PENDING; // Fallback to PENDING if status not found
   const isCancellationRequested = booking.status === "CANCELLATION_REQUESTED";
@@ -1068,6 +1072,7 @@ const BookingCard = ({
               else if (action === "contact") onContact(booking);
               else if (action === "extend") onExtend(booking);
               else if (action === "cancel") onCancel(booking);
+              else if (action === "review") onReview(booking);
             }}
           />
         ))}
@@ -1492,6 +1497,10 @@ const GuestDashboard = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   
+  // Review state
+  const [isReviewSheetOpen, setIsReviewSheetOpen] = useState(false);
+  const [selectedHotelForReview, setSelectedHotelForReview] = useState(null);
+  
   // Notification state
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -1767,6 +1776,28 @@ const GuestDashboard = () => {
     setSelectedBookingForExtend(null);
   };
 
+  // Review handlers
+  const handleOpenReview = (booking) => {
+    setSelectedHotelForReview({
+      hotelId: booking.hotelId,
+      hotelName: booking.hotelName
+    });
+    setIsReviewSheetOpen(true);
+  };
+
+  const handleReviewSubmitSuccess = () => {
+    setIsReviewSheetOpen(false);
+    setSelectedHotelForReview(null);
+    // Note: Success toast is handled by HotelReviewSheet component itself
+    // This callback is only for closing the sheet after successful submission
+  };
+
+  const handleReviewClose = () => {
+    setIsReviewSheetOpen(false);
+    setSelectedHotelForReview(null);
+    // This callback is for closing the sheet without success (e.g., outside click)
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -1985,6 +2016,7 @@ const GuestDashboard = () => {
                     onContact={handleContact}
                     onDirections={handleDirections}
                     onExtend={handleExtend}
+                    onReview={handleOpenReview}
                   />
                   {/* Mobile Separator between cards */}
                   {index < bookings.length - 1 && (
@@ -2042,6 +2074,15 @@ const GuestDashboard = () => {
         onClose={handleCancelDialogClose}
         onConfirm={handleConfirmCancellation}
         isCancelling={isCancelling}
+      />
+
+      {/* Hotel Review Sheet */}
+      <HotelReviewSheet
+        isOpen={isReviewSheetOpen}
+        userId={userId}
+        hotelId={selectedHotelForReview?.hotelId}
+        onSubmitSuccess={handleReviewSubmitSuccess}
+        onClose={handleReviewClose}
       />
     </div>
   );

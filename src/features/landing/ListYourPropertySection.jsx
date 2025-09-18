@@ -94,7 +94,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
             <div className="space-y-8">
               {/* Stats */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                {stats.map((stat, index) => (
+                {/* {stats.map((stat, index) => (
                   <Card key={index} className="text-center hover:shadow-md transition-shadow">
                     <CardContent className="sm:p-6">
                       <div className="text-2xl md:text-3xl font-bold text-yellow-500 mb-1">
@@ -103,7 +103,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                       <div className="text-sm text-muted-foreground">{stat.label}</div>
                     </CardContent>
                   </Card>
-                ))}
+                ))} */}
               </div>
 
               {/* Benefits List */}

@@ -10,7 +10,7 @@ import { Button } from '@/shared/components/button';
 import { SearchButton } from '@/shared/components';
 import { ChevronDown, ChevronUp, Search, X } from 'lucide-react';
 import api from "../../shared/services/Api";
-import YakRoomsLoader from '@/shared/components/YakRoomsLoader';
+import SimpleSpinner from '@/shared/components/SimpleSpinner';
 
 const RoomStatusTable = ({ hotelId }) => {
   const [data, setData] = useState(null);
@@ -324,10 +324,9 @@ const RoomStatusTable = ({ hotelId }) => {
           {/* Loading State */}
           {(loading || searchLoading) && (
             <div className="flex justify-center items-center py-12">
-              <YakRoomsLoader 
-                size={112} 
-                showTagline={false} 
-                loadingText=""
+              <SimpleSpinner 
+                size={32} 
+                text="Loading room status..."
                 className="mb-4"
               />
             </div>

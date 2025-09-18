@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { HiWifi, HiSignalSlash } from 'react-icons/hi2';
-import { HiXMark } from 'react-icons/hi2';
 
 const CustomOfflineToast = ({ isVisible, onClose }) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     if (isVisible) {
@@ -28,93 +27,101 @@ const CustomOfflineToast = ({ isVisible, onClose }) => {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed top-6 right-6 z-50 max-w-sm">
+    <div className="fixed top-8 right-8 z-50 max-w-md">
       <div
         className={`
-          bg-white border border-gray-200 rounded-xl shadow-2xl backdrop-blur-sm
-          transform transition-all duration-500 ease-out
+          bg-white border border-gray-200 rounded-2xl backdrop-blur-xl
+          transform transition-all duration-700 ease-out shadow-xl
           ${isAnimating 
-            ? 'translate-x-0 opacity-100 scale-100' 
-            : 'translate-x-full opacity-0 scale-95'
+            ? 'translate-y-0 opacity-100 scale-100' 
+            : '-translate-y-8 opacity-0 scale-95'
           }
         `}
         style={{
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)'
         }}
       >
-        {/* Header with gradient */}
-        <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-t-xl p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                <HiSignalSlash className="w-6 h-6 text-white" />
+        {/* Main Content */}
+        <div className="p-6">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-slate-900">
+                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636L5.636 18.364m12.728 0L5.636 5.636" />
+                  </svg>
+                </div>
               </div>
+              
               <div>
-                <h4 className="text-white font-semibold text-sm">
-                  Connection Lost
-                </h4>
-                <p className="text-white/80 text-xs">
-                  Yakrooms is offline
+                <h3 className="text-gray-900 font-semibold text-lg mb-1">
+                  No Internet Connection
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Check your internet connection and try again
                 </p>
               </div>
             </div>
-            
+
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full hover:bg-white/20 transition-colors duration-200 group"
-              aria-label="Close notification"
+              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors duration-200 group ml-4"
+              aria-label="Dismiss notification"
             >
-              <HiXMark className="w-4 h-4 text-white/80 group-hover:text-white" />
+              <svg className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
-        </div>
 
-        {/* Content */}
-        <div className="p-4">
-          <div className="flex items-start gap-3 mb-3">
-            <div className="flex-1">
-              <p className="text-gray-600 text-sm leading-relaxed mb-2">
-                You're currently offline. Hotel bookings and real-time features are temporarily unavailable.
-              </p>
-              
-              {/* Status indicators */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-xs">
-                  <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
-                  <span className="text-gray-500">Booking system unavailable</span>
+          {/* Impact Summary */}
+          <div className="bg-gray-50 rounded-xl p-4 mb-4 border border-gray-100">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                 </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                  <span className="text-gray-500">Local data will be synced when online</span>
+                <p className="text-xs text-gray-700 font-medium">Booking System</p>
+                <p className="text-xs text-red-600">Unavailable</p>
+              </div>
+              <div className="text-center">
+                <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center mx-auto mb-2">
+                  <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
                 </div>
+                <p className="text-xs text-gray-700 font-medium">Local Data</p>
+                <p className="text-xs text-amber-600">Will sync later</p>
               </div>
             </div>
           </div>
 
-          {/* Reconnection status */}
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <div className="w-3 h-3 bg-red-400 rounded-full animate-ping absolute"></div>
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              </div>
-              <span className="text-xs text-gray-500">Attempting to reconnect...</span>
-            </div>
-            
-            {isOnline && (
+          {/* Action Button */}
+          <div className="flex justify-center">
+            {isOnline ? (
               <button
                 onClick={() => window.location.reload()}
-                className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-sm font-medium rounded-lg transition-all duration-200 transform hover:scale-105 hover:shadow-lg"
               >
-                Refresh now
+                Reconnect Now
               </button>
+            ) : (
+              <div className="text-center">
+                <p className="text-gray-500 text-sm mb-2">Please check your internet connection</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-200"
+                >
+                  Try Again
+                </button>
+              </div>
             )}
           </div>
-        </div>
-
-        {/* Bottom accent line */}
-        <div className="h-1 bg-gradient-to-r from-red-500 to-orange-500 rounded-b-xl">
-          <div className="h-full bg-gradient-to-r from-red-400 to-orange-400 animate-pulse rounded-b-xl opacity-70"></div>
         </div>
       </div>
     </div>

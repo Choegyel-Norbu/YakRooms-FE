@@ -22,7 +22,7 @@ import * as XLSX from 'xlsx';
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/card";
 import api from "../../shared/services/Api";
 import { useAuth } from "@/features/authentication";
-import YakRoomsLoader from "@/shared/components/YakRoomsLoader";
+import SimpleSpinner from "@/shared/components/SimpleSpinner";
 
 const BookingsTrendChart = () => {
   const { hotelId } = useAuth();
@@ -209,13 +209,11 @@ const BookingsTrendChart = () => {
         <CardContent className="p-0">
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
-              <YakRoomsLoader 
-                size={112} 
-                showTagline={false} 
-                loadingText=""
+              <SimpleSpinner 
+                size={32} 
+                text="Loading booking data..."
                 className="mb-4"
               />
-              <p className="text-gray-600">Loading booking data...</p>
             </div>
           </div>
         </CardContent>

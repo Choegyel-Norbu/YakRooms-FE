@@ -11,12 +11,18 @@ const GlobalReviewSheet = () => {
     // For example, show a success toast or redirect
   };
 
+  const handleClose = () => {
+    closeReviewSheet();
+    // Handle closing without success (e.g., outside click)
+  };
+
   return (
     <HotelReviewSheet
       isOpen={reviewSheet.isOpen}
       userId={reviewSheet.userId}
       hotelId={reviewSheet.hotelId}
       onSubmitSuccess={handleSubmitSuccess}
+      onClose={handleClose}
     />
   );
 };

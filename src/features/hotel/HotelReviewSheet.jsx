@@ -14,7 +14,8 @@ const HotelReviewSheet = ({
   isOpen,
   userId,
   hotelId,
-  onSubmitSuccess
+  onSubmitSuccess,
+  onClose
 }) => {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
@@ -39,7 +40,7 @@ const HotelReviewSheet = ({
       if (sheetRef.current && !sheetRef.current.contains(event.target)) {
         // Check if the click is on the backdrop (not on the sheet itself)
         if (event.target.classList.contains('backdrop')) {
-          onSubmitSuccess(); // Close the sheet
+          onClose?.(); // Close the sheet without success callback
         }
       }
     };
@@ -51,7 +52,7 @@ const HotelReviewSheet = ({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen, onSubmitSuccess]);
+  }, [isOpen, onClose]);
 
   const validateForm = () => {
     const newErrors = {};
