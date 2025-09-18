@@ -11,6 +11,7 @@ import {
 import SimpleSpinner from "@/shared/components/SimpleSpinner";
 import StarRating from "@/shared/components/star-rating";
 import { SearchButton } from "@/shared/components";
+import EzeeRoomLogo from "@/shared/components/EzeeRoomLogo";
 
 import { Button } from "@/shared/components/button";
 import {
@@ -546,10 +547,7 @@ const HotelListingPage = () => {
             {/* Left side - Brand and Navigation */}
             <div className="flex items-center gap-4">
               <Link to="/" className="flex items-center gap-2">
-                <div className="text-xl font-bold font-sans tracking-tight">
-                  <span className="text-blue-600">Ezee</span>
-                  <span className="text-yellow-500">Room</span>
-                </div>
+                <EzeeRoomLogo size="default" variant="text-only" />
               </Link>
             </div>
 
