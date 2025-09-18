@@ -77,8 +77,6 @@ const AboutUs = () => {
       </div>
 
       {/* Hero Section */}
-     
-
       <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 space-y-12">
         {/* Why YakRooms */}
         <section>
@@ -108,8 +106,8 @@ const AboutUs = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Built by Bhutanese developers who understand the unique needs of both 
-                  local hoteliers and international travelers.
+                  Developed by experienced Bhutanese professionals with deep expertise in 
+                  hospitality technology and international tourism standards.
                 </p>
               </CardContent>
             </Card>
