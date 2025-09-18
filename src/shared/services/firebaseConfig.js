@@ -180,8 +180,18 @@ const getApiBaseUrl = () => {
   const developmentUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
   const productionUrl = import.meta.env.VITE_API_BASE_URL || "https://yakrooms-be-production.up.railway.app";
   
+  // Debug logging for troubleshooting
+  console.log('🔍 Environment Detection:', {
+    isDev: import.meta.env.DEV,
+    hostname: window.location.hostname,
+    isDevelopment,
+    isPWA,
+    envVar: import.meta.env.VITE_API_BASE_URL
+  });
+  
   // Force production URL for PWA installations and mobile contexts
-  if (isPWA || !isDevelopment) {
+  // Also force production for any non-localhost hostname (Vercel, Netlify, etc.)
+  if (isPWA || !isDevelopment || !window.location.hostname.includes('localhost')) {
     console.log('🌐 Using production API URL for cross-platform compatibility');
     return productionUrl;
   }
