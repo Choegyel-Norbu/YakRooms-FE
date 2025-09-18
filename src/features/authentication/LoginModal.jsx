@@ -12,7 +12,7 @@ import {
 import { Button } from "@/shared/components";
 import { Alert, AlertDescription } from "@/shared/components";
 import { X } from "lucide-react";
-import { YakRoomsText } from "@/shared/components";
+import logoER from "@/assets/images/logoER.png";
 
 const LoginModal = ({ onClose, flag }) => {
   const modalRef = useRef(null);
@@ -66,7 +66,13 @@ const LoginModal = ({ onClose, flag }) => {
         <div className="p-8">
           <DialogHeader className="space-y-4">
             <DialogTitle className="text-center">
-              <YakRoomsText size="default" />
+              <div className="flex justify-center items-center">
+                <img 
+                  src={logoER} 
+                  alt="EzeeRoom Logo" 
+                  className="h-8 w-auto"
+                />
+              </div>
             </DialogTitle>
             <DialogDescription className="text-center text-sm">
               We'll sign you in or create an account if you don't have one yet.

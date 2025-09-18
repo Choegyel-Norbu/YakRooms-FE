@@ -3,9 +3,9 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import RoomBookingCard from "../../features/booking/RoomBookingCard";
 import Footer from "../../layouts/Footer";
 import YakRoomsAdCard from "@/shared/components/YakRoomsAdCard";
-import YakRoomsLoader from "@/shared/components/YakRoomsLoader";
+import SimpleSpinner from "@/shared/components/SimpleSpinner";
 import StarRating from "@/shared/components/star-rating";
-import HotelReviewSheet from "./HotelReviewSheet";
+import HotelMap from "@/shared/components/HotelMap";
 import api from "../../shared/services/Api";
 
 import {
@@ -349,7 +349,6 @@ const HotelDetailsPage = () => {
     currentImageIndex: 0,
     isFavorite: false,
     showImageModal: false,
-    reviewSheetOpen: false,
     isDescriptionExpanded: false,
   });
 
@@ -642,18 +641,19 @@ const HotelDetailsPage = () => {
   }, [appState.hotel?.name, appState.hotel?.district]);
 
   const openReviewSheet = useCallback(() => {
-    setUiState(prev => ({ ...prev, reviewSheetOpen: true }));
+    // This function is no longer needed in HotelDetailsPage
+    // Review functionality moved to GuestDashboard
   }, []);
 
   const closeReviewSheet = useCallback(() => {
-    setUiState(prev => ({ ...prev, reviewSheetOpen: false }));
+    // This function is no longer needed in HotelDetailsPage
+    // Review functionality moved to GuestDashboard
   }, []);
 
   const handleReviewSubmitSuccess = useCallback(() => {
-    setUiState(prev => ({ ...prev, reviewSheetOpen: false }));
-    // Refresh testimonials after successful review submission
-    fetchTestimonials(testimonialsState.currentPage);
-  }, [fetchTestimonials, testimonialsState.currentPage]);
+    // This function is no longer needed in HotelDetailsPage
+    // Review functionality moved to GuestDashboard
+  }, []);
 
   const handleWhatsAppClick = useCallback(() => {
     if (!appState.hotel?.phone) {
@@ -693,10 +693,9 @@ const HotelDetailsPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
-          <YakRoomsLoader 
-            size={112} 
-            showTagline={false} 
-            loadingText=""
+          <SimpleSpinner 
+            size={32} 
+            text="Loading hotel details..."
             className="mb-4"
           />
         </div>
@@ -906,17 +905,6 @@ const HotelDetailsPage = () => {
                       </div>
                     )}
 
-                    {isAuthenticated && (
-                      <Button
-                        onClick={openReviewSheet}
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-2 text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-colors duration-200 cursor-pointer"
-                      >
-                        <Star className="h-4 w-4" />
-                        Help Others Choose — Leave Feedback
-                      </Button>
-                    )}
                   </div>
                 </div>
               </div>
@@ -1023,6 +1011,18 @@ const HotelDetailsPage = () => {
               </CardContent>
             {/* </Card> */}
 
+            {/* Hotel Location Map - Mobile View */}
+            <div className="lg:hidden">
+              <HotelMap
+                hotelName={appState.hotel?.name}
+                latitude={appState.hotel?.latitude || appState.hotel?.hotelLatitude}
+                longitude={appState.hotel?.longitude || appState.hotel?.hotelLongitude}
+                address={appState.hotel?.address}
+                locality={appState.hotel?.locality}
+                district={appState.hotel?.district}
+              />
+            </div>
+
             {/* Testimonials Section */}
             <Card>
               <CardHeader className="pb-0">
@@ -1035,10 +1035,9 @@ const HotelDetailsPage = () => {
               <CardContent className="pt-0">
                 {testimonialsState.loading ? (
                   <div className="flex justify-center py-8">
-                    <YakRoomsLoader 
-                      size={40} 
-                      showTagline={false} 
-                      loadingText=""
+                    <SimpleSpinner 
+                      size={24} 
+                      text="Loading testimonials..."
                       className="mb-2"
                     />
                   </div>
@@ -1143,10 +1142,9 @@ const HotelDetailsPage = () => {
                   </p>
                 </div>
                 {roomsState.loading && (
-                  <YakRoomsLoader 
-                    size={40} 
-                    showTagline={false} 
-                    loadingText=""
+                  <SimpleSpinner 
+                    size={24} 
+                    text="Loading rooms..."
                     className="mb-2"
                   />
                 )}
@@ -1349,6 +1347,16 @@ const HotelDetailsPage = () => {
           <aside className="hidden lg:block space-y-6">
             {/* <YakRoomsAdCard /> */}
 
+            {/* Hotel Location Map */}
+            <HotelMap
+              hotelName={appState.hotel?.name}
+              latitude={appState.hotel?.latitude || appState.hotel?.hotelLatitude}
+              longitude={appState.hotel?.longitude || appState.hotel?.hotelLongitude}
+              address={appState.hotel?.address}
+              locality={appState.hotel?.locality}
+              district={appState.hotel?.district}
+            />
+
             {/* Quick Info Card */}
             <Card>
               <CardHeader>
@@ -1428,13 +1436,6 @@ const HotelDetailsPage = () => {
         </SheetContent>
       </Sheet>
 
-      {/* Hotel Review Sheet */}
-      <HotelReviewSheet
-        isOpen={uiState.reviewSheetOpen}
-        userId={userId}
-        hotelId={id}
-        onSubmitSuccess={handleReviewSubmitSuccess}
-      />
 
       {/* Room Image Modal */}
       {roomImageModal.isOpen && (

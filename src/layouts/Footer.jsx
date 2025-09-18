@@ -3,7 +3,7 @@ import { Button } from "@/shared/components/button";
 import { Separator } from "@/shared/components/separator";
 import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
-import { YakRoomsText } from "@/shared/components";
+import logoER from "@/assets/images/logoER.png";
 
 const Footer = React.forwardRef((props, ref) => {
   return (
@@ -14,9 +14,13 @@ const Footer = React.forwardRef((props, ref) => {
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <div className="mb-4">
-              <YakRoomsText size="default" />
+              <img 
+                src={logoER} 
+                alt="EzeeRoom Logo" 
+                className="h-6 w-auto mb-3"
+              />
               <p className="text-sm text-muted-foreground mb-4">
-                Travel Bhutan Smarter – Discover, Book, and Dine with YakRooms.
+                Travel Bhutan Smarter – Discover, Book, and Dine with EzeeRoom.
               </p>
             </div>
             <div className="hidden md:flex space-x-4">

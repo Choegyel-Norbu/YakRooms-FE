@@ -40,9 +40,11 @@ export { default as SummaryCards } from './SummaryCards';
 export { default as TailwindCard } from './TailwindCard';
 export { default as YakRoomsAdCard } from './YakRoomsAdCard';
 export { default as YakRoomsText } from './YakRoomsText';
+export { default as EzeeRoomLogo } from './EzeeRoomLogo';
 
 // Loader Components
 export { default as YakRoomsLoader } from './YakRoomsLoader';
+export { default as SimpleSpinner } from './SimpleSpinner';
 
 // Other Shared Components
 export { default as AvailabilityDatePicker } from './AvailabilityDatePicker';
@@ -56,4 +58,5 @@ export { default as ToastTest } from './ToastTest';
 export { default as TopHotelBadge } from './TopHotelBadge';
 export { default as NotificationsComponent } from './NotificationsComponent';
 export { default as UnAuthorizedPage } from './UnAuthorizedPage';
-export { default as SearchButton } from './SearchButton'; 
+export { default as SearchButton } from './SearchButton';
+export { default as HotelMap } from './HotelMap'; 
