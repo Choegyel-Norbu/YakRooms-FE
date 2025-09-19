@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../authentication";
 import api from "../../shared/services/Api";
 import { uploadFile, deleteFileByUrl } from "../../shared/services/uploadService";
-import { CheckCircle, XCircle, Upload, Plus, X } from "lucide-react";
+import { CheckCircle, XCircle, Upload, Plus, X, MapPin, Loader2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -47,6 +47,8 @@ const formSchema = z.object({
   photoUrls: z.array(z.string()).optional(),
   license: z.string().optional(),
   amenities: z.array(z.string()).optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 const HotelInfoForm = ({ hotel, onUpdate }) => {
@@ -60,8 +62,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
   const [selectedAmenities, setSelectedAmenities] = useState(hotel.amenities || []);
   const [availableAmenities] = useState(getCategorizedAmenities("hotel"));
   const [deletingImageIndex, setDeletingImageIndex] = useState(null);
-
-
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -76,6 +77,8 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       photoUrls: hotel.photoUrls || [],
       license: hotel.license || "",
       amenities: hotel.amenities || [],
+      latitude: hotel.latitude || undefined,
+      longitude: hotel.longitude || undefined,
     },
   });
 
@@ -96,6 +99,8 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       photoUrls: hotel.photoUrls || [],
       license: hotel.license || "",
       amenities: hotel.amenities || [],
+      latitude: hotel.latitude || undefined,
+      longitude: hotel.longitude || undefined,
     });
   }, [hotel, form]);
 
@@ -197,6 +202,63 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
     form.setValue("district", value);
   };
 
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by this browser.", {
+        duration: 6000
+      });
+      return;
+    }
+
+    setIsGettingLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        // Update form values
+        form.setValue("latitude", latitude);
+        form.setValue("longitude", longitude);
+        
+        toast.success("Location obtained successfully!", {
+          description: `Latitude: ${latitude.toFixed(6)}, Longitude: ${longitude.toFixed(6)}`,
+          duration: 6000
+        });
+        
+        setIsGettingLocation(false);
+      },
+      (error) => {
+        let errorMessage = "Failed to get location.";
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Location access denied. Please enable location permissions.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Location information is unavailable.";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Location request timed out.";
+            break;
+          default:
+            errorMessage = "An unknown error occurred while getting location.";
+            break;
+        }
+        
+        toast.error(errorMessage, {
+          duration: 8000
+        });
+        
+        setIsGettingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000 // 5 minutes
+      }
+    );
+  };
+
   const onSubmit = async (values) => {
     setIsLoading(true);
 
@@ -206,6 +268,8 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
         contact: values.phone,
         amenities: selectedAmenities,
         id: formData.id,
+        latitude: values.latitude,
+        longitude: values.longitude,
       };
 
       const res = await api.put(`/hotels/${formData.id}`, updateData);
@@ -241,8 +305,18 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
               onClick={() => {
                 setIsEditing(false);
                 form.reset({
-                  ...hotel,
+                  name: hotel.name || "",
+                  hotelType: hotel.hotelType || "",
+                  district: hotel.district || "",
                   locality: hotel.locality || "",
+                  address: hotel.address || "",
+                  phone: hotel.phone || "",
+                  description: hotel.description || "",
+                  photoUrls: hotel.photoUrls || [],
+                  license: hotel.license || "",
+                  amenities: hotel.amenities || [],
+                  latitude: hotel.latitude || undefined,
+                  longitude: hotel.longitude || undefined,
                 });
                 setFormData({
                   ...hotel,
@@ -382,6 +456,86 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                   </FormItem>
                 )}
               />
+
+              {/* Location Section */}
+              <div className="md:col-span-2 border-t pt-4 mt-2">
+                <h4 className="text-base font-semibold mb-3 flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  Location Coordinates
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="latitude"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Latitude</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            type="number" 
+                            step="any"
+                            placeholder="e.g., 27.7172"
+                            disabled={!isEditing}
+                            value={field.value || ""}
+                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="longitude"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Longitude</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            type="number" 
+                            step="any"
+                            placeholder="e.g., 85.3240"
+                            disabled={!isEditing}
+                            value={field.value || ""}
+                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                {isEditing && (
+                  <div className="mt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={getCurrentLocation}
+                      disabled={isGettingLocation}
+                      className="w-full md:w-auto"
+                    >
+                      {isGettingLocation ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Getting Location...
+                        </>
+                      ) : (
+                        <>
+                          <MapPin className="mr-2 h-4 w-4" />
+                          Get Current Location
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Click to automatically detect your hotel's location using GPS
+                    </p>
+                  </div>
+                )}
+              </div>
 
               <div className="md:col-span-2 border-t pt-4 mt-2">
                 <h4 className="text-base font-semibold mb-3">
