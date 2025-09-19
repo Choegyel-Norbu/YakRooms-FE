@@ -841,6 +841,11 @@ const HotelDetailsPage = () => {
               ))}
             </div>
 
+            {/* Hotel Type Badge */}
+            <div className="absolute top-3 sm:top-4 left-3 sm:left-4 bg-white text-black px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium shadow-lg border border-gray-200">
+              {(transformedHotel.hotelType || "Hotel").replace(/_/g, " ")}
+            </div>
+
             {/* Image Counter */}
             <div className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-black/50 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
               {uiState.currentImageIndex + 1} / {transformedHotel.images.length}
@@ -852,45 +857,53 @@ const HotelDetailsPage = () => {
               {/* Hotel Header Section */}
               <div className="flex sm:flex-col">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-                  <div className="space-y-2 sm:space-y-3">
-                    <h1 className="text-base sm:text-base md:text-sm font-semibold tracking-tight text-slate-800 leading-tight">
+                  <div className="space-y-4 sm:space-y-6 flex flex-col lg:flex-row lg:gap-6">
+                    {/* <h1 className="text-base sm:text-base md:text-sm font-semibold tracking-tight text-slate-800 leading-tight">
                       {transformedHotel.name}
-                    </h1>
+                    </h1> */}
 
-                    <div className="flex flex-col sm:flex-row sm:items-center md:gap-3 sm:gap-6">
-                      <div className="flex items-center group">
-                        <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 mr-3 group-hover:shadow-md transition-all duration-200">
-                          <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
+                    {/* Location and Contact Section */}
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 lg:w-1/2">
+                      <div className="flex-1">
+                        <div className="flex items-start group">
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-black uppercase tracking-wide mb-1">Location</span>
+                            <span className="text-sm text-slate-600 font-normal group-hover:text-slate-700 transition-colors duration-200">
+                              {transformedHotel.locality && `${transformedHotel.locality}, `}{transformedHotel.district}, Bhutan
+                            </span>
+                          </div>
                         </div>
-                        <span className="text-sm text-slate-600 font-normal group-hover:text-slate-700 transition-colors duration-200">
-                          {transformedHotel.locality && `${transformedHotel.locality}, `}{transformedHotel.district}, Bhutan
-                        </span>
                       </div>
 
-                      <div className="flex items-center group">
-                        <div className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 mr-3 group-hover:shadow-md transition-all duration-200">
-                          <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600 flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="flex items-start group">
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-black uppercase tracking-wide mb-1">Contact</span>
+                            <a
+                              href={`tel:${transformedHotel.phone}`}
+                              className="text-sm text-slate-600 font-normal hover:text-emerald-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 rounded-md px-1 py-0.5"
+                              aria-label={`Call ${transformedHotel.name} at ${transformedHotel.phone}`}
+                            >
+                              {transformedHotel.phone}
+                            </a>
+                          </div>
                         </div>
-                        <a
-                          href={`tel:${transformedHotel.phone}`}
-                          className="text-sm text-slate-600 font-normal hover:text-emerald-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 rounded-md px-1 py-0.5"
-                          aria-label={`Call ${transformedHotel.name} at ${transformedHotel.phone}`}
-                        >
-                          {transformedHotel.phone}
-                        </a>
                       </div>
                     </div>
+
+                    {/* Hotel Description */}
+                   {transformedHotel.description && (
+                      <div className="lg:w-1/2">
+                        <div className="mb-3">
+                          <p className="text-sm text-slate-700 leading-relaxed">
+                            {transformedHotel.description}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-start justify-start flex-col gap-3">
-                    <div className="relative group">
-                      <div className="absolute -inset-1 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg blur opacity-25 group-hover:opacity-40 transition duration-200"></div>
-                      <div className="relative px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
-                        <span className="text-sm font-normal text-slate-600 tracking-wide uppercase">
-                          {(transformedHotel.hotelType || "Hotel").replace(/_/g, " ")}
-                        </span>
-                      </div>
-                    </div>
 
                     {transformedHotel.averageRating > 0 && (
                       <div className="flex items-center gap-2">
@@ -915,50 +928,6 @@ const HotelDetailsPage = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent blur-sm"></div>
               </div>
 
-              <div className="relative">
-                <div className="prose prose-slate prose-sm sm:prose-base max-w-none">
-                  <div className="text-slate-600 leading-relaxed text-sm font-normal tracking-wide">
-                    {transformedHotel.description && transformedHotel.description.split(' ').length > 50 ? (
-                      <div>
-                        <div 
-                          className={`transition-all duration-300 ease-in-out ${
-                            uiState.isDescriptionExpanded 
-                              ? 'max-h-none' 
-                              : 'max-h-[1.5rem] overflow-hidden'
-                          }`}
-                        >
-                          <p>{transformedHotel.description}</p>
-                        </div>
-                        <button
-                          onClick={toggleDescription}
-                          className="mt-2 text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-sm px-1 py-0.5 inline-flex items-center gap-1"
-                        >
-                          {uiState.isDescriptionExpanded ? (
-                            <>
-                              <span>Read Less</span>
-                              <svg className="w-4 h-4 transform rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                              </svg>
-                            </>
-                          ) : (
-                            <>
-                              <span>Read More</span>
-                              <svg className="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                              </svg>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    ) : (
-                      <p>{transformedHotel.description}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="absolute -top-2 -left-2 w-16 h-16 bg-gradient-to-br from-blue-100/30 to-purple-100/30 rounded-full blur-xl -z-10"></div>
-                <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-br from-purple-100/30 to-pink-100/30 rounded-full blur-xl -z-10"></div>
-              </div>
 
               {/* Check-in/Check-out Times - Mobile & Desktop Visible */}
               <div className="mt-6 pt-4 border-t border-slate-200">
@@ -967,14 +936,14 @@ const HotelDetailsPage = () => {
                     
                     <div>
                       <h4 className="text-sm font-medium text-slate-800">Check-in Time</h4>
-                      <p className="text-sm text-slate-600">- {formatTimeWithDescription(appState.hotel?.checkinTime)}</p>
+                      <p className="text-xs text-blue-600 border border-blue-300 rounded px-2 py-1 bg-blue-50">- {formatTimeWithDescription(appState.hotel?.checkinTime)}</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-3">
                     <div>
                       <h4 className="text-sm font-medium text-slate-800">Check-out Time</h4>
-                      <p className="text-sm text-slate-600">- {formatTimeWithDescription(appState.hotel?.checkoutTime)}</p>
+                      <p className="text-xs text-blue-600 border border-blue-300 rounded px-2 py-1 bg-blue-50">- {formatTimeWithDescription(appState.hotel?.checkoutTime)}</p>
                     </div>
                   </div>
                 </div>
@@ -1357,7 +1326,7 @@ const HotelDetailsPage = () => {
           </div>
 
           {/* Sidebar - Hidden on mobile, visible on lg screens and up */}
-          <aside className="hidden lg:block space-y-6">
+          <aside className="hidden lg:block space-y-6 sticky top-19 self-start">
             {/* <YakRoomsAdCard /> */}
 
             {/* Hotel Location Map */}
