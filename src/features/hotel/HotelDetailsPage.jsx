@@ -1286,8 +1286,13 @@ const HotelDetailsPage = () => {
               </div>
 
               {/* Enhanced Pagination */}
-              {roomsState.paginationData && roomsState.paginationData.totalPages > 1 && (
-                <div className="flex justify-center pt-4">
+              {roomsState.paginationData && roomsState.paginationData.page?.totalPages > 1 && (
+                <div className="flex flex-col items-center gap-4 pt-4">
+                  {/* Pagination Info */}
+                  <div className="text-sm text-muted-foreground">
+                    Showing {roomsState.availableRooms.length} of {roomsState.paginationData.page?.totalElements || 0} rooms
+                  </div>
+                  
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
@@ -1295,17 +1300,17 @@ const HotelDetailsPage = () => {
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-                            if (roomsState.currentPage > 0)
+                            if (roomsState.paginationData?.page?.hasPrevious && !roomsState.loading)
                               handlePageChange(roomsState.currentPage - 1);
                           }}
                           className={
-                            roomsState.currentPage === 0
+                            !roomsState.paginationData?.page?.hasPrevious || roomsState.loading
                               ? "pointer-events-none opacity-50"
                               : undefined
                           }
                         />
                       </PaginationItem>
-                      {[...Array(roomsState.paginationData.totalPages).keys()].map(
+                      {[...Array(roomsState.paginationData.page?.totalPages || 0).keys()].map(
                         (page) => (
                           <PaginationItem key={page}>
                             <PaginationLink
@@ -1313,8 +1318,10 @@ const HotelDetailsPage = () => {
                               isActive={roomsState.currentPage === page}
                               onClick={(e) => {
                                 e.preventDefault();
-                                handlePageChange(page);
+                                if (!roomsState.loading)
+                                  handlePageChange(page);
                               }}
+                              className={roomsState.loading ? "pointer-events-none opacity-50" : undefined}
                             >
                               {page + 1}
                             </PaginationLink>
@@ -1326,12 +1333,12 @@ const HotelDetailsPage = () => {
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-                            if (roomsState.currentPage < roomsState.paginationData.totalPages - 1) {
+                            if (roomsState.paginationData?.page?.hasNext && !roomsState.loading) {
                               handlePageChange(roomsState.currentPage + 1);
                             }
                           }}
                           className={
-                            roomsState.currentPage >= roomsState.paginationData.totalPages - 1
+                            !roomsState.paginationData?.page?.hasNext || roomsState.loading
                               ? "pointer-events-none opacity-50"
                               : undefined
                           }
@@ -1339,6 +1346,11 @@ const HotelDetailsPage = () => {
                       </PaginationItem>
                     </PaginationContent>
                   </Pagination>
+                  
+                  {/* Page Info */}
+                  <div className="text-xs text-muted-foreground">
+                    Page {roomsState.currentPage + 1} of {roomsState.paginationData.page?.totalPages || 1}
+                  </div>
                 </div>
               )}
             </div>
