@@ -75,7 +75,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
             <h2 className="text-3xl md:text-3xl font-bold tracking-tight">
               Partner with{" "}
               <span className="text-primary">
-                YakRooms{" "}
+                EzeeRoom{" "}
               </span>
               & Grow Your Business
             </h2>
@@ -173,8 +173,8 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                               <span className="font-medium">Property Already Listed</span>
                             </div>
                             <p className="text-sm text-green-600 mt-1">
-                              You already have a property listed with YakRooms. 
-                              Access your guest dashboard to manage your bookings.
+                            You already have a property listed with EzeeRoom. 
+                            Access your guest dashboard to manage your bookings.
                             </p>
                           </div>
                           <Link to="/guestDashboard" className="block">
@@ -202,7 +202,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                             <span className="font-medium">Property Already Listed</span>
                           </div>
                           <p className="text-sm text-green-600 mt-1">
-                            You already have a property listed with YakRooms. 
+                            You already have a property listed with EzeeRoom. 
                             Manage your property from your dashboard.
                           </p>
                         </div>
@@ -251,7 +251,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
             <Separator />
             <div className="space-y-4">
               <p className="text-muted-foreground">
-                Why property owners choose YakRooms
+                Why property owners choose EzeeRoom
               </p>
               <div className="flex flex-wrap justify-center gap-2">
                 {[
