@@ -72,7 +72,7 @@ const QRCodeGenerator = ({ isOpen, onClose, bookingData }) => {
     if (!qrCodeUrl) return;
     
     const link = document.createElement('a');
-    link.download = `yakrooms-booking-${bookingData.id || 'qrcode'}.png`;
+    link.download = `ezeeroom-booking-${bookingData.id || 'qrcode'}.png`;
     link.href = qrCodeUrl;
     document.body.appendChild(link);
     link.click();

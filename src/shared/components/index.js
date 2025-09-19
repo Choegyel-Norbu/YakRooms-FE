@@ -43,7 +43,6 @@ export { default as YakRoomsText } from './YakRoomsText';
 export { default as EzeeRoomLogo } from './EzeeRoomLogo';
 
 // Loader Components
-export { default as YakRoomsLoader } from './YakRoomsLoader';
 export { default as SimpleSpinner } from './SimpleSpinner';
 
 // Other Shared Components

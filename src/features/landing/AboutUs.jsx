@@ -60,7 +60,7 @@ const AboutUs = () => {
                 </Button>
               </div>
               
-              {/* YakRooms Title - Centered */}
+              {/* EzeeRoom Title - Centered */}
               <div className="flex justify-center">
                 <div className="text-center">
                   <EzeeRoomLogo size="large" />
@@ -78,7 +78,7 @@ const AboutUs = () => {
 
       {/* Hero Section */}
       <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 space-y-12">
-        {/* Why YakRooms */}
+        {/* Why EzeeRoom */}
         <section>
           {/* <h2 className="hidden md:block text-2xl font-bold font-heading mb-6 text-center">About us</h2> */}
           <div className="grid md:grid-cols-3 gap-6">
@@ -184,7 +184,7 @@ const AboutUs = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Every hotel on YakRooms is personally verified to ensure quality, 
+                  Every hotel on EzeeRoom is personally verified to ensure quality, 
                   authenticity, and the best experience for our users.
                 </p>
               </CardContent>
@@ -232,13 +232,13 @@ const AboutUs = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                YakRooms is more than a booking platform—it's a community initiative to 
+                EzeeRoom is more than a booking platform—it's a community initiative to 
                 showcase Bhutan's hospitality to the world. We envision a future where 
                 every hotel in Bhutan, from luxury resorts to family-run guesthouses, 
                 can thrive in the digital age.
               </p>
               <p className="text-sm text-muted-foreground">
-                By choosing YakRooms, you're supporting local businesses and contributing 
+                By choosing EzeeRoom, you're supporting local businesses and contributing 
                 to sustainable tourism development in Bhutan.
               </p>
             </CardContent>
@@ -255,7 +255,7 @@ const AboutUs = () => {
             </Badge>
             <h2 className="text-2xl font-bold font-heading">Built by Bhutanese Developers</h2>
             <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-              YakRooms is crafted with care by a team of passionate Bhutanese developers 
+              EzeeRoom is crafted with care by a team of passionate Bhutanese developers 
               who understand the unique needs of our country's hospitality sector. We combine 
               local insights with global technology standards to create a platform that truly 
               serves our community.
@@ -285,8 +285,8 @@ const AboutUs = () => {
               <div className="space-y-2">
                 <p className="text-sm">
                   <strong>Email:</strong>{' '}
-                  <a href="mailto:info@yakrooms.com" className="text-primary hover:underline">
-                    info@yakrooms.com
+                  <a href="mailto:info@ezeeroom.com" className="text-primary hover:underline">
+                    info@ezeeroom.com
                   </a>
                 </p>
                 <p className="text-sm">
@@ -309,7 +309,7 @@ const AboutUs = () => {
             Ready to Discover Bhutan's Best Hotels?
           </h2>
           <p className="text-sm text-muted-foreground mb-8 max-w-md mx-auto">
-            Start your journey with YakRooms and experience the warmth of Bhutanese 
+            Start your journey with EzeeRoom and experience the warmth of Bhutanese 
             hospitality like never before.
           </p>
           <Button size="lg" asChild>

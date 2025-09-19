@@ -305,7 +305,7 @@ const HotelListingPage = () => {
           setAppState(prev => ({
             ...prev,
             hotels: [],
-            loading: true, // Keep loading to show YakRoomsLoader
+            loading: true, // Keep loading state
           }));
         }
         

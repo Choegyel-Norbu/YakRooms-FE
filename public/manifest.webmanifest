@@ -1,7 +1,7 @@
 {
-    "name": "YakRooms",
-    "short_name": "YakRooms",
-    "description": "Discover Authentic Stays in Bhutan with YakRooms - Your convenient way to book locally",
+    "name": "EzeeRoom",
+    "short_name": "EzeeRoom",
+    "description": "Discover Authentic Stays in Bhutan with EzeeRoom - Your convenient way to book locally",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
@@ -11,7 +11,7 @@
     "lang": "en",
     "categories": ["travel", "lifestyle", "business"],
     "display_override": ["window-controls-overlay", "standalone", "browser"],
-    "id": "yakrooms-app",
+    "id": "ezee-room-app",
     "edge_side_panel": {
       "preferred_width": 400
     },
@@ -19,7 +19,7 @@
     "prefer_related_applications": false,
     "protocol_handlers": [
       {
-        "protocol": "web+yakrooms",
+        "protocol": "web+ezee-room",
         "url": "/?action=open&url=%s"
       }
     ],
