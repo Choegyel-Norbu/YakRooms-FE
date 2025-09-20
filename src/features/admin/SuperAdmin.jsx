@@ -78,6 +78,17 @@ const SuperAdmin = () => {
     totalElements: 0,
   });
 
+  // All notifications states
+  const [allNotifications, setAllNotifications] = useState([]);
+  const [loadingAllNotifications, setLoadingAllNotifications] = useState(false);
+  const [clearingNotifications, setClearingNotifications] = useState(false);
+  const [allNotificationsPagination, setAllNotificationsPagination] = useState({
+    pageNumber: 0,
+    pageSize: 10,
+    totalPages: 1,
+    totalElements: 0,
+  });
+
   const [pagination, setPagination] = useState({
     pageNumber: 0,
     pageSize: 10,
@@ -125,6 +136,39 @@ const SuperAdmin = () => {
 
     fetchNotifications();
   }, []);
+
+  // Fetch all notifications
+  useEffect(() => {
+    const fetchAllNotifications = async () => {
+      try {
+        setLoadingAllNotifications(true);
+        const params = {
+          page: allNotificationsPagination.pageNumber,
+          size: allNotificationsPagination.pageSize,
+          sortBy: "createdAt",
+          sortDir: "desc",
+        };
+
+        const response = await api.get("/notifications/admin/all", { params });
+        
+        console.log("[DEBUG] All notifications API response:", response.data);
+        
+        setAllNotifications(response.data.content || []);
+        setAllNotificationsPagination((prev) => ({
+          ...prev,
+          totalPages: response.data.totalPages || 1,
+          totalElements: response.data.totalElements || 0,
+        }));
+      } catch (err) {
+        console.error("Error fetching all notifications:", err);
+        toast.error("Failed to fetch notifications");
+      } finally {
+        setLoadingAllNotifications(false);
+      }
+    };
+
+    fetchAllNotifications();
+  }, [allNotificationsPagination.pageNumber]);
 
   // Fetch hotel deletion requests
   useEffect(() => {
@@ -336,6 +380,52 @@ const SuperAdmin = () => {
   // Handle deletion requests pagination
   const handleDeletionRequestsPageChange = (newPage) => {
     setDeletionRequestsPagination((prev) => ({ ...prev, pageNumber: newPage }));
+  };
+
+  // Handle all notifications pagination
+  const handleAllNotificationsPageChange = (newPage) => {
+    setAllNotificationsPagination((prev) => ({ ...prev, pageNumber: newPage }));
+  };
+
+  // Handle clearing all read notifications
+  const handleClearReadNotifications = async () => {
+    setClearingNotifications(true);
+    try {
+      const response = await api.delete("/notifications/admin/delete-read");
+      
+      if (response.status === 200) {
+        toast.success("Read Notifications Cleared", {
+          description: "All read notifications have been successfully deleted.",
+          icon: <Trash2 className="text-green-600" />,
+          duration: 4000,
+        });
+
+        // Refresh the notifications list
+        const params = {
+          page: allNotificationsPagination.pageNumber,
+          size: allNotificationsPagination.pageSize,
+          sortBy: "createdAt",
+          sortDir: "desc",
+        };
+
+        const refreshResponse = await api.get("/notifications/admin/all", { params });
+        setAllNotifications(refreshResponse.data.content || []);
+        setAllNotificationsPagination((prev) => ({
+          ...prev,
+          totalPages: refreshResponse.data.totalPages || 1,
+          totalElements: refreshResponse.data.totalElements || 0,
+        }));
+      }
+    } catch (err) {
+      console.error("Error clearing read notifications:", err);
+      toast.error("Failed to Clear Notifications", {
+        description: "There was an error clearing read notifications. Please try again.",
+        icon: <XCircle className="text-red-600" />,
+        duration: 4000,
+      });
+    } finally {
+      setClearingNotifications(false);
+    }
   };
 
   // Handle hotel deletion approval
@@ -880,6 +970,244 @@ const SuperAdmin = () => {
     );
   };
 
+  const AllNotificationsPaginationControls = () => {
+    const handlePrevious = () => {
+      if (allNotificationsPagination.pageNumber > 0) {
+        handleAllNotificationsPageChange(allNotificationsPagination.pageNumber - 1);
+      }
+    };
+
+    const handleNext = () => {
+      if (allNotificationsPagination.pageNumber < allNotificationsPagination.totalPages - 1) {
+        handleAllNotificationsPageChange(allNotificationsPagination.pageNumber + 1);
+      }
+    };
+
+    return (
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex-1 flex justify-between md:hidden">
+          <Button
+            onClick={handlePrevious}
+            disabled={allNotificationsPagination.pageNumber === 0}
+            variant="outline"
+          >
+            Previous
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={allNotificationsPagination.pageNumber === allNotificationsPagination.totalPages - 1}
+            variant="outline"
+          >
+            Next
+          </Button>
+        </div>
+        <div className="hidden md:flex flex-1 items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Page{" "}
+              <span className="font-medium">{allNotificationsPagination.pageNumber + 1}</span>{" "}
+              of <span className="font-medium">{allNotificationsPagination.totalPages}</span>
+            </p>
+          </div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={handlePrevious}
+                disabled={allNotificationsPagination.pageNumber === 0}
+              >
+                <span className="sr-only">Go to previous page</span>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: allNotificationsPagination.totalPages }, (_, i) => (
+                <Button
+                  key={i}
+                  variant={allNotificationsPagination.pageNumber === i ? "default" : "outline"}
+                  className="h-8 w-8 p-0"
+                  onClick={() => handleAllNotificationsPageChange(i)}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={handleNext}
+                disabled={allNotificationsPagination.pageNumber === allNotificationsPagination.totalPages - 1}
+              >
+                <span className="sr-only">Go to next page</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const AllNotificationsTable = () => {
+    const getNotificationTypeColor = (type) => {
+      switch (type) {
+        case "BOOKING_CREATED":
+          return "bg-green-100 text-green-800 border-green-200";
+        case "BOOKING_CANCELLATION_REQUEST":
+          return "bg-orange-100 text-orange-800 border-orange-200";
+        case "HOTEL_DELETION_REQUEST":
+          return "bg-red-100 text-red-800 border-red-200";
+        default:
+          return "bg-blue-100 text-blue-800 border-blue-200";
+      }
+    };
+
+    const getNotificationTypeIcon = (type) => {
+      switch (type) {
+        case "BOOKING_CREATED":
+          return <CheckCircle className="h-4 w-4" />;
+        case "BOOKING_CANCELLATION_REQUEST":
+          return <XCircle className="h-4 w-4" />;
+        case "HOTEL_DELETION_REQUEST":
+          return <Trash2 className="h-4 w-4" />;
+        default:
+          return <Bell className="h-4 w-4" />;
+      }
+    };
+
+    const formatNotificationType = (type) => {
+      return type.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+    };
+
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5 text-blue-500" />
+                All Notifications
+              </CardTitle>
+              <CardDescription>
+                Complete overview of all system notifications
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              {allNotifications.length > 0 && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={clearingNotifications}
+                      className="flex items-center gap-2"
+                    >
+                      {clearingNotifications ? "Clearing..." : "Clear"}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="flex items-center gap-2">
+                        <Trash2 className="h-5 w-5 text-red-500" />
+                        Clear Notifications
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete all read notifications? This action cannot be undone.
+                        Only notifications marked as "Read" will be deleted, unread notifications will remain.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleClearReadNotifications}
+                        className="bg-red-600 hover:bg-red-700"
+                        disabled={clearingNotifications}
+                      >
+                        {clearingNotifications ? "Clearing..." : "Clear Notifications"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loadingAllNotifications ? (
+            <div className="flex justify-center items-center py-8">
+              <SimpleSpinner size={24} text="Loading notifications..." />
+            </div>
+          ) : allNotifications.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No notifications found</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Message</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allNotifications.map((notification) => (
+                  <TableRow 
+                    key={notification.id}
+                    className={!notification.isRead ? "bg-blue-50/30" : ""}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant="outline" 
+                          className={`${getNotificationTypeColor(notification.type)} flex items-center gap-1`}
+                        >
+                          {getNotificationTypeIcon(notification.type)}
+                          {formatNotificationType(notification.type)}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs">
+                        <p className="text-sm font-medium line-clamp-2">
+                          {notification.title}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-md">
+                        <p className="text-sm text-muted-foreground line-clamp-3">
+                          {notification.message}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <p className="font-medium">
+                          {format(new Date(notification.createdAt), "dd MMM yyyy")}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {format(new Date(notification.createdAt), "HH:mm")}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={notification.isRead ? "secondary" : "default"}>
+                        {notification.isRead ? "Read" : "Unread"}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+        {allNotifications.length > 0 && <AllNotificationsPaginationControls />}
+      </Card>
+    );
+  };
+
   const HotelDeletionRequestsTable = () => {
     console.log("[DEBUG] HotelDeletionRequestsTable render - deletionRequests:", deletionRequests);
     console.log("[DEBUG] HotelDeletionRequestsTable render - loadingDeletionRequests:", loadingDeletionRequests);
@@ -1297,6 +1625,9 @@ const SuperAdmin = () => {
             <PaginationControls />
           </>
         )}
+
+        {/* All Notifications Section - Bottom Most */}
+        <AllNotificationsTable />
 
         {/* Hotel Details Modal */}
         <HotelDetailsModal />
