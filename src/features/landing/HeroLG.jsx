@@ -83,12 +83,12 @@ const HeroLG = () => {
 
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl text-white">
             Discover Authentic Stays in
-            <span className="block text-yellow-400">Bhutan with YakRooms</span>
+            <span className="block text-yellow-400">Bhutan with EzeeRoom</span>
           </h1>
 
           <p className="mx-auto max-w-2xl text-14 text-white/90 sm:text-xl">
-            Your convenient way to book locally. Discover hotels
-            in Bhutan with just a few taps.
+            Find your perfect stay anywhere in the country. 
+            Discover authentic accommodations in unfamiliar destinations with confidence and ease.
           </p>
         </div>
 

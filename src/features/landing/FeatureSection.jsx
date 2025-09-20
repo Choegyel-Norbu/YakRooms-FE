@@ -47,8 +47,9 @@ const FeatureSection = () => {
                   </h2>
                   
                   <p className="text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                    Join thousands of travelers who trust YakRooms for authentic Bhutanese experiences. 
-                    From the majestic Himalayas to vibrant local culture, your perfect stay awaits!
+                    Discover the perfect accommodation wherever your journey takes you. 
+                    EzeeRoom connects you with authentic stays and comfortable rooms in unfamiliar destinations, 
+                    making every adventure feel like home.
                   </p>
                 </div>
 

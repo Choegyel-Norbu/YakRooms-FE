@@ -225,7 +225,7 @@ const RoomImageCarousel = ({ images, roomNumber, roomType }) => {
               variant="secondary"
               size="icon"
               onClick={prevImage}
-              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-background/90 hover:bg-background h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
+              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-background/60 hover:bg-background/80 h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -233,7 +233,7 @@ const RoomImageCarousel = ({ images, roomNumber, roomType }) => {
               variant="secondary"
               size="icon"
               onClick={nextImage}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-background/90 hover:bg-background h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-background/60 hover:bg-background/80 h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -309,7 +309,7 @@ const RoomImageCarousel = ({ images, roomNumber, roomType }) => {
                     variant="secondary"
                     size="icon"
                     onClick={prevImage}
-                    className="rounded-full bg-background/90 hover:bg-background h-10 w-10"
+                    className="rounded-full bg-background/60 hover:bg-background/80 h-10 w-10"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </Button>
@@ -317,7 +317,7 @@ const RoomImageCarousel = ({ images, roomNumber, roomType }) => {
                     variant="secondary"
                     size="icon"
                     onClick={nextImage}
-                    className="rounded-full bg-background/90 hover:bg-background h-10 w-10"
+                    className="rounded-full bg-background/60 hover:bg-background/80 h-10 w-10"
                   >
                     <ChevronRight className="h-5 w-5" />
                   </Button>
@@ -810,7 +810,7 @@ const HotelDetailsPage = () => {
                   variant="secondary"
                   size="icon"
                   onClick={prevImage}
-                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 rounded-full bg-background/80 hover:bg-background h-8 w-8 sm:h-10 sm:w-10"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 rounded-full bg-background/60 hover:bg-background/80 h-8 w-8 sm:h-10 sm:w-10"
                 >
                   <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
                 </Button>
@@ -818,7 +818,7 @@ const HotelDetailsPage = () => {
                   variant="secondary"
                   size="icon"
                   onClick={nextImage}
-                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 rounded-full bg-background/80 hover:bg-background h-8 w-8 sm:h-10 sm:w-10"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 rounded-full bg-background/60 hover:bg-background/80 h-8 w-8 sm:h-10 sm:w-10"
                 >
                   <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
                 </Button>

@@ -271,7 +271,7 @@ const HotelListingPage = () => {
         if (lastRequestRef.current?.fetchKey === fetchKey) {
           // Handle new nested response structure
           const hotelsData = response.data.content?.[0]?.content || response.data.content || [];
-          const pageData = response.data.page || response.data;
+          const pageData = response.data.content?.[0] || response.data.page || response.data;
           
           setAppState(prev => ({
             ...prev,
@@ -280,8 +280,8 @@ const HotelListingPage = () => {
           }));
 
           setPagination({
-            page: pageData.pageable?.pageNumber || pageData.number || 0,
-            size: pageData.size || 6,
+            page: pageData.pageNumber || pageData.pageable?.pageNumber || pageData.number || 0,
+            size: pageData.pageSize || pageData.size || 6,
             totalPages: pageData.totalPages || 1,
             totalElements: pageData.totalElements || 0,
           });

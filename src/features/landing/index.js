@@ -14,7 +14,6 @@ export { default as CTASection } from './CTASection';
 export { default as GetInTouch } from './GetInTouch';
 
 // Landing Page Pages
-export { default as About } from './About';
 export { default as AboutUs } from './AboutUs';
 export { default as ContactUs } from './ContactUs';
 export { default as PortfolioPage } from './PortfolioPage';

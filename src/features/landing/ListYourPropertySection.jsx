@@ -70,7 +70,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
           <div className="text-center mb-12 space-y-4">
             <Badge variant="secondary" className="px-4 py-2">
               <Sparkles className="w-4 h-4 mr-2" />
-              Partner Program
+              Become a host
             </Badge>
             <h2 className="text-3xl md:text-3xl font-bold tracking-tight">
               Partner with{" "}
@@ -79,10 +79,10 @@ const ListYourPropertySection = ({ onLoginClick }) => {
               </span>
               & Grow Your Business
             </h2>
-            <p className="text-md text-muted-foreground max-w-3xl mx-auto">
-              Join our network of hotels, homestays, and restaurants. Reach more
+            <p className="text-sm text-muted-foreground max-w-3xl mx-auto">
+              Join our network of hotels and homestays. Reach more
               travelers, manage your bookings with ease, and become part of
-              Bhutan's leading hospitality platform.
+              Bhutan's hospitality platform.
             </p>
           </div>
 
@@ -144,7 +144,6 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                     </CardTitle>
                     <CardDescription className="text-sm">
                       List your property in minutes and start receiving bookings today. 
-                      Our team will guide you through the entire process.
                     </CardDescription>
                   </div>
                 </CardHeader>

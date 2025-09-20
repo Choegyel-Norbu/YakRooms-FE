@@ -2,7 +2,6 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../features/authentication";
 import { Landing } from "../features/landing";
-import { About } from "../features/landing";
 import { AboutUs, ContactUs } from "../features/landing";
 import { HotelListingPage } from "../features/hotel";
 import { HotelDetailsPage } from "../features/hotel";

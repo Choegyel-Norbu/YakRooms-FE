@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/shared/components/card';
 import { Button } from '@/shared/components/button';
 import { Separator } from '@/shared/components/separator';
-import { ArrowLeft, Shield, Lock, Eye, Database, UserCheck, Globe, Mail } from 'lucide-react';
+import { ArrowLeft, Shield } from 'lucide-react';
 
 const PrivacyPolicy = () => {
   const lastUpdated = "December 15, 2024";
@@ -84,7 +84,7 @@ const PrivacyPolicy = () => {
           <div className="space-y-6">
             <div>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                At YakRooms, we are committed to protecting your privacy and ensuring the security of your personal information. 
+                At EzeeRoom, we are committed to protecting your privacy and ensuring the security of your personal information. 
                 This Privacy & Security Policy explains how we collect, use, and safeguard your data when you use our hotel 
                 booking platform.
               </p>
@@ -112,10 +112,7 @@ const PrivacyPolicy = () => {
 
             {/* Section 1: Information We Collect */}
             <section id="information-we-collect" className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Database className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-heading font-semibold">1. Information We Collect</h2>
-              </div>
+              <h2 className="text-lg font-heading font-semibold">1. Information We Collect</h2>
               
               <div className="space-y-3 text-muted-foreground">
                 <p className="text-sm">We collect information you provide directly to us, including:</p>
@@ -123,36 +120,19 @@ const PrivacyPolicy = () => {
                 <div className="ml-4 space-y-1.5">
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
-                    <span><strong>Account Information:</strong> Name, email address, phone number, and password when you create an account</span>
+                    <span><strong>Account Information:</strong> Name and email address when you create an account</span>
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
-                    <span><strong>Booking Information:</strong> Guest details, check-in/check-out dates, room preferences, and special requests</span>
+                    <span><strong>Booking Information:</strong> Guest details, check-in/check-out dates, room preferences, cid, phone number, origin and destination</span>
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
-                    <span><strong>Payment Information:</strong> Credit/debit card details (processed securely through our payment partners)</span>
+                    <span><strong>Payment Information:</strong> Credit/debit card details processed securely through RMA Payment Gateway</span>
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
                     <span><strong>Communication Data:</strong> Messages, reviews, and feedback you provide</span>
-                  </p>
-                </div>
-
-                <p className="mt-3 text-sm">We also automatically collect certain information when you use our platform:</p>
-                
-                <div className="ml-4 space-y-1.5">
-                  <p className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span>Device information (browser type, operating system)</span>
-                  </p>
-                  <p className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span>IP address and location data</span>
-                  </p>
-                  <p className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span>Usage data (pages visited, features used, search queries)</span>
                   </p>
                 </div>
               </div>
@@ -162,10 +142,7 @@ const PrivacyPolicy = () => {
 
             {/* Section 2: How We Use Your Information */}
             <section id="how-we-use-information" className="space-y-3">
-              <div className="flex items-center gap-2">
-                <UserCheck className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-heading font-semibold">2. How We Use Your Information</h2>
-              </div>
+              <h2 className="text-lg font-heading font-semibold">2. How We Use Your Information</h2>
               
               <div className="space-y-3 text-muted-foreground">
                 <p className="text-sm">We use the collected information to:</p>
@@ -182,10 +159,6 @@ const PrivacyPolicy = () => {
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
                     <span>Provide customer support and respond to inquiries</span>
-                  </p>
-                  <p className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span>Personalize your experience and recommend suitable accommodations</span>
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
@@ -207,10 +180,7 @@ const PrivacyPolicy = () => {
 
             {/* Section 3: Information Sharing */}
             <section id="information-sharing" className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Globe className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-heading font-semibold">3. Information Sharing</h2>
-              </div>
+              <h2 className="text-lg font-heading font-semibold">3. Information Sharing</h2>
               
               <div className="space-y-3 text-muted-foreground">
                 <p className="text-sm">We share your information only in the following circumstances:</p>
@@ -242,10 +212,7 @@ const PrivacyPolicy = () => {
 
             {/* Section 4: Data Security */}
             <section id="data-security" className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Lock className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-heading font-semibold">4. Data Security</h2>
-              </div>
+              <h2 className="text-lg font-heading font-semibold">4. Data Security</h2>
               
               <div className="space-y-3 text-muted-foreground">
                 <p className="text-sm">We implement industry-standard security measures to protect your information:</p>
@@ -265,18 +232,9 @@ const PrivacyPolicy = () => {
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
-                    <span>Regular employee training on data protection</span>
-                  </p>
-                  <p className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-0.5">•</span>
                     <span>Access controls and authentication mechanisms</span>
                   </p>
                 </div>
-
-                <p className="mt-3 text-sm">
-                  While we strive to protect your information, no method of transmission over the internet is 100% secure. 
-                  We encourage you to use strong passwords and keep your account credentials confidential.
-                </p>
               </div>
             </section>
 
@@ -284,19 +242,12 @@ const PrivacyPolicy = () => {
 
             {/* Section 5: Your Rights */}
             <section id="your-rights" className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Eye className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-heading font-semibold">5. Your Rights</h2>
-              </div>
+              <h2 className="text-lg font-heading font-semibold">5. Your Rights</h2>
               
               <div className="space-y-3 text-muted-foreground">
                 <p className="text-sm">You have the following rights regarding your personal information:</p>
                 
                 <div className="ml-4 space-y-1.5">
-                  <p className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span><strong>Access:</strong> Request a copy of the personal data we hold about you</span>
-                  </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
                     <span><strong>Correction:</strong> Update or correct inaccurate information</span>
@@ -316,7 +267,7 @@ const PrivacyPolicy = () => {
                 </div>
 
                 <p className="mt-3 text-sm">
-                  To exercise these rights, please contact us at privacy@yakrooms.com. We will respond to your request 
+                  To exercise these rights, please contact us at privacy@ezeeroom.com. We will respond to your request 
                   within 30 days.
                 </p>
               </div>
@@ -324,38 +275,6 @@ const PrivacyPolicy = () => {
 
             <Separator />
 
-            {/* Section 6: Cookies and Tracking */}
-            <section id="cookies" className="space-y-3">
-              <h2 className="text-lg font-heading font-semibold">6. Cookies and Tracking</h2>
-              
-              <div className="space-y-3 text-muted-foreground">
-                <p className="text-sm">We use cookies and similar technologies to:</p>
-                
-                <div className="ml-4 space-y-1.5">
-                  <p className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span>Remember your preferences and settings</span>
-                  </p>
-                  <p className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span>Authenticate your account and maintain security</span>
-                  </p>
-                  <p className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span>Analyze usage patterns and improve our services</span>
-                  </p>
-                  <p className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span>Provide personalized recommendations</span>
-                  </p>
-                </div>
-
-                <p className="mt-3 text-sm">
-                  You can manage cookie preferences through your browser settings. Note that disabling certain cookies 
-                  may affect the functionality of our platform.
-                </p>
-              </div>
-            </section>
 
             <Separator />
 
@@ -383,6 +302,10 @@ const PrivacyPolicy = () => {
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
+                    <span>Google Maps service for navigation and location features</span>
+                  </p>
+                  <p className="flex items-start gap-2 text-sm">
+                    <span className="text-primary mt-0.5">•</span>
                     <span>Email service providers for communications</span>
                   </p>
                 </div>
@@ -397,9 +320,8 @@ const PrivacyPolicy = () => {
               
               <div className="space-y-3 text-muted-foreground">
                 <p className="text-sm">
-                  YakRooms is not intended for use by children under 18 years of age. We do not knowingly collect 
-                  personal information from children. If we become aware that we have collected data from a child 
-                  without parental consent, we will take steps to delete that information.
+                  This platform is not intended for users below 18 years of age. EzeeRoom is not responsible 
+                  for any incidents, issues, or consequences that may occur if users under 18 access or use our services.
                 </p>
               </div>
             </section>
@@ -428,10 +350,7 @@ const PrivacyPolicy = () => {
 
             {/* Section 10: Contact Us */}
             <section id="contact" className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Mail className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-heading font-semibold">10. Contact Us</h2>
-              </div>
+              <h2 className="text-lg font-heading font-semibold">10. Contact Us</h2>
               
               <div className="space-y-3 text-muted-foreground">
                 <p className="text-sm">
@@ -440,9 +359,9 @@ const PrivacyPolicy = () => {
                 </p>
 
                 <div className="bg-muted/30 rounded-lg p-3 space-y-1.5">
-                  <p className="text-sm"><strong>Email:</strong> privacy@yakrooms.com</p>
+                  <p className="text-sm"><strong>Email:</strong> privacy@ezeeroom.com</p>
                   <p className="text-sm"><strong>Phone:</strong> +975 17 123 456</p>
-                  <p className="text-sm"><strong>Address:</strong> YakRooms Ltd., Thimphu, Bhutan</p>
+                  <p className="text-sm"><strong>Address:</strong> EzeeRoom Pvt. Ltd., Thimphu, Bhutan</p>
                 </div>
 
                 <p className="text-sm">

@@ -67,7 +67,7 @@ import api from "../../shared/services/Api";
 import { TopHotelBadge } from "../../shared/components";
 import { API_BASE_URL } from "../../shared/services/firebaseConfig";
 import { toast } from "sonner";
-import { YakRoomsText } from "@/shared/components";
+import { EzeeRoomLogo } from "@/shared/components";
 
 const HotelAdminDashboard = () => {
   const navigate = useNavigate();
@@ -158,7 +158,7 @@ const HotelAdminDashboard = () => {
 
       try {
         setLoadingNotifications(true);
-        const response = await api.get(`/notifications/user/${userId}`);
+        const response = await api.get(`/notifications/hotel/${hotelId}/unread`);
         const fetchedNotifications = response.data;
 
         // Filter notifications to show BOOKING_CREATED and BOOKING_CANCELLATION_REQUEST types
@@ -368,7 +368,7 @@ const HotelAdminDashboard = () => {
         <div className="p-4 lg:p-5 border-b">
           <div className="flex items-center gap-2 lg:gap-3 mb-3">
             <div>
-              <YakRoomsText size="default" />
+              <EzeeRoomLogo size="default" />
               <p className="text-xs text-muted-foreground">Admin Panel</p>
             </div>
           </div>
@@ -539,7 +539,7 @@ const HotelAdminDashboard = () => {
                   <SheetHeader className="p-4 border-b">
                     <SheetTitle className="flex items-center gap-3">
                       <div>
-                        <YakRoomsText size="default" />
+                        <EzeeRoomLogo size="default" />
                         <p className="text-xs text-muted-foreground">
                           Admin Panel
                         </p>
@@ -743,7 +743,7 @@ const HotelAdminDashboard = () => {
                           <strong>Top Listed Lodges</strong>! This recognition
                           showcases your exceptional hospitality and service
                           quality. Thank you for being an outstanding partner
-                          with YakRooms.
+                          with EzeeRoom.
                         </p>
                         <div className="mt-3 flex items-center text-xs text-yellow-600 dark:text-yellow-400">
                           <svg
