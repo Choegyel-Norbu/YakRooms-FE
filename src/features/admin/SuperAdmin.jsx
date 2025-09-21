@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import api from "../../shared/services/Api";
-import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft, Eye, X, MapPin, Phone, Mail, Globe, Calendar, Star, Bell, Trash2 } from "lucide-react";
+import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft, Eye, X, MapPin, Phone, Mail, Globe, Calendar, Star, Bell, Trash2, Download } from "lucide-react";
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
 import { Link } from "react-router-dom";
@@ -51,6 +51,8 @@ import { Label } from "@/shared/components/label";
 import { toast } from "sonner";
 import SimpleSpinner from "@/shared/components/SimpleSpinner";
 import { SearchButton } from "@/shared/components";
+import { exportToExcel } from "@/shared/utils/utils";
+import * as XLSX from "xlsx";
 
 const SuperAdmin = () => {
   const [hotels, setHotels] = useState([]);
@@ -82,6 +84,7 @@ const SuperAdmin = () => {
   const [allNotifications, setAllNotifications] = useState([]);
   const [loadingAllNotifications, setLoadingAllNotifications] = useState(false);
   const [clearingNotifications, setClearingNotifications] = useState(false);
+  const [exportingNotifications, setExportingNotifications] = useState(false);
   const [allNotificationsPagination, setAllNotificationsPagination] = useState({
     pageNumber: 0,
     pageSize: 10,
@@ -425,6 +428,140 @@ const SuperAdmin = () => {
       });
     } finally {
       setClearingNotifications(false);
+    }
+  };
+
+  // Handle exporting notifications to Excel
+  const handleExportNotifications = async () => {
+    if (allNotifications.length === 0) {
+      toast.warning("No notifications to export", {
+        description: "There are no notifications available to export.",
+        icon: <Bell className="text-yellow-600" />,
+        duration: 4000,
+      });
+      return;
+    }
+
+    setExportingNotifications(true);
+    try {
+      // Format notification data for Excel export
+      const excelData = allNotifications.map((notification, index) => ({
+        "S.No": index + 1,
+        "Type": notification.type.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+        "Title": notification.title || "N/A",
+        "Message": notification.message || "N/A",
+        "Date": format(new Date(notification.createdAt), "dd MMM yyyy"),
+        "Time": format(new Date(notification.createdAt), "HH:mm"),
+        "Status": notification.isRead ? "Read" : "Unread",
+        "Created At": format(new Date(notification.createdAt), "dd MMM yyyy, HH:mm"),
+      }));
+
+      // Add summary statistics
+      const totalNotifications = allNotifications.length;
+      const readNotifications = allNotifications.filter(n => n.isRead).length;
+      const unreadNotifications = totalNotifications - readNotifications;
+      
+      // Group by notification type
+      const typeGroups = allNotifications.reduce((acc, notification) => {
+        const type = notification.type.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+      }, {});
+
+      // Add empty row and summary
+      excelData.push({});
+      excelData.push({
+        "S.No": "",
+        "Type": "SUMMARY STATISTICS",
+        "Title": "",
+        "Message": "",
+        "Date": "",
+        "Time": "",
+        "Status": "",
+        "Created At": "",
+      });
+      excelData.push({
+        "S.No": "",
+        "Type": "Total Notifications",
+        "Title": "",
+        "Message": "",
+        "Date": "",
+        "Time": "",
+        "Status": "",
+        "Created At": totalNotifications.toString(),
+      });
+      excelData.push({
+        "S.No": "",
+        "Type": "Read Notifications",
+        "Title": "",
+        "Message": "",
+        "Date": "",
+        "Time": "",
+        "Status": "",
+        "Created At": readNotifications.toString(),
+      });
+      excelData.push({
+        "S.No": "",
+        "Type": "Unread Notifications",
+        "Title": "",
+        "Message": "",
+        "Date": "",
+        "Time": "",
+        "Status": "",
+        "Created At": unreadNotifications.toString(),
+      });
+
+      // Add notification type breakdown
+      Object.entries(typeGroups).forEach(([type, count]) => {
+        excelData.push({
+          "S.No": "",
+          "Type": `${type} Count`,
+          "Title": "",
+          "Message": "",
+          "Date": "",
+          "Time": "",
+          "Status": "",
+          "Created At": count.toString(),
+        });
+      });
+
+      // Use the existing exportToExcel utility
+      const result = exportToExcel(
+        excelData,
+        `notifications-export-${format(new Date(), "yyyy-MM-dd")}`,
+        "Notifications",
+        {
+          columnWidths: [
+            { wch: 8 },   // S.No
+            { wch: 25 },  // Type
+            { wch: 30 },  // Title
+            { wch: 50 },  // Message
+            { wch: 12 },  // Date
+            { wch: 8 },   // Time
+            { wch: 12 },  // Status
+            { wch: 20 },  // Created At
+          ]
+        }
+      );
+
+      if (result.success) {
+        toast.success("Notifications Exported Successfully", {
+          description: `Excel file with ${totalNotifications} notifications has been downloaded.`,
+          icon: <CheckCircle className="text-green-600" />,
+          duration: 5000,
+        });
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (err) {
+      console.error("Error exporting notifications:", err);
+      toast.error("Export Failed", {
+        description: "There was an error exporting notifications. Please try again.",
+        icon: <XCircle className="text-red-600" />,
+        duration: 4000,
+      });
+    } finally {
+      setExportingNotifications(false);
     }
   };
 
@@ -1092,40 +1229,61 @@ const SuperAdmin = () => {
             </div>
             <div className="flex items-center gap-2">
               {allNotifications.length > 0 && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={clearingNotifications}
-                      className="flex items-center gap-2"
-                    >
-                      {clearingNotifications ? "Clearing..." : "Clear"}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="flex items-center gap-2">
-                        <Trash2 className="h-5 w-5 text-red-500" />
-                        Clear Notifications
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete all read notifications? This action cannot be undone.
-                        Only notifications marked as "Read" will be deleted, unread notifications will remain.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleClearReadNotifications}
-                        className="bg-red-600 hover:bg-red-700"
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportNotifications}
+                    disabled={exportingNotifications}
+                    className="flex items-center gap-2"
+                  >
+                    {exportingNotifications ? (
+                      <>
+                        <SimpleSpinner size={16} />
+                        Exporting...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4" />
+                        Export Excel
+                      </>
+                    )}
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         disabled={clearingNotifications}
+                        className="flex items-center gap-2"
                       >
-                        {clearingNotifications ? "Clearing..." : "Clear Notifications"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                        {clearingNotifications ? "Clearing..." : "Clear"}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                          <Trash2 className="h-5 w-5 text-red-500" />
+                          Clear Notifications
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete all read notifications? This action cannot be undone.
+                          Only notifications marked as "Read" will be deleted, unread notifications will remain.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleClearReadNotifications}
+                          className="bg-red-600 hover:bg-red-700"
+                          disabled={clearingNotifications}
+                        >
+                          {clearingNotifications ? "Clearing..." : "Clear Notifications"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
               )}
             </div>
           </div>

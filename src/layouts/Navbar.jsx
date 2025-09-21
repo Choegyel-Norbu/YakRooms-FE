@@ -508,8 +508,8 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           ? "translate-y-0 opacity-100" 
           : "-translate-y-full opacity-0",
         isScrolled
-          ? "bg-background/80 shadow-md backdrop-blur-sm"
-          : "bg-background/95"
+          ? "bg-white shadow-md"
+          : "bg-white"
       )}
       style={{
         transform: "translateZ(0)",

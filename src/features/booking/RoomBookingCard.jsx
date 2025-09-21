@@ -143,6 +143,21 @@ export default function RoomBookingCard({ room, hotelId }) {
     return false;
   };
 
+  // Helper function to check if the next day after check-in date is booked
+  const isNextDayBooked = (checkInDateString) => {
+    if (!checkInDateString || bookedDates.length === 0) return false;
+    
+    const checkInDate = new Date(checkInDateString);
+    const nextDay = new Date(checkInDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    
+    const nextDayString = nextDay.getFullYear() + '-' + 
+      String(nextDay.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(nextDay.getDate()).padStart(2, '0');
+    
+    return bookedDates.includes(nextDayString);
+  };
+
   // Get minimum date for check-out (must be after check-in)
   const getMinCheckOutDate = () => {
     if (!bookingDetails.checkInDate) {
@@ -161,7 +176,19 @@ export default function RoomBookingCard({ room, hotelId }) {
 
   // Check if checkout date picker should be hidden
   const shouldHideCheckoutDate = () => {
-    return bookingDetails.checkInDate && isDateBetweenBookedDates(bookingDetails.checkInDate);
+    if (!bookingDetails.checkInDate) return false;
+    
+    // Hide if check-in date is between two booked dates
+    if (isDateBetweenBookedDates(bookingDetails.checkInDate)) {
+      return true;
+    }
+    
+    // Hide if the next day after check-in is already booked
+    if (isNextDayBooked(bookingDetails.checkInDate)) {
+      return true;
+    }
+    
+    return false;
   };
 
 
@@ -173,6 +200,11 @@ export default function RoomBookingCard({ room, hotelId }) {
     
     // If check-in date is between booked dates, it's a single night stay
     if (isDateBetweenBookedDates(bookingDetails.checkInDate)) {
+      return 1;
+    }
+    
+    // If the next day after check-in is booked, it's a single night stay
+    if (isNextDayBooked(bookingDetails.checkInDate)) {
       return 1;
     }
     
@@ -437,6 +469,19 @@ export default function RoomBookingCard({ room, hotelId }) {
         newDetails.checkOutDate = checkOutDateString;
       }
       
+      // If selecting check-in date and the next day is booked, set checkout to next day
+      if (name === "checkInDate" && dateValue && isNextDayBooked(dateValue)) {
+        const checkInDate = new Date(dateValue);
+        const checkOutDate = new Date(checkInDate);
+        checkOutDate.setDate(checkOutDate.getDate() + 1);
+        
+        const checkOutDateString = checkOutDate.getFullYear() + '-' + 
+          String(checkOutDate.getMonth() + 1).padStart(2, '0') + '-' + 
+          String(checkOutDate.getDate()).padStart(2, '0');
+        
+        newDetails.checkOutDate = checkOutDateString;
+      }
+      
       return newDetails;
     });
     
@@ -448,8 +493,8 @@ export default function RoomBookingCard({ room, hotelId }) {
       }));
     }
     
-    // Clear checkout date error if check-in is between booked dates
-    if (name === "checkInDate" && dateValue && isDateBetweenBookedDates(dateValue)) {
+    // Clear checkout date error if check-in is between booked dates or next day is booked
+    if (name === "checkInDate" && dateValue && (isDateBetweenBookedDates(dateValue) || isNextDayBooked(dateValue))) {
       setErrors((prev) => ({
         ...prev,
         checkOutDate: undefined
@@ -468,8 +513,8 @@ export default function RoomBookingCard({ room, hotelId }) {
         }));
       }
       
-      // Also validate checkout if it exists and check-in is not between booked dates
-      if (bookingDetails.checkOutDate && !isDateBetweenBookedDates(dateValue)) {
+      // Also validate checkout if it exists and check-in is not between booked dates or next day is not booked
+      if (bookingDetails.checkOutDate && !isDateBetweenBookedDates(dateValue) && !isNextDayBooked(dateValue)) {
         const checkOutDate = new Date(bookingDetails.checkOutDate);
         if (checkOutDate <= date) {
           setErrors((prev) => ({
@@ -1075,7 +1120,12 @@ export default function RoomBookingCard({ room, hotelId }) {
                         <div className="text-sm">
                           <p className="font-medium text-blue-800">Single Night Stay</p>
                           <p className="text-blue-700 mt-1">
-                            This date is available for one night only. Checkout date is automatically set to {bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate).toLocaleDateString() : 'the next day'}.
+                            {isDateBetweenBookedDates(bookingDetails.checkInDate) 
+                              ? `This date is available for one night only as it falls between existing bookings. Checkout date is automatically set to ${bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate).toLocaleDateString() : 'the next day'}.`
+                              : isNextDayBooked(bookingDetails.checkInDate)
+                              ? `The next day (${bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate).toLocaleDateString() : 'tomorrow'}) is already booked, so this will be a single night stay. You have to checkout tomorrow.`
+                              : `This date is available for one night only. Checkout date is automatically set to ${bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate).toLocaleDateString() : 'the next day'}.`
+                            }
                           </p>
                         </div>
                       </div>

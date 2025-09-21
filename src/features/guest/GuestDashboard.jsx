@@ -1671,11 +1671,6 @@ const GuestDashboard = () => {
     }
   };
 
-  // Clear all notifications
-  const clearAllNotifications = async () => {
-    await deleteAllNotifications();
-    setShowNotifications(false);
-  };
 
   // Handle page change
   const handlePageChange = (newPage) => {
@@ -1835,16 +1830,6 @@ const GuestDashboard = () => {
                         <h3 className="font-semibold text-foreground text-sm sm:text-base">
                           Notifications
                         </h3>
-                        {notifications.length > 0 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-xs text-muted-foreground hover:text-foreground h-7 px-2"
-                            onClick={clearAllNotifications}
-                          >
-                            Clear all
-                          </Button>
-                        )}
                       </div>
                     </div>
                     <div className="max-h-64 sm:max-h-96 overflow-y-auto">

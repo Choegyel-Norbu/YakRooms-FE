@@ -99,7 +99,7 @@ const HotelAdminDashboard = () => {
   const [showStaffGrid, setShowStaffGrid] = useState(false);
   const [scannedBookingData, setScannedBookingData] = useState(null);
   const [showScannedBookingModal, setShowScannedBookingModal] = useState(false);
-  const [verificationTab, setVerificationTab] = useState("qr-scanner"); // "qr-scanner" or "passcode"
+  const [verificationTab, setVerificationTab] = useState("passcode"); // "qr-scanner" or "passcode"
   // Simple media query hook for small screens (max-width: 640px)
   const isMobile =
     typeof window !== "undefined"
@@ -255,11 +255,6 @@ const HotelAdminDashboard = () => {
     }
   };
 
-  // Clear all notifications
-  const clearAllNotifications = async () => {
-    await deleteAllNotifications();
-    setShowNotifications(false);
-  };
 
   const updateHotel = (updatedHotel) => {
     setHotel(updatedHotel);
@@ -445,16 +440,6 @@ const HotelAdminDashboard = () => {
                         <h3 className="font-semibold text-foreground text-sm sm:text-base">
                           Notifications
                         </h3>
-                        {notifications.length > 0 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-xs text-muted-foreground hover:text-foreground h-7 px-2"
-                            onClick={clearAllNotifications}
-                          >
-                            Clear all
-                          </Button>
-                        )}
                       </div>
                     </div>
                     <div className="max-h-64 sm:max-h-96 overflow-y-auto">
