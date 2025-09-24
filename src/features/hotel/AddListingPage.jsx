@@ -70,10 +70,12 @@ const AddListingPage = () => {
     origin: "",
     checkinTime: "",
     checkoutTime: "",
+    cancellationPolicy: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
+  const [policySelectionType, setPolicySelectionType] = useState(""); // "predefined" or "custom"
   
   // Geolocation state
   const [locationState, setLocationState] = useState({
@@ -83,6 +85,92 @@ const AddListingPage = () => {
   });
   
   const navigate = useNavigate();
+
+  // Predefined cancellation policy options
+  const cancellationPolicyOptions = [
+    {
+      id: "free_24h",
+      label: "Free cancellation up to 24 hours",
+      description: "Guests can cancel free of charge up to 24 hours before check-in. No refund for cancellations within 24 hours.",
+      refundBreakdown: [
+        { timeframe: "24+ hours before check-in", refund: "100%" },
+        { timeframe: "Within 24 hours", refund: "0%" },
+        { timeframe: "No-show", refund: "0%" }
+      ]
+    },
+    {
+      id: "free_48h",
+      label: "Free cancellation up to 48 hours", 
+      description: "Guests can cancel free of charge up to 48 hours before check-in. No refund for cancellations within 48 hours.",
+      refundBreakdown: [
+        { timeframe: "48+ hours before check-in", refund: "100%" },
+        { timeframe: "Within 48 hours", refund: "0%" },
+        { timeframe: "No-show", refund: "0%" }
+      ]
+    },
+    {
+      id: "free_7days",
+      label: "Free cancellation up to 7 days",
+      description: "Guests can cancel free of charge up to 7 days before check-in. No refund for cancellations within 7 days.",
+      refundBreakdown: [
+        { timeframe: "7+ days before check-in", refund: "100%" },
+        { timeframe: "Within 7 days", refund: "0%" },
+        { timeframe: "No-show", refund: "0%" }
+      ]
+    },
+    {
+      id: "partial_24h",
+      label: "Partial refund within 24 hours",
+      description: "Free cancellation up to 24 hours before check-in. 50% refund for cancellations within 24 hours. No refund for no-shows.",
+      refundBreakdown: [
+        { timeframe: "24+ hours before check-in", refund: "100%" },
+        { timeframe: "Within 24 hours", refund: "50%" },
+        { timeframe: "No-show", refund: "0%" }
+      ]
+    },
+    {
+      id: "partial_48h", 
+      label: "Partial refund within 48 hours",
+      description: "Free cancellation up to 48 hours before check-in. 50% refund for cancellations within 48 hours. No refund for no-shows.",
+      refundBreakdown: [
+        { timeframe: "48+ hours before check-in", refund: "100%" },
+        { timeframe: "Within 48 hours", refund: "50%" },
+        { timeframe: "No-show", refund: "0%" }
+      ]
+    },
+    {
+      id: "graduated_refund",
+      label: "Graduated refund policy",
+      description: "Progressive refund structure: 100% refund 7+ days, 75% refund 3-7 days, 50% refund 1-3 days, 25% refund within 24 hours, 0% for no-shows.",
+      refundBreakdown: [
+        { timeframe: "7+ days before check-in", refund: "100%" },
+        { timeframe: "3-7 days before check-in", refund: "75%" },
+        { timeframe: "1-3 days before check-in", refund: "50%" },
+        { timeframe: "Within 24 hours", refund: "25%" },
+        { timeframe: "No-show", refund: "0%" }
+      ]
+    },
+    {
+      id: "strict_no_refund",
+      label: "Strict - No refund policy",
+      description: "No refunds for any cancellations or no-shows. Full payment required regardless of cancellation timing.",
+      refundBreakdown: [
+        { timeframe: "Any time before check-in", refund: "0%" },
+        { timeframe: "No-show", refund: "0%" }
+      ]
+    },
+    {
+      id: "seasonal_policy",
+      label: "Seasonal policy",
+      description: "Free cancellation up to 7 days before check-in during off-season. No refunds during peak season (Dec-Mar, Jun-Aug).",
+      refundBreakdown: [
+        { timeframe: "Off-season: 7+ days before check-in", refund: "100%" },
+        { timeframe: "Off-season: Within 7 days", refund: "0%" },
+        { timeframe: "Peak season: Any time", refund: "0%" },
+        { timeframe: "No-show", refund: "0%" }
+      ]
+    }
+  ];
 
   const listingTypes = [
     {
@@ -397,6 +485,13 @@ const AddListingPage = () => {
         if (!formData.hotelType) newErrors.hotelType = "Hotel type is required";
         if (!formData.checkinTime) newErrors.checkinTime = "Check-in time is required";
         if (!formData.checkoutTime) newErrors.checkoutTime = "Check-out time is required";
+        if (!policySelectionType) {
+          newErrors.cancellationPolicy = "Please choose how you want to set your cancellation policy";
+        } else if (!formData.cancellationPolicy) {
+          newErrors.cancellationPolicy = policySelectionType === "predefined" 
+            ? "Please select a cancellation policy" 
+            : "Please write your cancellation policy";
+        }
       }
     }
 
@@ -524,7 +619,9 @@ const AddListingPage = () => {
                   roomTypesDescription: "",
                   checkinTime: "",
                   checkoutTime: "",
+                  cancellationPolicy: "",
                 });
+                setPolicySelectionType("");
                 setErrors({});
               }}
               className="w-full"
@@ -1023,6 +1120,198 @@ const AddListingPage = () => {
                         )}
                       </div>
                     </div>
+
+                    <div className="space-y-4 sm:space-y-6">
+                      <Label htmlFor="cancellationPolicy" className="text-sm sm:text-base">
+                        Cancellation Policy <span className="text-destructive">*</span>
+                      </Label>
+                      
+                      {/* Policy Selection Type */}
+                      <div className="space-y-4 sm:space-y-3">
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              id="predefined-policy"
+                              name="policyType"
+                              value="predefined"
+                              checked={policySelectionType === "predefined"}
+                              onChange={(e) => {
+                                setPolicySelectionType(e.target.value);
+                                if (errors.cancellationPolicy) {
+                                  setErrors(prev => {
+                                    const newErrors = { ...prev };
+                                    delete newErrors.cancellationPolicy;
+                                    return newErrors;
+                                  });
+                                }
+                              }}
+                              className="h-4 w-4 text-primary flex-shrink-0"
+                            />
+                            <Label htmlFor="predefined-policy" className="text-sm font-normal cursor-pointer">
+                              Choose from common policies
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              id="custom-policy"
+                              name="policyType"
+                              value="custom"
+                              checked={policySelectionType === "custom"}
+                              onChange={(e) => {
+                                setPolicySelectionType(e.target.value);
+                                if (errors.cancellationPolicy) {
+                                  setErrors(prev => {
+                                    const newErrors = { ...prev };
+                                    delete newErrors.cancellationPolicy;
+                                    return newErrors;
+                                  });
+                                }
+                              }}
+                              className="h-4 w-4 text-primary flex-shrink-0"
+                            />
+                            <Label htmlFor="custom-policy" className="text-sm font-normal cursor-pointer">
+                              Write custom policy
+                            </Label>
+                          </div>
+                        </div>
+
+                        {/* Predefined Policy Selection */}
+                        {policySelectionType === "predefined" && (
+                          <div className="space-y-3">
+                            <Select
+                              value={formData.cancellationPolicy}
+                              onValueChange={(value) => {
+                                const selectedPolicy = cancellationPolicyOptions.find(option => option.id === value);
+                                setFormData(prev => ({ 
+                                  ...prev, 
+                                  cancellationPolicy: selectedPolicy ? selectedPolicy.description : value
+                                }));
+                                if (errors.cancellationPolicy) {
+                                  setErrors(prev => {
+                                    const newErrors = { ...prev };
+                                    delete newErrors.cancellationPolicy;
+                                    return newErrors;
+                                  });
+                                }
+                              }}
+                            >
+                              <SelectTrigger className={errors.cancellationPolicy ? "border-destructive" : ""}>
+                                <SelectValue placeholder="Select a cancellation policy" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-[60vh] overflow-y-auto w-[calc(100vw-2rem)] sm:w-auto max-w-[calc(100vw-2rem)] sm:max-w-none">
+                                {cancellationPolicyOptions.map((option) => (
+                                  <SelectItem key={option.id} value={option.id} className="py-3">
+                                    <div className="space-y-1 w-full min-w-0">
+                                      <div className="font-medium text-sm leading-tight">{option.label}</div>
+                                      <div className="text-xs text-muted-foreground leading-relaxed pr-2">
+                                        {option.description}
+                                      </div>
+                                      {option.refundBreakdown && (
+                                        <div className="mt-2 overflow-x-auto">
+                                          <div className="flex gap-1 min-w-max">
+                                            {option.refundBreakdown.map((item, index) => (
+                                              <span key={index} className={`text-xs px-2 py-1 rounded whitespace-nowrap flex-shrink-0 ${
+                                                item.refund === "100%" 
+                                                  ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200"
+                                                  : item.refund === "0%" 
+                                                  ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200"
+                                                  : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200"
+                                              }`}>
+                                                {item.refund}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            
+                            {/* Selected Policy Preview */}
+                            {formData.cancellationPolicy && (
+                              <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 sm:p-4">
+                                <div className="flex items-start gap-2 mb-3">
+                                  <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                                  <div className="text-sm min-w-0">
+                                    <p className="text-primary font-medium">Selected Policy:</p>
+                                    <p className="text-muted-foreground mt-1 leading-relaxed break-words">{formData.cancellationPolicy}</p>
+                                  </div>
+                                </div>
+                                
+                                {/* Refund Breakdown Table */}
+                                {(() => {
+                                  const selectedOption = cancellationPolicyOptions.find(option => 
+                                    option.description === formData.cancellationPolicy
+                                  );
+                                  
+                                  if (selectedOption && selectedOption.refundBreakdown) {
+                                    return (
+                                      <div className="mt-3">
+                                        <p className="text-primary font-medium text-sm mb-2">Refund Breakdown:</p>
+                                        <div className="bg-background/50 rounded-lg p-3 overflow-x-auto">
+                                          <div className="space-y-2 min-w-0">
+                                            {selectedOption.refundBreakdown.map((item, index) => (
+                                              <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2 text-xs min-w-max sm:min-w-0">
+                                                <span className="text-muted-foreground text-left leading-relaxed break-words">{item.timeframe}</span>
+                                                <span className={`font-medium px-2 py-1 rounded text-center flex-shrink-0 w-fit whitespace-nowrap ${
+                                                  item.refund === "100%" 
+                                                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                                    : item.refund === "0%" 
+                                                    ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                                                    : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                                                }`}>
+                                                  {item.refund}
+                                                </span>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                })()}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Custom Policy Input */}
+                        {policySelectionType === "custom" && (
+                          <div className="space-y-4 sm:space-y-3">
+                            <Textarea
+                              id="cancellationPolicy"
+                              name="cancellationPolicy"
+                              value={formData.cancellationPolicy}
+                              onChange={handleChange}
+                              rows={4}
+                              placeholder="e.g., Free cancellation up to 24 hours before check-in. Cancellations made within 24 hours of check-in will be charged 50% of the total booking amount. No-shows will be charged the full amount."
+                              className={`text-sm ${errors.cancellationPolicy ? "border-destructive" : ""}`}
+                            />
+                            <div className="text-xs sm:text-sm text-muted-foreground space-y-2">
+                              <p className="font-medium">Tips for writing effective policies:</p>
+                              <ul className="list-disc list-inside space-y-1 ml-2 leading-relaxed">
+                                <li>Be specific about timeframes (hours, days)</li>
+                                <li>Clearly state refund percentages (e.g., "50% refund", "Full refund")</li>
+                                <li>Include no-show policies</li>
+                                <li>Consider seasonal variations</li>
+                                <li className="mt-2 p-2 bg-muted/50 rounded text-xs">
+                                  <strong>Example:</strong> "Free cancellation up to 48 hours (100% refund). 50% refund within 48 hours. No refund for no-shows."
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {errors.cancellationPolicy && (
+                        <p className="text-destructive text-sm">{errors.cancellationPolicy}</p>
+                      )}
+                    </div>
                   </>
                 )}
 
@@ -1293,6 +1582,12 @@ const AddListingPage = () => {
                                   </p>
                                 )}
                               </div>
+                            </div>
+                          )}
+                          {formData.cancellationPolicy && (
+                            <div>
+                              <Label className="text-muted-foreground">Cancellation Policy</Label>
+                              <p className="font-bold text-sm lg:text-base">{formData.cancellationPolicy}</p>
                             </div>
                           )}
                         </div>

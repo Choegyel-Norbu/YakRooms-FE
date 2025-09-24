@@ -1091,35 +1091,166 @@ const CancellationConfirmationDialog = ({
 }) => {
   if (!isOpen || !booking) return null;
 
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const calculateDaysUntilCheckIn = () => {
+    const today = new Date();
+    const checkInDate = new Date(booking.checkInDate);
+    const diffTime = checkInDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const daysUntilCheckIn = calculateDaysUntilCheckIn();
+
+  // Parse the cancellation policy to extract refund information
+  const parseCancellationPolicy = (policyText) => {
+    if (!policyText) return null;
+    
+    // Extract refund percentages and timeframes
+    const refundMatches = policyText.match(/(\d+)% refund ([^,]+)/g);
+    const refunds = refundMatches ? refundMatches.map(match => {
+      const [, percentage, timeframe] = match.match(/(\d+)% refund (.+)/);
+      return { percentage, timeframe: timeframe.trim() };
+    }) : [];
+    
+    return {
+      originalText: policyText,
+      refunds: refunds
+    };
+  };
+
+  const policyInfo = parseCancellationPolicy(booking.cancellationPolicy);
+
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="sm:max-w-md">
+      <AlertDialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <XCircle className="h-5 w-5 text-red-500" />
             Cancel Booking
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to cancel the booking?
+            Review the cancellation policy and confirm your cancellation request.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isCancelling}>
-            Exit
+        {/* Booking Information */}
+        <div className="bg-muted/50 rounded-md p-4 space-y-3">
+          <div className="flex items-start gap-3">
+            <Hotel className="text-primary mt-1" size={20} />
+            <div className="flex-1">
+              <h3 className="font-semibold text-foreground">
+                {booking.hotelName}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Room #{booking.roomNumber} • {formatDate(booking.checkInDate)} - {formatDate(booking.checkOutDate)}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Check-in in {daysUntilCheckIn} day{daysUntilCheckIn !== 1 ? "s" : ""}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Cancellation Policy Section */}
+        <div className="space-y-3">
+          <h4 className="font-medium text-foreground flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-amber-500" />
+            Cancellation Policy
+          </h4>
+          
+          {booking.cancellationPolicy ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
+              {/* Policy Description */}
+              <div>
+                <p className="text-sm text-amber-700 leading-relaxed">
+                  {booking.cancellationPolicy}
+                </p>
+              </div>
+
+              {/* Refund Breakdown */}
+              {policyInfo && policyInfo.refunds.length > 0 && (
+                <div className="bg-white/60 border border-amber-300 rounded-md p-3">
+                  <h5 className="text-sm font-semibold text-amber-800 mb-2">Refund Breakdown:</h5>
+                  <div className="space-y-1">
+                    {policyInfo.refunds.map((refund, index) => (
+                      <div key={index} className="flex justify-between items-center text-sm">
+                        <span className="text-amber-700">{refund.timeframe}</span>
+                        <span className="font-medium text-amber-800">{refund.percentage}% refund</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Current Situation */}
+              <div className="bg-white/60 border border-amber-300 rounded-md p-3">
+                <h5 className="text-sm font-semibold text-amber-800 mb-2">Your Situation:</h5>
+                <div className="space-y-1 text-sm text-amber-700">
+                  <div className="flex justify-between">
+                    <span>Days until check-in:</span>
+                    <span className="font-medium">{daysUntilCheckIn} day{daysUntilCheckIn !== 1 ? "s" : ""}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Expected refund:</span>
+                    <span className="font-medium">
+                      {daysUntilCheckIn > 7 ? "100%" :
+                       daysUntilCheckIn >= 3 ? "75%" :
+                       daysUntilCheckIn >= 1 ? "50%" :
+                       daysUntilCheckIn === 0 ? "25%" : "0%"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Important Note */}
+              <div className="bg-amber-100/50 border border-amber-300 rounded-md p-3">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-amber-700">
+                    <p className="font-medium mb-1">Important:</p>
+                    <p>This cancellation request will be reviewed by the hotel owner. Final refund amount may vary based on their specific policy implementation.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-gray-600">
+                  <p className="font-medium mb-1">Cancellation Policy Not Available</p>
+                  <p>No cancellation policy information available for this booking. Please contact the hotel directly for specific cancellation terms.</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+          <AlertDialogCancel disabled={isCancelling} className="w-full sm:w-auto">
+            Keep Booking
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isCancelling}
-            className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
+            className="w-full sm:w-auto bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
           >
             {isCancelling ? (
-              <span className="flex items-center gap-2">
+              <span className="flex items-center justify-center gap-2">
                 <RefreshCw className="h-4 w-4 animate-spin" />
-                Processing...
+                Submitting Request...
               </span>
             ) : (
-              "Proceed"
+              "Request Cancellation"
             )}
           </AlertDialogAction>
         </AlertDialogFooter>
