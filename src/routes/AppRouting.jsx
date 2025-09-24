@@ -2,7 +2,7 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../features/authentication";
 import { Landing } from "../features/landing";
-import { AboutUs, ContactUs } from "../features/landing";
+import { AboutUs } from "../features/landing";
 import { HotelListingPage } from "../features/hotel";
 import { HotelDetailsPage } from "../features/hotel";
 import { AddListingPage } from "../features/hotel";
@@ -74,7 +74,6 @@ const AppRouting = () => {
       {/* Public Routes */}
       <Route path="/" element={<Landing />} />
       <Route path="/aboutus" element={<AboutUs />} />
-      <Route path="/contact" element={<ContactUs />} />
       <Route path="/hotels" element={<HotelListingPage />} />
       <Route path="/hotel/:id" element={<HotelDetailsPage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />

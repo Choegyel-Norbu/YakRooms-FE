@@ -399,6 +399,27 @@
           "requiresAuth": true,
           "queryParams": ["passcode"],
           "usedBy": ["PasscodeVerification"]
+        },
+        {
+          "path": "/passcode/verify-by-cid",
+          "method": "GET",
+          "description": "Verify booking using CID number",
+          "authorizedRoles": ["HOTEL_ADMIN", "STAFF"],
+          "requiresAuth": true,
+          "queryParams": ["cid", "hotelId"],
+          "responseFormat": {
+            "valid": "boolean",
+            "message": "string",
+            "bookingId": "number",
+            "guestName": "string",
+            "hotelName": "string",
+            "roomNumber": "string",
+            "checkInDate": "string (ISO date)",
+            "checkOutDate": "string (ISO date)",
+            "status": "string",
+            "createdAt": "string (ISO datetime)"
+          },
+          "usedBy": ["CIDVerification"]
         }
       ]
     },

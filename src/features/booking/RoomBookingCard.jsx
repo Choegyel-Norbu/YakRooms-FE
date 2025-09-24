@@ -1204,6 +1204,16 @@ export default function RoomBookingCard({ room, hotelId }) {
                       className={`text-sm ${errors.cid ? "border-destructive" : ""}`}
                     />
                     
+                    {/* CID Warning Message */}
+                    <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+                      <svg className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                      <p className="text-xs text-amber-800">
+                        <strong>Important:</strong> Please enter your correct CID number as you will need to present it during check-in for verification.
+                      </p>
+                    </div>
+                    
                     {errors.cid && (
                       <p className="text-sm text-destructive">{errors.cid}</p>
                     )}
@@ -1540,6 +1550,17 @@ export default function RoomBookingCard({ room, hotelId }) {
                     maxLength={11}
                     className={`text-sm ${immediateBookingErrors.cid ? "border-destructive" : ""}`}
                   />
+                  
+                  {/* CID Warning Message */}
+                  <div className="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+                    <svg className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <p className="text-xs text-amber-800">
+                      <strong>Important:</strong> Please enter your correct CID number as you will need to present it during check-in for verification.
+                    </p>
+                  </div>
+                  
                   {immediateBookingErrors.cid && (
                     <p className="text-sm text-destructive">{immediateBookingErrors.cid}</p>
                   )}

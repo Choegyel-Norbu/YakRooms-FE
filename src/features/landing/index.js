@@ -15,6 +15,5 @@ export { default as GetInTouch } from './GetInTouch';
 
 // Landing Page Pages
 export { default as AboutUs } from './AboutUs';
-export { default as ContactUs } from './ContactUs';
 export { default as PortfolioPage } from './PortfolioPage';
 export { default as PrivacyPolicy } from './PrivacyPolicy'; 

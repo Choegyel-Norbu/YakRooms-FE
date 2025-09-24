@@ -120,14 +120,14 @@ const BookingSuccessModal = ({ isOpen, onClose, bookingData }) => {
 
             <Separator />
 
-            {/* QR Code Button */}
-            <Button 
+            {/* QR Code Button - Commented out as requested */}
+            {/* <Button 
               onClick={handleViewQRCode}
               className="w-full"
             >
               <QrCode className="mr-2 h-4 w-4" />
               Generate QR Code
-            </Button>
+            </Button> */}
 
             <Separator />
 

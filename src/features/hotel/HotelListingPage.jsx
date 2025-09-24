@@ -451,7 +451,7 @@ const HotelListingPage = () => {
   }, [searchState.district, searchState.locality, searchState.hotelType]);
 
   const pageTitle = useMemo(() => {
-    if (!isSearchActive) return "All Lodges in Bhutan";
+    if (!isSearchActive) return "All Lodges registered with us";
     
     const parts = [];
     if (searchState.locality) parts.push(`Hotels in ${searchState.locality}`);
@@ -552,18 +552,18 @@ const HotelListingPage = () => {
             </div>
 
             {/* Center - Tagline (hidden on mobile) */}
-            <div className="hidden md:block">
+            {/* <div className="hidden md:block">
               <p className="text-muted-foreground text-sm">
                 Discover authentic Bhutanese stays
               </p>
-            </div>
+            </div> */}
 
             {/* Right side - Results count */}
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground hidden lg:block">
                 {pagination.totalElements} results
               </span>
-            </div>
+            </div> */}
           </div>
         </div>
       </header>

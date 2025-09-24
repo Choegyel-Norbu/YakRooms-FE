@@ -13,7 +13,8 @@ import {
   X,
   Bell,
   Trash2,
-  QrCode,
+  CreditCard,
+  CheckCircle,
 } from "lucide-react";
 import {
   Card,
@@ -58,8 +59,7 @@ import RoomManager from "../admin/RoomManager";
 import BookingTable from "./BookingTable";
 import CancellationRequestsTable from "./CancellationRequestsTable";
 import AdminBookingForm from "./AdminBookingForm";
-import QRCodeScanner from "./QRCodeScanner";
-import ScannedBookingModal from "./ScannedBookingModal";
+import CIDVerification from "./CIDVerification";
 import BookingsInventoryTable from "./BookingsInventoryTable";
 import { useAuth } from "../authentication";
 import { getStorageItem, clearStorage } from "@/shared/utils/safariLocalStorage";
@@ -97,9 +97,7 @@ const HotelAdminDashboard = () => {
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const notificationRef = useRef(null);
   const [showStaffGrid, setShowStaffGrid] = useState(false);
-  const [scannedBookingData, setScannedBookingData] = useState(null);
-  const [showScannedBookingModal, setShowScannedBookingModal] = useState(false);
-  const [verificationTab, setVerificationTab] = useState("passcode"); // "qr-scanner" or "passcode"
+  const [verificationTab, setVerificationTab] = useState("cid-verification"); // "cid-verification" or "passcode"
   // Simple media query hook for small screens (max-width: 640px)
   const isMobile =
     typeof window !== "undefined"
@@ -273,11 +271,6 @@ const HotelAdminDashboard = () => {
     fetchHotelData();
   };
 
-  // Handle QR scan success
-  const handleQRScanSuccess = (data) => {
-    setScannedBookingData(data);
-    setShowScannedBookingModal(true);
-  };
 
   // Navigate to account deletion page
   const handleDeleteAccount = () => {
@@ -822,7 +815,7 @@ const HotelAdminDashboard = () => {
               {/* <Card> */}
                 <CardHeader className="">
                   <CardTitle className="flex items-center gap-2 text-lg">
-                    <QrCode className="h-4 w-4 text-primary" />
+                    <CheckCircle className="h-4 w-4 text-primary" />
                     Booking Verification
                   </CardTitle>
                 </CardHeader>
@@ -834,11 +827,11 @@ const HotelAdminDashboard = () => {
                   >
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger
-                        value="qr-scanner"
+                        value="cid-verification"
                         className="flex items-center gap-2"
                       >
-                        <QrCode className="h-4 w-4" />
-                        QR Scanner
+                        <CreditCard className="h-4 w-4" />
+                        CID Verification
                       </TabsTrigger>
                       <TabsTrigger
                         value="passcode"
@@ -849,17 +842,12 @@ const HotelAdminDashboard = () => {
                       </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="qr-scanner" className="mt-4">
+                    <TabsContent value="cid-verification" className="mt-4">
                       <div className="space-y-4">
                         <div className="text-center text-sm text-gray-600 mb-4">
-                          Scan guest QR codes to verify booking details
+                          Enter guest's CID number to verify their booking
                         </div>
-                        <div className="flex justify-center">
-                          <QRCodeScanner
-                            onScanSuccess={handleQRScanSuccess}
-                            isActive={verificationTab === "qr-scanner"}
-                          />
-                        </div>
+                        <CIDVerification />
                       </div>
                     </TabsContent>
 
@@ -899,12 +887,6 @@ const HotelAdminDashboard = () => {
         </main>
       </div>
 
-      {/* Scanned Booking Modal */}
-      <ScannedBookingModal
-        isOpen={showScannedBookingModal}
-        onClose={() => setShowScannedBookingModal(false)}
-        scannedData={scannedBookingData}
-      />
     </div>
   );
 };
