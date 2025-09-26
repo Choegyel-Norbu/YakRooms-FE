@@ -970,9 +970,9 @@ export default function RoomBookingCard({ room, hotelId }) {
             /* Check Bookings Button - Initial State */
             <Button 
               onClick={handleCheckBookings}
-              disabled={isLoadingBookedDates}
-              className="flex-1 sm:flex-none bg-black text-white"
-              title="Check room availability and booking options"
+              disabled={isLoadingBookedDates || !room.active}
+              className={`flex-1 sm:flex-none ${!room.active ? 'bg-gray-400 cursor-not-allowed' : 'bg-black text-white'}`}
+              title={!room.active ? "Room is currently inactive" : "Check room availability and booking options"}
             >
               <span className="flex items-center gap-2">
                 {isLoadingBookedDates ? (
@@ -984,7 +984,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h6a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                   </svg>
                 )}
-                {isLoadingBookedDates ? "Checking Availability..." : "Check available dates"}
+                {isLoadingBookedDates ? "Checking Availability..." : !room.active ? "Room Inactive" : "Check available dates"}
               </span>
             </Button>
           ) : (

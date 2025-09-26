@@ -4,7 +4,7 @@ import { FiCalendar, FiCheck, FiClock, FiX } from "react-icons/fi";
 
 const SummaryCards = ({ rooms, bookings, notifications, markAsRead }) => {
   const totalRooms = rooms.length;
-  const availableRooms = rooms.filter((room) => room.isAvailable).length;
+  const availableRooms = rooms.filter((room) => room.active).length;
 
   const currentMonth = new Date().toISOString().slice(0, 7);
   const monthlyBookings = bookings.filter((booking) =>

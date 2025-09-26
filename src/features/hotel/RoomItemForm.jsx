@@ -24,7 +24,7 @@ const RoomItemForm = ({ room = null, onSave, onCancel, isEditing = false }) => {
     type: "",
     price: "",
     maxGuests: 2,
-    isAvailable: true,
+    active: true,
     description: "",
     images: [],
     amenities: [],
@@ -265,17 +265,17 @@ const RoomItemForm = ({ room = null, onSave, onCancel, isEditing = false }) => {
           <div className="flex items-center">
             <input
               type="checkbox"
-              id="isAvailable"
-              name="isAvailable"
-              checked={formData.isAvailable}
+              id="active"
+              name="active"
+              checked={formData.active}
               onChange={handleInputChange}
               className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
             />
             <label
-              htmlFor="isAvailable"
+              htmlFor="active"
               className="ml-2 block text-sm text-gray-700"
             >
-              Available for Booking
+              Active Room
             </label>
           </div>
 

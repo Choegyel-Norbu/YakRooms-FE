@@ -100,7 +100,7 @@ const RoomManager = () => {
     price: "",
     roomNumber: "",
     maxGuests: "",
-    available: true,
+    active: true,
     description: "",
     images: [],
     amenities: [],
@@ -236,7 +236,7 @@ const RoomManager = () => {
           price: roomToEdit.price || "",
           roomNumber: roomToEdit.roomNumber || "",
           maxGuests: roomToEdit.maxGuests || "",
-          available: roomToEdit.available !== false,
+          active: roomToEdit.active !== false,
           description: roomToEdit.description || "",
           images:
             roomToEdit.imageUrl?.map((url, index) => ({
@@ -265,7 +265,7 @@ const RoomManager = () => {
       price: "",
       roomNumber: "",
       maxGuests: "",
-      available: true,
+      active: true,
       description: "",
       images: [],
       amenities: [],
@@ -637,27 +637,27 @@ const RoomManager = () => {
               </div>
             </div>
 
-            {/* Availability Checkbox - Dedicated Row for Better Visibility */}
+            {/* Active Status Checkbox - Dedicated Row for Better Visibility */}
             <div className="border rounded-lg p-4 bg-muted/20">
               <div className="space-y-3">
-                <Label className="text-base font-medium">Room Availability</Label>
+                <Label className="text-base font-medium">Room Active</Label>
                 <div className="flex items-center space-x-3">
                   <Checkbox
-                    id="available"
-                    checked={roomForm.available}
+                    id="active"
+                    checked={roomForm.active}
                     onCheckedChange={(checked) => 
-                      setRoomForm(prev => ({ ...prev, available: checked }))
+                      setRoomForm(prev => ({ ...prev, active: checked }))
                     }
                     className="w-5 h-5"
                   />
-                  <Label htmlFor="available" className="text-sm cursor-pointer select-none">
-                    Make this room available for booking
+                  <Label htmlFor="active" className="text-sm cursor-pointer select-none">
+                    Make this room active for booking
                   </Label>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {roomForm.available 
-                    ? "✓ Guests can book this room" 
-                    : "⚠️ Room is marked as not available for booking"}
+                  {roomForm.active 
+                    ? "✓ Room is active and available for booking" 
+                    : "⚠️ Room is inactive and not available for booking"}
                 </p>
               </div>
             </div>
@@ -816,8 +816,8 @@ const RoomManager = () => {
                       : room.amenities}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={room.available ? "default" : "destructive"}>
-                      {room.available ? "Available" : "Not Available"}
+                    <Badge variant={room.active ? "default" : "destructive"}>
+                      {room.active ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
                   <TableCell>

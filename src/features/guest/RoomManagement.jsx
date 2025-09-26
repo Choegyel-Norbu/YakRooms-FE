@@ -68,7 +68,7 @@ const RoomManagement = () => {
         description: "Spacious room with king bed and mountain views",
         price: 220,
         maxGuests: 2,
-        isAvailable: true,
+        active: true,
         photos: [
           "https://images.unsplash.com/photo-1582719471380-cd7775af7d73?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
         ],
@@ -85,7 +85,7 @@ const RoomManagement = () => {
         description: "Luxurious suite with separate living area",
         price: 350,
         maxGuests: 3,
-        isAvailable: true,
+        active: true,
         photos: [
           "https://images.unsplash.com/photo-1564501049412-61c2a3083791?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
         ],
@@ -106,7 +106,7 @@ const RoomManagement = () => {
     description: "",
     price: "",
     maxGuests: 1,
-    isAvailable: true,
+    active: true,
     photos: [],
     amenities: [],
   });
@@ -266,7 +266,7 @@ const RoomManagement = () => {
       description: room.description,
       price: room.price,
       maxGuests: room.maxGuests,
-      isAvailable: room.isAvailable,
+      active: room.active,
       photos: [...room.photos],
       amenities: [...room.amenities],
     };
@@ -287,7 +287,7 @@ const RoomManagement = () => {
       description: "",
       price: "",
       maxGuests: 1,
-      isAvailable: true,
+      active: true,
       photos: [],
       amenities: [],
     };
@@ -509,7 +509,7 @@ const RoomManagement = () => {
 
                   <FormField
                     control={form.control}
-                    name="isAvailable"
+                    name="active"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
                         <FormControl>
@@ -519,13 +519,13 @@ const RoomManagement = () => {
                               field.onChange(checked);
                               setRoomForm((prev) => ({
                                 ...prev,
-                                isAvailable: checked,
+                                active: checked,
                               }));
                             }}
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
-                          <FormLabel>Currently Available</FormLabel>
+                          <FormLabel>Room Active</FormLabel>
                         </div>
                       </FormItem>
                     )}
@@ -855,16 +855,16 @@ const RoomManagement = () => {
                         </div>
                         <div
                           className={`flex items-center ${
-                            room.isAvailable ? "text-green-600" : "text-red-600"
+                            room.active ? "text-green-600" : "text-red-600"
                           }`}
                         >
-                          {room.isAvailable ? (
+                          {room.active ? (
                             <>
-                              <FiCheck className="mr-1" /> Available
+                              <FiCheck className="mr-1" /> Active
                             </>
                           ) : (
                             <>
-                              <FiX className="mr-1" /> Not Available
+                              <FiX className="mr-1" /> Inactive
                             </>
                           )}
                         </div>
