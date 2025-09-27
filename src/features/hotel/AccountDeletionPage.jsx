@@ -10,7 +10,7 @@ import { Separator } from "@/shared/components/separator";
 import { useAuth } from "../authentication";
 import api from "@/shared/services/Api";
 import { toast } from "sonner";
-import { YakRoomsText } from "@/shared/components";
+import { EzeeRoomLogo } from "@/shared/components";
 
 const AccountDeletionPage = () => {
   const navigate = useNavigate();
@@ -162,11 +162,10 @@ const AccountDeletionPage = () => {
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
             </Button>
-            <Separator orientation="vertical" className="h-6" />
+            {/* <Separator orientation="vertical" className="h-6" /> */}
             <div>
-              <YakRoomsText size="default" />
+              <EzeeRoomLogo size="default" />
               <p className="text-xs text-muted-foreground">Account Deletion</p>
             </div>
           </div>
