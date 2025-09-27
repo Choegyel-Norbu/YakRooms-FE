@@ -30,6 +30,8 @@ import {
   MessageCircle,
   MoreVertical,
   Trash2,
+  Facebook,
+  Instagram,
 } from "lucide-react";
 
 import { Button } from "@/shared/components/button";
@@ -117,6 +119,18 @@ const formatTime = (timeString) => {
     return "Invalid time";
   }
 };
+
+// Custom TikTok icon component
+const TikTokIcon = ({ className = "h-4 w-4" }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+  </svg>
+);
 
 // Room Image Carousel Component
 const RoomImageCarousel = ({ images, roomNumber, roomType, isActive }) => {
@@ -975,6 +989,85 @@ const HotelDetailsPage = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent blur-sm"></div>
               </div>
 
+              {/* Social Media Links Section */}
+              {(appState.hotel?.facebookUrl || appState.hotel?.instagramUrl || appState.hotel?.tiktokUrl) && (
+                <div className="mt-6 pt-4 border-t border-slate-200">
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium text-slate-800 mb-2">Follow Us</h4>
+                    <p className="text-xs text-slate-600">Stay connected with our latest updates</p>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    {appState.hotel.facebookUrl && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <a
+                              href={appState.hotel.facebookUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="group flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 rounded-lg transition-all duration-200 hover:scale-105"
+                            >
+                              <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center group-hover:bg-blue-700 transition-colors duration-200">
+                                <Facebook className="h-3.5 w-3.5 text-white" />
+                              </div>
+                              <span className="text-sm font-medium text-blue-800 group-hover:text-blue-900">Facebook</span>
+                            </a>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs">
+                            Visit our Facebook page
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+
+                    {appState.hotel.instagramUrl && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <a
+                              href={appState.hotel.instagramUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="group flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border border-purple-200 hover:border-purple-300 rounded-lg transition-all duration-200 hover:scale-105"
+                            >
+                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center group-hover:from-purple-700 group-hover:to-pink-700 transition-all duration-200">
+                                <Instagram className="h-3.5 w-3.5 text-white" />
+                              </div>
+                              <span className="text-sm font-medium text-purple-800 group-hover:text-purple-900">Instagram</span>
+                            </a>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs">
+                            Follow us on Instagram
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+
+                    {appState.hotel.tiktokUrl && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <a
+                              href={appState.hotel.tiktokUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="group flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300 rounded-lg transition-all duration-200 hover:scale-105"
+                            >
+                              <div className="w-6 h-6 rounded-full bg-black flex items-center justify-center group-hover:bg-gray-800 transition-colors duration-200">
+                                <TikTokIcon className="h-3.5 w-3.5 text-white" />
+                              </div>
+                              <span className="text-sm font-medium text-gray-800 group-hover:text-gray-900">TikTok</span>
+                            </a>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs">
+                            Check out our TikTok videos
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Check-in/Check-out Times - Mobile & Desktop Visible */}
               <div className="mt-6 pt-4 border-t border-slate-200">
@@ -1422,6 +1515,70 @@ const HotelDetailsPage = () => {
               locality={appState.hotel?.locality}
               district={appState.hotel?.district}
             />
+
+            {/* Social Media Card - Desktop Sidebar */}
+            {(appState.hotel?.facebookUrl || appState.hotel?.instagramUrl || appState.hotel?.tiktokUrl) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Follow Us</CardTitle>
+                  <CardDescription className="text-sm">
+                    Stay connected with our latest updates
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {appState.hotel.facebookUrl && (
+                    <a
+                      href={appState.hotel.facebookUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 transition-colors duration-200"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center group-hover:bg-blue-700 transition-colors duration-200">
+                        <Facebook className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900">Facebook</p>
+                        <p className="text-xs text-gray-500 truncate">Visit our page</p>
+                      </div>
+                    </a>
+                  )}
+
+                  {appState.hotel.instagramUrl && (
+                    <a
+                      href={appState.hotel.instagramUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center gap-3 p-2 rounded-lg hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all duration-200"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center group-hover:from-purple-700 group-hover:to-pink-700 transition-all duration-200">
+                        <Instagram className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900">Instagram</p>
+                        <p className="text-xs text-gray-500 truncate">Follow us</p>
+                      </div>
+                    </a>
+                  )}
+
+                  {appState.hotel.tiktokUrl && (
+                    <a
+                      href={appState.hotel.tiktokUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center group-hover:bg-gray-800 transition-colors duration-200">
+                        <TikTokIcon className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900">TikTok</p>
+                        <p className="text-xs text-gray-500 truncate">Watch our videos</p>
+                      </div>
+                    </a>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Quick Info Card */}
             <Card>

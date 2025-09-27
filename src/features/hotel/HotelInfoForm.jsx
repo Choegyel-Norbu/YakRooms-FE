@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../authentication";
 import api from "../../shared/services/Api";
 import { uploadFile, deleteFileByUrl } from "../../shared/services/uploadService";
-import { CheckCircle, XCircle, Upload, Plus, X, MapPin, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Upload, Plus, X, MapPin, Loader2, Facebook, Instagram } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -36,6 +36,18 @@ import { toast } from "sonner";
 import { getCategorizedAmenities } from "../../shared/utils/amenitiesHelper";
 import { districts, getLocalitiesForDistrict } from "../../shared/constants";
 
+// Custom TikTok icon component
+const TikTokIcon = ({ className = "h-4 w-4" }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M19.321 5.562a5.124 5.124 0 0 1-.443-.258 6.228 6.228 0 0 1-1.137-.966c-.849-.849-1.349-2.019-1.349-3.338h-3.064v13.925a3.649 3.649 0 1 1-2.676-3.51V8.307a6.593 6.593 0 0 0-2.676.563 6.65 6.65 0 0 0-4.854 6.4c0 3.676 2.974 6.65 6.65 6.65s6.65-2.974 6.65-6.65V9.412a9.193 9.193 0 0 0 5.321 1.674V8.022a6.196 6.196 0 0 1-2.422-2.46z"/>
+  </svg>
+);
+
 const formSchema = z.object({
   name: z.string().min(1, "Hotel name is required"),
   hotelType: z.string().min(1, "Hotel type is required"),
@@ -50,6 +62,10 @@ const formSchema = z.object({
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   cancellationPolicy: z.string().min(1, "Cancellation policy is required"),
+  // Social Media Links
+  facebookUrl: z.string().url("Please enter a valid Facebook URL").optional().or(z.literal("")),
+  instagramUrl: z.string().url("Please enter a valid Instagram URL").optional().or(z.literal("")),
+  tiktokUrl: z.string().url("Please enter a valid TikTok URL").optional().or(z.literal("")),
 });
 
 const HotelInfoForm = ({ hotel, onUpdate }) => {
@@ -168,6 +184,9 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       latitude: hotel.latitude || undefined,
       longitude: hotel.longitude || undefined,
       cancellationPolicy: hotel.cancellationPolicy || "",
+      facebookUrl: hotel.facebookUrl || "",
+      instagramUrl: hotel.instagramUrl || "",
+      tiktokUrl: hotel.tiktokUrl || "",
     },
   });
 
@@ -191,6 +210,9 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       latitude: hotel.latitude || undefined,
       longitude: hotel.longitude || undefined,
       cancellationPolicy: hotel.cancellationPolicy || "",
+      facebookUrl: hotel.facebookUrl || "",
+      instagramUrl: hotel.instagramUrl || "",
+      tiktokUrl: hotel.tiktokUrl || "",
     });
   }, [hotel, form]);
 
@@ -360,6 +382,10 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
         id: formData.id,
         latitude: values.latitude,
         longitude: values.longitude,
+        // Include social media URLs with exact DTO field names
+        facebookUrl: values.facebookUrl || null,
+        instagramUrl: values.instagramUrl || null,
+        tiktokUrl: values.tiktokUrl || null,
       };
 
       const res = await api.put(`/hotels/${formData.id}`, updateData);
@@ -408,6 +434,9 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                   latitude: hotel.latitude || undefined,
                   longitude: hotel.longitude || undefined,
                   cancellationPolicy: hotel.cancellationPolicy || "",
+                  facebookUrl: hotel.facebookUrl || "",
+                  instagramUrl: hotel.instagramUrl || "",
+                  tiktokUrl: hotel.tiktokUrl || "",
                 });
                 setFormData({
                   ...hotel,
@@ -645,6 +674,201 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {/* Social Media Links Section */}
+              <div className="md:col-span-2 border-t pt-4 mt-2">
+                <div className="flex items-center gap-2 mb-4">
+                  
+                  <div>
+                    <h4 className="text-base font-semibold text-foreground">
+                      Social Media Links
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Connect with your guests on social platforms
+                    </p>
+                  </div>
+                </div>
+
+                {!isEditing ? (
+                  <div className="space-y-3">
+                    {(hotel.facebookUrl || hotel.instagramUrl || hotel.tiktokUrl) ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {hotel.facebookUrl && (
+                          <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                              <Facebook className="h-4 w-4 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Facebook</p>
+                              <a
+                                href={hotel.facebookUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 dark:text-blue-400 hover:underline truncate block"
+                              >
+                                {hotel.facebookUrl}
+                              </a>
+                            </div>
+                          </div>
+                        )}
+
+                        {hotel.instagramUrl && (
+                          <div className="flex items-center gap-3 p-3 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                              <Instagram className="h-4 w-4 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-purple-900 dark:text-purple-100">Instagram</p>
+                              <a
+                                href={hotel.instagramUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-purple-600 dark:text-purple-400 hover:underline truncate block"
+                              >
+                                {hotel.instagramUrl}
+                              </a>
+                            </div>
+                          </div>
+                        )}
+
+                        {hotel.tiktokUrl && (
+                          <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-950/20 rounded-lg border border-gray-200 dark:border-gray-800">
+                            <div className="w-8 h-8 rounded-full bg-black dark:bg-white flex items-center justify-center">
+                              <TikTokIcon className="h-4 w-4 text-white dark:text-black" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">TikTok</p>
+                              <a
+                                href={hotel.tiktokUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-gray-600 dark:text-gray-400 hover:underline truncate block"
+                              >
+                                {hotel.tiktokUrl}
+                              </a>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 px-4 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20">
+                        <div className="flex justify-center space-x-2 mb-3">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                            <Facebook className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center">
+                            <Instagram className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-900/30 flex items-center justify-center">
+                            <TikTokIcon className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          No social media links added yet
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Click Edit to add your social media profiles
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="facebookUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
+                              <Facebook className="h-3 w-3 text-white" />
+                            </div>
+                            Facebook Page URL
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="url"
+                              placeholder="https://facebook.com/yourhotel"
+                              className="pl-3"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="instagramUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                              <Instagram className="h-3 w-3 text-white" />
+                            </div>
+                            Instagram Profile URL
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="url"
+                              placeholder="https://instagram.com/yourhotel"
+                              className="pl-3"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="tiktokUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full bg-black dark:bg-white flex items-center justify-center">
+                              <TikTokIcon className="h-3 w-3 text-white dark:text-black" />
+                            </div>
+                            TikTok Profile URL
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="url"
+                              placeholder="https://tiktok.com/@yourhotel"
+                              className="pl-3"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-start gap-3">
+                        <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                            Social Media Tips
+                          </h5>
+                          <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                            <li>• Use your complete profile URLs (e.g., https://facebook.com/yourhotel)</li>
+                            <li>• Keep your social media profiles active and engaging</li>
+                            <li>• Share photos of your hotel, amenities, and local attractions</li>
+                            <li>• Respond to guest comments and messages promptly</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <FormField
