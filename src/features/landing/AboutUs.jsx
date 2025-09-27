@@ -26,108 +26,89 @@ import { EzeeRoomLogo } from "@/shared/components";
 
 const AboutUs = () => {
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <div className="w-full px-4 pt-6 sm:pt-8 pb-4">
-        {/* Mobile-first responsive header */}
-        <div className="block sm:hidden mb-6">
-          {/* Mobile layout: Horizontal */}
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/" className="flex items-center gap-2">
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
-            <div className="text-center">
-              <EzeeRoomLogo size="large" />
+    <div className="min-h-screen mb-10">
+      {/* Modern Header */}
+      <div className="relative  border-b border-border/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Mobile Header */}
+          <div className="block sm:hidden py-4">
+            <div className="flex items-center justify-between">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                asChild
+                className="hover:bg-primary/10 transition-colors"
+              >
+                <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-primary">
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="text-sm font-medium">Back</span>
+                </Link>
+              </Button>
+              
+              <div className="flex-1 flex justify-center">
+                <Badge variant="outline" className="text-xs">
+                  <Mountain className="w-3 h-3 mr-1" />
+                  About Us
+                </Badge>
+              </div>
+              
+              <div className="w-20"></div> {/* Balance */}
             </div>
-            {/* Empty div for balance */}
-            <div className="w-9"></div>
           </div>
-        </div>
-        
-        {/* Desktop layout: Grid */}
-        <div className="hidden sm:block">
-          <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8">
-            <div className="grid grid-cols-3 items-center mb-6 gap-4">
-              {/* Navigation Button - Left */}
-              <div className="flex justify-start">
-                <Button variant="ghost" size="sm" asChild className="h-9 px-3">
-                  <Link to="/" className="flex items-center gap-2">
-                    <ArrowLeft className="h-4 w-4" />
-                    <span>Back to Home</span>
+          
+          {/* Desktop Header */}
+          <div className="hidden sm:block py-6">
+            <div className="flex items-center justify-between">
+              {/* Back Button */}
+              <div className="flex-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  asChild
+                  className="hover:bg-primary/10 transition-colors group"
+                >
+                  <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-primary">
+                    <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                    <span className="text-sm font-medium">Back to Home</span>
                   </Link>
                 </Button>
               </div>
               
-              {/* EzeeRoom Title - Centered */}
-              <div className="flex justify-center">
+              {/* Logo */}
+              <div className="flex-1 flex justify-center">
                 <div className="text-center">
                   <EzeeRoomLogo size="large" />
+                  <div className="mt-2">
+                    <Badge variant="outline" className="text-xs">
+                      <Mountain className="w-3 h-3 mr-1" />
+                      About Us
+                    </Badge>
+                  </div>
                 </div>
               </div>
               
-              {/* Empty right column for balance */}
-              <div className="flex justify-end">
-                {/* This space intentionally left empty for visual balance */}
+              {/* Right Side - Navigation Links */}
+              <div className="flex-1 flex justify-end">
+                <div className="flex items-center gap-4">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/hotels" className="text-sm font-medium hover:text-primary transition-colors">
+                      Hotels
+                    </Link>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
         </div>
+        
+        {/* Decorative Elements */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent pointer-events-none"></div>
       </div>
 
       {/* Hero Section */}
       <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 space-y-12">
         {/* Why EzeeRoom */}
-        <section>
-          {/* <h2 className="hidden md:block text-2xl font-bold font-heading mb-6 text-center">About us</h2> */}
-          <div className="grid md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Building2 className="w-5 h-5 text-primary" />
-                  Hotel-First Approach
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  We focus exclusively on hotels, ensuring a curated selection of quality 
-                  accommodations that meet travelers' needs.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Users className="w-5 h-5 text-primary" />
-                  Local Expertise
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Created by Bhutanese developers who understand both local hospitality 
-                  and international travel needs.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Heart className="w-5 h-5 text-primary" />
-                  Community Support
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  We empower local hotel businesses by providing them with modern tools 
-                  to reach a global audience.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
+        
 
         <Separator />
 
@@ -139,127 +120,117 @@ const AboutUs = () => {
                 <Mountain className="w-6 h-6 text-primary" />
                 Our Mission
               </CardTitle>
+              <CardDescription>
+                Empowering Bhutan's hospitality ecosystem through digital platform
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                To revolutionize hotel discovery and booking in Bhutan by creating a seamless, 
-                trustworthy platform that bridges the gap between local accommodations and 
-                travelers from around the world.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                We believe in preserving Bhutan's unique hospitality culture while embracing 
-                modern technology to enhance the travel experience for everyone.
-              </p>
+            <CardContent className="space-y-6">
+              {/* Mission Statement */}
+             
+
+              {/* Core Mission Pillars */}
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* For Accommodation Providers */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-5 h-5 text-primary" />
+                    <h4 className="font-semibold text-sm">For Accommodation Providers</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    We empower remote accommodations to become digitally accessible to travelers 
+                    by providing comprehensive property management systems that simplify 
+                    operations and streamline bookings
+                  </p>
+                </div>
+
+                {/* For Travelers */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-primary" />
+                    <h4 className="font-semibold text-sm">For Travelers</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    We create seamless discovery and booking experiences that enable travelers 
+                    to easily find accommodations, compare options, and make informed decisions 
+                    with complete transparency and convenience.
+                  </p>
+                </div>
+              </div>
+
+              {/* Vision Statement */}
+              <div className="pt-4 border-t">
+                <div className="flex items-center gap-2 mb-3">
+                  <Heart className="w-5 h-5 text-primary" />
+                  <h4 className="font-semibold text-sm">Our Vision</h4>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  To become Bhutan's trusted platform that empowers our community 
+                  by connecting travelers with local accommodations.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </section>
 
-        <Separator />
-
-        {/* What Makes Us Different */}
-        <section>
-          <h2 className="text-2xl font-bold font-heading mb-6">What Makes Us Different</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-primary" />
-                  Local-First Technology
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Our platform is built specifically for the Bhutanese market, with features 
-                  tailored to local business practices and traveler preferences.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  Curated Selection
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Every hotel on EzeeRoom is personally verified to ensure quality, 
-                  authenticity, and the best experience for our users.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Phone className="w-5 h-5 text-primary" />
-                  Direct Communication
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Connect directly with hotels for personalized service and special 
-                  requests, ensuring your stay is perfect.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-primary" />
-                  Fair Pricing
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  We work directly with hotels to offer competitive rates without 
-                  hidden fees, supporting both travelers and local businesses.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
 
         <Separator />
 
-        {/* Community & Vision */}
-        <section>
-          <Card className="bg-primary/5">
-            <CardHeader>
-              <CardTitle className="text-2xl font-heading">Community & Vision</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                EzeeRoom is more than a booking platform—it's a community initiative to 
-                showcase Bhutan's hospitality to the world. We envision a future where 
-                every hotel in Bhutan, from luxury resorts to family-run guesthouses, 
-                can thrive in the digital age.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                By choosing EzeeRoom, you're supporting local businesses and contributing 
-                to sustainable tourism development in Bhutan.
-              </p>
-            </CardContent>
-          </Card>
-        </section>
+        
 
-        <Separator />
-
-        {/* Built by Bhutanese Developers */}
+        {/* Our Team */}
         <section>
-          <div className="text-center space-y-4">
-            <Badge variant="outline" className="text-sm">
-              Proudly Bhutanese
-            </Badge>
-            <h2 className="text-2xl font-bold font-heading">Built by Bhutanese Developers</h2>
+          <div className="text-center space-y-6">
+            <h2 className="text-2xl font-bold font-heading"> Our Team</h2>
             <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-              EzeeRoom is crafted with care by a team of passionate Bhutanese developers 
-              who understand the unique needs of our country's hospitality sector. We combine 
-              local insights with global technology standards to create a platform that truly 
-              serves our community.
+              EzeeRoom is crafted with care by a passionate team of Bhutanese developers 
+              who understand the unique needs of our country's hospitality sector.
             </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 mt-8">
+            {/* Chogyal Norbu */}
+            <div className="text-center">
+              <CardHeader>
+                <div className="mx-auto w-20 h-20 rounded-full overflow-hidden mb-4">
+                  <img 
+                    src="https://images.ecency.com/DQmVm8Gt2bwhX1B4iB9WiXbWMCLv69Ks3LdDNfoQ9DUKZt9/images_4_.jpeg" 
+                    alt="Chogyal Norbu" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <CardTitle className="text-xl">Chogyal Norbu</CardTitle>
+                <CardDescription>Co-Founder & Developer</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Passionate about leveraging technology to empower Bhutan's hospitality 
+                  industry and create meaningful connections between travelers and local 
+                  accommodations.
+                </p>
+              </CardContent>
+            </div>
+
+              {/* Zepa Dorji */}
+              <div className="text-center m-2">
+                <CardHeader>
+                  <div className="mx-auto w-20 h-20 rounded-full overflow-hidden mb-4">
+                    <img 
+                      src="/images/zepa1.jpeg" 
+                      alt="Zepa Dorji" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <CardTitle className="text-xl">Zepa Dorji</CardTitle>
+                  <CardDescription>Co-Founder & Developer</CardDescription>
+                </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Dedicated to building innovative solutions that bridge the gap between 
+                  traditional Bhutanese hospitality and modern digital experiences for 
+                  both travelers and accommodation providers.
+                </p>
+              </CardContent>
+            </div>
           </div>
         </section>
 
@@ -301,23 +272,6 @@ const AboutUs = () => {
               </div>
             </CardContent>
           </Card>
-        </section>
-
-        {/* CTA Section */}
-        <section className="text-center py-12">
-          <h2 className="text-2xl font-bold font-heading mb-4">
-            Ready to Discover Bhutan's Best Hotels?
-          </h2>
-          <p className="text-sm text-muted-foreground mb-8 max-w-md mx-auto">
-            Start your journey with EzeeRoom and experience the warmth of Bhutanese 
-            hospitality like never before.
-          </p>
-          <Button size="lg" asChild>
-            <Link to="/hotels">
-              Explore Hotels
-              <Building2 className="ml-2 w-4 h-4" />
-            </Link>
-          </Button>
         </section>
       </div>
     </div>

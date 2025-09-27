@@ -122,15 +122,15 @@ const FeatureSection = () => {
                     <span className="text-sm font-medium text-muted-foreground">24/7 Support</span>
                   </div>
                   <div className="flex items-center space-x-2 group">
-                    <CheckCircle className="w-5 h-5 text-emerald-500 group-hover:animate-bounce" />
-                    <span className="text-sm font-medium text-muted-foreground">Instant Confirmation</span>
+                    <CreditCard className="w-5 h-5 text-emerald-500 group-hover:animate-bounce" />
+                    <span className="text-sm font-medium text-muted-foreground">Secure Payment</span>
                   </div>
                 </div>
 
                 {/* Fun Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">10K+</div>
+                    <div className="text-2xl font-bold text-primary">1K+</div>
                     <div className="text-sm text-muted-foreground">Happy Travelers</div>
                   </div>
                   <div className="text-center">
@@ -142,7 +142,7 @@ const FeatureSection = () => {
                     <div className="text-sm text-muted-foreground">Support Available</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">20</div>
+                    <div className="text-2xl font-bold text-primary">3</div>
                     <div className="text-sm text-muted-foreground">Dzongkhags Covered</div>
                   </div>
                 </div>

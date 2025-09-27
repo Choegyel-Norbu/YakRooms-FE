@@ -17,6 +17,8 @@ import {
   MessageCircle,
   AlertTriangle,
   Info,
+  FileText,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/shared/utils";
 import { Button } from "@/shared/components/button";
@@ -557,17 +559,6 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
 
           <div className="flex items-center gap-2">
             <div className="hidden md:block">{/* <ThemeToggle /> */}</div>
-
-            {/* Become a Host Button */}
-            {/* <div className="hidden md:block">
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/add-listing" className="flex items-center gap-2">
-                  <UserPlus className="h-4 w-4" />
-                  Become a Host
-                </Link>
-              </Button>
-            </div> */}
-
             <div className="hidden md:block">
               <UserNav />
             </div>
@@ -598,16 +589,6 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                   <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
                     <div className="py-4">
                       <MobileUserSection />
-                      
-                      <div className="px-6 py-3">
-                        <Button variant="outline" size="sm" className="w-full" asChild>
-                          <Link to="/add-listing" onClick={() => setIsMobileMenuOpen(false)}>
-                            <UserPlus className="h-4 w-4 mr-2" />
-                            Become a Host
-                          </Link>
-                        </Button>
-                      </div>
-                      
                       <nav className="space-y-1.5 pt-4">
                         <div className="px-6 pb-1">
                           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -655,6 +636,50 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                             </SheetClose>
                           )
                         ))}
+                        
+                        {/* Legal Links */}
+                        <div className="px-6 py-2">
+                          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                            Legal
+                          </h3>
+                          <div className="space-y-1">
+                            <SheetClose asChild>
+                              <Link
+                                to="/terms-and-conditions"
+                                className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group"
+                              >
+                                <div className="flex items-center">
+                                  <div className="p-1.5 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
+                                    <FileText className="h-4 w-4 group-hover:text-primary transition-colors" />
+                                  </div>
+                                  <div>
+                                    <div className="font-medium">Terms & Conditions</div>
+                                    <div className="text-xs text-muted-foreground">Legal terms and policies</div>
+                                  </div>
+                                </div>
+                                <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                              </Link>
+                            </SheetClose>
+                            
+                            <SheetClose asChild>
+                              <Link
+                                to="/privacy-policy"
+                                className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group"
+                              >
+                                <div className="flex items-center">
+                                  <div className="p-1.5 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
+                                    <Shield className="h-4 w-4 group-hover:text-primary transition-colors" />
+                                  </div>
+                                  <div>
+                                    <div className="font-medium">Privacy Policy</div>
+                                    <div className="text-xs text-muted-foreground">Data protection info</div>
+                                  </div>
+                                </div>
+                                <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                              </Link>
+                            </SheetClose>
+                          </div>
+                        </div>
                       </nav>
 
                       <ContactSection />

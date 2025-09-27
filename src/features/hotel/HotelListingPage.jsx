@@ -44,6 +44,7 @@ import {
 } from "@/shared/components/pagination";
 
 import api from "../../shared/services/Api";
+import Footer from "../../layouts/Footer";
 
 // Memoized HotelCard component to prevent unnecessary re-renders
 const HotelCard = React.memo(({ hotel }) => (
@@ -320,6 +321,9 @@ const HotelListingPage = () => {
 
   // Handle initial URL parameters and data loading
   useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+    
     const params = new URLSearchParams(location.search);
     const districtParam = params.get("district") || "";
     const hotelTypeParam = params.get("hotelType") || "all";
@@ -757,6 +761,9 @@ const HotelListingPage = () => {
           )}
         </main>
       </div>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

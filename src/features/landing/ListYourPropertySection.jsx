@@ -8,7 +8,14 @@ import {
   Shield, 
   Star,
   ArrowUpRight,
-  Sparkles
+  Sparkles,
+  Settings,
+  Search,
+  Calendar,
+  BarChart3,
+  Smartphone,
+  Clock,
+  MapPin
 } from "lucide-react";
 
 // ShadCN UI Components
@@ -42,18 +49,18 @@ const ListYourPropertySection = ({ onLoginClick }) => {
     {
       icon: TrendingUp,
       title: "Increase Revenue",
-      description: "Boost your bookings by 40% on average",
+      description: "Boost your booking visibility by 40% on average",
     },
     {
       icon: Users,
       title: "Reach More Travelers",
-      description: "Access thousands of potential guests",
+      description: "Access hundreds of potential guests",
     },
-    // {
-    //   icon: Shield,
-    //   title: "Secure Payments",
-    //   description: "Guaranteed payments with fraud protection",
-    // },
+    {
+      icon: Settings,
+      title: "Easy Property Management",
+      description: "Manage bookings, pricing, and availability from one dashboard",
+    }
   ];
 
   const stats = [
@@ -89,7 +96,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
           <Separator className="mb-12" />
 
           {/* Main Content Grid */}
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Side - Benefits */}
             <div className="space-y-8">
               {/* Stats */}
@@ -108,9 +115,9 @@ const ListYourPropertySection = ({ onLoginClick }) => {
 
               {/* Benefits List */}
               <div className="space-y-4">
-                <h3 className="text-xl font-semibold mb-4">Why Partner with Us?</h3>
+                <h3 className="text-xl font-semibold mb-4 text-center sm:text-left">Why Partner with Us?</h3>
                 {benefits.map((benefit, index) => (
-                  <Card key={index} className="hover:shadow-md transition-all duration-200 group">
+                  <div key={index} className="hover:shadow-md transition-all duration-200 group">
                     <CardContent className="p-6">
                       <div className="flex items-start space-x-4">
                         <div className="p-3 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
@@ -126,14 +133,14 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                         </div>
                       </div>
                     </CardContent>
-                  </Card>
+                  </div>
                 ))}
               </div>
             </div>
 
             {/* Right Side - CTA Card */}
             <div>
-              <Card className="hover:shadow-lg transition-shadow duration-300 group">
+              <div className="hover:shadow-lg transition-shadow duration-300 group">
                 <CardHeader className="text-center space-y-4">
                   {/* <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                     <Home className="h-8 w-8" />
@@ -241,7 +248,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                     </p>
                   </div>
                 </CardContent>
-              </Card>
+              </div>
             </div>
           </div>
 

@@ -3,13 +3,14 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../features/authentication";
 import { Landing } from "../features/landing";
 import { AboutUs } from "../features/landing";
+import { FAQs } from "../features/landing";
 import { HotelListingPage } from "../features/hotel";
 import { HotelDetailsPage } from "../features/hotel";
 import { AddListingPage } from "../features/hotel";
 import { HotelAdminDashboard, AccountDeletionPage } from "../features/hotel";
 import { SuperAdmin } from "../features/admin";
 import { GuestDashboard } from "../features/guest";
-import { PrivacyPolicy } from "../features/landing";
+import { PrivacyPolicy, TermsAndConditions } from "../features/landing";
 import { SubscriptionPage } from "../features/subscription";
 
 // Protected Route Component
@@ -74,9 +75,11 @@ const AppRouting = () => {
       {/* Public Routes */}
       <Route path="/" element={<Landing />} />
       <Route path="/aboutus" element={<AboutUs />} />
+      <Route path="/faqs" element={<FAQs />} />
       <Route path="/hotels" element={<HotelListingPage />} />
       <Route path="/hotel/:id" element={<HotelDetailsPage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
       <Route path="/subscription" element={<SubscriptionPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
 

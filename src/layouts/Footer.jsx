@@ -1,9 +1,10 @@
 import React from "react";
 import { Button } from "@/shared/components/button";
 import { Separator } from "@/shared/components/separator";
-import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react";
+import { Facebook, Linkedin, Youtube, Mail, Phone, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import logoER from "@/assets/images/logoER.png";
+import TikTokIcon from "@/shared/components/TikTokIcon";
 
 const Footer = React.forwardRef((props, ref) => {
   return (
@@ -20,25 +21,36 @@ const Footer = React.forwardRef((props, ref) => {
                 className="h-6 w-auto mb-3"
               />
               <p className="text-sm text-muted-foreground mb-4">
-                Travel Bhutan Smarter – Discover, Book, and Dine with EzeeRoom.
+                Travel Bhutan Smarter – Discover & Book with EzeeRoom.
               </p>
             </div>
-            <div className="hidden md:flex space-x-4">
+            <div className="flex justify-center md:justify-start space-x-4">
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-10 w-10 hover:bg-muted"
                 aria-label="Facebook"
+                onClick={() => window.open("https://facebook.com/ezee.room", "_blank")}
               >
                 <Facebook className="h-5 w-5" />
               </Button>
+              {/* <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 hover:bg-muted"
+                aria-label="LinkedIn"
+                onClick={() => window.open("https://linkedin.com/company/ezee-room", "_blank")}
+              >
+                <Linkedin className="h-5 w-5" />
+              </Button> */}
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-10 w-10 hover:bg-muted"
-                aria-label="Instagram"
+                aria-label="TikTok"
+                onClick={() => window.open("https://tiktok.com/@ezee_room", "_blank")}
               >
-                <Instagram className="h-5 w-5" />
+                <TikTokIcon className="h-5 w-5" />
               </Button>
             </div>
           </div>
@@ -116,27 +128,27 @@ const Footer = React.forwardRef((props, ref) => {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="#"
+                  href="/faqs"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   Help Center
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/faqs"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   FAQs
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/terms-and-conditions"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   Terms & Conditions
-                </a>
+                </Link>
               </li>
               <li>
                 <Link
@@ -147,12 +159,12 @@ const Footer = React.forwardRef((props, ref) => {
                 </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/terms-and-conditions"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   Cancellation Policy
-                </a>
+                </Link>
               </li>
             </ul>
           </nav>
