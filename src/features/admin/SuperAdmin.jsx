@@ -92,6 +92,17 @@ const SuperAdmin = () => {
     totalElements: 0,
   });
 
+  // Reviews management states
+  const [reviews, setReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [deletingReviewId, setDeletingReviewId] = useState(null);
+  const [reviewsPagination, setReviewsPagination] = useState({
+    pageNumber: 0,
+    pageSize: 10,
+    totalPages: 1,
+    totalElements: 0,
+  });
+
   const [pagination, setPagination] = useState({
     pageNumber: 0,
     pageSize: 10,
@@ -229,6 +240,37 @@ const SuperAdmin = () => {
 
     fetchDeletionRequests();
   }, [deletionRequestsPagination.pageNumber]);
+
+  // Fetch reviews
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setLoadingReviews(true);
+        const params = {
+          page: reviewsPagination.pageNumber,
+          size: reviewsPagination.pageSize,
+        };
+
+        const response = await api.get("/reviews/deleted/paginated", { params });
+        
+        console.log("[DEBUG] Reviews API response:", response.data);
+        
+        setReviews(response.data.content || []);
+        setReviewsPagination((prev) => ({
+          ...prev,
+          totalPages: response.data.totalPages || 1,
+          totalElements: response.data.totalElements || 0,
+        }));
+      } catch (err) {
+        console.error("Error fetching reviews:", err);
+        toast.error("Failed to fetch reviews");
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+
+    fetchReviews();
+  }, [reviewsPagination.pageNumber]);
 
   useEffect(() => {
     const fetchHotels = async () => {
@@ -388,6 +430,11 @@ const SuperAdmin = () => {
   // Handle all notifications pagination
   const handleAllNotificationsPageChange = (newPage) => {
     setAllNotificationsPagination((prev) => ({ ...prev, pageNumber: newPage }));
+  };
+
+  // Handle reviews pagination
+  const handleReviewsPageChange = (newPage) => {
+    setReviewsPagination((prev) => ({ ...prev, pageNumber: newPage }));
   };
 
   // Handle clearing all read notifications
@@ -598,6 +645,42 @@ const SuperAdmin = () => {
       });
     } finally {
       setDeletingHotelId(null);
+    }
+  };
+
+  // Handle review deletion
+  const handleDeleteReview = async (reviewId, reviewTitle) => {
+    setDeletingReviewId(reviewId);
+    try {
+      const response = await api.delete(`/reviews/${reviewId}`);
+      
+      if (response.status === 200) {
+        toast.success("Review Deleted Successfully", {
+          description: `Review "${reviewTitle}" has been permanently deleted from the system.`,
+          icon: <Trash2 className="text-green-600" />,
+          duration: 6000,
+        });
+
+        // Remove the deleted review from the reviews list
+        setReviews((prev) => 
+          prev.filter((review) => review.id !== reviewId)
+        );
+
+        // Update pagination if needed
+        setReviewsPagination((prev) => ({
+          ...prev,
+          totalElements: prev.totalElements - 1,
+        }));
+      }
+    } catch (err) {
+      console.error("Error deleting review:", err);
+      toast.error("Failed to Delete Review", {
+        description: "There was an error deleting the review. Please try again.",
+        icon: <XCircle className="text-red-600" />,
+        duration: 6000,
+      });
+    } finally {
+      setDeletingReviewId(null);
     }
   };
 
@@ -1183,6 +1266,82 @@ const SuperAdmin = () => {
     );
   };
 
+  const ReviewsPaginationControls = () => {
+    const handlePrevious = () => {
+      if (reviewsPagination.pageNumber > 0) {
+        handleReviewsPageChange(reviewsPagination.pageNumber - 1);
+      }
+    };
+
+    const handleNext = () => {
+      if (reviewsPagination.pageNumber < reviewsPagination.totalPages - 1) {
+        handleReviewsPageChange(reviewsPagination.pageNumber + 1);
+      }
+    };
+
+    return (
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex-1 flex justify-between md:hidden">
+          <Button
+            onClick={handlePrevious}
+            disabled={reviewsPagination.pageNumber === 0}
+            variant="outline"
+          >
+            Previous
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={reviewsPagination.pageNumber === reviewsPagination.totalPages - 1}
+            variant="outline"
+          >
+            Next
+          </Button>
+        </div>
+        <div className="hidden md:flex flex-1 items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Page{" "}
+              <span className="font-medium">{reviewsPagination.pageNumber + 1}</span>{" "}
+              of <span className="font-medium">{reviewsPagination.totalPages}</span>
+            </p>
+          </div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={handlePrevious}
+                disabled={reviewsPagination.pageNumber === 0}
+              >
+                <span className="sr-only">Go to previous page</span>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: reviewsPagination.totalPages }, (_, i) => (
+                <Button
+                  key={i}
+                  variant={reviewsPagination.pageNumber === i ? "default" : "outline"}
+                  className="h-8 w-8 p-0"
+                  onClick={() => handleReviewsPageChange(i)}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={handleNext}
+                disabled={reviewsPagination.pageNumber === reviewsPagination.totalPages - 1}
+              >
+                <span className="sr-only">Go to next page</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const AllNotificationsTable = () => {
     const getNotificationTypeColor = (type) => {
       switch (type) {
@@ -1528,6 +1687,163 @@ const SuperAdmin = () => {
     );
   };
 
+  const ReviewsTable = () => {
+    const renderStars = (rating) => {
+      const stars = [];
+      for (let i = 1; i <= 5; i++) {
+        stars.push(
+          <Star
+            key={i}
+            className={`h-4 w-4 ${
+              i <= rating ? "text-yellow-400 fill-current" : "text-gray-300"
+            }`}
+          />
+        );
+      }
+      return stars;
+    };
+
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Star className="h-5 w-5 text-yellow-500" />
+            Reviews Management
+          </CardTitle>
+          <CardDescription>
+            Manage and moderate hotel reviews from guests
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingReviews ? (
+            <div className="flex justify-center items-center py-8">
+              <SimpleSpinner size={24} text="Loading reviews..." />
+            </div>
+          ) : reviews.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Star className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No reviews found</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Review</TableHead>
+                  <TableHead>Hotel</TableHead>
+                  <TableHead>Rating</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {reviews.map((review) => (
+                  <TableRow key={review.id}>
+                    <TableCell>
+                      <div className="max-w-md">
+                        <div className="text-sm font-medium mb-1">
+                          {review.title || "No title"}
+                        </div>
+                        <div className="text-sm text-muted-foreground line-clamp-3">
+                          {review.comment || "No comment"}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          by {review.guestName || "Anonymous"}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm font-medium">
+                        {review.hotelName || "Unknown Hotel"}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {review.hotelDistrict || "Unknown Location"}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        {renderStars(review.rating || 0)}
+                        <span className="text-sm text-muted-foreground ml-1">
+                          ({review.rating || 0}/5)
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <p className="font-medium">
+                          {format(new Date(review.createdAt), "dd MMM yyyy")}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {format(new Date(review.createdAt), "HH:mm")}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="cursor-pointer"
+                            disabled={deletingReviewId === review.id}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            {deletingReviewId === review.id ? "Deleting..." : "Delete"}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="flex items-center gap-2">
+                              <Trash2 className="h-5 w-5 text-red-500" />
+                              Confirm Review Deletion
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="space-y-2">
+                              <p>
+                                Are you sure you want to permanently delete this review?
+                              </p>
+                              <div className="mt-3 p-3 bg-muted rounded-md">
+                                <p className="text-sm font-medium">Review Details:</p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  <strong>Title:</strong> {review.title || "No title"}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  <strong>Hotel:</strong> {review.hotelName || "Unknown Hotel"}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  <strong>Rating:</strong> {review.rating || 0}/5
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  <strong>Guest:</strong> {review.guestName || "Anonymous"}
+                                </p>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                This action cannot be undone. The review will be permanently removed from the system.
+                              </p>
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteReview(review.id, review.title || "Untitled Review")}
+                              className="bg-red-600 hover:bg-red-700"
+                              disabled={deletingReviewId === review.id}
+                            >
+                              {deletingReviewId === review.id ? "Deleting..." : "Delete Review"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+        {reviews.length > 0 && <ReviewsPaginationControls />}
+      </Card>
+    );
+  };
+
   const HotelTable = () => (
     <Card className="mb-6">
       <Table>
@@ -1772,6 +2088,9 @@ const SuperAdmin = () => {
 
         {/* Hotel Deletion Requests Section */}
         <HotelDeletionRequestsTable />
+
+        {/* Reviews Management Section */}
+        <ReviewsTable />
 
         {loading ? (
           <LoadingSpinner />

@@ -28,6 +28,8 @@ import {
   X,
   Clock,
   MessageCircle,
+  MoreVertical,
+  Trash2,
 } from "lucide-react";
 
 import { Button } from "@/shared/components/button";
@@ -57,6 +59,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/shared/components/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/dropdown-menu";
 import { useAuth } from "../authentication";
 
 // Utility function to format time from 24-hour to 12-hour format with descriptive text
@@ -333,7 +341,7 @@ const RoomImageCarousel = ({ images, roomNumber, roomType, isActive }) => {
 };
 
 const HotelDetailsPage = () => {
-  const { userId, isAuthenticated } = useAuth();
+  const { userId, isAuthenticated, roles, hasRole, hotelId } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   
@@ -393,6 +401,17 @@ const HotelDetailsPage = () => {
     ac: AirVent,
     default: CheckCircle,
   };
+
+  // Helper function to check if current user owns this hotel
+  const isHotelOwner = useCallback(() => {
+    // Only hotel admins can own hotels
+    if (!hasRole('HOTEL_ADMIN')) {
+      return false;
+    }
+    
+    // Check if the current user's hotelId matches the hotel being viewed
+    return hotelId && id && hotelId.toString() === id.toString();
+  }, [hasRole, hotelId, id]);
 
 
   // Optimized data fetching with single API call for initial load
@@ -688,6 +707,33 @@ const HotelDetailsPage = () => {
 
   const toggleDescription = useCallback(() => {
     setUiState(prev => ({ ...prev, isDescriptionExpanded: !prev.isDescriptionExpanded }));
+  }, []);
+
+  // Delete review handler
+  const handleDeleteReview = useCallback(async (reviewId) => {
+    if (!reviewId) return;
+    
+    try {
+      // Call PATCH API to mark review as deleted
+      await api.patch(`/reviews/${reviewId}/deleted`, {
+        deleted: true
+      });
+      
+      // Update the review in local state to show deletion request status
+      setTestimonialsState(prev => ({
+        ...prev,
+        testimonials: prev.testimonials.map(testimonial => 
+          testimonial.id === reviewId 
+            ? { ...testimonial, deletionRequested: true }
+            : testimonial
+        )
+      }));
+      
+      // Show success message
+      console.log('Review deletion requested successfully');
+    } catch (error) {
+      console.error('Error requesting review deletion:', error);
+    }
   }, []);
 
   // Loading state - show YakRooms loader while fetching critical hotel data
@@ -1056,9 +1102,45 @@ const HotelDetailsPage = () => {
                                 />
                               </div>
                               
-                              <span className="hidden md:block text-xs text-gray-500 sm:text-right">
-                                {new Date(testimonial.createdAt).toLocaleDateString()}
-                              </span>
+                              <div className="flex items-center justify-between w-full sm:w-auto sm:justify-end gap-2">
+                                <span className="text-xs text-gray-500 sm:text-right">
+                                  {new Date(testimonial.createdAt).toLocaleDateString()}
+                                </span>
+                                
+                                {/* Three-dot menu for hotel_admin role - only for their own hotel */}
+                                {isHotelOwner() && (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 sm:h-6 sm:w-6 hover:bg-gray-100 transition-colors duration-200 ml-auto sm:ml-0"
+                                      >
+                                        <MoreVertical className="h-4 w-4 sm:h-4 sm:w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-40">
+                                      <DropdownMenuItem
+                                        onClick={() => !testimonial.deleted && handleDeleteReview(testimonial.id)}
+                                        className={`${
+                                          testimonial.deleted 
+                                            ? "text-gray-400 cursor-not-allowed" 
+                                            : "text-red-600 focus:text-red-600 focus:bg-red-50"
+                                        }`}
+                                        disabled={testimonial.deleted || testimonial.deletionRequested}
+                                      >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        {testimonial.deleted 
+                                          ? 'Review Deleted' 
+                                          : testimonial.deletionRequested 
+                                            ? 'Request for deletion' 
+                                            : 'Request Delete'
+                                        }
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                )}
+                              </div>
                             </div>
                             
                             {testimonial.comment && (

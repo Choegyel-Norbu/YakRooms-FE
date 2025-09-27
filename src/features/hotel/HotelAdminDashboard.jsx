@@ -15,6 +15,7 @@ import {
   Trash2,
   CreditCard,
   CheckCircle,
+  Settings,
 } from "lucide-react";
 import {
   Card,
@@ -292,14 +293,16 @@ const HotelAdminDashboard = () => {
 
   const navigationItems = [
     { id: "dashboard", label: "Dashboard", icon: Home },
-    { id: "hotel", label: "Hotel Details", icon: Hotel },
+    { id: "booking", label: "Booking", icon: Calendar },
+    { id: "inventory", label: "Bookings Inventory", icon: Package },
     { id: "rooms", label: "Room Management", icon: Bed },
     ...(roles && !roles.includes("STAFF")
       ? [{ id: "staff", label: "Staff Management", icon: Users }]
       : []),
-    { id: "inventory", label: "Bookings Inventory", icon: Package },
+    
     { id: "analytics", label: "Analytics", icon: PieChart },
-    { id: "booking", label: "Booking", icon: Calendar },
+    
+    { id: "hotel", label: "Hotel Settings", icon: Settings }
   ];
 
   const getPageTitle = () => {
