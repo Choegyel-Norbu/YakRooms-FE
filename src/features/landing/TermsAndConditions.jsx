@@ -415,8 +415,8 @@ const TermsAndConditions = () => {
                       <div className="space-y-4 text-sm text-muted-foreground">
                         <h4 className="font-semibold text-foreground">6.1 Payment Methods</h4>
                         <p>
-                          We accept various payment methods including credit cards, debit cards, 
-                          bank transfers, and digital wallets. All payments are processed securely.
+                          We accept payments through local banks including BOB (Bank of Bhutan), BNB (Bhutan National Bank), 
+                          BDBL (Bhutan Development Bank Limited), PNB, and DK. All payments are processed securely.
                         </p>
 
                         <h4 className="font-semibold text-foreground">6.2 Currency and Pricing</h4>

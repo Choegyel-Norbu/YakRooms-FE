@@ -596,14 +596,16 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                           </h3>
                         </div>
                         {navLinks.map((link) => (
-                          link.isContact ? (
-                            <button
-                              key={link.name}
+                          <SheetClose key={link.name} asChild>
+                            <Link
+                              to={link.path}
                               onClick={() => {
-                                onContactClick && onContactClick();
-                                setIsMobileMenuOpen(false);
+                                if (link.isContact) {
+                                  onContactClick && onContactClick();
+                                  setIsMobileMenuOpen(false);
+                                }
                               }}
-                              className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group mx-6 cursor-pointer"
+                              className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group mx-6"
                             >
                               <div className="flex items-center">
                                 <div className="p-1.5 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
@@ -615,26 +617,8 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                                 </div>
                               </div>
                               <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                          ) : (
-                            <SheetClose key={link.name} asChild>
-                              <Link
-                                to={link.path}
-                                className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group mx-6"
-                              >
-                                <div className="flex items-center">
-                                  <div className="p-1.5 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
-                                    <link.icon className="h-4 w-4 group-hover:text-primary transition-colors" />
-                                  </div>
-                                  <div>
-                                    <div className="font-medium">{link.name}</div>
-                                    <div className="text-xs text-muted-foreground">{link.description}</div>
-                                  </div>
-                                </div>
-                                <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                              </Link>
-                            </SheetClose>
-                          )
+                            </Link>
+                          </SheetClose>
                         ))}
                         
                         {/* Legal Links */}

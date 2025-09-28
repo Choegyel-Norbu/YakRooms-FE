@@ -975,16 +975,16 @@ export default function RoomBookingCard({ room, hotelId }) {
         }
         
         // Show toast notification
-        toast.success("Immediate Booking Successful!", {
+        toast.success("Booking Successful!", {
           description: "Your room has been booked for tonight! QR code generated!",
           duration: 6000
         });
       }
     } catch (error) {
-      console.error("Immediate booking failed:", error);
-      toast.error("Immediate Booking Failed", {
+      console.error("Booking failed:", error);
+      toast.error("Booking Failed", {
         description:
-          "There was an error processing your immediate booking. Please try again.",
+          "There was an error processing your booking. Please try again.",
         duration: 6000
       });
     } finally {
@@ -1314,7 +1314,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                       value={bookingDetails.phone}
                       onChange={handleInputChange}
                       placeholder="17123456"
-                      className="pl-14"
+                      className={`pl-14 placeholder:text-muted-foreground/50 ${errors.phone ? "border-destructive" : ""}`}
                     />
                   </div>
                   {errors.phone && (
@@ -1324,7 +1324,7 @@ export default function RoomBookingCard({ room, hotelId }) {
 
                 {/* Nationality Selection */}
                 <div className="grid gap-2">
-                  <Label className="text-sm">Nationality <span className="text-destructive">*</span></Label>
+                  <Label className="text-sm">Nationality </Label>
                   <div className="flex items-center space-x-3">
                     <span className="text-sm text-muted-foreground">Bhutanese</span>
                     <Switch
@@ -1358,9 +1358,9 @@ export default function RoomBookingCard({ room, hotelId }) {
                       type="text"
                       value={bookingDetails.cid}
                       onChange={handleInputChange}
-                      placeholder="11 digits (e.g., 10901001065)"
+                      placeholder="11 digits"
                       maxLength={11}
-                      className={`text-sm ${errors.cid ? "border-destructive" : ""}`}
+                      className={`text-sm placeholder:text-muted-foreground/50 ${errors.cid ? "border-destructive" : ""}`}
                     />
                     
                     {/* CID Warning Message */}
@@ -1388,7 +1388,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                     value={bookingDetails.destination}
                     onChange={handleInputChange}
                     placeholder="Enter destination"
-                    className={`text-sm ${errors.destination ? "border-destructive" : ""}`}
+                    className={`text-sm placeholder:text-muted-foreground/50 ${errors.destination ? "border-destructive" : ""}`}
                   />
                   {errors.destination && (
                     <p className="text-sm text-destructive">{errors.destination}</p>
@@ -1404,7 +1404,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                     value={bookingDetails.origin}
                     onChange={handleInputChange}
                     placeholder="Enter origin"
-                    className={`text-sm ${errors.origin ? "border-destructive" : ""}`}
+                    className={`text-sm placeholder:text-muted-foreground/50 ${errors.origin ? "border-destructive" : ""}`}
                   />
                   {errors.origin && (
                     <p className="text-sm text-destructive">{errors.origin}</p>
@@ -1657,7 +1657,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                     value={immediateBookingDetails.phone}
                     onChange={handleImmediateInputChange}
                     placeholder="17123456"
-                    className="pl-14"
+                    className={`pl-14 placeholder:text-muted-foreground/50 ${immediateBookingErrors.phone ? "border-destructive" : ""}`}
                   />
                 </div>
                 {immediateBookingErrors.phone && (
@@ -1667,7 +1667,7 @@ export default function RoomBookingCard({ room, hotelId }) {
 
               {/* Nationality Selection */}
               <div className="grid gap-2">
-                <Label className="text-sm">Nationality <span className="text-destructive">*</span></Label>
+                <Label className="text-sm">Nationality</Label>
                 <div className="flex items-center space-x-3">
                   {/* <span className="text-sm text-muted-foreground">Other</span> */}
                   <span className="text-sm text-muted-foreground">Bhutanese</span>
@@ -1705,9 +1705,9 @@ export default function RoomBookingCard({ room, hotelId }) {
                     type="text"
                     value={immediateBookingDetails.cid}
                     onChange={handleImmediateInputChange}
-                    placeholder="11 digits (e.g., 10901001065)"
+                    placeholder="11 digits"
                     maxLength={11}
-                    className={`text-sm ${immediateBookingErrors.cid ? "border-destructive" : ""}`}
+                    className={`text-sm placeholder:text-muted-foreground/50 ${immediateBookingErrors.cid ? "border-destructive" : ""}`}
                   />
                   
                   {/* CID Warning Message */}
@@ -1738,7 +1738,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                   value={immediateBookingDetails.destination}
                   onChange={handleImmediateInputChange}
                   placeholder="Enter destination"
-                  className={`text-sm ${immediateBookingErrors.destination ? "border-destructive" : ""}`}
+                  className={`text-sm placeholder:text-muted-foreground/50 ${immediateBookingErrors.destination ? "border-destructive" : ""}`}
                 />
                 {immediateBookingErrors.destination && (
                   <p className="text-sm text-destructive">{immediateBookingErrors.destination}</p>
@@ -1757,7 +1757,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                   value={immediateBookingDetails.origin}
                   onChange={handleImmediateInputChange}
                   placeholder="Enter origin"
-                  className={`text-sm ${immediateBookingErrors.origin ? "border-destructive" : ""}`}
+                  className={`text-sm placeholder:text-muted-foreground/50 ${immediateBookingErrors.origin ? "border-destructive" : ""}`}
                 />
                 {immediateBookingErrors.origin && (
                   <p className="text-sm text-destructive">{immediateBookingErrors.origin}</p>

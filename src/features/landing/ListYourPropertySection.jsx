@@ -140,7 +140,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
 
             {/* Right Side - CTA Card */}
             <div>
-              <div className="hover:shadow-lg transition-shadow duration-300 group">
+              <div className="hover:shadow-lg transition-shadow duration-300 group p-2">
                 <CardHeader className="text-center space-y-4">
                   {/* <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                     <Home className="h-8 w-8" />

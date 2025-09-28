@@ -29,7 +29,7 @@ const Breadcrumb = ({ items }) => {
 };
 
 const PrivacyPolicy = () => {
-  const lastUpdated = "December 15, 2024";
+  const lastUpdated = "September 28, 2025";
 
   // Ensure page scrolls to top when component mounts
   useEffect(() => {
@@ -63,9 +63,7 @@ const PrivacyPolicy = () => {
     { id: 'information-sharing', title: 'Information Sharing' },
     { id: 'data-security', title: 'Data Security' },
     { id: 'your-rights', title: 'Your Rights' },
-    { id: 'cookies', title: 'Cookies and Tracking' },
     { id: 'third-party', title: 'Third-Party Services' },
-    { id: 'children', title: "Children's Privacy" },
     { id: 'changes', title: 'Changes to This Policy' },
     { id: 'contact', title: 'Contact Us' }
   ];
@@ -149,7 +147,7 @@ const PrivacyPolicy = () => {
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
-                    <span><strong>Payment Information:</strong> Credit/debit card details processed securely through RMA Payment Gateway</span>
+                    <span><strong>Payment Information:</strong> Bank account details (BOB, BNB, BDBL, DK, Druk PNB) processed securely through RMA Payment Gateway</span>
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
@@ -271,25 +269,25 @@ const PrivacyPolicy = () => {
                 <div className="ml-4 space-y-1.5">
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
-                    <span><strong>Correction:</strong> Update or correct inaccurate information</span>
+                    <span><strong>Account Management:</strong> Update your profile information and account settings through your dashboard</span>
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
-                    <span><strong>Deletion:</strong> Request deletion of your account and personal data</span>
+                    <span><strong>Data Correction:</strong> Contact us to correct any inaccurate personal information</span>
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
-                    <span><strong>Portability:</strong> Receive your data in a structured, machine-readable format</span>
+                    <span><strong>Account Deletion:</strong> Request complete deletion of your account and associated data</span>
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
-                    <span><strong>Opt-out:</strong> Unsubscribe from marketing communications</span>
+                    <span><strong>Communication Preferences:</strong> Unsubscribe from marketing emails and notifications</span>
                   </p>
                 </div>
 
                 <p className="mt-3 text-sm">
-                  To exercise these rights, please contact us at privacy@ezeeroom.com. We will respond to your request 
-                  within 30 days.
+                  To exercise these rights or for any privacy-related concerns, please contact us at privacy@ezeeroom.com. 
+                  We will respond to your request within 30 days.
                 </p>
               </div>
             </section>
@@ -299,9 +297,9 @@ const PrivacyPolicy = () => {
 
             <Separator />
 
-            {/* Section 7: Third-Party Services */}
+            {/* Section 6: Third-Party Services */}
             <section id="third-party" className="space-y-3">
-              <h2 className="text-lg font-heading font-semibold">7. Third-Party Services</h2>
+              <h2 className="text-lg font-heading font-semibold">6. Third-Party Services</h2>
               
               <div className="space-y-3 text-muted-foreground">
                 <p className="text-sm">
@@ -329,29 +327,20 @@ const PrivacyPolicy = () => {
                     <span className="text-primary mt-0.5">•</span>
                     <span>Email service providers for communications</span>
                   </p>
+                  <p className="flex items-start gap-2 text-sm">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span>Social media platforms (Facebook, TikTok, Instagram) for marketing and user engagement</span>
+                  </p>
                 </div>
               </div>
             </section>
 
             <Separator />
 
-            {/* Section 8: Children's Privacy */}
-            <section id="children" className="space-y-3">
-              <h2 className="text-lg font-heading font-semibold">8. Children's Privacy</h2>
-              
-              <div className="space-y-3 text-muted-foreground">
-                <p className="text-sm">
-                  This platform is not intended for users below 18 years of age. EzeeRoom is not responsible 
-                  for any incidents, issues, or consequences that may occur if users under 18 access or use our services.
-                </p>
-              </div>
-            </section>
 
-            <Separator />
-
-            {/* Section 9: Changes to This Policy */}
+            {/* Section 7: Changes to This Policy */}
             <section id="changes" className="space-y-3">
-              <h2 className="text-lg font-heading font-semibold">9. Changes to This Policy</h2>
+              <h2 className="text-lg font-heading font-semibold">7. Changes to This Policy</h2>
               
               <div className="space-y-3 text-muted-foreground">
                 <p className="text-sm">
@@ -369,9 +358,9 @@ const PrivacyPolicy = () => {
 
             <Separator />
 
-            {/* Section 10: Contact Us */}
+            {/* Section 8: Contact Us */}
             <section id="contact" className="space-y-3">
-              <h2 className="text-lg font-heading font-semibold">10. Contact Us</h2>
+              <h2 className="text-lg font-heading font-semibold">8. Contact Us</h2>
               
               <div className="space-y-3 text-muted-foreground">
                 <p className="text-sm">

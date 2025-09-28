@@ -11,9 +11,9 @@ const Footer = React.forwardRef((props, ref) => {
     <footer ref={ref} className="bg-background border-t">
       <div className="container mx-auto px-4 py-8">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-1">
             <div className="mb-4">
               <img 
                 src={logoER} 
@@ -56,7 +56,7 @@ const Footer = React.forwardRef((props, ref) => {
           </div>
 
           {/* Quick Links */}
-          <nav className="hidden md:block space-y-4">
+          <nav className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground">
               Quick Links
             </h3>
@@ -88,39 +88,6 @@ const Footer = React.forwardRef((props, ref) => {
               
             </ul>
           </nav>
-
-          {/* For Businesses */}
-          {/* <nav className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground">
-              For Businesses
-            </h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  to="/addListing"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                >
-                  Add Your Property
-                </Link>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                >
-                  Partner Login
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                >
-                  Vendor Guidelines
-                </a>
-              </li>
-            </ul>
-          </nav> */}
 
           {/* Support */}
           <nav className="space-y-4">
@@ -168,10 +135,7 @@ const Footer = React.forwardRef((props, ref) => {
               </li>
             </ul>
           </nav>
-        </div>
 
-        {/* Contact Information & Email Query */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 pt-8 border-t">
           {/* Contact Information */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground">
@@ -198,25 +162,29 @@ const Footer = React.forwardRef((props, ref) => {
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Email Query */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground">
-              Have Questions?
-            </h3>
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Got questions about EzeeRoom or need help with your booking?
-                Feel free to reach out to us directly.
-              </p>
-              <Button
-                onClick={() =>
-                  window.open("mailto:choegyell@gmail.com", "_blank")
-                }
-                className="w-full"
-              >
-                Email Us
-              </Button>
+        {/* Email Query */}
+        <div className="mt-8 pt-8 border-t">
+          <div className="max-w-md mx-auto text-center">
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground">
+                Have Questions?
+              </h3>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Got questions about EzeeRoom or need help with your booking?
+                  Feel free to reach out to us directly.
+                </p>
+                <Button
+                  onClick={() =>
+                    window.open("mailto:choegyell@gmail.com", "_blank")
+                  }
+                  className="w-full"
+                >
+                  Email Us
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -226,7 +194,7 @@ const Footer = React.forwardRef((props, ref) => {
           <Separator className="mb-6" />
           <div className="text-center">
             <p className="text-sm text-muted-foreground">
-              © 2025 EzeeRoom. All rights reserved. Built for Bhutan 🇧🇹
+              © 2025 EzeeRoom. All rights reserved. 
             </p>
           </div>
         </div>

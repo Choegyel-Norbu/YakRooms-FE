@@ -130,15 +130,15 @@ const FAQs = () => {
   const bookingProcessFAQs = [
     {
       question: "How do I make a hotel booking on EzeeRoom?",
-      answer: "1) Search for hotels using our search filters, 2) Select your preferred hotel and room type, 3) Choose your check-in and check-out dates, 4) Review the booking details and pricing, 5) Enter guest information and payment details, 6) Confirm your booking. The system will notify your booking confirmation and you can mange it from the dashboard."
+      answer: "1) Search for hotels using our search filters, 2) Select your preferred hotel and room type, 3) Choose your check-in and check-out dates, 4) Review the booking details and pricing, 5) Enter your information and payment details, 6) Confirm your booking. The system will notify your booking confirmation and you can mange it from the dashboard."
     },
     {
       question: "What payment methods do you accept?",
-      answer: "We accept major credit cards (Visa, MasterCard, American Express), debit cards, bank transfers, and mobile payment options. For Bhutanese users, we also accept local payment methods. All payments are processed securely through encrypted channels."
+      answer: "We accept payments through local banks including BOB (Bank of Bhutan), BNB (Bhutan National Bank), BDBL (Bhutan Development Bank Limited), DK, and Druk PNB Bank. All payments are processed securely through encrypted channels."
     },
     {
       question: "Can I modify or cancel my booking?",
-      answer: "Yes, you can modify or cancel your booking through your account dashboard or by contacting our customer support. Cancellation policies vary by hotel and booking type. Free cancellation is available for most bookings up to 24-48 hours before check-in, depending on the hotel's policy."
+      answer: "Yes, you can modify or cancel your booking through your account dashboard or by contacting our customer support. Cancellation policies vary by hotel and their own policy."
     },
     {
       question: "How do I get my booking confirmation?",

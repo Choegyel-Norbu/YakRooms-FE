@@ -70,7 +70,7 @@ const EzeeRoomLogo = ({ size = "default", className = "", variant = "full" }) =>
           <span className="text-yellow-500 group-hover:text-yellow-600 transition-colors duration-300">zee</span>
           <span className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 bg-clip-text text-transparent group-hover:from-blue-700 group-hover:via-blue-800 group-hover:to-indigo-800 transition-all duration-300">Room</span>
         </span>
-        <span className={`${config.taglineSize} text-gray-500 dark:text-gray-400 font-medium tracking-wider uppercase group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-300`} style={{ fontSize: '0.625rem' }}>
+        <span className={`${config.taglineSize} text-gray-500 dark:text-gray-400 font-medium tracking-wider uppercase group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-300 text-right`} style={{ fontSize: '0.625rem' }}>
           Accommodation
         </span>
       </div>

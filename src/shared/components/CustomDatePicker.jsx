@@ -254,7 +254,7 @@ const CustomDatePicker = ({
           <span className={
             selectedDate 
               ? (disabled ? "text-gray-500" : "text-gray-900") 
-              : (disabled ? "text-gray-400" : "text-gray-500")
+              : (disabled ? "text-gray-400" : "text-gray-500/50")
           }>
             {selectedDate ? formatDate(selectedDate) : placeholder}
           </span>
