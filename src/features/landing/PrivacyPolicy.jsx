@@ -392,16 +392,6 @@ const PrivacyPolicy = () => {
             </section>
           </div>
         </Card>
-
-        {/* Back to Top Button */}
-        <div className="text-center">
-          <Button variant="outline" asChild>
-            <Link to="/" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Home
-            </Link>
-          </Button>
-        </div>
         </div>
       </div>
     </div>

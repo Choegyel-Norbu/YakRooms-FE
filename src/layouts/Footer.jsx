@@ -160,7 +160,7 @@ const Footer = React.forwardRef((props, ref) => {
               </li>
               <li>
                 <Link
-                  to="/terms-and-conditions"
+                  to="/terms-and-conditions#cancellation-policy"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   Cancellation Policy

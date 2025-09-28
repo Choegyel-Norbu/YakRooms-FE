@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Button } from "@/shared/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/card";
 import { Badge } from "@/shared/components/badge";
 import { Separator } from "@/shared/components/separator";
@@ -45,9 +44,31 @@ const TermsAndConditions = () => {
     contact: true
   });
 
-  // Scroll to top when component mounts
+  // Scroll to top when component mounts and handle hash navigation
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Check if there's a hash in the URL
+    const hash = window.location.hash;
+    
+    if (hash) {
+      // If there's a hash, scroll to the element after a short delay to ensure DOM is ready
+      setTimeout(() => {
+        const element = document.querySelector(hash);
+        if (element) {
+          element.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+          });
+          // Ensure the section is expanded if it's collapsible
+          const sectionId = hash.replace('#', '');
+          if (sectionId === 'cancellation-policy' && !expandedSections.cancellation) {
+            toggleSection('cancellation');
+          }
+        }
+      }, 100);
+    } else {
+      // If no hash, scroll to top
+      window.scrollTo(0, 0);
+    }
   }, []);
 
   const toggleSection = (section) => {
@@ -322,7 +343,7 @@ const TermsAndConditions = () => {
                   </div>
 
                   {/* 5. Cancellation Policy */}
-                  <div className="border-b">
+                  <div id="cancellation-policy" className="border-b">
                     <SectionHeader
                       title="5. Cancellation and Refund Policy"
                       isExpanded={expandedSections.cancellation}
@@ -400,15 +421,14 @@ const TermsAndConditions = () => {
 
                         <h4 className="font-semibold text-foreground">6.2 Currency and Pricing</h4>
                         <ul className="list-disc list-inside space-y-1 ml-4">
-                          <li>Prices are displayed in Bhutanese Ngultrum (BTN) or USD</li>
-                          <li>Currency conversion rates are updated regularly</li>
+                          <li>Prices are displayed for each room in Bhutanese Ngultrum (BTN) respectively</li>
                           <li>Final charges may include taxes and service fees</li>
                           <li>Prices are subject to change without notice</li>
                         </ul>
 
                         <h4 className="font-semibold text-foreground">6.3 Payment Security</h4>
                         <p>
-                          All payment information is encrypted and processed through secure payment gateways. 
+                          All payment information is encrypted and processed through secure payment gateway(RMA). 
                           We do not store your complete payment information on our servers.
                         </p>
 
