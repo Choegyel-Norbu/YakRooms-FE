@@ -62,7 +62,7 @@ const FAQSection = ({ title, faqs, openItems, onToggle }) => {
   return (
     <div className="mb-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-foreground">{title}</h2>
+        <h2 className="text-md text-foreground px-4">{title}</h2>
       </div>
       <div className="space-y-0">
         {faqs.map((faq, index) => (
@@ -223,10 +223,8 @@ const FAQs = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-4">
-            <div className="flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mr-4">
-              <HelpCircle className="h-8 w-8 text-primary" />
-            </div>
-            <h1 className="text-3xl font-bold text-foreground">Frequently Asked Questions</h1>
+            
+            <h1 className="text-2xl font-bold text-foreground">Frequently Asked Questions</h1>
           </div>
           <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
             Find answers to common questions about hotel onboarding, booking procedures, and using EzeeRoom.

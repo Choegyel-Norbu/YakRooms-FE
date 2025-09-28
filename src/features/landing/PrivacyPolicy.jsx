@@ -3,7 +3,30 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/shared/components/card';
 import { Button } from '@/shared/components/button';
 import { Separator } from '@/shared/components/separator';
-import { ArrowLeft, Shield } from 'lucide-react';
+import { ArrowLeft, Shield, ChevronRight } from 'lucide-react';
+
+// Breadcrumb Component
+const Breadcrumb = ({ items }) => {
+  return (
+    <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
+      <Link to="/" className="flex items-center hover:text-foreground transition-colors">
+        Home
+      </Link>
+      {items.map((item, index) => (
+        <React.Fragment key={index}>
+          <ChevronRight className="h-4 w-4" />
+          {item.href ? (
+            <Link to={item.href} className="hover:text-foreground transition-colors">
+              {item.label}
+            </Link>
+          ) : (
+            <span className="text-foreground font-medium">{item.label}</span>
+          )}
+        </React.Fragment>
+      ))}
+    </nav>
+  );
+};
 
 const PrivacyPolicy = () => {
   const lastUpdated = "December 15, 2024";
@@ -54,31 +77,29 @@ const PrivacyPolicy = () => {
     }
   };
 
+  const breadcrumbItems = [
+    { label: "Privacy Policy" }
+  ];
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-b from-primary/5 to-background py-12 px-4">
-        <div className="max-w-3xl mx-auto">
-          <Button variant="ghost" size="sm" asChild className="mb-6">
-            <Link to="/" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Home
-            </Link>
-          </Button>
-          
-          <div className="flex items-center gap-3 mb-4">
-            <Shield className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-heading font-bold">Privacy & Security Policy</h1>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Breadcrumb */}
+        <Breadcrumb items={breadcrumbItems} />
+
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center mb-4">
+            <Shield className="h-6 w-6 text-primary mr-3" />
+            <h1 className="text-2xl font-bold text-foreground">Privacy & Security Policy</h1>
           </div>
-          
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
             Last updated: {lastUpdated}
           </p>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-3xl mx-auto px-4 pb-16">
+        {/* Main Content */}
+        <div className="pb-16">
         <Card className="my-8 p-6 md:p-8">
           {/* Introduction */}
           <div className="space-y-6">
@@ -380,6 +401,7 @@ const PrivacyPolicy = () => {
               Back to Home
             </Link>
           </Button>
+        </div>
         </div>
       </div>
     </div>
