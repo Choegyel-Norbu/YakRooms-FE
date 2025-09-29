@@ -80,6 +80,9 @@ const HotelAdminDashboard = () => {
     roles,
     isTopHotel,
     topHotelIds,
+    subscriptionPaymentStatus,
+    subscriptionPlan,
+    fetchSubscriptionData,
   } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
 
@@ -149,6 +152,13 @@ const HotelAdminDashboard = () => {
 
     fetchHotelData();
   }, [userId]);
+
+  // Fetch subscription data when hotelId is available
+  useEffect(() => {
+    if (hotelId && fetchSubscriptionData) {
+      fetchSubscriptionData(hotelId);
+    }
+  }, [hotelId, fetchSubscriptionData]);
 
   // Fetch all notifications from backend when component mounts
   useEffect(() => {
@@ -363,6 +373,17 @@ const HotelAdminDashboard = () => {
               <p className="text-xs text-muted-foreground">Admin Panel</p>
             </div>
           </div>
+          
+          {/* Subscription Status */}
+          {subscriptionPlan === 'TRIAL' && (
+            <Badge 
+              variant="secondary" 
+              className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0 shadow-sm hover:from-blue-600 hover:to-indigo-600 transition-all duration-200"
+            >
+              <CreditCard className="w-3 h-3 mr-1" />
+              Trial Plan
+            </Badge>
+          )}
         </div>
 
         <nav className="p-3 lg:p-4 flex-1">
@@ -526,6 +547,19 @@ const HotelAdminDashboard = () => {
                         </p>
                       </div>
                     </SheetTitle>
+                    
+                    {/* Subscription Status for Mobile */}
+                    {subscriptionPlan === 'TRIAL' && (
+                      <div className="mt-3">
+                        <Badge 
+                          variant="secondary" 
+                          className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0 shadow-sm hover:from-blue-600 hover:to-indigo-600 transition-all duration-200"
+                        >
+                          <CreditCard className="w-3 h-3 mr-1" />
+                          Trial Plan
+                        </Badge>
+                      </div>
+                    )}
                   </SheetHeader>
 
                   <div className="flex-1 flex flex-col p-4">
@@ -568,6 +602,17 @@ const HotelAdminDashboard = () => {
                         >
                           <ArrowLeft className="mr-2 h-4 w-4" />
                           Back to Website
+                        </Button>
+                      </Link>
+
+                      <Link to="/subscription" className="block">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                        >
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Subscription
                         </Button>
                       </Link>
 
@@ -620,6 +665,12 @@ const HotelAdminDashboard = () => {
                     <Link to="/" className="w-full">
                       <Home className="mr-2 h-4 w-4" />
                       <span>Return to Website</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/subscription" className="w-full">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      <span>Subscription</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -692,6 +743,7 @@ const HotelAdminDashboard = () => {
                     </div>
                   </div>
                 </div>
+
 
                 {/* Top Hotel Congratulations Section */}
 

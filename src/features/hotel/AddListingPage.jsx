@@ -574,7 +574,7 @@ const AddListingPage = () => {
     if (isSubmitted) {
       const timeout = setTimeout(() => {
         setIsSubmitted(false);
-        navigate("/");
+        navigate("/subscription");
       }, 3000);
 
       return () => clearTimeout(timeout);

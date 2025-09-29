@@ -1,128 +1,327 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/components/card';
 import { Button } from '@/shared/components/button';
-import { Check, Star, Zap, Crown, ChevronDown, ChevronUp } from 'lucide-react';
+import { Check, Loader2, ArrowLeft } from 'lucide-react';
+import { enhancedApi } from '@/shared/services/Api';
+import { useAuth } from '@/features/authentication/AuthProvider';
+import { toast } from 'sonner';
 
 const SubscriptionPage = () => {
-  const [openAccordion, setOpenAccordion] = useState(null);
+  const { hotelId, subscriptionId, subscriptionIsActive, subscriptionPlan } = useAuth();
+  const navigate = useNavigate();
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
-  const toggleAccordion = (index) => {
-    setOpenAccordion(openAccordion === index ? null : index);
-  };
-
- 
-  const faqData = [
-    {
-      question: "Is the Free Trial really free?",
-      answer: "Yes. YakRooms offers a full 6-month Premium Free Trial with no upfront charges and no credit card required. During this time, you’ll have access to all Premium features, including advanced hotel search, instant booking confirmations, and AI-powered recommendations. The Free Trial is designed to help travelers and hoteliers experience the platform without any barriers before deciding to subscribe."
-    },
-    {
-      question: "What happens after the trial ends?",
-      answer: "Once the 6-month Free Trial ends, your account will automatically continue on our free basic tier with limited features such as browsing hotels and viewing availability. To keep access to Premium benefits—like faster booking confirmations, priority customer support, and AI-assisted trip planning—you can upgrade to a paid plan at Nu 400 per month or Nu 4,000 per year. You will always be notified before the trial ends so you can choose whether to upgrade or continue on the free plan."
-    },
-    {
-      question: "What do I get with Premium?",
-      answer: "YakRooms Premium is designed for travelers and hotel owners who want more convenience, speed, and insights. Premium users get: priority hotel confirmations, AI-assisted search and recommendations based on location and preferences, early access to new YakRooms features, and priority support with faster response times. Annual Premium members also receive dedicated onboarding assistance and access to advanced analytics dashboards to track bookings and performance over time."
-    },
-    {
-      question: "Which payment methods are supported?",
-      answer: "We support multiple payment options to make subscribing easy. International users can pay via Visa, Mastercard, and PayPal, while local Bhutanese users can pay through bank transfers or mobile wallets supported in Bhutan. All transactions are processed through secure, PCI-compliant providers, and no sensitive payment information is stored directly on YakRooms servers."
-    },
-    {
-      question: "Can I cancel anytime?",
-      answer: "Yes. Subscriptions are flexible—there are no lock-in contracts or long-term commitments. You can cancel directly from your YakRooms account dashboard at any time. If you cancel a monthly plan, you’ll retain access until the end of your billing cycle. Annual subscribers who cancel early will continue to have access until the end of the paid year."
-    },
-    {
-      question: "Is my booking and personal data secure?",
-      answer: "Absolutely. Protecting your data is a top priority at YakRooms. All booking details, personal information, and payment transactions are encrypted both in transit and at rest using industry-standard protocols. Our infrastructure is regularly monitored for security compliance, and we follow best practices in data protection to keep your information safe at all times."
-    }
-  ];
+  // Determine subscription state based on both subscriptionIsActive and subscriptionPlan
+  const isTrialActive = subscriptionIsActive === true && subscriptionPlan === 'TRIAL';
+  const isProActive = subscriptionIsActive === true && subscriptionPlan === 'PRO';
+  const isTrialExpired = subscriptionIsActive === false && (subscriptionPlan === 'TRIAL' || !subscriptionPlan);
+  const isNoSubscription = !subscriptionIsActive && !subscriptionPlan;
   
-  
+  // Check if user has ever had PRO subscription (active or expired)
+  const hasEverHadPro = subscriptionPlan === 'PRO';
 
   const pricingPlans = [
     {
       id: 'free',
-      name: 'Free Plan',
-      price: 'Free',
-      period: '6 months',
-      description: 'Perfect for getting started with YakRooms',
+      name: isTrialExpired 
+        ? 'Trial Expired' 
+        : isTrialActive 
+          ? 'Active Trial' 
+          : 'Free Trial',
+      price: isTrialExpired 
+        ? 'Expired' 
+        : isTrialActive 
+          ? 'Active' 
+          : 'Free',
+      period: '2 months',
+      description: isTrialExpired 
+        ? 'Your free trial has expired. Subscribe to continue using EzeeRoom.' 
+        : isTrialActive
+          ? 'You are currently enjoying your free trial. Continue exploring all features!'
+          : 'Perfect for getting started with EzeeRoom',
       features: [
-        'Full access to all platform features',
-        'Unlimited room bookings',
+        'Access to all platform features',
         'Hotel management dashboard',
         'Guest booking system',
         'Basic analytics & reports',
-        'Email notifications',
         'Mobile app access',
-        'Standard customer support'
       ],
-      buttonText: 'Get Started Free',
+      buttonText: isTrialExpired 
+        ? 'Trial expired' 
+        : isTrialActive
+          ? 'Continue to Dashboard'
+          : 'Get Started Free',
       buttonVariant: 'default',
-      popular: true,
-      savings: null
+      popular: !isTrialExpired,
+      savings: null,
+      isExpired: isTrialExpired,
+      isActive: isTrialActive,
+      isProActive: isProActive
     },
     {
-      id: 'premium',
-      name: 'Premium Plan',
-      price: 'Nu 1,000',
+      id: 'subscription',
+      name: isProActive ? 'Active Pro Subscription' : 'Paid subscription',
+      price: 'Nu. 1,000',
       period: 'per month',
-      description: 'For established hotel businesses',
+      description: isProActive 
+        ? 'Your hotel listing is active and discoverable to guests worldwide.'
+        : 'Subscribe to activate your hotel listing and let others discover your hotel.',
       features: [
-        'Everything in Free Plan',
-        'Advanced analytics & insights',
-        'Priority customer support',
-        'Custom branding options',
-        'API access & integrations',
-        'Bulk booking management',
-        'Revenue optimization tools',
-        '24/7 phone support',
-        'Dedicated account manager'
+        'Activate your hotel listing',
+        'Make your hotel discoverable to guests',
+        'Appear in search results',
+        'Receive booking requests',
+        'Manage guest reservations',
+        'Access booking analytics',
+        'Customer support',
+        'Download reports',
       ],
-      buttonText: 'Upgrade to Premium',
-      buttonVariant: 'outline',
+      buttonText: isProActive ? 'Manage Subscription' : 'Subscribe Now',
+      isDisabled: isProActive,
+      buttonVariant: 'default',
       popular: false,
-      savings: null
+      savings: null,
+      isExpired: false,
+      isActive: isProActive,
+      isSubscription: true,
+      isProActive: isProActive
     }
   ];
 
-  const handleSubscribe = (planId) => {
-    // TODO: Implement subscription logic
-    console.log(`Subscribing to plan: ${planId}`);
-    // This would typically integrate with your payment processor
-    // (Stripe, PayPal, etc.) and user management system
+  const handleSubscribe = async (planId) => {
+    if (!hotelId) {
+      toast.error('Hotel ID not found. Please ensure you are logged in and have a hotel associated with your account.');
+      return;
+    }
+
+    setIsSubscribing(true);
+    
+    try {
+      // Calculate trial dates (2 months from now)
+      const trialStartDate = new Date();
+      const trialEndDate = new Date();
+      trialEndDate.setMonth(trialEndDate.getMonth() + 2);
+      
+      // Determine subscription plan based on planId
+      const subscriptionPlan = planId === 'free' ? 'TRIAL' : 'PRO';
+      
+      const subscriptionData = {
+        hotelId: parseInt(hotelId),
+        subscriptionPlan: subscriptionPlan,
+        paymentStatus: "PENDING",
+        trialStartDate: trialStartDate.toISOString(),
+        trialEndDate: trialEndDate.toISOString(),
+        nextBillingDate: trialEndDate.toISOString(),
+        cancelDate: null,
+        lastPaymentDate: null,
+        notes: "Initial subscription setup for new hotel"
+      };
+
+      console.log('Creating subscription with data:', subscriptionData);
+      
+      const response = await enhancedApi.post('/subscriptions', subscriptionData);
+      
+      if (response.status === 200 || response.status === 201) {
+        toast.success('Free trial started successfully! Welcome to EzeeRoom.');
+        console.log('Subscription created successfully:', response.data);
+        
+        // Redirect to dashboard after 3 seconds
+        setTimeout(() => {
+          navigate('/hotelAdmin');
+        }, 1000);
+      } else {
+        throw new Error('Unexpected response status');
+      }
+      
+    } catch (error) {
+      console.error('Failed to create subscription:', error);
+      
+      if (error.response?.status === 409) {
+        toast.error('You already have an active subscription. Please check your account status.');
+      } else if (error.response?.status === 400) {
+        toast.error('Invalid subscription data. Please try again.');
+      } else if (error.response?.status === 401) {
+        toast.error('Authentication required. Please log in again.');
+      } else {
+        toast.error('Failed to start free trial. Please try again later.');
+      }
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
+  const handleSubscriptionCard = async () => {
+    if (!hotelId) {
+      toast.error('Hotel ID not found. Please ensure you are logged in and have a hotel associated with your account.');
+      return;
+    }
+
+    setIsSubscribing(true);
+    
+    try {
+      // Calculate next billing date (1 month from now for PRO subscription)
+      const nextBillingDate = new Date();
+      nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+      
+      const subscriptionData = {
+        subscriptionPlan: 'PRO',
+        paymentStatus: 'PAID',
+        nextBillingDate: nextBillingDate.toISOString()
+      };
+
+      console.log('Updating subscription with data:', subscriptionData);
+      
+      const response = await enhancedApi.put(`/subscriptions/hotel/${hotelId}`, subscriptionData);
+      
+      if (response.status === 200 || response.status === 201) {
+        toast.success('Subscription activated successfully! Your hotel is now discoverable.');
+        console.log('Subscription updated successfully:', response.data);
+        
+        // Redirect to dashboard after 2 seconds
+        setTimeout(() => {
+          navigate('/hotelAdmin');
+        }, 2000);
+      } else {
+        throw new Error('Unexpected response status');
+      }
+      
+    } catch (error) {
+      console.error('Failed to update subscription:', error);
+      
+      if (error.response?.status === 404) {
+        toast.error('Subscription not found. Please contact support.');
+      } else if (error.response?.status === 400) {
+        toast.error('Invalid subscription data. Please try again.');
+      } else if (error.response?.status === 401) {
+        toast.error('Authentication required. Please log in again.');
+      } else {
+        toast.error('Failed to activate subscription. Please try again later.');
+      }
+    } finally {
+      setIsSubscribing(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
+        {/* Back Navigation */}
+        <div className="mb-8">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/hotelAdmin')}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </Button>
+        </div>
         {/* Header Section */}
         <div className="text-center mb-16">
           <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-6">
-            Start Your Hotel Business <span className="text-primary">Free</span>
+            {isTrialExpired ? (
+              <>
+                Trial Period <span className="text-red-500">Expired</span>
+              </>
+            ) : isTrialActive ? (
+              <>
+                Your Trial is <span className="text-green-500">Active</span>
+              </>
+            ) : isProActive ? (
+              <>
+                Pro Subscription <span className="text-blue-600">Active</span>
+              </>
+            ) : hasEverHadPro ? (
+              <>
+                Pro Subscription <span className="text-gray-500">Inactive</span>
+              </>
+            ) : (
+              <>
+                Start Your Hotel Business 
+              </>
+            )}
           </h1>
           <p className="text-sm text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Get 6 months completely free to grow your hotel business. After that, 
-            continue with our affordable Nu 1,000/month premium plan for advanced features.
+            {isTrialExpired 
+              ? 'Your free trial has ended. Subscribe now to continue managing your hotel business with EzeeRoom.'
+              : isTrialActive
+                ? 'You are currently in your free trial period. Make the most of all features before your trial ends.'
+                : isProActive
+                  ? 'Your hotel listing is active and discoverable to guests worldwide. Manage your subscription below.'
+                  : hasEverHadPro
+                    ? 'Your Pro subscription is currently inactive. Reactivate below to restore your hotel listing visibility.'
+                    : 'Get 2 months completely free to grow your hotel business with full access to all platform features.'
+            }
           </p>
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {pricingPlans.map((plan) => (
+        <div className={`grid gap-8 max-w-4xl mx-auto items-stretch ${
+          (isProActive || hasEverHadPro) ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'
+        }`}>
+          {pricingPlans.filter(plan => {
+            // Hide free trial card if user has ever had Pro subscription
+            if (plan.id === 'free' && hasEverHadPro) {
+              return false;
+            }
+            return true;
+          }).map((plan) => (
             <Card 
               key={plan.id} 
-              className={`relative transition-all duration-300 hover:shadow-xl hover:-translate-y-2 ${
-                plan.popular 
-                  ? 'ring-2 ring-primary shadow-lg scale-105' 
-                  : 'hover:shadow-lg'
+              className={`relative transition-all duration-300 hover:shadow-xl hover:-translate-y-2 h-full flex flex-col ${
+                plan.isExpired
+                  ? 'ring-2 ring-red-500 shadow-lg scale-105'
+                  : plan.isActive
+                    ? 'ring-2 ring-blue-500 shadow-lg scale-105'
+                    : plan.isProActive
+                      ? 'ring-2 ring-purple-500 shadow-lg scale-105'
+                      : plan.popular 
+                        ? 'ring-2 ring-primary shadow-lg scale-105' 
+                        : 'hover:shadow-lg'
               }`}
             >
               {/* Popular Badge */}
-              {plan.popular && (
+              {plan.popular && !plan.isExpired && !plan.isActive && !plan.isProActive && !plan.isSubscription && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                  <div className="bg-yellow-500 text-white px-4 py-1 rounded-full text-sm font-medium">
                     Initial Trial
+                  </div>
+                </div>
+              )}
+
+              {/* Active Trial Badge */}
+              {plan.isActive && !plan.isProActive && !plan.isSubscription && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                    Currently Active
+                  </div>
+                </div>
+              )}
+
+              {/* Pro Subscription Badge */}
+              {plan.isProActive && plan.isSubscription && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-purple-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                    Pro Subscription
+                  </div>
+                </div>
+              )}
+
+              {/* Regular Subscription Badge */}
+              {plan.isSubscription && !plan.isProActive && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
+                    Subscription
+                  </div>
+                </div>
+              )}
+
+              {/* Expired Badge */}
+              {plan.isExpired && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-red-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                    Trial Expired
                   </div>
                 </div>
               )}
@@ -140,28 +339,36 @@ const SubscriptionPage = () => {
                 <CardTitle className="text-2xl font-extrabold text-gray-900">
                   {plan.name}
                 </CardTitle>
-                <CardDescription className="text-gray-600 text-sm">
+                <CardDescription className="text-gray-600 text-sm leading-relaxed">
                   {plan.description}
                 </CardDescription>
               </CardHeader>
 
-              <CardContent className="text-center pb-6">
+              <CardContent className="text-center pb-6 flex-1 flex flex-col">
                 <div className="mb-6">
                   <div className="flex items-baseline justify-center">
-                    <span className="text-2xl font-bold text-yellow-500">
+                    <span className={`text-3xl font-extrabold ${
+                      plan.isExpired 
+                        ? 'text-red-500' 
+                        : plan.isActive 
+                          ? 'text-blue-500' 
+                          : plan.isProActive
+                            ? 'text-purple-500'
+                            : 'text-yellow-500'
+                    }`}>
                       {plan.price}
                     </span>
-                    <span className="text-gray-600 ml-2 text-sm">
+                    <span className="text-gray-600 ml-2 text-sm font-medium">
                       {plan.period}
                     </span>
                   </div>
                 </div>
 
-                <ul className="space-y-3 text-left">
+                <ul className="space-y-3 text-left flex-1">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start">
                       <Check className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
-                      <span className="text-gray-700 text-sm">{feature}</span>
+                      <span className="text-gray-700 text-sm font-medium leading-relaxed">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -169,63 +376,52 @@ const SubscriptionPage = () => {
 
               <CardFooter className="pt-0">
                 <Button
-                  onClick={() => handleSubscribe(plan.id)}
+                  onClick={() => {
+                    if (plan.isActive) {
+                      navigate('/hotelAdmin');
+                    } else if (plan.isProActive && plan.isSubscription) {
+                      // Handle pro subscription management
+                      navigate('/subscription-management');
+                    } else if (plan.isSubscription) {
+                      // Handle subscription management or creation
+                      if (isProActive) {
+                        // Navigate to subscription management for pro users
+                        navigate('/subscription-management');
+                      } else {
+                        // Use separate API call for subscription card
+                        handleSubscriptionCard();
+                      }
+                    } else {
+                      handleSubscribe(plan.id);
+                    }
+                  }}
                   variant={plan.buttonVariant}
                   size="lg"
+                  disabled={isSubscribing || plan.isDisabled}
                   className={`w-full ${
-                    plan.popular 
-                      ? 'bg-primary hover:bg-primary/90 text-white' 
-                      : ''
+                    plan.isExpired
+                      ? 'bg-red-500 hover:bg-red-600 text-white'
+                      : plan.isActive
+                        ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                        : plan.isProActive
+                          ? 'bg-purple-500 hover:bg-purple-600 text-white'
+                          : plan.popular 
+                            ? 'bg-primary hover:bg-primary/90 text-white' 
+                            : ''
                   }`}
                 >
-                  {plan.buttonText}
+                  {isSubscribing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {plan.isExpired ? 'Processing...' : 'Starting Trial...'}
+                    </>
+                  ) : (
+                    plan.buttonText
+                  )}
                 </Button>
               </CardFooter>
             </Card>
           ))}
-        </div>
-
-        
-
-        {/* FAQ Section */}
-        <div className="mt-16 max-w-4xl mx-auto">
-          <h3 className="text-2xl font-extrabold text-gray-900 text-center mb-8">
-            Frequently Asked Questions
-          </h3>
-          <div className="space-y-3">
-            {faqData.map((faq, index) => (
-              <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
-                <button
-                  onClick={() => toggleAccordion(index)}
-                  className="w-full px-6 py-5 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 group"
-                >
-                  <h4 className="font-bold text-gray-900 text-sm group-hover:text-primary transition-colors duration-200">
-                    {faq.question}
-                  </h4>
-                  <div className="flex-shrink-0 ml-4">
-                    {openAccordion === index ? (
-                      <ChevronUp className="h-5 w-5 text-primary transition-transform duration-200" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-gray-500 group-hover:text-primary transition-all duration-200" />
-                    )}
-                  </div>
-                </button>
-                <div 
-                  className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                    openAccordion === index 
-                      ? 'max-h-96 opacity-100' 
-                      : 'max-h-0 opacity-0'
-                  }`}
-                >
-                  <div className="px-6 pb-6 pt-4 border-t border-gray-100 bg-gray-50/30">
-                    <p className="text-gray-700 text-sm leading-relaxed">
-                      {faq.answer}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>

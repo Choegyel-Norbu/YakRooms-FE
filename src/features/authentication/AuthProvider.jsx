@@ -26,7 +26,10 @@ const AUTH_STORAGE_KEYS = {
   HOTEL_ID: 'hotelId',
   TOP_HOTEL_IDS: 'topHotelIds',
   REDIRECT_URL: 'redirectUrl',
-  LAST_AUTH_CHECK: 'lastAuthCheck'
+  LAST_AUTH_CHECK: 'lastAuthCheck',
+  SUBSCRIPTION_PAYMENT_STATUS: 'subscriptionPaymentStatus',
+  SUBSCRIPTION_PLAN: 'subscriptionPlan',
+  SUBSCRIPTION_IS_ACTIVE: 'subscriptionIsActive'
 };
 
 // === Utility to check if we should validate authentication status ===
@@ -136,6 +139,9 @@ const defaultAuthState = {
   hotelId: null,
   topHotelIds: [],
   isValidatingAuth: false, // New flag for auth validation state
+  subscriptionPaymentStatus: null,
+  subscriptionPlan: null,
+  subscriptionIsActive: null,
 };
 
 export const AuthProvider = ({ children }) => {
@@ -165,6 +171,10 @@ export const AuthProvider = ({ children }) => {
         hotelId: getStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID) || null,
         topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
         isValidatingAuth: hasUserData, // Will validate with server if we think we're authenticated
+        subscriptionPaymentStatus: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS) || null,
+        subscriptionPlan: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PLAN) || null,
+        subscriptionIsActive: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE) === "true" ? true : 
+                             getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE) === "false" ? false : null,
       };
 
       return authData;
@@ -178,6 +188,53 @@ export const AuthProvider = ({ children }) => {
     const stored = getStorageItem("lastLogin");
     return stored ? new Date(stored) : null;
   });
+
+  // === FETCH SUBSCRIPTION DATA (memoized) ===
+  const fetchSubscriptionData = useCallback(async (hotelId) => {
+    try {
+      if (!hotelId) return null;
+      
+      console.log("🔍 Fetching subscription data for hotel:", hotelId);
+      const response = await axios.get(`${API_BASE_URL}/api/subscriptions/hotel/${hotelId}`, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.status === 200 && response.data) {
+        console.log("✅ Subscription data fetched successfully");
+        
+        const subscriptionData = response.data;
+        
+        // Update localStorage with subscription data
+        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS, subscriptionData.paymentStatus);
+        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PLAN, subscriptionData.subscriptionPlan);
+        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE, Boolean(subscriptionData.isActive).toString());
+        
+        // Update auth state
+        setAuthState(prev => ({
+          ...prev,
+          subscriptionPaymentStatus: subscriptionData.paymentStatus,
+          subscriptionPlan: subscriptionData.subscriptionPlan,
+          subscriptionIsActive: subscriptionData.isActive,
+        }));
+        
+        return subscriptionData;
+      } else {
+        throw new Error('Invalid subscription response');
+      }
+    } catch (error) {
+      console.error("❌ Failed to fetch subscription data:", error);
+      
+      // Don't clear auth state for subscription errors, just log them
+      if (error.response?.status === 404) {
+        console.log("ℹ️ No subscription found for this hotel");
+      }
+      
+      return null;
+    }
+  }, []);
 
   // === VALIDATE AUTH STATUS WITH SERVER (memoized) ===
   const validateAuthStatus = useCallback(async () => {
@@ -232,6 +289,11 @@ export const AuthProvider = ({ children }) => {
           hotelId: userData.hotelId || prev.hotelId,
           isValidatingAuth: false,
         }));
+        
+        // Fetch subscription data if user has hotelId
+        if (userData.hotelId) {
+          await fetchSubscriptionData(userData.hotelId);
+        }
         
         return true;
       } else {
@@ -288,7 +350,7 @@ export const AuthProvider = ({ children }) => {
       
       return false;
     }
-  }, []);
+  }, [fetchSubscriptionData]);
 
   // === LOGOUT (memoized) ===
   const logout = useCallback(async () => {
@@ -551,6 +613,16 @@ export const AuthProvider = ({ children }) => {
 
       setAuthState(newAuthState);
 
+      // Fetch subscription data if user has hotelId
+      if (newAuthState.hotelId) {
+        try {
+          await fetchSubscriptionData(newAuthState.hotelId);
+        } catch (subscriptionError) {
+          console.warn("⚠️ Failed to fetch subscription data during login:", subscriptionError);
+          // Don't fail login if subscription fetch fails
+        }
+      }
+
       // Navigate only if not a first-time registration
       if (!authData.flag) {
         // Check if there's a stored redirect URL
@@ -810,6 +882,9 @@ export const AuthProvider = ({ children }) => {
     hotelId: authState.hotelId,
     topHotelIds: authState.topHotelIds,
     isValidatingAuth: authState.isValidatingAuth,
+    subscriptionPaymentStatus: authState.subscriptionPaymentStatus,
+    subscriptionPlan: authState.subscriptionPlan,
+    subscriptionIsActive: authState.subscriptionIsActive,
     lastLogin,
 
     // Actions
@@ -827,6 +902,7 @@ export const AuthProvider = ({ children }) => {
     setTopHotelIds,
     addTopHotelId,
     removeTopHotelId,
+    fetchSubscriptionData,
 
     // Role checks
     hasRole,
@@ -850,6 +926,7 @@ export const AuthProvider = ({ children }) => {
     setTopHotelIds,
     addTopHotelId,
     removeTopHotelId,
+    fetchSubscriptionData,
     hasRole,
     hasAnyRole,
     hasAllRoles,
