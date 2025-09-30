@@ -178,7 +178,7 @@ const getApiBaseUrl = () => {
   
   // Use environment variable if available, otherwise use defaults
   const developmentUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-  const productionUrl = import.meta.env.VITE_API_BASE_URL || "https://yakrooms-be-production.up.railway.app";
+  const productionUrl = import.meta.env.VITE_API_BASE_URL || "ezeeroom-be-production-9820.up.railway.app";
   
   // Force production URL for PWA installations and mobile contexts
   if (isPWA || !isDevelopment) {
