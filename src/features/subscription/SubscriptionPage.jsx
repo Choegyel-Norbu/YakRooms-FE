@@ -204,14 +204,14 @@ const SubscriptionPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-4 px-4 sm:px-0 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Back Navigation */}
         <div className="mb-8">
           <Button
             variant="ghost"
             onClick={() => navigate('/hotelAdmin')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 p-0"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Dashboard
@@ -279,7 +279,7 @@ const SubscriptionPage = () => {
                       : plan.popular 
                         ? 'ring-2 ring-primary shadow-lg scale-105' 
                         : 'hover:shadow-lg'
-              }`}
+              } ${plan.isSubscription ? 'mt-10 sm:mt-0' : ''}`}
             >
               {/* Popular Badge */}
               {plan.popular && !plan.isExpired && !plan.isActive && !plan.isProActive && !plan.isSubscription && (
