@@ -164,44 +164,19 @@ const configureAuthPersistence = () => {
 // Initialize platform-specific configurations
 configureAuthPersistence();
 
-// API configuration - Environment-based URL selection
-const getApiBaseUrl = () => {
-  // Check if we're in development environment
-  const isDevelopment = import.meta.env.DEV || 
-                       window.location.hostname === 'localhost' || 
-                       window.location.hostname === '127.0.0.1';
-  
-  // Check if we're in UAT environment
-  const isUAT = window.location.hostname === 'ezeeroom.vercel.app' ||
-                import.meta.env.VITE_ENVIRONMENT === 'uat';
-  
-  // Check if running in PWA mode (installed app)
-  const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
-                window.navigator.standalone === true ||
-                document.referrer.includes('android-app://');
-  
-  // Environment URLs - use environment variable if available, otherwise use defaults
-  const developmentUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-  const uatUrl = import.meta.env.VITE_API_BASE_URL || "https://ezeeroom-be-production-9820.up.railway.app";
-  const productionUrl = import.meta.env.VITE_API_BASE_URL || "https://yakrooms-be-production.up.railway.app";
-  
-  // Environment selection logic
-  if (isDevelopment) {
-    console.log('🔧 Using development API URL');
-    return developmentUrl;
-  }
-  
-  if (isUAT) {
-    console.log('🧪 Using UAT API URL');
-    return uatUrl;
-  }
-  
-  // Default to production for PWA installations and production contexts
-  console.log('🌐 Using production API URL for cross-platform compatibility');
-  return productionUrl;
-};
+// API configuration - Manual environment selection
+// Comment/uncomment the desired environment URL
 
-const API_BASE_URL = getApiBaseUrl();
+// Development (localhost)
+// const API_BASE_URL = "http://localhost:8080";
+
+// UAT Environment
+const API_BASE_URL = "https://ezeeroom-be-production-9820.up.railway.app";
+
+// Production Environment
+// const API_BASE_URL = "https://yakrooms-be-production.up.railway.app";
+
+// API_BASE_URL is now defined above - no need for getApiBaseUrl()
 
 // Debug helper for PWA registration and mobile debugging
 if (typeof window !== 'undefined') {
