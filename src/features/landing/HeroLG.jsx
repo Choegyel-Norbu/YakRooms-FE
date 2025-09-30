@@ -77,7 +77,7 @@ const HeroLG = () => {
           <div className="flex items-center justify-center space-x-2">
             <Badge variant="secondary" className="px-3 py-1 bg-white/90 text-slate-900 border-white/20">
               <MapPin className="mr-1 h-3 w-3" />
-              EzeeRoom
+              EzeeRoooooom
             </Badge>
           </div>
 
