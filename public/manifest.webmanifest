@@ -1,7 +1,7 @@
 {
-    "name": "EzeeRoom",
-    "short_name": "EzeeRoom",
-    "description": "Discover Authentic Stays in Bhutan with EzeeRoom - Your convenient way to book locally",
+    "name": "Ezeeroom",
+    "short_name": "Ezeeroom",
+    "description": "Discover Authentic Stays in Bhutan with Ezeeroom - Your convenient way to book locally",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",

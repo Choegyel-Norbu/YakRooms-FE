@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/shared/utils";
-import YakRoomHero from "@/assets/images/YakRoomHero.png";
+import EzeeroomHero from "@/assets/images/er.png";
 
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
@@ -65,7 +65,7 @@ const HeroLG = () => {
       <section 
         className="relative flex min-h-screen w-full items-center justify-center px-4 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url(${YakRoomHero})`,
+          backgroundImage: `url(${EzeeroomHero})`,
         }}
       >
       {/* Dark overlay for better text readability */}
