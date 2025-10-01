@@ -275,7 +275,7 @@ const TermsAndConditions = () => {
                         <ul className="list-disc list-inside space-y-2 ml-4">
                           <li>Valid business license</li>
                           <li>Valid property ownership or management authorization</li>
-                          <li>24/7 customer support availability</li>
+                          <li>Contact on working hours</li>
                           <li>Valid insurance coverage for guest safety</li>
                         </ul>
 

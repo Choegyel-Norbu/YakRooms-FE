@@ -11,11 +11,6 @@ import { Separator } from "@/shared/components/separator";
 import { Badge } from "@/shared/components/badge";
 import { SearchButton } from "@/shared/components";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/shared/components/popover";
-import {
   CalendarIcon,
   Search,
   MapPin,
