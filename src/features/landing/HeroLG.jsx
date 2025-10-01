@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/shared/utils";
-import EzeeroomHero from "@/assets/images/er.png";
+import EzeeroomHero from "@/assets/images/erHero.png";
 
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
