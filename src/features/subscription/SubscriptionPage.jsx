@@ -265,6 +265,10 @@ const SubscriptionPage = () => {
             if (plan.id === 'free' && hasEverHadPro) {
               return false;
             }
+            // Hide paid subscription card if user is currently in active TRIAL (not expired)
+            if (plan.id === 'subscription' && subscriptionPlan === 'TRIAL' && subscriptionIsActive === true) {
+              return false;
+            }
             return true;
           }).map((plan) => (
             <Card 
