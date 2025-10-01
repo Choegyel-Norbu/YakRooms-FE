@@ -48,7 +48,7 @@ const HowItWorksSection = () => {
     <section className="py-12 px-4 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto">
         <h3 className="text-center text-3xl font-bold mb-12 text-gray-900">
-          How YakRooms Works
+          How Ezeeroom Works
         </h3>
 
         <motion.div

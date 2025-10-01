@@ -556,7 +556,7 @@ const AddListingPage = () => {
         setHotelId(res.data.id);
         setRoles(['GUEST', 'HOTEL_ADMIN']);
         toast.success("Hotel submitted for verification", {
-          description: "Your hotel listing has been submitted successfully and will be verified shortly before going live on YakRooms!",
+          description: "Your hotel listing has been submitted successfully and will be verified shortly before going live on Ezeeroom!",
           duration: 6000
         });
       }

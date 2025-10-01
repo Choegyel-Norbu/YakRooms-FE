@@ -14,11 +14,11 @@ const PartnerWithUsSection = () => {
                 variant="h2"
                 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4"
               >
-                YakRooms for Hosts & Local Businesses
+                Ezeeroom for Hosts & Local Businesses
               </Typography>
 
               <Typography variant="lead" className="text-lg text-gray-700 mb-6">
-                List your hotel, homestay, or restaurant on YakRooms and reach
+                List your hotel, homestay, or restaurant on Ezeeroom and reach
                 travelers across Bhutan. We empower small businesses to thrive
                 in the digital age.
               </Typography>

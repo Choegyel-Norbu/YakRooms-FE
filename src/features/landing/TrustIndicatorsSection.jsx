@@ -169,7 +169,7 @@ const TrustIndicatorsSection = () => {
           {/* Bottom Section */}
           <div className="text-center">
             <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-              Join thousands of travelers who trust YakRooms for their authentic
+              Join thousands of travelers who trust Ezeeroom for their authentic
               Bhutanese experience
             </p>
           </div>

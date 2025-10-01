@@ -505,7 +505,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
   return (
     <header
       className={cn(
-        "fixed w-full z-50 transition-all duration-500 ease-in-out",
+        "fixed top-0 w-full z-50 transition-all duration-500 ease-in-out",
         isVisible 
           ? "translate-y-0 opacity-100" 
           : "-translate-y-full opacity-0",
@@ -676,7 +676,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                     <div className="px-3 py-2 bg-muted/30 rounded-lg mx-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-xs font-medium">YakRooms v1.0 🇧🇹</p>
+                          <p className="text-xs font-medium">Ezeeroom v1.0 🇧🇹</p>
                         </div>
                         <Badge variant="secondary" className="text-xs">
                           Beta

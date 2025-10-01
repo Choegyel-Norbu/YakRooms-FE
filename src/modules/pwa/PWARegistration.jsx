@@ -47,7 +47,7 @@ const PWARegistration = () => {
       setIsInstallable(true);
       
       if (isMobile && !isIOS()) {
-        toast.info("Install YakRooms for a better experience!", {
+        toast.info("Install Ezeeroom for a better experience!", {
           action: {
             label: "Install",
             onClick: handleInstall
@@ -62,7 +62,7 @@ const PWARegistration = () => {
     // Handle iOS install prompt (manual instructions)
     const showIOSInstallInstructions = () => {
       if (isMobile && isIOS()) {
-        toast.info("To install YakRooms on your iPhone/iPad:", {
+        toast.info("To install Ezeeroom on your iPhone/iPad:", {
           description: "1. Tap the Share button (📤) in Safari\n2. Scroll down and tap 'Add to Home Screen'\n3. Tap 'Add' to install",
           action: {
             label: "Got it",
@@ -148,7 +148,7 @@ const PWARegistration = () => {
         console.log('User choice outcome:', outcome);
         if (outcome === 'accepted') {
           console.log('User accepted the install prompt');
-          toast.success("YakRooms is being installed!");
+          toast.success("Ezeeroom is being installed!");
         } else {
           console.log('User dismissed the install prompt');
           toast.info("Installation cancelled. You can install later from your browser menu.");

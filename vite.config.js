@@ -53,9 +53,9 @@ export default defineConfig({
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg', 'sitemap.xml', 'robots.txt'],
       manifest: {
-        name: 'YakRooms',
-        short_name: 'YakRooms',
-        description: 'Discover Authentic Stays in Bhutan with YakRooms - Your convenient way to book locally',
+        name: 'Ezeeroom',
+        short_name: 'Ezeeroom',
+        description: 'Discover Authentic Stays in Bhutan with Ezeeroom - Your convenient way to book locally',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',

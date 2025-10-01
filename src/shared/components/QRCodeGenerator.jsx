@@ -91,13 +91,13 @@ const QRCodeGenerator = ({ isOpen, onClose, bookingData }) => {
       const response = await fetch(qrCodeUrl);
       const blob = await response.blob();
       
-      const file = new File([blob], `yakrooms-booking-${bookingData.id || 'qrcode'}.png`, {
+      const file = new File([blob], `ezeeroom-booking-${bookingData.id || 'qrcode'}.png`, {
         type: 'image/png'
       });
 
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: 'YakRooms Booking QR Code',
+          title: 'Ezeeroom Booking QR Code',
           text: `Booking confirmation for ${bookingData.hotelName || 'your hotel'}`,
           files: [file]
         });
@@ -119,7 +119,7 @@ const QRCodeGenerator = ({ isOpen, onClose, bookingData }) => {
   const copyBookingInfo = async () => {
     try {
       const bookingInfo = `
-🏨 YakRooms Booking Confirmation
+🏨 Ezeeroom Booking Confirmation
 
 📧 Email: ${bookingData.email || 'N/A'}
 📱 Phone: +975 ${bookingData.phone || 'N/A'}

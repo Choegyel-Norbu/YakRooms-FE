@@ -750,7 +750,7 @@ const HotelDetailsPage = () => {
     }
   }, []);
 
-  // Loading state - show YakRooms loader while fetching critical hotel data
+  // Loading state - show Ezeeroom loader while fetching critical hotel data
   if (appState.loading && !appState.criticalDataLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -1504,7 +1504,6 @@ const HotelDetailsPage = () => {
 
           {/* Sidebar - Hidden on mobile, visible on lg screens and up */}
           <aside className="hidden lg:block space-y-6 sticky top-19 self-start">
-            {/* <YakRoomsAdCard /> */}
 
             {/* Hotel Location Map */}
             <HotelMap

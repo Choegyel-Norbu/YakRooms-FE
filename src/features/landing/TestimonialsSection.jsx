@@ -8,7 +8,7 @@ const TestimonialsSection = () => {
     {
       id: 1,
       quote:
-        "YakRooms made booking in Paro effortless! Found the perfect homestay with mountain views.",
+        "Ezeeroom made booking in Paro effortless! Found the perfect homestay with mountain views.",
       name: "Sonam D.",
       rating: 5,
       avatar: "https://randomuser.me/api/portraits/women/44.jpg",

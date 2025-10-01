@@ -38,8 +38,6 @@ export { default as ReactCard } from './ReactCard';
 export { default as SpringBootCard } from './SpringBootCard';
 export { default as SummaryCards } from './SummaryCards';
 export { default as TailwindCard } from './TailwindCard';
-export { default as YakRoomsAdCard } from './YakRoomsAdCard';
-export { default as YakRoomsText } from './YakRoomsText';
 export { default as EzeeRoomLogo } from './EzeeRoomLogo';
 
 // Loader Components

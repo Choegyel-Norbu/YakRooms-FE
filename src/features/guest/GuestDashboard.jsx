@@ -1477,7 +1477,7 @@ const EmptyState = ({ onRetry }) => (
       No bookings yet
     </h3>
     <p className="mt-2 text-sm text-muted-foreground">
-      Welcome to YakRooms! You haven't made any hotel bookings yet.
+      Welcome to Ezeeroom! You haven't made any hotel bookings yet.
       <br />
       Start exploring and book your first stay to see your reservations here.
     </p>

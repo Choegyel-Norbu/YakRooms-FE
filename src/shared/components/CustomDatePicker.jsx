@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { ChevronLeft, ChevronRight, Calendar, X } from 'lucide-react';
 
 /**
- * CustomDatePicker - A reusable date picker component for YakRooms
+ * CustomDatePicker - A reusable date picker component for Ezeeroom
  * 
  * Features:
  * - Blocked dates support for room availability
