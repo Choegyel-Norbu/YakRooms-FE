@@ -8,6 +8,7 @@ import { BookingProvider } from "./features/booking";
 import { PWARegistration } from "./modules/pwa";
 import { GlobalReviewSheet } from "./shared/components";
 import InternetConnectionMonitor from "./shared/components/InternetConnectionMonitor";
+import RootPathHandler from "./components/RootPathHandler";
 import "react-toastify/dist/ReactToastify.css";
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <BookingProvider>
+          <RootPathHandler />
           <AppRouting />
           <PWARegistration />
           <GlobalReviewSheet />

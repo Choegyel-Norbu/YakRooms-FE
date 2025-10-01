@@ -9,6 +9,26 @@ const isIOS = () => {
          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 };
 
+// Helper function to detect Safari
+const isSafari = () => {
+  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+};
+
+// Helper function to detect Safari private browsing
+const isSafariPrivateBrowsing = () => {
+  try {
+    if (isSafari()) {
+      const testKey = '__private_test_' + Date.now();
+      localStorage.setItem(testKey, '1');
+      localStorage.removeItem(testKey);
+      return false;
+    }
+    return false;
+  } catch (error) {
+    return true; // If localStorage.setItem throws, we're likely in private browsing
+  }
+};
+
 const PWARegistration = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isInstallable, setIsInstallable] = useState(false);
@@ -87,6 +107,8 @@ const PWARegistration = () => {
     console.log('- User Agent:', navigator.userAgent);
     console.log('- Is Mobile:', isMobile);
     console.log('- Is iOS:', isIOS());
+    console.log('- Is Safari:', isSafari());
+    console.log('- Safari Private Browsing:', isSafariPrivateBrowsing());
     console.log('- Display Mode:', window.matchMedia('(display-mode: standalone)').matches);
     console.log('- HTTPS:', window.location.protocol === 'https:');
     console.log('- API Base URL:', window.API_DEBUG_URL || 'Not set');
