@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap location
-Sitemap: https://ezeeroom.bt/sitemap.xml
+Sitemap: https://www.ezeeroom.bt/sitemap.xml
 
 # Disallow admin and private areas
 Disallow: /admin/
@@ -13,6 +13,4 @@ Disallow: /private/
 # Allow important pages
 Allow: /
 Allow: /hotels
-Allow: /booking
 Allow: /about
-Allow: /contact
