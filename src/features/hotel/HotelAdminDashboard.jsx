@@ -16,6 +16,7 @@ import {
   CreditCard,
   CheckCircle,
   Settings,
+  Lock,
 } from "lucide-react";
 import {
   Card,
@@ -82,16 +83,37 @@ const HotelAdminDashboard = () => {
     topHotelIds,
     subscriptionPaymentStatus,
     subscriptionPlan,
+    subscriptionIsActive,
     fetchSubscriptionData,
   } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
+
+  // Check if subscription is expired
+  const isSubscriptionExpired = () => {
+    // Subscription is expired if:
+    // 1. subscriptionIsActive is false, OR
+    // 2. No subscription plan exists, OR
+    // 3. subscriptionIsActive is null/undefined (no subscription data)
+    return subscriptionIsActive === false || !subscriptionPlan || subscriptionIsActive === null;
+  };
+
+  // Define which tabs should be locked when subscription is expired
+  const lockedTabs = ["rooms", "hotel", "analytics", "staff", "inventory"];
 
   // Redirect to dashboard if user doesn't have access to current tab
   useEffect(() => {
     if (activeTab === "staff" && roles && roles.includes("STAFF")) {
       setActiveTab("dashboard");
     }
-  }, [activeTab, roles]);
+    
+    // Redirect to dashboard if trying to access locked tabs with expired subscription
+    if (isSubscriptionExpired() && lockedTabs.includes(activeTab)) {
+      setActiveTab("dashboard");
+      toast.error("This feature is not available with an expired subscription.", {
+        duration: 4000
+      });
+    }
+  }, [activeTab, roles, subscriptionIsActive, subscriptionPlan]);
   const [hotel, setHotel] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -302,17 +324,17 @@ const HotelAdminDashboard = () => {
   };
 
   const navigationItems = [
-    { id: "dashboard", label: "Dashboard", icon: Home },
-    { id: "booking", label: "Booking", icon: Calendar },
-    { id: "inventory", label: "Bookings Inventory", icon: Package },
-    { id: "rooms", label: "Room Management", icon: Bed },
+    { id: "dashboard", label: "Dashboard", icon: Home, locked: false },
+    { id: "booking", label: "Booking", icon: Calendar, locked: false },
+    { id: "inventory", label: "Bookings Inventory", icon: Package, locked: true },
+    { id: "rooms", label: "Room Management", icon: Bed, locked: true },
     ...(roles && !roles.includes("STAFF")
-      ? [{ id: "staff", label: "Staff Management", icon: Users }]
+      ? [{ id: "staff", label: "Staff Management", icon: Users, locked: true }]
       : []),
     
-    { id: "analytics", label: "Analytics", icon: PieChart },
+    { id: "analytics", label: "Analytics", icon: PieChart, locked: true },
     
-    { id: "hotel", label: "Hotel Settings", icon: Settings }
+    { id: "hotel", label: "Hotel Settings", icon: Settings, locked: true }
   ];
 
   const getPageTitle = () => {
@@ -343,19 +365,35 @@ const HotelAdminDashboard = () => {
 
   const NavigationButton = ({ item, onClick, isActive }) => {
     const Icon = item.icon;
+    const isLocked = item.locked && isSubscriptionExpired();
+    
     return (
       <Button
         variant={isActive ? "secondary" : "ghost"}
         className={`w-full justify-start transition-colors py-2 px-3 text-sm ${
           isActive
             ? "bg-primary/10 text-primary hover:bg-primary/10"
+            : isLocked
+            ? "opacity-50 cursor-not-allowed hover:bg-transparent"
             : "hover:bg-accent"
         }`}
-        onClick={onClick}
+        onClick={() => {
+          if (isLocked) {
+            toast.error("Subscription expired. Please renew to access this feature.", {
+              duration: 4000
+            });
+            return;
+          }
+          onClick();
+        }}
+        disabled={isLocked}
       >
         <Icon className="mr-2 h-4 w-4" />
         <span className="text-sm">{item.label}</span>
-        {isActive && (
+        {isLocked && (
+          <Lock className="ml-auto h-3 w-3 text-muted-foreground" />
+        )}
+        {isActive && !isLocked && (
           <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
         )}
       </Button>
@@ -691,6 +729,41 @@ const HotelAdminDashboard = () => {
         <main className="py-4 sm:p-4 lg:p-6 space-y-4">
           {activeTab === "dashboard" && (
             <div className="space-y-4">
+              {/* Subscription Expired Warning for Dashboard */}
+              {isSubscriptionExpired() && (
+                <div className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20 rounded-lg">
+                  <div className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                          <Lock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-base font-semibold text-amber-800 dark:text-amber-200 mb-1">
+                          Subscription Expired
+                        </h4>
+                        <p className="text-sm text-amber-700 dark:text-amber-300 leading-relaxed mb-3">
+                          Your subscription has expired. You cannot access some features including Room Management, 
+                          Hotel Settings, Analytics, Staff Management, and Booking Inventory. Please renew your 
+                          subscription to restore full access.
+                        </p>
+                        <Link to="/subscription">
+                          <Button 
+                            variant="default" 
+                            size="sm"
+                            className="bg-amber-600 hover:bg-amber-700 text-white"
+                          >
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            Renew Subscription
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Welcome Card */}
               {/* <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200"> */}
               <CardContent className="p-4 md:p-6">
@@ -820,50 +893,241 @@ const HotelAdminDashboard = () => {
             </div>
           )}
 
-          {activeTab === "hotel" && hotel && (
-            <div className="space-y-4">
-              <HotelInfoForm hotel={hotel} onUpdate={updateHotel} />
-            </div>
-          )}
 
           {activeTab === "rooms" && (
-            <Card>
-              <CardContent className="p-0 md:px-6 md:pb-6">
-                <RoomManager />
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              {isSubscriptionExpired() ? (
+                <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
+                  <CardContent className="p-8 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                        <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">
+                          Room Management Locked
+                        </h3>
+                        <p className="text-sm text-amber-700 dark:text-amber-300 mb-4">
+                          This feature is not available with an expired subscription. 
+                          Please renew your subscription to manage rooms.
+                        </p>
+                        <Link to="/subscription">
+                          <Button 
+                            variant="default" 
+                            className="bg-amber-600 hover:bg-amber-700 text-white"
+                          >
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            Renew Subscription
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="p-0 md:px-6 md:pb-6">
+                    <RoomManager />
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           )}
 
           {activeTab === "inventory" && (
             <div className="space-y-4">
-              <BookingsInventoryTable hotelId={hotelId} />
+              {isSubscriptionExpired() ? (
+                <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
+                  <CardContent className="p-8 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                        <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">
+                          Booking Inventory Locked
+                        </h3>
+                        <p className="text-sm text-amber-700 dark:text-amber-300 mb-4">
+                          This feature is not available with an expired subscription. 
+                          Please renew your subscription to view booking inventory.
+                        </p>
+                        <Link to="/subscription">
+                          <Button 
+                            variant="default" 
+                            className="bg-amber-600 hover:bg-amber-700 text-white"
+                          >
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            Renew Subscription
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <BookingsInventoryTable hotelId={hotelId} />
+              )}
             </div>
           )}
 
           {activeTab === "staff" && ( // Changed from "bookings" to "staff"
-            <Card>
-              <CardContent className="p-0 md:px-6 md:pb-6">
-                <StaffManager /> {/* Changed component */}
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              {isSubscriptionExpired() ? (
+                <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
+                  <CardContent className="p-8 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                        <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">
+                          Staff Management Locked
+                        </h3>
+                        <p className="text-sm text-amber-700 dark:text-amber-300 mb-4">
+                          This feature is not available with an expired subscription. 
+                          Please renew your subscription to manage staff.
+                        </p>
+                        <Link to="/subscription">
+                          <Button 
+                            variant="default" 
+                            className="bg-amber-600 hover:bg-amber-700 text-white"
+                          >
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            Renew Subscription
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="p-0 md:px-6 md:pb-6">
+                    <StaffManager /> {/* Changed component */}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           )}
 
           {activeTab === "analytics" && (
-              <CardContent className="p-0 md:px-6 md:pb-6">
-                <div className="space-y-8">
-                  <BookingsTrendChart />
-                  <MonthlyPerformanceChart />
-                </div>
-              </CardContent>
+            <div className="space-y-4">
+              {isSubscriptionExpired() ? (
+                <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
+                  <CardContent className="p-8 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                        <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">
+                          Analytics Locked
+                        </h3>
+                        <p className="text-sm text-amber-700 dark:text-amber-300 mb-4">
+                          This feature is not available with an expired subscription. 
+                          Please renew your subscription to view analytics.
+                        </p>
+                        <Link to="/subscription">
+                          <Button 
+                            variant="default" 
+                            className="bg-amber-600 hover:bg-amber-700 text-white"
+                          >
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            Renew Subscription
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <CardContent className="p-0 md:px-6 md:pb-6">
+                  <div className="space-y-8">
+                    <BookingsTrendChart />
+                    <MonthlyPerformanceChart />
+                  </div>
+                </CardContent>
+              )}
+            </div>
+          )}
+
+          {activeTab === "hotel" && (
+            <div className="space-y-4">
+              {isSubscriptionExpired() ? (
+                <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
+                  <CardContent className="p-8 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                        <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">
+                          Hotel Settings Locked
+                        </h3>
+                        <p className="text-sm text-amber-700 dark:text-amber-300 mb-4">
+                          This feature is not available with an expired subscription. 
+                          Please renew your subscription to manage hotel settings.
+                        </p>
+                        <Link to="/subscription">
+                          <Button 
+                            variant="default" 
+                            className="bg-amber-600 hover:bg-amber-700 text-white"
+                          >
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            Renew Subscription
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                hotel && (
+                  <HotelInfoForm hotel={hotel} onUpdate={updateHotel} />
+                )
+              )}
+            </div>
           )}
 
           {activeTab === "booking" && (
             <div className="space-y-4">
-              {/* Admin Booking Form */}
+              {/* Subscription Expired Warning */}
+              {isSubscriptionExpired() && (
+                <div className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                        <Lock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-base font-semibold text-amber-800 dark:text-amber-200 mb-1">
+                        Subscription Expired
+                      </h4>
+                      <p className="text-sm text-amber-700 dark:text-amber-300 leading-relaxed mb-3">
+                        Your subscription has expired. To continue creating bookings and managing your hotel, 
+                        please renew your subscription.
+                      </p>
+                      <Link to="/subscription">
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          className="bg-amber-600 hover:bg-amber-700 text-white"
+                        >
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Renew Subscription
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              )}
 
+              {/* Admin Booking Form */}
               <AdminBookingForm
                 hotelId={hotelId}
                 onBookingSuccess={handleBookingSuccess}
+                isDisabled={isSubscriptionExpired()}
               />
 
               {/* Booking Verification Section with Tabs */}

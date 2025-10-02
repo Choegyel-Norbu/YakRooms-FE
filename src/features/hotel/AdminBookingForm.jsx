@@ -26,7 +26,7 @@ import { Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { CustomDatePicker } from "../../shared/components";
 
-export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
+export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled = false }) {
   const [openBookingDialog, setOpenBookingDialog] = useState(false);
   const [availableRooms, setAvailableRooms] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -488,9 +488,17 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess }) {
   return (
     <>
       <Button 
-        onClick={() => setOpenBookingDialog(true)}
+        onClick={() => {
+          if (isDisabled) {
+            toast.error("Subscription expired. Please renew your subscription to create bookings.", {
+              duration: 6000
+            });
+            return;
+          }
+          setOpenBookingDialog(true);
+        }}
         className="w-auto cursor-pointer ml-4 sm:ml-0"
-        disabled={loading}
+        disabled={loading || isDisabled}
       >
         <Calendar className="mr-2 h-4 w-4" />
         {loading ? "Loading..." : "Create New Booking"}
