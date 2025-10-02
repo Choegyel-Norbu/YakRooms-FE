@@ -70,6 +70,7 @@ import { TopHotelBadge } from "../../shared/components";
 import { API_BASE_URL } from "../../shared/services/firebaseConfig";
 import { toast } from "sonner";
 import { EzeeRoomLogo } from "@/shared/components";
+import SubscriptionExpirationNotification from "@/shared/components/SubscriptionExpirationNotification";
 
 const HotelAdminDashboard = () => {
   const navigate = useNavigate();
@@ -84,6 +85,8 @@ const HotelAdminDashboard = () => {
     subscriptionPaymentStatus,
     subscriptionPlan,
     subscriptionIsActive,
+    subscriptionNextBillingDate,
+    subscriptionExpirationNotification,
     fetchSubscriptionData,
   } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -408,9 +411,9 @@ const HotelAdminDashboard = () => {
           <div className="flex items-center gap-2 lg:gap-3 mb-3">
             <div>
               <EzeeRoomLogo size="default" />
-              <p className="text-xs text-muted-foreground">Admin Panel</p>
             </div>
           </div>
+          
           
           {/* Subscription Status */}
           {subscriptionPlan === 'TRIAL' && (
@@ -422,6 +425,10 @@ const HotelAdminDashboard = () => {
               Trial Plan
             </Badge>
           )}
+        </div>
+
+        <div className="p-3 lg:p-4">
+        <p className="text-xs text-muted-foreground uppercase font-bold">Admin Panel</p>
         </div>
 
         <nav className="p-3 lg:p-4 flex-1">
@@ -580,9 +587,6 @@ const HotelAdminDashboard = () => {
                     <SheetTitle className="flex items-center gap-3">
                       <div>
                         <EzeeRoomLogo size="default" />
-                        <p className="text-xs text-muted-foreground">
-                          Admin Panel
-                        </p>
                       </div>
                     </SheetTitle>
                     
@@ -599,6 +603,10 @@ const HotelAdminDashboard = () => {
                       </div>
                     )}
                   </SheetHeader>
+
+                  <div className="pl-3 lg:p-4">
+                    <p className="text-xs text-muted-foreground uppercase font-bold">Admin Panel</p>
+                  </div>
 
                   <div className="flex-1 flex flex-col p-4">
                     <nav className="space-y-1 flex-1">
@@ -729,6 +737,14 @@ const HotelAdminDashboard = () => {
         <main className="py-4 sm:p-4 lg:p-6 space-y-4">
           {activeTab === "dashboard" && (
             <div className="space-y-4">
+              {/* Subscription Expiration Notification */}
+              {subscriptionExpirationNotification && subscriptionNextBillingDate && (
+                <SubscriptionExpirationNotification 
+                  nextBillingDate={subscriptionNextBillingDate}
+                  subscriptionPlan={subscriptionPlan}
+                />
+              )}
+
               {/* Subscription Expired Warning for Dashboard */}
               {isSubscriptionExpired() && (
                 <div className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20 rounded-lg">

@@ -56,4 +56,5 @@ export { default as TopHotelBadge } from './TopHotelBadge';
 export { default as NotificationsComponent } from './NotificationsComponent';
 export { default as UnAuthorizedPage } from './UnAuthorizedPage';
 export { default as SearchButton } from './SearchButton';
-export { default as HotelMap } from './HotelMap'; 
+export { default as HotelMap } from './HotelMap';
+export { default as SubscriptionExpirationNotification } from './SubscriptionExpirationNotification'; 

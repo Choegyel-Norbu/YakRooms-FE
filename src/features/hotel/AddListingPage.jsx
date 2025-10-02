@@ -596,38 +596,10 @@ const AddListingPage = () => {
               Your {listingType} listing has been submitted for review. We'll
               notify you once it's approved.
             </p>
-            <Button
-              onClick={() => {
-                setIsSubmitted(false);
-                setStep(1);
-                setFormData({
-                  name: "",
-                  description: "",
-                  district: "",
-                  locality: "",
-                  address: "",
-                  email: "",
-                  phone: "",
-                  amenities: [],
-                  photos: [],
-                  license: null,
-                  idProof: null,
-                  notes: "",
-                  latitude: "",
-                  longitude: "",
-                  numberOfRooms: "",
-                  roomTypesDescription: "",
-                  checkinTime: "",
-                  checkoutTime: "",
-                  cancellationPolicy: "",
-                });
-                setPolicySelectionType("");
-                setErrors({});
-              }}
-              className="w-full"
-            >
-              Add Another Listing
-            </Button>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Redirecting...</span>
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -29,7 +29,9 @@ const AUTH_STORAGE_KEYS = {
   LAST_AUTH_CHECK: 'lastAuthCheck',
   SUBSCRIPTION_PAYMENT_STATUS: 'subscriptionPaymentStatus',
   SUBSCRIPTION_PLAN: 'subscriptionPlan',
-  SUBSCRIPTION_IS_ACTIVE: 'subscriptionIsActive'
+  SUBSCRIPTION_IS_ACTIVE: 'subscriptionIsActive',
+  SUBSCRIPTION_NEXT_BILLING_DATE: 'subscriptionNextBillingDate',
+  SUBSCRIPTION_EXPIRATION_NOTIFICATION: 'subscriptionExpirationNotification'
 };
 
 // === Utility to check if we should validate authentication status ===
@@ -175,6 +177,8 @@ export const AuthProvider = ({ children }) => {
         subscriptionPlan: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PLAN) || null,
         subscriptionIsActive: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE) === "true" ? true : 
                              getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE) === "false" ? false : null,
+        subscriptionNextBillingDate: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_NEXT_BILLING_DATE) || null,
+        subscriptionExpirationNotification: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_EXPIRATION_NOTIFICATION) === "true",
       };
 
       return authData;
@@ -211,6 +215,8 @@ export const AuthProvider = ({ children }) => {
         setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS, subscriptionData.paymentStatus);
         setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PLAN, subscriptionData.subscriptionPlan);
         setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE, Boolean(subscriptionData.isActive).toString());
+        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_NEXT_BILLING_DATE, subscriptionData.nextBillingDate || '');
+        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_EXPIRATION_NOTIFICATION, Boolean(subscriptionData.expirationNotification).toString());
         
         // Update auth state
         setAuthState(prev => ({
@@ -218,6 +224,8 @@ export const AuthProvider = ({ children }) => {
           subscriptionPaymentStatus: subscriptionData.paymentStatus,
           subscriptionPlan: subscriptionData.subscriptionPlan,
           subscriptionIsActive: subscriptionData.isActive,
+          subscriptionNextBillingDate: subscriptionData.nextBillingDate,
+          subscriptionExpirationNotification: subscriptionData.expirationNotification,
         }));
         
         return subscriptionData;
@@ -885,6 +893,8 @@ export const AuthProvider = ({ children }) => {
     subscriptionPaymentStatus: authState.subscriptionPaymentStatus,
     subscriptionPlan: authState.subscriptionPlan,
     subscriptionIsActive: authState.subscriptionIsActive,
+    subscriptionNextBillingDate: authState.subscriptionNextBillingDate,
+    subscriptionExpirationNotification: authState.subscriptionExpirationNotification,
     lastLogin,
 
     // Actions
