@@ -147,10 +147,6 @@ const PrivacyPolicy = () => {
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
-                    <span><strong>Payment Information:</strong> Bank account details (BOB, BNB, BDBL, DK, Druk PNB) processed securely through RMA Payment Gateway</span>
-                  </p>
-                  <p className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-0.5">•</span>
                     <span><strong>Communication Data:</strong> Messages, reviews, and feedback you provide</span>
                   </p>
                 </div>
