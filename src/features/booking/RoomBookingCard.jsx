@@ -139,20 +139,6 @@ export default function RoomBookingCard({ room, hotelId }) {
     }
   };
 
-  // Fetch all locked dates for the room
-  const fetchLockedDates = async () => {
-    if (!room?.id) return;
-    
-    try {
-      const response = await api.get(`/rooms/${room.id}/locked-dates`);
-      if (response.data && response.data.lockedDates) {
-        setAllLockedDates(response.data.lockedDates);
-      }
-    } catch (error) {
-      console.error('Failed to fetch locked dates:', error);
-      // Don't show error toast for locked dates as it's not critical
-    }
-  };
 
   // Fetch booked dates for the room and check availability
   const fetchBookedDates = async () => {
@@ -160,11 +146,8 @@ export default function RoomBookingCard({ room, hotelId }) {
     
     setIsLoadingBookedDates(true);
     try {
-      // Fetch both booked dates and locked dates in parallel
-      const [bookedResponse, lockedResponse] = await Promise.all([
-        api.get(`/rooms/${room.id}/booked-dates`),
-        api.get(`/rooms/${room.id}/locked-dates`).catch(() => ({ data: { lockedDates: [] } }))
-      ]);
+      // Fetch booked dates
+      const bookedResponse = await api.get(`/rooms/${room.id}/booked-dates`);
       
       if (bookedResponse.data && bookedResponse.data.bookedDates) {
         setBookedDates(bookedResponse.data.bookedDates);
@@ -179,17 +162,24 @@ export default function RoomBookingCard({ room, hotelId }) {
         setIsTodayAvailable(!isTodayBooked);
         setHasCheckedBookings(true);
       }
-      
-      if (lockedResponse.data && lockedResponse.data.lockedDates) {
-        setAllLockedDates(lockedResponse.data.lockedDates);
-      }
     } catch (error) {
       console.error('Failed to fetch booked dates:', error);
-      // Show a toast notification for the error
-      toast.error('Failed to load booking calendar', {
-        description: 'Could not fetch booked dates. Some dates may appear available when they are not.',
-        duration: 4000
-      });
+      
+      // Handle authentication errors gracefully for unauthenticated users
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        // For unauthenticated users, show a message that they can view availability but need to login to book
+        toast.info('Please login to view detailed availability', {
+          description: 'You can still proceed with booking, but some dates may appear available when they are not.',
+          duration: 4000
+        });
+      } else {
+        // For other errors, show the standard error message
+        toast.error('Failed to load booking calendar', {
+          description: 'Could not fetch booked dates. Some dates may appear available when they are not.',
+          duration: 4000
+        });
+      }
+      
       // Still mark as checked even if there's an error
       setHasCheckedBookings(true);
       setIsTodayAvailable(true); // Assume available on error
