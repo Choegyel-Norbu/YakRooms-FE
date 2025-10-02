@@ -28,20 +28,11 @@ const PWARegistration = () => {
       },
     });
 
-    // Handle PWA install prompt
+    // Handle PWA install prompt - let browser show native prompt
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      
-      toast.info("Install Ezeeroom for a better experience!", {
-        action: {
-          label: "Install",
-          onClick: handleInstall
-        },
-        cancel: {
-          label: "Later"
-        }
-      });
+      // Don't show custom toast - let browser handle the prompt
     };
 
     const handleInstall = async () => {
