@@ -42,9 +42,6 @@ export default function RoomBookingCard({ room, hotelId }) {
   const [isLoadingBookedDates, setIsLoadingBookedDates] = useState(false);
   const [hasCheckedBookings, setHasCheckedBookings] = useState(false);
   const [isTodayAvailable, setIsTodayAvailable] = useState(true);
-  const [lockedDates, setLockedDates] = useState([]); // Track dates locked by current user
-  const [allLockedDates, setAllLockedDates] = useState([]); // Track all locked dates (by all users)
-  const [isLockingDate, setIsLockingDate] = useState(false); // Loading state for date locking
   const [immediateBookingDetails, setImmediateBookingDetails] = useState({
     phone: "",
     cid: "",
@@ -67,77 +64,9 @@ export default function RoomBookingCard({ room, hotelId }) {
   });
   const [errors, setErrors] = useState({});
 
-  // Cleanup effect to unlock dates when component unmounts or dialog closes
-  useEffect(() => {
-    return () => {
-      // Cleanup function to unlock all dates when component unmounts
-      if (lockedDates.length > 0) {
-        unlockAllDates();
-      }
-    };
-  }, []); // Empty dependency array means this runs on unmount
 
-  // Lock a date to prevent other users from selecting it
-  const lockDate = async (dateString) => {
-    if (!room?.id || !dateString || isLockingDate) return false;
-    
-    setIsLockingDate(true);
-    try {
-      const response = await api.post(`/rooms/${room.id}/lock-date`, {
-        date: dateString,
-        userId: userId
-      });
-      
-      if (response.status === 200) {
-        setLockedDates(prev => [...prev, dateString]);
-        setAllLockedDates(prev => [...prev, dateString]);
-        console.log(`Date ${dateString} locked successfully`);
-        return true;
-      }
-    } catch (error) {
-      console.error('Failed to lock date:', error);
-      // Don't show error toast here - let the caller handle it
-      return false;
-    } finally {
-      setIsLockingDate(false);
-    }
-    return false;
-  };
 
-  // Unlock a date to allow other users to select it
-  const unlockDate = async (dateString) => {
-    if (!room?.id || !dateString) return;
-    
-    try {
-      await api.delete(`/rooms/${room.id}/unlock-date`, {
-        data: { date: dateString, userId: userId }
-      });
-      
-      setLockedDates(prev => prev.filter(date => date !== dateString));
-      setAllLockedDates(prev => prev.filter(date => date !== dateString));
-      console.log(`Date ${dateString} unlocked successfully`);
-    } catch (error) {
-      console.error('Failed to unlock date:', error);
-      // Don't show error toast for unlock failures as it's not critical
-    }
-  };
 
-  // Unlock all dates locked by current user (cleanup function)
-  const unlockAllDates = async () => {
-    if (lockedDates.length === 0) return;
-    
-    try {
-      await api.delete(`/rooms/${room.id}/unlock-all-dates`, {
-        data: { userId: userId }
-      });
-      
-      setLockedDates([]);
-      setAllLockedDates(prev => prev.filter(date => !lockedDates.includes(date)));
-      console.log('All dates unlocked successfully');
-    } catch (error) {
-      console.error('Failed to unlock all dates:', error);
-    }
-  };
 
 
   // Fetch booked dates for the room and check availability
@@ -539,28 +468,6 @@ export default function RoomBookingCard({ room, hotelId }) {
       dateValue = `${year}-${month}-${day}`;
     }
     
-    // Handle check-in date locking/unlocking
-    if (name === "checkInDate") {
-      const previousCheckInDate = bookingDetails.checkInDate;
-      
-      // If there was a previous check-in date, unlock it
-      if (previousCheckInDate && previousCheckInDate !== dateValue) {
-        await unlockDate(previousCheckInDate);
-      }
-      
-      // If selecting a new check-in date, try to lock it (but don't prevent selection)
-      if (dateValue && dateValue !== previousCheckInDate) {
-        // Lock the date asynchronously without blocking the UI update
-        lockDate(dateValue).catch(error => {
-          console.error('Failed to lock date:', error);
-          // Show error but don't prevent the user from continuing
-          toast.error('Date locking failed', {
-            description: 'This date may be selected by another user. Please complete your booking quickly.',
-            duration: 4000
-          });
-        });
-      }
-    }
     
     setBookingDetails((prev) => {
       const newDetails = {
@@ -877,10 +784,6 @@ export default function RoomBookingCard({ room, hotelId }) {
         });
         setErrors({});
         
-        // Unlock all dates after successful booking
-        if (lockedDates.length > 0) {
-          await unlockAllDates();
-        }
         
         setOpenBookingDialog(false);
       }
@@ -959,10 +862,6 @@ export default function RoomBookingCard({ room, hotelId }) {
         });
         setImmediateBookingErrors({});
         
-        // Unlock all dates after successful booking
-        if (lockedDates.length > 0) {
-          await unlockAllDates();
-        }
         
         // Show toast notification
         toast.success("Booking Successful!", {
@@ -1172,13 +1071,9 @@ export default function RoomBookingCard({ room, hotelId }) {
         open={openBookingDialog} 
         onOpenChange={(open) => {
           setOpenBookingDialog(open);
-          // Reset all validation errors and unlock dates when dialog closes
+          // Reset all validation errors when dialog closes
           if (!open) {
             setErrors({});
-            // Unlock all dates when dialog closes
-            if (lockedDates.length > 0) {
-              unlockAllDates();
-            }
           }
         }}
       >
@@ -1199,27 +1094,6 @@ export default function RoomBookingCard({ room, hotelId }) {
                 </div>
               )}
 
-              {/* Date locking indicator */}
-              {isLockingDate && (
-                <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <svg className="w-4 h-4 animate-spin text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  <span className="text-sm text-amber-700">Securing your selected date...</span>
-                </div>
-              )}
-
-              {/* Locked dates indicator */}
-              {lockedDates.length > 0 && !isLockingDate && (
-                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="text-sm text-green-700">
-                    Your selected date is secured and reserved for you
-                  </span>
-                </div>
-              )}
 
               {/* Date Selection - Moved to top */}
               <div className="space-y-4">
@@ -1230,12 +1104,12 @@ export default function RoomBookingCard({ room, hotelId }) {
                     <CustomDatePicker
                       selectedDate={bookingDetails.checkInDate ? new Date(bookingDetails.checkInDate + 'T12:00:00') : null}
                       onDateSelect={(date) => handleDateSelect("checkInDate", date)}
-                      blockedDates={[...bookedDates, ...allLockedDates.filter(date => !lockedDates.includes(date))]}
+                      blockedDates={bookedDates}
                       minDate={new Date()}
                       placeholder="Select check-in date"
                       label="Check-in Date *"
                       error={errors.checkInDate}
-                      disabled={isLoadingBookedDates || isLockingDate}
+                      disabled={isLoadingBookedDates}
                       className="w-full"
                     />
                   </div>
