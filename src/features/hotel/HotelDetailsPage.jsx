@@ -770,8 +770,6 @@ const HotelDetailsPage = () => {
         : ["https://via.placeholder.com/1000x600?text=No+Hotel+Image"],
   };
 
-  // TODO: Implement SEO metadata for hotel page when SEO utilities are available
-
   return (
     <div className="min-h-screen bg-background">
       {/* Optimized header for mobile */}
