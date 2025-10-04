@@ -209,7 +209,7 @@ const RoomImageCarousel = ({ images, roomNumber, roomType, isActive }) => {
 
   return (
     <>
-      <div className="relative h-64 w-full overflow-hidden rounded-t-lg lg:rounded-l-lg lg:rounded-t-none group">
+      <div className="relative h-64 w-full overflow-hidden group">
         {/* Main Image */}
         <img
           key={currentImageIndex}
@@ -825,7 +825,7 @@ const HotelDetailsPage = () => {
       {/* Main content */}
       <main className="container mx-auto px-0 sm:px-6 py-0 lg:py-8 space-y-6 sm:space-y-8">
         {/* Enhanced Hero Section */}
-        <Card className="overflow-hidden pt-0 rounded-t-none rounded-b-xl">
+        <Card className="overflow-hidden pt-0 rounded-none" style={{ borderRadius: 0 }}>
           <div className="relative h-48 sm:h-64 md:h-96 lg:h-[500px]">
             <img
               src={transformedHotel.images[uiState.currentImageIndex]}
@@ -1257,7 +1257,8 @@ const HotelDetailsPage = () => {
                   ? roomsState.availableRooms.map((room) => (
                       <Card
                         key={room.id}
-                        className="overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-slate-200/50 shadow-md group bg-gradient-to-br from-white to-slate-50/30"
+                        className="overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-slate-200/50 shadow-md group bg-gradient-to-br from-white to-slate-50/30 rounded-none"
+                        style={{ borderRadius: 0 }}
                       >
                         <div className="flex flex-col lg:flex-row">
                           <div className="lg:w-1/3 relative flex-shrink-0 overflow-hidden">
@@ -1473,7 +1474,7 @@ const HotelDetailsPage = () => {
 
             {/* Social Media Card - Desktop Sidebar */}
             {(appState.hotel?.facebookUrl || appState.hotel?.instagramUrl || appState.hotel?.tiktokUrl) && (
-              <Card>
+              <Card className="rounded-none" style={{ borderRadius: 0 }}>
                 <CardHeader>
                   <CardTitle className="text-base">Follow Us</CardTitle>
                   <CardDescription className="text-sm">
@@ -1536,7 +1537,7 @@ const HotelDetailsPage = () => {
             )}
 
             {/* Quick Info Card */}
-            <Card>
+            <Card className="rounded-none" style={{ borderRadius: 0 }}>
               <CardHeader>
                 <CardTitle>Quick Information</CardTitle>
               </CardHeader>
@@ -1618,7 +1619,7 @@ const HotelDetailsPage = () => {
       {/* Room Image Modal */}
       {roomImageModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="relative bg-white rounded-lg shadow-2xl overflow-hidden max-w-[95vw] max-h-[90vh]">
+          <div className="relative bg-white shadow-2xl overflow-hidden max-w-[95vw] max-h-[90vh]">
             {/* Close Button */}
             <button
               onClick={() => setRoomImageModal({ isOpen: false, selectedImage: null })}
@@ -1633,7 +1634,7 @@ const HotelDetailsPage = () => {
                 <img
                   src={roomImageModal.selectedImage}
                   alt="Room Photo"
-                  className="max-w-full max-h-[80vh] object-contain rounded-lg"
+                  className="max-w-full max-h-[80vh] object-contain"
                 />
               )}
             </div>

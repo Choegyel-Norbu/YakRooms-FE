@@ -12,8 +12,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        // Simple static asset caching
+        // Simple static asset caching - exclude sitemap.xml and robots.txt
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globIgnores: ['**/sitemap.xml', '**/robots.txt'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB limit
       },
       // Use external manifest file

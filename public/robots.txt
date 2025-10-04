@@ -13,4 +13,4 @@ Disallow: /private/
 # Allow important pages
 Allow: /
 Allow: /hotels
-Allow: /about
+Allow: /about 

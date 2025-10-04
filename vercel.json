@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/((?!sitemap\\.xml|robots\\.txt|favicon\\.ico|apple-touch-icon\\.png|manifest\\.json|sw\\.js|workbox-.*\\.js|.*\\.(png|jpg|jpeg|gif|svg|ico|css|js|woff|woff2|ttf|eot)).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
