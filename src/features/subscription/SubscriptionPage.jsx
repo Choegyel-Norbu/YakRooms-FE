@@ -2,13 +2,21 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/components/card';
 import { Button } from '@/shared/components/button';
-import { Check, Loader2, ArrowLeft } from 'lucide-react';
+import { Check, Loader2, ArrowLeft, CreditCard, Clock } from 'lucide-react';
 import { enhancedApi } from '@/shared/services/Api';
 import { useAuth } from '@/features/authentication/AuthProvider';
 import { toast } from 'sonner';
+import { calculateDaysUntil, formatDate } from '@/shared/utils/subscriptionUtils';
 
 const SubscriptionPage = () => {
-  const { hotelId, subscriptionId, subscriptionIsActive, subscriptionPlan } = useAuth();
+  const { 
+    hotelId, 
+    subscriptionId, 
+    subscriptionIsActive, 
+    subscriptionPlan,
+    subscriptionNextBillingDate,
+    subscriptionExpirationNotification
+  } = useAuth();
   const navigate = useNavigate();
   const [isSubscribing, setIsSubscribing] = useState(false);
 
@@ -20,6 +28,11 @@ const SubscriptionPage = () => {
   
   // Check if user has ever had PRO subscription (active or expired)
   const hasEverHadPro = subscriptionPlan === 'PRO';
+  
+  // Check if subscription expires today
+  const daysUntilExpiration = calculateDaysUntil(subscriptionNextBillingDate);
+  const expiresToday = daysUntilExpiration === 0 && subscriptionExpirationNotification;
+  const isActiveSubscription = subscriptionIsActive === true;
 
   const pricingPlans = [
     {
@@ -167,7 +180,9 @@ const SubscriptionPage = () => {
       const subscriptionData = {
         subscriptionPlan: 'PRO',
         paymentStatus: 'PAID',
-        nextBillingDate: nextBillingDate.toISOString()
+        nextBillingDate: nextBillingDate.toISOString(),
+        lastPaymentDate: new Date().toISOString(),
+        notes: `Subscription renewed on ${new Date().toLocaleDateString()} - Extended for 1 month from expiration date ${formatDate(subscriptionNextBillingDate)}`
       };
 
       console.log('Updating subscription with data:', subscriptionData);
@@ -203,6 +218,62 @@ const SubscriptionPage = () => {
     }
   };
 
+  const handleSubscriptionRenewal = async () => {
+    if (!hotelId) {
+      toast.error('Hotel ID not found. Please ensure you are logged in and have a hotel associated with your account.');
+      return;
+    }
+
+    setIsSubscribing(true);
+    
+    try {
+      // Calculate next billing date (1 month from current expiration date)
+      const currentExpirationDate = new Date(subscriptionNextBillingDate);
+      const nextBillingDate = new Date(currentExpirationDate);
+      nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+      
+      const subscriptionData = {
+        subscriptionPlan: 'PRO',
+        paymentStatus: 'PAID',
+        nextBillingDate: nextBillingDate.toISOString(),
+        lastPaymentDate: new Date().toISOString(),
+        expirationNotification: false, // Reset notification flag
+        notes: `Subscription renewed on ${new Date().toLocaleDateString()} - Extended for 1 month from expiration date ${formatDate(subscriptionNextBillingDate)}`
+      };
+
+      console.log('Renewing subscription with data:', subscriptionData);
+      
+      const response = await enhancedApi.put(`/subscriptions/hotel/${hotelId}`, subscriptionData);
+      
+      if (response.status === 200 || response.status === 201) {
+        toast.success('Subscription renewed successfully! Your hotel listing remains active.');
+        console.log('Subscription renewed successfully:', response.data);
+        
+        // Redirect to dashboard after 2 seconds
+        setTimeout(() => {
+          navigate('/hotelAdmin');
+        }, 2000);
+      } else {
+        throw new Error('Unexpected response status');
+      }
+      
+    } catch (error) {
+      console.error('Failed to renew subscription:', error);
+      
+      if (error.response?.status === 404) {
+        toast.error('Subscription not found. Please contact support.');
+      } else if (error.response?.status === 400) {
+        toast.error('Invalid subscription data. Please try again.');
+      } else if (error.response?.status === 401) {
+        toast.error('Authentication required. Please log in again.');
+      } else {
+        toast.error('Failed to renew subscription. Please try again later.');
+      }
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-4 px-4 sm:px-0 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -222,7 +293,11 @@ const SubscriptionPage = () => {
         {/* Header Section */}
         <div className="text-center mb-16">
           <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-6">
-            {isTrialExpired ? (
+            {expiresToday ? (
+              <>
+                Subscription <span className="text-orange-500">Expires Today</span>
+              </>
+            ) : isTrialExpired ? (
               <>
                 Trial Period <span className="text-red-500">Expired</span>
               </>
@@ -245,24 +320,181 @@ const SubscriptionPage = () => {
             )}
           </h1>
           <p className="text-sm text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            {isTrialExpired 
-              ? 'Your free trial has ended. Subscribe now to continue managing your hotel business with EzeeRoom.'
-              : isTrialActive
-                ? 'You are currently in your free trial period. Make the most of all features before your trial ends.'
-                : isProActive
-                  ? 'Your hotel listing is active and discoverable to guests worldwide. Manage your subscription below.'
-                  : hasEverHadPro
-                    ? 'Your Pro subscription is currently inactive. Reactivate below to restore your hotel listing visibility.'
-                    : 'Get 2 months completely free to grow your hotel business with full access to all platform features.'
+            {expiresToday 
+              ? `Your subscription expires today (${formatDate(subscriptionNextBillingDate)}). Renew now to keep your hotel listing active and avoid service interruption.`
+              : isTrialExpired 
+                ? 'Your free trial has ended. Subscribe now to continue managing your hotel business with EzeeRoom.'
+                : isTrialActive
+                  ? 'You are currently in your free trial period. Make the most of all features before your trial ends.'
+                  : isProActive
+                    ? 'Your hotel listing is active and discoverable to guests worldwide. Manage your subscription below.'
+                    : hasEverHadPro
+                      ? 'Your Pro subscription is currently inactive. Reactivate below to restore your hotel listing visibility.'
+                      : 'Get 2 months completely free to grow your hotel business with full access to all platform features.'
             }
           </p>
         </div>
 
         {/* Pricing Cards */}
         <div className={`grid gap-8 max-w-4xl mx-auto items-stretch ${
+          expiresToday ? 'grid-cols-1 lg:grid-cols-2' : 
           (isProActive || hasEverHadPro) ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'
         }`}>
-          {pricingPlans.filter(plan => {
+          {/* Renewal Card - Show when subscription expires today */}
+          {expiresToday && (
+            <Card className="relative transition-all duration-300 hover:shadow-xl hover:-translate-y-2 h-full flex flex-col ring-2 ring-orange-500 shadow-lg scale-105">
+              {/* Expires Today Badge */}
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <div className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                  <Clock className="w-3 h-3 mr-1 inline" />
+                  Expires Today
+                </div>
+              </div>
+
+              <CardHeader className="text-center pb-4">
+                <CardTitle className="text-2xl font-extrabold text-gray-900">
+                  Renew Subscription
+                </CardTitle>
+                <CardDescription className="text-gray-600 text-sm leading-relaxed">
+                  Your current subscription expires today. Renew now to keep your hotel listing active and avoid service interruption.
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="text-center pb-6 flex-1 flex flex-col">
+                <div className="mb-6">
+                  <div className="flex items-baseline justify-center">
+                    <span className="text-3xl font-extrabold text-orange-500">
+                      Nu. 1,000
+                    </span>
+                    <span className="text-gray-600 ml-2 text-sm font-medium">
+                      per month
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Next billing: {formatDate(new Date(new Date(subscriptionNextBillingDate).setMonth(new Date(subscriptionNextBillingDate).getMonth() + 1)))}
+                  </p>
+                </div>
+
+                <ul className="space-y-3 text-left flex-1">
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700 text-sm font-medium leading-relaxed">Keep your hotel listing active</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700 text-sm font-medium leading-relaxed">Maintain discoverability to guests</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700 text-sm font-medium leading-relaxed">Continue receiving booking requests</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700 text-sm font-medium leading-relaxed">Access all premium features</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700 text-sm font-medium leading-relaxed">Priority customer support</span>
+                  </li>
+                </ul>
+              </CardContent>
+
+              <CardFooter className="pt-0">
+                <Button
+                  onClick={handleSubscriptionRenewal}
+                  variant="default"
+                  size="lg"
+                  disabled={isSubscribing}
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                >
+                  {isSubscribing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Renewing...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Renew Now
+                    </>
+                  )}
+                </Button>
+              </CardFooter>
+            </Card>
+          )}
+
+          {/* Current Active Subscription Card - Show when subscription expires today */}
+          {expiresToday && (
+            <Card className="relative transition-all duration-300 hover:shadow-xl hover:-translate-y-2 h-full flex flex-col ring-2 ring-blue-500 shadow-lg scale-105">
+              {/* Current Subscription Badge */}
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <div className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                  Current Subscription
+                </div>
+              </div>
+
+              <CardHeader className="text-center pb-4">
+                <CardTitle className="text-2xl font-extrabold text-gray-900">
+                  {subscriptionPlan === 'PRO' ? 'Pro Subscription' : 'Trial Subscription'}
+                </CardTitle>
+                <CardDescription className="text-gray-600 text-sm leading-relaxed">
+                  Your current subscription is active until today. This is your existing subscription status.
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="text-center pb-6 flex-1 flex flex-col">
+                <div className="mb-6">
+                  <div className="flex items-baseline justify-center">
+                    <span className="text-3xl font-extrabold text-blue-500">
+                      {subscriptionPlan === 'PRO' ? 'Nu. 1,000' : 'Free'}
+                    </span>
+                    <span className="text-gray-600 ml-2 text-sm font-medium">
+                      {subscriptionPlan === 'PRO' ? 'per month' : 'trial'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Expires: {formatDate(subscriptionNextBillingDate)}
+                  </p>
+                </div>
+
+                <ul className="space-y-3 text-left flex-1">
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700 text-sm font-medium leading-relaxed">Hotel listing visibility</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700 text-sm font-medium leading-relaxed">Booking management</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700 text-sm font-medium leading-relaxed">Analytics dashboard</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700 text-sm font-medium leading-relaxed">Customer support</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                    <span className="text-gray-700 text-sm font-medium leading-relaxed">Mobile app access</span>
+                  </li>
+                </ul>
+              </CardContent>
+
+              <CardFooter className="pt-0">
+                <Button
+                  onClick={() => navigate('/hotelAdmin')}
+                  variant="outline"
+                  size="lg"
+                  className="w-full border-blue-500 text-blue-500 hover:bg-blue-50"
+                >
+                  Continue to Dashboard
+                </Button>
+              </CardFooter>
+            </Card>
+          )}
+
+          {!expiresToday && pricingPlans.filter(plan => {
             // Hide free trial card if user has ever had Pro subscription
             if (plan.id === 'free' && hasEverHadPro) {
               return false;

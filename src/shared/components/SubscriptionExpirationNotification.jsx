@@ -41,7 +41,7 @@ const SubscriptionExpirationNotification = ({
         buttonColor: "bg-orange-600 hover:bg-orange-700",
         icon: Clock,
         title: "Subscription Expires Today",
-        message: `Your ${subscriptionPlan} subscription expires today (${formattedDate}). Please renew to avoid service interruption.`,
+        message: `Your subscription expires today (${formattedDate}). Please renew to avoid service interruption.`,
         showButton: true
       };
     } else {
@@ -55,7 +55,7 @@ const SubscriptionExpirationNotification = ({
         buttonColor: "bg-blue-600 hover:bg-blue-700",
         icon: Clock,
         title: "Upcoming Subscription Renewal",
-        message: `Your ${subscriptionPlan} subscription will expire on ${formattedDate} (${timeUntilExpiration}).`,
+        message: `Your subscription will expire on ${formattedDate} (${timeUntilExpiration}).`,
         showButton: false
       };
     }
@@ -78,12 +78,6 @@ const SubscriptionExpirationNotification = ({
               <h4 className={`text-base font-semibold ${config.titleColor}`}>
                 {config.title}
               </h4>
-              <Badge 
-                variant="secondary" 
-                className={`${config.iconColor} ${config.bgColor} border-0`}
-              >
-                {timeUntilExpiration}
-              </Badge>
             </div>
             <p className={`text-sm ${config.textColor} leading-relaxed ${config.showButton ? 'mb-3' : 'mb-0'}`}>
               {config.message}
@@ -96,7 +90,7 @@ const SubscriptionExpirationNotification = ({
                   className={`${config.buttonColor} text-white`}
                 >
                   <CreditCard className="mr-2 h-4 w-4" />
-                  Subscribe
+                  {isExpiringToday ? 'Renew Now' : 'Subscribe'}
                 </Button>
               </Link>
             )}

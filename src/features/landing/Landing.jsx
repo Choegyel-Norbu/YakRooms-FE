@@ -13,7 +13,6 @@ import FeatureSection from "./FeatureSection";
 import TopHighlightsSection from "./TopHighlightsSection";
 import ListYourPropertySection from "./ListYourPropertySection";
 import { getStorageItem } from "@/shared/utils/safariLocalStorage";
-import { useAuth } from "../authentication";
 
 const Landing = () => {
   const [loginShow, setLoginShow] = useState(false);
@@ -166,8 +165,6 @@ const Landing = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [certiRef]);
-
-
 
   return (
     <>

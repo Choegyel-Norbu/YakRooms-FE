@@ -261,9 +261,8 @@ const ListYourPropertySection = ({ onLoginClick }) => {
               </p>
               <div className="flex flex-wrap justify-center gap-2">
                 {[
-                  "No commission fees for first month",
+                  "Free trial for first month",
                   "Easy property management",
-                  "Marketing support included",
                   "Real-time analytics dashboard"
                 ].map((feature, index) => (
                   <Badge key={index} variant="outline">
