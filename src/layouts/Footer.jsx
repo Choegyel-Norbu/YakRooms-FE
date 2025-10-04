@@ -30,7 +30,7 @@ const Footer = React.forwardRef((props, ref) => {
                 size="icon"
                 className="h-10 w-10 hover:bg-muted"
                 aria-label="Facebook"
-                onClick={() => window.open("https://facebook.com/ezee.room", "_blank")}
+                onClick={() => window.open("https://www.facebook.com/share/16FrEJNPGS/", "_blank")}
               >
                 <Facebook className="h-5 w-5" />
               </Button>

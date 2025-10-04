@@ -1009,9 +1009,6 @@ const BookingCard = ({
       {booking.status === "CANCELLED" && (
         <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
           <div className="flex items-start gap-3">
-            <div className="bg-green-100 p-1.5 rounded-full flex-shrink-0">
-              <CheckCircle className="text-green-600" size={18} />
-            </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <p className="text-sm text-green-800 font-semibold">
@@ -1020,42 +1017,28 @@ const BookingCard = ({
               </div>
               
               <div className="space-y-3">
-                <p className="text-sm text-green-700">
+                <p className="text-sm text-black">
                   Your cancellation request has been approved. Your booking has been cancelled.
                 </p>
                 
-                {/* Refund Information */}
-                <div className="bg-white/60 border border-green-300 rounded-lg p-3 space-y-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle className="text-green-600" size={14} />
-                    <span className="text-sm font-semibold text-green-800">Refund Information</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-green-800">Refund Amount:</span>
-                    <span className="text-sm font-bold text-green-800">
-                      {formatCurrency(booking.totalPrice)}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Contact Hotel Owner */}
+                {/* Contact Hotel Owner Message */}
                 <div className="bg-green-100/50 border border-green-300 rounded-md p-3">
                   <div className="flex items-start gap-2">
                     <div className="w-1 h-1 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
-                    <div className="text-xs text-green-700">
-                      <p className="font-medium mb-1">For refund details, please contact the hotel owner directly.</p>
-                      <p className="text-xs text-green-600 mt-1">
-                        The hotel owner will provide you with specific refund processing information and timeline.
-                      </p>
-                    </div>
+                      <div className="text-xs text-green-700">
+                        <p className="text-xs text-black">
+                          Please contact the hotel owner directly to claim your refund.
+                        </p>
+                        {booking.hotelPhone && (
+                          <div className="mt-2 flex items-center gap-2">
+                            <Phone size={12} className="text-green-600" />
+                            <span className="text-xs text-black font-medium">
+                              Contact: {booking.hotelPhone}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                   </div>
-                </div>
-                
-                {/* Contact Hotel */}
-                <div className="flex items-center gap-2 text-xs text-green-600">
-                  <Phone size={12} />
-                  <span>Contact the hotel owner for refund-related questions and processing details.</span>
                 </div>
               </div>
             </div>
@@ -1339,9 +1322,9 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border">
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b">
+        <div className="flex justify-between items-center p-4 border-b">
           <div>
-            <h2 className="text-xl font-semibold text-foreground">
+            <h2 className="text-sm font-semibold text-foreground">
               Booking Details
             </h2>
           </div>
@@ -1354,22 +1337,24 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-4 space-y-4">
           {/* Room Info */}
           <div className="bg-muted/50 rounded-md p-4">
             <div className="flex items-start gap-3">
-              <Hotel className="text-primary mt-1" size={24} />
-              <div>
-                <h3 className="font-semibold text-foreground text-lg">
+              <div className="bg-primary/10 text-primary p-2 rounded-full flex-shrink-0">
+                <Hotel className="text-primary" size={20} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-semibold text-foreground text-sm">
                   {booking.hotelName || "Hotel"}
                 </h3>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-muted-foreground">
                   {booking.hotelDistrict && `${booking.hotelDistrict} District`}
                 </p>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-muted-foreground">
                   Room No: {booking.roomNumber}
                 </p>
-                <div className="mt-2">
+                <div>
                   <StatusBadge status={booking.status} />
                 </div>
               </div>
@@ -1378,36 +1363,40 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
 
           {/* Stay Information */}
           <div className="space-y-4">
-            <h4 className="font-medium text-foreground border-b pb-2">
+            <h4 className="text-sm font-medium text-foreground border-b pb-2">
               Stay Information
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <Calendar className="text-primary" size={18} />
+                  <div className="bg-primary/10 text-primary p-2 rounded-full flex-shrink-0">
+                    <Calendar className="text-primary" size={16} />
+                  </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
                       Check-in Date
                     </label>
-                    <p className="text-foreground">
+                    <p className="text-sm text-foreground">
                       {formatDate(booking.checkInDate)}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Calendar className="text-primary" size={18} />
+                  <div className="bg-primary/10 text-primary p-2 rounded-full flex-shrink-0">
+                    <Calendar className="text-primary" size={16} />
+                  </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
                       Check-out Date
                     </label>
-                    <p className="text-foreground">
+                    <p className="text-sm text-foreground">
                       {formatDate(booking.checkOutDate)}
                     </p>
                   </div>
                 </div>
                 {booking.passcode && (
                   <div className="flex items-center gap-3">
-                    <div className="bg-primary/10 text-primary p-1 rounded">
+                    <div className="bg-primary/10 text-primary p-2 rounded-full flex-shrink-0">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                       </svg>
@@ -1416,10 +1405,10 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
                       <label className="text-sm font-medium text-muted-foreground">
                         Room Passcode
                       </label>
-                      <p className="text-foreground font-mono font-bold text-lg tracking-wider text-primary">
+                      <p className="text-sm text-foreground font-mono font-bold tracking-wider text-primary">
                         {booking.passcode}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-muted-foreground">
                         Use this code to access your room
                       </p>
                     </div>
@@ -1428,23 +1417,27 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
               </div>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <Clock className="text-primary" size={18} />
+                  <div className="bg-primary/10 text-primary p-2 rounded-full flex-shrink-0">
+                    <Clock className="text-primary" size={16} />
+                  </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
                       Duration
                     </label>
-                    <p className="text-foreground">
+                    <p className="text-sm text-foreground">
                       {numberOfNights} night{numberOfNights !== 1 ? "s" : ""}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <User className="text-primary" size={18} />
+                  <div className="bg-primary/10 text-primary p-2 rounded-full flex-shrink-0">
+                    <User className="text-primary" size={16} />
+                  </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
                       Guest Count
                     </label>
-                    <p className="text-foreground">
+                    <p className="text-sm text-foreground">
                       {booking.guests} Guest{booking.guests !== 1 ? "s" : ""}
                     </p>
                   </div>
@@ -1455,15 +1448,18 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
 
           {/* Booking Information */}
           <div className="space-y-4">
-            <h4 className="font-medium text-foreground border-b pb-2">
+            <h4 className="text-sm font-medium text-foreground border-b pb-2">
               Booking Information
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 text-primary p-2 rounded-full flex-shrink-0">
+                <Calendar className="text-primary" size={16} />
+              </div>
               <div>
                 <label className="text-sm font-medium text-muted-foreground">
                   Booking Date
                 </label>
-                <p className="text-foreground">
+                <p className="text-sm text-foreground">
                   {formatDateTime(booking.createdAt)}
                 </p>
               </div>
@@ -1472,7 +1468,7 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
 
           {/* Pricing Breakdown */}
           <div className="bg-muted/50 border rounded-md p-4 space-y-3">
-            <h4 className="font-medium text-foreground flex items-center gap-2">
+            <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
               <CreditCard className="text-primary" size={18} />
               Pricing Details
             </h4>
@@ -1494,10 +1490,10 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
                 </span>
               </div>
               <div className="border-t pt-2 flex justify-between items-center">
-                <span className="font-medium text-foreground">
+                <span className="text-sm font-medium text-foreground">
                   Total Amount
                 </span>
-                <span className="text-xl font-bold text-foreground">
+                <span className="text-sm font-bold text-foreground">
                   {formatCurrency(booking.totalPrice)}
                 </span>
               </div>
