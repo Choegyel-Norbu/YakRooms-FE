@@ -48,7 +48,7 @@ const Footer = React.forwardRef((props, ref) => {
                 size="icon"
                 className="h-10 w-10 hover:bg-muted"
                 aria-label="TikTok"
-                onClick={() => window.open("https://tiktok.com/@ezee_room", "_blank")}
+                onClick={() => window.open("https://www.tiktok.com/@ezeeroom?_t=ZS-90GXYrhhzYW&_r=1", "_blank")}
               >
                 <TikTokIcon className="h-5 w-5" />
               </Button>
