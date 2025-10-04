@@ -770,19 +770,7 @@ const HotelDetailsPage = () => {
         : ["https://via.placeholder.com/1000x600?text=No+Hotel+Image"],
   };
 
-  // SEO metadata for hotel page
-  useSEO({
-    canonicalUrl: `https://www.ezeeroom.bt/hotel/${id}`,
-    title: appState.hotel ? `${appState.hotel.name} - Hotel Booking in ${appState.hotel.district}, Bhutan | Ezeeroom` : 'Hotel Details | Ezeeroom',
-    description: appState.hotel ? 
-      `Book ${appState.hotel.name} in ${appState.hotel.district}, Bhutan. ${appState.hotel.description || `Experience authentic Bhutanese hospitality at ${appState.hotel.name}.`}` : 
-      'Book authentic stays in Bhutan with Ezeeroom',
-    keywords: appState.hotel ? 
-      `${appState.hotel.name}, ${appState.hotel.district} hotels, Bhutan accommodation, hotel booking Bhutan, ${appState.hotel.locality || ''} lodges` : 
-      'Bhutan hotels, accommodation Bhutan, hotel booking, Ezeeroom',
-    image: appState.hotel?.photoUrls?.[0] || 'https://www.ezeeroom.bt/images/er.png',
-    structuredData: appState.hotel ? generateHotelStructuredData(appState.hotel, `/hotel/${id}`) : null
-  });
+  // TODO: Implement SEO metadata for hotel page when SEO utilities are available
 
   return (
     <div className="min-h-screen bg-background">
