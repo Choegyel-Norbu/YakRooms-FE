@@ -182,8 +182,9 @@ const AboutUs = () => {
           <div className="text-center space-y-6">
             <h2 className="text-2xl font-bold font-heading"> Our Team</h2>
             <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-              EzeeRoom is crafted with care by a passionate team of Bhutanese developers 
-              who understand the unique needs of our country's hospitality sector.
+              EzeeRoom is created by a dedicated team of Bhutanese individuals 
+              who are passionate about connecting travelers with authentic Bhutanese 
+              hospitality through digital solutions.
             </p>
           </div>
 
@@ -202,10 +203,11 @@ const AboutUs = () => {
                 <CardDescription>Co-Founder & Developer</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Passionate about leveraging technology to empower Bhutan's hospitality 
-                  industry and create meaningful connections between travelers and local 
-                  accommodations.
+                <p className="text-sm text-muted-foreground italic mt-5">
+                  "My mission is to bridge the digital gap for underprivileged accommodations 
+                  while creating meaningful connections between travelers and local stays. 
+                  I'm passionate about preserving Bhutan's authentic hospitality spirit 
+                  through inclusive digital solutions."
                 </p>
               </CardContent>
             </div>
@@ -221,13 +223,14 @@ const AboutUs = () => {
                     />
                   </div>
                   <CardTitle className="text-xl">Zepa Dorji</CardTitle>
-                  <CardDescription>Co-Founder & Developer</CardDescription>
+                  <CardDescription>Co-Founder & Quality Assurance</CardDescription>
                 </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Dedicated to building innovative solutions that bridge the gap between 
-                  traditional Bhutanese hospitality and modern digital experiences for 
-                  both travelers and accommodation providers.
+                <p className="text-sm text-muted-foreground italic mt-5">
+                  "I believe that every traveler deserves to discover the hidden gems of Bhutan 
+                  and every local accommodation deserves to be found. My passion lies in 
+                  creating opportunities for authentic cultural exchanges between visitors 
+                  and our beautiful communities."
                 </p>
               </CardContent>
             </div>

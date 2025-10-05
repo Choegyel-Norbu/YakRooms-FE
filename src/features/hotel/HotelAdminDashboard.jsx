@@ -651,26 +651,30 @@ const HotelAdminDashboard = () => {
                         </Button>
                       </Link>
 
-                      <Link to="/subscription" className="block">
+                      {!roles?.includes("STAFF") && (
+                        <Link to="/subscription" className="block">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                          >
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            Subscription
+                          </Button>
+                        </Link>
+                      )}
+
+                      {!roles?.includes("STAFF") && (
                         <Button
                           variant="outline"
                           size="sm"
-                          className="w-full"
+                          className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                          onClick={handleDeleteAccount}
                         >
-                          <CreditCard className="mr-2 h-4 w-4" />
-                          Subscription
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete Account
                         </Button>
-                      </Link>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                        onClick={handleDeleteAccount}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete Account
-                      </Button>
+                      )}
                     </div>
                   </div>
                 </SheetContent>
@@ -713,20 +717,26 @@ const HotelAdminDashboard = () => {
                       <span>Return to Website</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/subscription" className="w-full">
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      <span>Subscription</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-destructive focus:text-destructive cursor-pointer"
-                    onClick={handleDeleteAccount}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    <span>Delete Account</span>
-                  </DropdownMenuItem>
+                  {!roles?.includes("STAFF") && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/subscription" className="w-full">
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        <span>Subscription</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {!roles?.includes("STAFF") && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive cursor-pointer"
+                        onClick={handleDeleteAccount}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        <span>Delete Account</span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

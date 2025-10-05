@@ -151,7 +151,7 @@ const Footer = React.forwardRef((props, ref) => {
               <div className="flex items-center space-x-3">
                 <Phone className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  +97517482648
+                  +97577965452
                 </span>
               </div>
               <div className="flex items-center space-x-3">

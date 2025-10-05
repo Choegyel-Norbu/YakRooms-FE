@@ -166,7 +166,6 @@ const AccountDeletionPage = () => {
             {/* <Separator orientation="vertical" className="h-6" /> */}
             <div>
               <EzeeRoomLogo size="default" />
-              <p className="text-xs text-muted-foreground">Account Deletion</p>
             </div>
           </div>
         </div>

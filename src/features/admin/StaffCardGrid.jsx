@@ -112,11 +112,6 @@ const StaffCard = ({ staff }) => {
                     {staff.position}
                   </Badge>
                 )}
-                {staff.role && staff.role !== staff.position && (
-                  <Badge variant="outline" className="text-xs">
-                    {staff.role}
-                  </Badge>
-                )}
               </div>
             </div>
           </div>

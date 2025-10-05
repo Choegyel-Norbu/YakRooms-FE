@@ -393,72 +393,75 @@ const BookingsInventoryTable = ({ hotelId }) => {
       </CardHeader> */}
       <CardContent className="space-y-4">
         {/* Controls Section */}
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-          <div className="flex flex-col sm:flex-row gap-3 flex-1">
-            {/* Search Options and Input */}
-            <div className="flex flex-col sm:flex-row gap-2 flex-1">
-              {/* Search Option Selector */}
-              <Select value={searchOption} onValueChange={setSearchOption}>
-                <SelectTrigger className="min-w-[160px]">
-                  <SelectValue placeholder="Search by..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Bookings</SelectItem>
-                  <SelectItem value="cid">Search by CID</SelectItem>
-                  <SelectItem value="phone">Search by Phone</SelectItem>
-                  <SelectItem value="checkin">Search by Check-in Date</SelectItem>
-                  <SelectItem value="checkout">Search by Check-out Date</SelectItem>
-                </SelectContent>
-              </Select>
+        <div className="space-y-4">
+          {/* Search Controls */}
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+            <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full lg:w-auto">
+              {/* Search Options and Input */}
+              <div className="flex flex-col sm:flex-row gap-2 flex-1">
+                {/* Search Option Selector */}
+                <Select value={searchOption} onValueChange={setSearchOption}>
+                  <SelectTrigger className="w-full sm:w-[180px] lg:w-[160px]">
+                    <SelectValue placeholder="Search by..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Bookings</SelectItem>
+                    <SelectItem value="cid">Search by CID</SelectItem>
+                    <SelectItem value="phone">Search by Phone</SelectItem>
+                    <SelectItem value="checkin">Search by Check-in Date</SelectItem>
+                    <SelectItem value="checkout">Search by Check-out Date</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              {/* Conditional Search Input */}
-              {searchOption !== "all" ? (
-                <div className="flex gap-2 flex-1">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder={getSearchPlaceholder()}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      onKeyPress={handleSearchKeyPress}
-                      className="pl-10 w-full"
-                    />
+                {/* Conditional Search Input */}
+                {searchOption !== "all" ? (
+                  <div className="flex gap-2 flex-1 min-w-0">
+                    <div className="relative flex-1 min-w-0">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder={getSearchPlaceholder()}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyPress={handleSearchKeyPress}
+                        className="pl-10 w-full"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleSearch}
+                      disabled={!searchTerm.trim()}
+                      className="px-4 flex-shrink-0"
+                    >
+                      <Search className="h-4 w-4 mr-1" />
+                      <span className="hidden sm:inline">Search</span>
+                    </Button>
                   </div>
+                ) : null}
+
+                {/* Clear Search Button */}
+                {searchTerm && (
                   <Button
-                    onClick={handleSearch}
-                    disabled={!searchTerm.trim()}
-                    className="px-4"
+                    onClick={clearSearch}
+                    variant="outline"
+                    size="sm"
+                    className="px-3 flex-shrink-0"
                   >
-                    <Search className="h-4 w-4 mr-1" />
-                    Search
+                    <X className="h-4 w-4" />
                   </Button>
-                </div>
-              ) : null}
-
-              {/* Clear Search Button */}
-              {searchTerm && (
-                <Button
-                  onClick={clearSearch}
-                  variant="outline"
-                  size="sm"
-                  className="px-3"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Export Button */}
-          <Button
-            onClick={exportToExcel}
-            disabled={totalElements === 0}
-            className="bg-primary hover:bg-primary/90"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export Excel
-            {/* ({totalElements} total) */}
-          </Button>
+            {/* Export Button */}
+            <Button
+              onClick={exportToExcel}
+              disabled={totalElements === 0}
+              className="flex-shrink-0"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Export Excel</span>
+              <span className="sm:hidden">Export</span>
+            </Button>
+          </div>
         </div>
 
         {/* Summary Stats */}
