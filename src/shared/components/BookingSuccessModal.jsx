@@ -148,7 +148,11 @@ const BookingSuccessModal = ({ isOpen, onClose, bookingData }) => {
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="text-amber-600 mt-1">•</span>
-                  <span>Show your QR code for quick check-in</span>
+                  <span>Verify your identity using the passcode generated during booking</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-amber-600 mt-1">•</span>
+                  <span>Your unique passcode is available in your user dashboard</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="text-amber-600 mt-1">•</span>

@@ -744,6 +744,7 @@ export default function RoomBookingCard({ room, hotelId }) {
         totalPrice: calculateTotalPrice(),
         userId,
         days: calculateDays(),
+        adminBooking: false,
       };
       
       // Use advanced booking endpoint for detailed form submissions
@@ -829,6 +830,7 @@ export default function RoomBookingCard({ room, hotelId }) {
         cid: immediateBookingDetails.cid,
         destination: immediateBookingDetails.destination,
         origin: immediateBookingDetails.origin,
+        adminBooking: false,
       };
       
       const res = await api.post("/bookings", immediatePayload);
@@ -1490,8 +1492,13 @@ export default function RoomBookingCard({ room, hotelId }) {
               Book Tonight - {room.hotelName}
             </DialogTitle>
             <DialogDescription>
-              Room {room.roomNumber} - Quick booking starting tonight
+              Room {room.roomNumber}
             </DialogDescription>
+            {/* Note about required information */}
+            <div className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-lg border border-blue-200 mb-2">
+                <p><strong>Quick Booking:</strong> You're reserving this room for tonight through tomorrow morning.</p>
+                <p className="mt-1 text-xs">Reserved at: {new Date().toLocaleTimeString()}</p>
+              </div>
           </DialogHeader>
           
           <form onSubmit={(e) => { e.preventDefault(); handleImmediateBooking(); }}>
@@ -1711,11 +1718,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                 </div>
               </div>
 
-              {/* Note about required information */}
-              <div className="text-xs text-muted-foreground bg-blue-50 p-3 rounded-lg border border-blue-200">
-                <p><strong>Note:</strong> This is a fixed 1-night booking from tonight to tomorrow.</p>
-                <p className="mt-1 text-xs">Booking time: {new Date().toLocaleTimeString()}</p>
-              </div>
+              
             </div>
 
             <DialogFooter>

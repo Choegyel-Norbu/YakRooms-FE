@@ -438,6 +438,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
         days: calculateDays(),
         // Set userId to null for all third-party bookings
         userId: null,
+        adminBooking: true,
       };
       
       const res = await api.post("/bookings", payload);
