@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ca
 import { Badge } from "@/shared/components/badge";
 import { Separator } from "@/shared/components/separator";
 import { 
-  ChevronRight
+  ChevronRight,
+  ChevronUp
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -44,6 +45,8 @@ const TermsAndConditions = () => {
     contact: true
   });
 
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
+
   // Scroll to top when component mounts and handle hash navigation
   useEffect(() => {
     // Check if there's a hash in the URL
@@ -71,11 +74,35 @@ const TermsAndConditions = () => {
     }
   }, []);
 
+  // Handle scroll event to show/hide scroll-to-top button
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      
+      // Show button when scrolled more than 200px from the top
+      setShowScrollToTop(scrollTop > 200);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section]
     }));
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
 
   const breadcrumbItems = [
@@ -591,6 +618,17 @@ const TermsAndConditions = () => {
             </p>
           </div>
         </div>
+
+        {/* Scroll to Top Button */}
+        {showScrollToTop && (
+          <button
+            onClick={scrollToTop}
+            className="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-50 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full p-2 md:p-3 shadow-lg transition-all duration-300 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            aria-label="Scroll to top"
+          >
+            <ChevronUp className="h-4 w-4 md:h-5 md:w-5" />
+          </button>
+        )}
       </div>
     </div>
   );
