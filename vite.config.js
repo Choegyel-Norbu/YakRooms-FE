@@ -11,16 +11,11 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      workbox: {
-        // Simple static asset caching - exclude sitemap.xml and robots.txt
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        globIgnores: ['**/sitemap.xml', '**/robots.txt'],
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB limit
-      },
-      // Use external manifest file
       manifest: false,
-      // Include essential assets
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png']
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB limit
+      }
     })
   ],
   resolve: {
