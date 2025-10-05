@@ -109,6 +109,14 @@ const HotelAdminDashboard = () => {
       setActiveTab("dashboard");
     }
     
+    // Redirect FRONTDESK users away from restricted tabs
+    if (roles && roles.includes("FRONTDESK") && !["dashboard", "booking"].includes(activeTab)) {
+      setActiveTab("dashboard");
+      toast.error("This feature is not available for Front Desk users.", {
+        duration: 4000
+      });
+    }
+    
     // Redirect to dashboard if trying to access locked tabs with expired subscription
     if (isSubscriptionExpired() && lockedTabs.includes(activeTab)) {
       setActiveTab("dashboard");
@@ -328,16 +336,19 @@ const HotelAdminDashboard = () => {
 
   const navigationItems = [
     { id: "dashboard", label: "Dashboard", icon: Home, locked: false },
-    { id: "booking", label: "Booking", icon: Calendar, locked: false },
-    { id: "inventory", label: "Bookings Inventory", icon: Package, locked: true },
-    { id: "rooms", label: "Room Management", icon: Bed, locked: true },
-    ...(roles && !roles.includes("STAFF")
-      ? [{ id: "staff", label: "Staff Management", icon: Users, locked: true }]
-      : []),
-    
-    { id: "analytics", label: "Analytics", icon: PieChart, locked: true },
-    
-    { id: "hotel", label: "Hotel Settings", icon: Settings, locked: true }
+    ...(roles && !roles.includes("STAFF") ? [
+      { id: "booking", label: "Booking", icon: Calendar, locked: false },
+      // Only show additional tabs for non-FRONTDESK users
+      ...(roles && !roles.includes("FRONTDESK") ? [
+        { id: "inventory", label: "Bookings Inventory", icon: Package, locked: true },
+        { id: "rooms", label: "Room Management", icon: Bed, locked: true },
+        ...(roles && !roles.includes("STAFF")
+          ? [{ id: "staff", label: "Staff Management", icon: Users, locked: true }]
+          : []),
+        { id: "analytics", label: "Analytics", icon: PieChart, locked: true },
+        { id: "hotel", label: "Hotel Settings", icon: Settings, locked: true }
+      ] : [])
+    ] : [])
   ];
 
   const getPageTitle = () => {
@@ -428,7 +439,14 @@ const HotelAdminDashboard = () => {
         </div>
 
         <div className="p-3 lg:p-4">
-        <p className="text-xs text-muted-foreground uppercase font-bold">Admin Panel</p>
+        <p className="text-xs text-muted-foreground uppercase font-bold">
+          {roles?.includes("SUPER_ADMIN") ? "Super Admin Panel" :
+           roles?.includes("HOTEL_ADMIN") ? "Admin Panel" :
+           roles?.includes("MANAGER") ? "Manager Panel" :
+           roles?.includes("FRONTDESK") ? "Front Desk Panel" :
+           roles?.includes("STAFF") ? "Staff Panel" :
+           "Admin Panel"}
+        </p>
         </div>
 
         <nav className="p-3 lg:p-4 flex-1">
@@ -605,7 +623,14 @@ const HotelAdminDashboard = () => {
                   </SheetHeader>
 
                   <div className="pl-3 lg:p-4">
-                    <p className="text-xs text-muted-foreground uppercase font-bold">Admin Panel</p>
+                    <p className="text-xs text-muted-foreground uppercase font-bold">
+                      {roles?.includes("SUPER_ADMIN") ? "Super Admin Panel" :
+                       roles?.includes("HOTEL_ADMIN") ? "Admin Panel" :
+                       roles?.includes("MANAGER") ? "Manager Panel" :
+                       roles?.includes("FRONTDESK") ? "Front Desk Panel" :
+                       roles?.includes("STAFF") ? "Staff Panel" :
+                       "Admin Panel"}
+                    </p>
                   </div>
 
                   <div className="flex-1 flex flex-col p-4">
@@ -651,7 +676,7 @@ const HotelAdminDashboard = () => {
                         </Button>
                       </Link>
 
-                      {!roles?.includes("STAFF") && (
+                      {!roles?.includes("STAFF") && !roles?.includes("FRONTDESK") && (
                         <Link to="/subscription" className="block">
                           <Button
                             variant="outline"
@@ -664,7 +689,7 @@ const HotelAdminDashboard = () => {
                         </Link>
                       )}
 
-                      {!roles?.includes("STAFF") && (
+                      {!roles?.includes("STAFF") && !roles?.includes("MANAGER") && !roles?.includes("FRONTDESK") && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -717,7 +742,7 @@ const HotelAdminDashboard = () => {
                       <span>Return to Website</span>
                     </Link>
                   </DropdownMenuItem>
-                  {!roles?.includes("STAFF") && (
+                  {!roles?.includes("STAFF") && !roles?.includes("FRONTDESK") && (
                     <DropdownMenuItem asChild>
                       <Link to="/subscription" className="w-full">
                         <CreditCard className="mr-2 h-4 w-4" />
@@ -725,7 +750,7 @@ const HotelAdminDashboard = () => {
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  {!roles?.includes("STAFF") && (
+                  {!roles?.includes("STAFF") && !roles?.includes("MANAGER") && !roles?.includes("FRONTDESK") && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
@@ -829,7 +854,12 @@ const HotelAdminDashboard = () => {
                       variant="secondary"
                       className="bg-primary/10 text-primary border-primary/20 text-xs font-medium px-3 py-1"
                     >
-                      Admin
+                      {roles?.includes("SUPER_ADMIN") ? "Super Admin" :
+                       roles?.includes("HOTEL_ADMIN") ? "Admin" :
+                       roles?.includes("MANAGER") ? "Manager" :
+                       roles?.includes("FRONTDESK") ? "Front Desk" :
+                       roles?.includes("STAFF") ? "Staff" :
+                       "Admin"}
                     </Badge>
 
                     <div className="text-left">

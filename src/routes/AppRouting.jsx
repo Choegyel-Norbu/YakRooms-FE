@@ -15,9 +15,20 @@ import { SubscriptionPage } from "../features/subscription";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { isAuthenticated, hasRole } = useAuth();
+  const { isAuthenticated, hasRole, roles, userId, email } = useAuth();
+
+  // Debug logging
+  console.log("🔒 ProtectedRoute Debug:", {
+    isAuthenticated,
+    userId,
+    email,
+    roles,
+    allowedRoles,
+    hasAllowedRole: allowedRoles.some((role) => hasRole(role))
+  });
 
   if (!isAuthenticated) {
+    console.log("🚫 User not authenticated, redirecting to home");
     return <Navigate to="/" replace />;
   }
 
@@ -25,9 +36,11 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const hasAllowedRole = allowedRoles.some((role) => hasRole(role));
 
   if (!hasAllowedRole) {
+    console.log("🚫 User doesn't have required role, redirecting to unauthorized");
     return <Navigate to="/unauthorized" replace />;
   }
 
+  console.log("✅ User authorized, rendering protected content");
   return children;
 };
 
@@ -39,7 +52,7 @@ const DashboardRoute = () => {
   // Redirect based on active role
   if (activeRole === "SUPER_ADMIN") {
     return <Navigate to="/adminDashboard" replace />;
-  } else if (activeRole === "HOTEL_ADMIN" || activeRole === "STAFF") {
+  } else if (activeRole === "HOTEL_ADMIN" || activeRole === "STAFF" || activeRole === "MANAGER" || activeRole === "FRONTDESK") {
     return <Navigate to="/hotelAdmin" replace />;
   } else if (activeRole === "GUEST") {
     return <Navigate to="/guestDashboard" replace />;
@@ -88,20 +101,27 @@ const AppRouting = () => {
         path="/dashboard"
         element={
           <ProtectedRoute
-            allowedRoles={["HOTEL_ADMIN", "SUPER_ADMIN", "STAFF", "GUEST"]}
+            allowedRoles={["HOTEL_ADMIN", "SUPER_ADMIN", "STAFF", "MANAGER", "GUEST", "FRONTDESK"]}
           >
             <DashboardRoute />
           </ProtectedRoute>
         }
       />
-      <Route path="/addListing" element={<AddListingPage />} />
+      <Route
+        path="/addListing"
+        element={
+          <ProtectedRoute allowedRoles={["GUEST", "STAFF", "MANAGER", "FRONTDESK"]}>
+            <AddListingPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Protected Routes */}
 
       <Route
         path="/hotelAdmin"
         element={
-          <ProtectedRoute allowedRoles={["HOTEL_ADMIN", "STAFF"]}>
+          <ProtectedRoute allowedRoles={["HOTEL_ADMIN", "STAFF", "MANAGER", "FRONTDESK"]}>
             <HotelAdminDashboard />
           </ProtectedRoute>
         }

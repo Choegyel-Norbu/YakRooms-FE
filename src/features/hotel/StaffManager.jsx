@@ -85,7 +85,7 @@ const StaffManager = () => {
   const [formErrors, setFormErrors] = useState({});
 
   const staffPositions = [
-    "Front Desk",
+    "frontdesk",
     "Housekeeping",
     "Manager",
     "Concierge",
@@ -177,11 +177,17 @@ const StaffManager = () => {
     try {
       setSubmitting(true);
 
+      // Handle frontdesk position with specific value
+      let positionValue = formData.position;
+      if (formData.position === "Front Desk" || formData.position.toLowerCase() === "frontdesk") {
+        positionValue = "frontdesk"; // Send this specific value for frontdesk
+      }
+
       const payload = {
           email: formData.email.trim(),
           phoneNumber: formData.phoneNumber.trim(),
         hotelId,
-        position: formData.position,
+        position: positionValue,
         dateJoined: formData.dateJoined,
         roles: ["STAFF"]
       };
