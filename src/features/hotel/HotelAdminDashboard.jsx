@@ -17,6 +17,7 @@ import {
   CheckCircle,
   Settings,
   Lock,
+  Clock,
 } from "lucide-react";
 import {
   Card,
@@ -63,6 +64,7 @@ import CancellationRequestsTable from "./CancellationRequestsTable";
 import AdminBookingForm from "./AdminBookingForm";
 import CIDVerification from "./CIDVerification";
 import BookingsInventoryTable from "./BookingsInventoryTable";
+import LeaveManagement from "./LeaveManagement";
 import { useAuth } from "../authentication";
 import { getStorageItem, clearStorage } from "@/shared/utils/safariLocalStorage";
 import api from "../../shared/services/Api";
@@ -101,7 +103,7 @@ const HotelAdminDashboard = () => {
   };
 
   // Define which tabs should be locked when subscription is expired
-  const lockedTabs = ["rooms", "hotel", "analytics", "staff", "inventory"];
+  const lockedTabs = ["rooms", "hotel", "analytics", "staff", "inventory", "leave"];
 
   // Redirect to dashboard if user doesn't have access to current tab
   useEffect(() => {
@@ -348,6 +350,10 @@ const HotelAdminDashboard = () => {
         { id: "analytics", label: "Analytics", icon: PieChart, locked: true },
         { id: "hotel", label: "Hotel Settings", icon: Settings, locked: true }
       ] : [])
+    ] : []),
+    // Leave Management is available to all users except FRONTDESK
+    ...(roles && !roles.includes("FRONTDESK") ? [
+      { id: "leave", label: "Leave Management", icon: Clock, locked: true }
     ] : [])
   ];
 
@@ -360,6 +366,7 @@ const HotelAdminDashboard = () => {
       inventory: "Bookings Inventory",
       analytics: "Analytics & Reports",
       booking: "Booking Management",
+      leave: "Leave Management",
     };
     return titles[activeTab] || "Dashboard";
   };
@@ -373,6 +380,9 @@ const HotelAdminDashboard = () => {
       staff: "Manage your hotel staff and their roles",
       analytics: "Insights and reports about your business performance",
       booking: "Manage and view your hotel bookings",
+      leave: roles?.includes("STAFF")
+        ? "Request leave and view your leave history"
+        : "Manage staff leave requests and approvals",
     };
     return descriptions[activeTab] || "Manage your hotel operations";
   };
@@ -1062,6 +1072,42 @@ const HotelAdminDashboard = () => {
                     <StaffManager /> {/* Changed component */}
                   </CardContent>
                 </Card>
+              )}
+            </div>
+          )}
+
+          {activeTab === "leave" && (
+            <div className="space-y-4">
+              {isSubscriptionExpired() ? (
+                <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
+                  <CardContent className="p-8 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                        <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">
+                          Leave Management Locked
+                        </h3>
+                        <p className="text-sm text-amber-700 dark:text-amber-300 mb-4">
+                          This feature is not available with an expired subscription. 
+                          Please renew your subscription to manage leave requests.
+                        </p>
+                        <Link to="/subscription">
+                          <Button 
+                            variant="default" 
+                            className="bg-amber-600 hover:bg-amber-700 text-white"
+                          >
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            Renew Subscription
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <LeaveManagement />
               )}
             </div>
           )}
