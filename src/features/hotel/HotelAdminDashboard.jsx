@@ -92,14 +92,23 @@ const HotelAdminDashboard = () => {
     fetchSubscriptionData,
   } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [hotel, setHotel] = useState(null);
+  const [bookings, setBookings] = useState([]);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const notificationRef = useRef(null);
+  const [showStaffGrid, setShowStaffGrid] = useState(false);
+  const [verificationTab, setVerificationTab] = useState("cid-verification"); // "cid-verification" or "passcode"
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
 
   // Check if subscription is expired
   const isSubscriptionExpired = () => {
-    // Subscription is expired if:
-    // 1. subscriptionIsActive is false, OR
-    // 2. No subscription plan exists, OR
-    // 3. subscriptionIsActive is null/undefined (no subscription data)
-    return subscriptionIsActive === false || !subscriptionPlan || subscriptionIsActive === null;
+    // Only consider subscription expired if we have definitive data showing it's expired
+    // Don't show expired state while subscription data is still loading
+    return subscriptionIsActive === false;
   };
 
   // Define which tabs should be locked when subscription is expired
@@ -120,23 +129,13 @@ const HotelAdminDashboard = () => {
     }
     
     // Redirect to dashboard if trying to access locked tabs with expired subscription
-    if (isSubscriptionExpired() && lockedTabs.includes(activeTab)) {
+    if (!isLoadingSubscription && isSubscriptionExpired() && lockedTabs.includes(activeTab)) {
       setActiveTab("dashboard");
       toast.error("This feature is not available with an expired subscription.", {
         duration: 4000
       });
     }
-  }, [activeTab, roles, subscriptionIsActive, subscriptionPlan]);
-  const [hotel, setHotel] = useState(null);
-  const [bookings, setBookings] = useState([]);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [loadingNotifications, setLoadingNotifications] = useState(false);
-  const notificationRef = useRef(null);
-  const [showStaffGrid, setShowStaffGrid] = useState(false);
-  const [verificationTab, setVerificationTab] = useState("cid-verification"); // "cid-verification" or "passcode"
+  }, [activeTab, roles, subscriptionIsActive, subscriptionPlan, isLoadingSubscription]);
   // Simple media query hook for small screens (max-width: 640px)
   const isMobile =
     typeof window !== "undefined"
@@ -190,9 +189,22 @@ const HotelAdminDashboard = () => {
 
   // Fetch subscription data when hotelId is available
   useEffect(() => {
-    if (hotelId && fetchSubscriptionData) {
-      fetchSubscriptionData(hotelId);
-    }
+    const loadSubscriptionData = async () => {
+      if (hotelId && fetchSubscriptionData) {
+        try {
+          await fetchSubscriptionData(hotelId);
+        } catch (error) {
+          console.error("Failed to fetch subscription data:", error);
+        } finally {
+          setIsLoadingSubscription(false);
+        }
+      } else {
+        // If no hotelId, we can't fetch subscription data, so stop loading
+        setIsLoadingSubscription(false);
+      }
+    };
+
+    loadSubscriptionData();
   }, [hotelId, fetchSubscriptionData]);
 
   // Fetch all notifications from backend when component mounts
@@ -389,7 +401,7 @@ const HotelAdminDashboard = () => {
 
   const NavigationButton = ({ item, onClick, isActive }) => {
     const Icon = item.icon;
-    const isLocked = item.locked && isSubscriptionExpired();
+    const isLocked = item.locked && !isLoadingSubscription && isSubscriptionExpired();
     
     return (
       <Button
@@ -791,7 +803,7 @@ const HotelAdminDashboard = () => {
               )}
 
               {/* Subscription Expired Warning for Dashboard */}
-              {isSubscriptionExpired() && (
+              {!isLoadingSubscription && isSubscriptionExpired() && (
                 <div className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20 rounded-lg">
                   <div className="p-4">
                     <div className="flex items-start gap-3">
@@ -962,7 +974,7 @@ const HotelAdminDashboard = () => {
 
           {activeTab === "rooms" && (
             <div className="space-y-4">
-              {isSubscriptionExpired() ? (
+              {!isLoadingSubscription && isSubscriptionExpired() ? (
                 <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
                   <CardContent className="p-8 text-center">
                     <div className="flex flex-col items-center gap-4">
@@ -1002,7 +1014,7 @@ const HotelAdminDashboard = () => {
 
           {activeTab === "inventory" && (
             <div className="space-y-4">
-              {isSubscriptionExpired() ? (
+              {!isLoadingSubscription && isSubscriptionExpired() ? (
                 <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
                   <CardContent className="p-8 text-center">
                     <div className="flex flex-col items-center gap-4">
@@ -1038,7 +1050,7 @@ const HotelAdminDashboard = () => {
 
           {activeTab === "staff" && ( // Changed from "bookings" to "staff"
             <div className="space-y-4">
-              {isSubscriptionExpired() ? (
+              {!isLoadingSubscription && isSubscriptionExpired() ? (
                 <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
                   <CardContent className="p-8 text-center">
                     <div className="flex flex-col items-center gap-4">
@@ -1078,7 +1090,7 @@ const HotelAdminDashboard = () => {
 
           {activeTab === "leave" && (
             <div className="space-y-4">
-              {isSubscriptionExpired() ? (
+              {!isLoadingSubscription && isSubscriptionExpired() ? (
                 <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
                   <CardContent className="p-8 text-center">
                     <div className="flex flex-col items-center gap-4">
@@ -1114,7 +1126,7 @@ const HotelAdminDashboard = () => {
 
           {activeTab === "analytics" && (
             <div className="space-y-4">
-              {isSubscriptionExpired() ? (
+              {!isLoadingSubscription && isSubscriptionExpired() ? (
                 <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
                   <CardContent className="p-8 text-center">
                     <div className="flex flex-col items-center gap-4">
@@ -1155,7 +1167,7 @@ const HotelAdminDashboard = () => {
 
           {activeTab === "hotel" && (
             <div className="space-y-4">
-              {isSubscriptionExpired() ? (
+              {!isLoadingSubscription && isSubscriptionExpired() ? (
                 <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
                   <CardContent className="p-8 text-center">
                     <div className="flex flex-col items-center gap-4">
@@ -1194,7 +1206,7 @@ const HotelAdminDashboard = () => {
           {activeTab === "booking" && (
             <div className="space-y-4">
               {/* Subscription Expired Warning */}
-              {isSubscriptionExpired() && (
+              {!isLoadingSubscription && isSubscriptionExpired() && (
                 <div className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20 rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
@@ -1229,7 +1241,7 @@ const HotelAdminDashboard = () => {
               <AdminBookingForm
                 hotelId={hotelId}
                 onBookingSuccess={handleBookingSuccess}
-                isDisabled={isSubscriptionExpired()}
+                isDisabled={!isLoadingSubscription && isSubscriptionExpired()}
               />
 
               {/* Booking Verification Section with Tabs */}
