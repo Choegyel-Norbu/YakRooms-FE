@@ -44,6 +44,9 @@ const ListYourPropertySection = ({ onLoginClick }) => {
   
   // Check if user is a Guest
   const isGuest = activeRole === "GUEST";
+  
+  // Check if user is associated with hotel (staff, front desk, manager)
+  const isHotelStaff = ["STAFF", "FRONT_DESK", "MANAGER"].includes(activeRole);
 
   const benefits = [
     {
@@ -168,8 +171,38 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                         <span>List Your Property Today</span>
                         <ArrowUpRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />
                       </Button>
+                    ) : isHotelStaff ? (
+                      // User is hotel staff (STAFF, FRONT_DESK, MANAGER)
+                      hasHotelRegistered ? (
+                        // Hotel staff with hotel registered - show hotel dashboard option
+                        <div className="text-center space-y-3">
+                          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center justify-center space-x-2 text-green-700">
+                              <Shield className="h-5 w-5" />
+                              <span className="font-medium">Hotel Associated</span>
+                            </div>
+                            <p className="text-sm text-green-600 mt-1">
+                              You are associated with a hotel on EzeeRoom. Access your dashboard to manage hotel operations and bookings.
+                            </p>
+                          </div>
+                          <Link to="/hotelAdmin" className="block">
+                            <Button size="lg" className="w-full bg-white hover:bg-white cursor-pointer text-yellow-500">
+                              <span>Go to Hotel Dashboard</span>
+                              <ChevronRight className="ml-2 h-5 w-5" />
+                            </Button>
+                          </Link>
+                        </div>
+                      ) : (
+                        // Hotel staff without hotel - show add property option
+                        <Link to="/addListing" className="block">
+                          <Button size="lg" className="w-full bg-yellow-500 hover:bg-yellow-600 text-primary cursor-pointer">
+                            <span>List Your Property Today</span>
+                            <ArrowUpRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />
+                          </Button>
+                        </Link>
+                      )
                     ) : isGuest ? (
-                      // User is authenticated as Guest
+                      // User is authenticated as Guest only
                       hasHotelRegistered ? (
                         // Guest has hotel registered - show guest dashboard option
                         <div className="text-center space-y-3">
@@ -179,8 +212,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                               <span className="font-medium">Property Already Listed</span>
                             </div>
                             <p className="text-sm text-green-600 mt-1">
-                            You already have a property listed with EzeeRoom. 
-                            Access your guest dashboard to manage your bookings.
+                              You already have a property listed with EzeeRoom. Access your guest dashboard to manage your bookings.
                             </p>
                           </div>
                           <Link to="/guestDashboard" className="block">

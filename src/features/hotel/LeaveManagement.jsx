@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Calendar,
   Clock,
@@ -101,16 +101,25 @@ const LeaveManagement = () => {
   const [leaveSummary, setLeaveSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
+  const [showRejectionDialog, setShowRejectionDialog] = useState(false);
+  const [rejectingLeaveId, setRejectingLeaveId] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [allStaff, setAllStaff] = useState([]);
+  const [selectedStaff, setSelectedStaff] = useState(null);
+  const [staffLeaves, setStaffLeaves] = useState([]);
+  const [staffLeavesLoading, setStaffLeavesLoading] = useState(false);
+  const leaveHistoryRef = useRef(null);
 
-  // Check if user is staff (can only see their own requests)
+  // Check if user is staff or frontdesk (can only see their own requests)
   const isStaff = roles?.includes("STAFF");
   const isFrontdesk = roles?.includes("FRONTDESK");
+  const isStaffOrFrontdesk = isStaff || isFrontdesk; // Combined check for identical functionality
   const isHotelAdmin = roles?.includes("HOTEL_ADMIN");
   const canManagePolicies = !roles?.includes("STAFF") && !roles?.includes("FRONTDESK");
-  const canViewPolicies = !roles?.includes("FRONTDESK"); // Staff can view policies but not manage them
+  const canViewPolicies = true; // All users can view policies
   const canRequestLeave = !roles?.includes("MANAGER") && !roles?.includes("HOTEL_OWNER") && !roles?.includes("HOTEL_ADMIN"); // Managers, hotel owners, and hotel admins cannot request leave
   const canViewBasicLeaves = !isHotelAdmin; // Hotel admins only see enhanced view
-  const canEditStatus = !isStaff && !isFrontdesk; // Only admins and managers can edit status
+  const canEditStatus = !isStaffOrFrontdesk; // Only admins and managers can edit status
 
   const [leaveForm, setLeaveForm] = useState({
     staffId: "",
@@ -157,9 +166,14 @@ const LeaveManagement = () => {
   };
 
   useEffect(() => {
+    console.log("LeaveManagement useEffect - hotelId:", hotelId);
+    console.log("isStaffOrFrontdesk:", isStaffOrFrontdesk);
     fetchLeaves();
     fetchStaff();
     fetchLeavePolicies();
+    if (!isStaffOrFrontdesk) {
+      fetchAllStaff();
+    }
   }, [hotelId]);
 
   // Set default tab for hotel admins
@@ -172,8 +186,8 @@ const LeaveManagement = () => {
   const fetchLeaves = async () => {
     try {
       setLoading(true);
-      if (isStaff) {
-        // Staff users can only see their own leave requests
+      if (isStaffOrFrontdesk) {
+        // Staff and Frontdesk users can only see their own leave requests
         const response = await api.get(`/leaves/user/${userId}`);
         setLeaves(response.data);
       } else {
@@ -216,6 +230,154 @@ const LeaveManagement = () => {
     } catch (error) {
       console.error("Error fetching leave policies:", error);
       toast.error("Failed to fetch leave policies");
+    }
+  };
+
+  const fetchAllStaff = async () => {
+    try {
+      console.log("Fetching staff for hotelId:", hotelId);
+      console.log("API URL:", `/staff/hotel/${hotelId}`);
+      
+      // Try the API call
+      const response = await api.get(`/staff/hotel/${hotelId}`);
+      console.log("Staff response:", response.data);
+      setAllStaff(response.data);
+    } catch (error) {
+      console.error("Error fetching all staff:", error);
+      console.error("Error details:", error.response?.data);
+      console.error("Error status:", error.response?.status);
+      console.error("Full error object:", error);
+      
+      // Try alternative endpoint if the first one fails
+      if (error.response?.status === 404) {
+        console.log("Trying alternative endpoint...");
+        try {
+          const altResponse = await api.get(`/hotels/${hotelId}/staff`);
+          console.log("Alternative staff response:", altResponse.data);
+          setAllStaff(altResponse.data);
+          return;
+        } catch (altError) {
+          console.error("Alternative endpoint also failed:", altError);
+        }
+      }
+      
+      toast.error(`Failed to fetch staff list: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
+  const fetchStaffLeaves = async (userId) => {
+    try {
+      setStaffLeavesLoading(true);
+      console.log("Fetching leaves for userId:", userId);
+      console.log("API URL:", `/leaves/user/${userId}`);
+      const response = await api.get(`/leaves/user/${userId}`);
+      console.log("Staff leaves response:", response.data);
+      setStaffLeaves(response.data);
+      
+      // Scroll to leave history table after data is loaded
+      setTimeout(() => {
+        if (leaveHistoryRef.current) {
+          leaveHistoryRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }
+      }, 200);
+    } catch (error) {
+      console.error("Error fetching staff leaves:", error);
+      console.error("Error details:", error.response?.data);
+      console.error("Error status:", error.response?.status);
+      toast.error(`Failed to fetch staff leave history: ${error.response?.data?.message || error.message}`);
+      setStaffLeaves([]);
+    } finally {
+      setStaffLeavesLoading(false);
+    }
+  };
+
+  const handleStaffSelect = (staff) => {
+    setSelectedStaff(staff);
+    fetchStaffLeaves(staff.userId || staff.staffId || staff.id);
+  };
+
+  const handleExportLeaves = async () => {
+    try {
+      // Fetch all leaves for the hotel
+      const response = await api.get(`/leaves/hotel/${hotelId}`);
+      const leavesData = response.data || [];
+      
+      // Create Excel-compatible content with proper formatting
+      const headers = [
+        'Employee Name',
+        'Employee Email', 
+        'Position',
+        'Leave Type',
+        'Start Date',
+        'End Date',
+        'Total Days',
+        'Status',
+        'Reason',
+        'Rejection Reason',
+        'Approved By',
+        'Created At'
+      ];
+      
+      // Create HTML table content that Excel can open
+      const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Hotel Leaves Export</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h2>Hotel Leaves Export - ${new Date().toLocaleDateString()}</h2>
+    <table>
+        <thead>
+            <tr>
+${headers.map(header => `                <th>${header}</th>`).join('\n')}
+            </tr>
+        </thead>
+        <tbody>
+${leavesData.map(leave => `            <tr>
+                <td>${leave.employeeName || 'N/A'}</td>
+                <td>${leave.employeeEmail || 'N/A'}</td>
+                <td>${leave.employeePosition || 'N/A'}</td>
+                <td>${leave.leaveType?.name || formatLeaveTypeEnum(leave.leaveType?.leaveTypeEnum) || 'N/A'}</td>
+                <td>${new Date(leave.startDate).toLocaleDateString()}</td>
+                <td>${new Date(leave.endDate).toLocaleDateString()}</td>
+                <td>${leave.totalDays || calculateDays(leave.startDate, leave.endDate)}</td>
+                <td>${leave.status}</td>
+                <td>${(leave.reason || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+                <td>${(leave.rejectionReason || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
+                <td>${leave.approvedBy || 'N/A'}</td>
+                <td>${new Date(leave.createdAt).toLocaleDateString()}</td>
+            </tr>`).join('\n')}
+        </tbody>
+    </table>
+</body>
+</html>`;
+      
+      // Create and download the HTML file (Excel can open HTML files)
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `hotel-leaves-${hotelId}-${new Date().toISOString().split('T')[0]}.xls`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success('Leave data exported to Excel successfully');
+    } catch (error) {
+      console.error('Error exporting leaves:', error);
+      toast.error('Failed to export leave data');
     }
   };
 
@@ -303,15 +465,37 @@ const LeaveManagement = () => {
     }
   };
 
-  const handleUpdateStatus = async (leaveId, status) => {
+  const handleUpdateStatus = async (leaveId, status, rejectionReason = null) => {
     try {
-      await api.patch(`/leaves/${leaveId}/status/${status}`);
+      const requestBody = { status };
+      if (rejectionReason) {
+        requestBody.rejectionReason = rejectionReason;
+      }
+      await api.patch(`/leaves/${leaveId}/status`, requestBody);
       toast.success(`Leave request ${status.toLowerCase()}`);
       fetchLeaves();
     } catch (error) {
       console.error("Error updating leave status:", error);
       toast.error("Failed to update leave status");
     }
+  };
+
+  const handleRejectLeave = (leaveId) => {
+    setRejectingLeaveId(leaveId);
+    setRejectionReason("");
+    setShowRejectionDialog(true);
+  };
+
+  const handleConfirmRejection = async () => {
+    if (!rejectionReason.trim()) {
+      toast.error("Please provide a reason for rejection");
+      return;
+    }
+
+    await handleUpdateStatus(rejectingLeaveId, "REJECTED", rejectionReason.trim());
+    setShowRejectionDialog(false);
+    setRejectingLeaveId(null);
+    setRejectionReason("");
   };
 
   const handleDeleteLeave = async (leaveId) => {
@@ -494,16 +678,16 @@ const LeaveManagement = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+        {/* <div>
           <p className="text-muted-foreground text-sm">
-            {isStaff 
+            {isStaffOrFrontdesk 
               ? "Request leave and view your leave history"
               : canRequestLeave
                 ? "Manage staff leave requests and configure leave policies"
                 : "Manage staff leave requests and configure leave policies (Leave requests disabled for admin roles)"
             }
           </p>
-        </div>
+        </div> */}
         <div className="flex gap-2">
           {canRequestLeave && (
             <Button
@@ -512,7 +696,7 @@ const LeaveManagement = () => {
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
-              {isStaff ? "Request Leave" : "Request Leave"}
+              Request Leave
             </Button>
           )}
           {canManagePolicies && (
@@ -541,35 +725,67 @@ const LeaveManagement = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className={`grid w-full ${canViewPolicies ? 'grid-cols-3' : 'grid-cols-2'}`}>
-          {canViewBasicLeaves && (
-            <TabsTrigger value="requests" className="flex items-center gap-2">
-              {isStaff ? "My Leave Requests" : "Leave Requests"}
-            </TabsTrigger>
-          )}
-          {!isStaff && enhancedLeaves.length > 0 && (
-            <TabsTrigger value="enhanced" className="flex items-center gap-2">
-              Leave Requests
-            </TabsTrigger>
-          )}
-          {canViewPolicies && (
-            <TabsTrigger value="policies" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Leave Policies
-            </TabsTrigger>
-          )}
-        </TabsList>
+        {/* Modern Card-Style Tab Navigation */}
+        <div className="bg-muted/30 p-1 rounded-lg mb-6">
+          <div className={`grid gap-1 ${canViewPolicies ? 'grid-cols-4' : 'grid-cols-3'}`}>
+            {canViewBasicLeaves && (
+              <button
+                onClick={() => setActiveTab("requests")}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
+                  activeTab === "requests"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                }`}
+              >
+                {isStaffOrFrontdesk ? "My Leave Requests" : "Leave Requests"}
+              </button>
+            )}
+            {!isStaffOrFrontdesk && enhancedLeaves.length > 0 && (
+              <button
+                onClick={() => setActiveTab("enhanced")}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
+                  activeTab === "enhanced"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                }`}
+              >
+                Leave Requests
+              </button>
+            )}
+            {!isStaffOrFrontdesk && (
+              <button
+                onClick={() => setActiveTab("staff")}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
+                  activeTab === "staff"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                }`}
+              >
+                Staff Leave Overview
+              </button>
+            )}
+            {canViewPolicies && (
+              <button
+                onClick={() => setActiveTab("policies")}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
+                  activeTab === "policies"
+                    ? "bg-background text-foreground shadow-sm border border-border"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                }`}
+              >
+                Leave Policies
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Leave Requests Tab */}
-        {canViewBasicLeaves && (
-          <TabsContent value="requests" className="space-y-4">
+        {canViewBasicLeaves && activeTab === "requests" && (
+          <div className="space-y-4">
           
-          {/* Leave Requests Table */}
-          <Card>
+          {/* Leave Requests - Desktop Table View */}
+          <Card className="hidden md:block">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                Leave Requests ({filteredLeaves.length})
-              </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
@@ -627,7 +843,7 @@ const LeaveManagement = () => {
                             <TableCell>
                               <div className="flex items-center gap-1">
                                 {/* For hotel data: Approve/Reject buttons */}
-                                {!isStaff && leave.status === "PENDING" && (
+                                {!isStaffOrFrontdesk && leave.status === "PENDING" && (
                                   <>
                                     <Button
                                       size="sm"
@@ -649,7 +865,7 @@ const LeaveManagement = () => {
                                 )}
                                 
                                 {/* For staff data: Three-dots menu for edit/delete actions */}
-                                {isStaff && (
+                                {isStaffOrFrontdesk && (
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                       <Button
@@ -662,18 +878,32 @@ const LeaveManagement = () => {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                       <DropdownMenuSeparator />
-                                      <DropdownMenuItem onClick={() => handleEditLeave(leave)}>
+                                      <DropdownMenuItem 
+                                        onClick={() => handleEditLeave(leave)}
+                                        disabled={leave.status !== "PENDING"}
+                                        className={leave.status !== "PENDING" ? "opacity-50 cursor-not-allowed" : ""}
+                                      >
                                         <Edit className="h-4 w-4 mr-2" />
                                         Edit Request
+                                        {leave.status !== "PENDING" && (
+                                          <span className="ml-auto text-xs text-muted-foreground">
+                                            (Only pending requests can be edited)
+                                          </span>
+                                        )}
                                       </DropdownMenuItem>
                                       <DropdownMenuItem 
                                         onClick={() => setDeleteConfirmId(leave.id)}
-                                        className="text-red-600 focus:text-red-600"
+                                        disabled={leave.status !== "PENDING"}
+                                        className={`text-red-600 focus:text-red-600 ${leave.status !== "PENDING" ? "opacity-50 cursor-not-allowed" : ""}`}
                                       >
                                         <Trash2 className="h-4 w-4 mr-2" />
                                         Delete Request
+                                        {leave.status !== "PENDING" && (
+                                          <span className="ml-auto text-xs text-muted-foreground">
+                                            (Only pending requests can be deleted)
+                                          </span>
+                                        )}
                                       </DropdownMenuItem>
                                     </DropdownMenuContent>
                                   </DropdownMenu>
@@ -689,11 +919,147 @@ const LeaveManagement = () => {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+
+          {/* Leave Requests - Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            
+            {filteredLeaves.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-muted-foreground">No leave requests found</p>
+                </CardContent>
+              </Card>
+            ) : (
+              filteredLeaves.map((leave) => {
+                const StatusIcon = statusIcons[leave.status];
+                return (
+                  <Card key={leave.id} className="p-4">
+                    <div className="space-y-3">
+                      {/* Header with Leave Type and Status */}
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-sm text-muted-foreground">Leave Type</h4>
+                          <p className="font-semibold">
+                            {getLeaveTypeName(leave.leaveTypeId || leave.leaveType)}
+                          </p>
+                        </div>
+                        <Badge className={statusColors[leave.status]}>
+                          <StatusIcon className="h-3 w-3 mr-1" />
+                          {leave.status}
+                        </Badge>
+                      </div>
+
+                      {/* Dates and Duration */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="font-medium text-sm text-muted-foreground">Start Date</h4>
+                          <p className="text-sm">{new Date(leave.startDate).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm text-muted-foreground">End Date</h4>
+                          <p className="text-sm">{new Date(leave.endDate).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+
+                      {/* Duration */}
+                      <div>
+                        <h4 className="font-medium text-sm text-muted-foreground">Duration</h4>
+                        <Badge variant="outline" className="mt-1">
+                          {calculateDays(leave.startDate, leave.endDate)} days
+                        </Badge>
+                      </div>
+
+                      {/* Reason */}
+                      <div>
+                        <h4 className="font-medium text-sm text-muted-foreground">Reason</h4>
+                        <p className="text-sm mt-1">{leave.reason}</p>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 pt-2 border-t">
+                        {/* For hotel data: Approve/Reject buttons */}
+                        {!isStaffOrFrontdesk && leave.status === "PENDING" && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleUpdateStatus(leave.id, "APPROVED")}
+                              className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            >
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleUpdateStatus(leave.id, "REJECTED")}
+                              className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <XCircle className="h-4 w-4 mr-1" />
+                              Reject
+                            </Button>
+                          </>
+                        )}
+                        
+                        {/* For staff data: Edit/Delete actions */}
+                        {isStaffOrFrontdesk && (
+                          <div className="flex gap-2 w-full">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditLeave(leave)}
+                              disabled={leave.status !== "PENDING"}
+                              className={`flex-1 ${leave.status !== "PENDING" ? "opacity-50 cursor-not-allowed" : ""}`}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setDeleteConfirmId(leave.id)}
+                              disabled={leave.status !== "PENDING"}
+                              className={`flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 ${leave.status !== "PENDING" ? "opacity-50 cursor-not-allowed" : ""}`}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
+                        )}
+
+                        {/* Disabled state message for non-pending requests */}
+                        {isStaffOrFrontdesk && leave.status !== "PENDING" && (
+                          <div className="w-full text-center">
+                            <p className="text-xs text-muted-foreground">
+                              {leave.status === "APPROVED" ? "Request approved - cannot be modified" : "Request rejected - cannot be modified"}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })
+            )}
+          </div>
+        </div>
         )}
 
         {/* Enhanced Leave Requests Tab */}
-        <TabsContent value="enhanced" className="space-y-4">
+        {!isStaffOrFrontdesk && enhancedLeaves.length > 0 && activeTab === "enhanced" && (
+          <div className="space-y-4">
+          {/* Export Button */}
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              onClick={handleExportLeaves}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Export to excel
+            </Button>
+          </div>
+          
           {/* Enhanced Filters */}
           <Card>
             <CardContent className="p-4">
@@ -716,12 +1082,9 @@ const LeaveManagement = () => {
             </CardContent>
           </Card>
 
-          {/* Enhanced Leave Requests Table */}
-          <Card>
+          {/* Enhanced Leave Requests - Desktop Table View */}
+          <Card className="hidden md:block">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                Leave Requests ({filteredEnhancedLeaves.length})
-              </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
@@ -848,7 +1211,7 @@ const LeaveManagement = () => {
                                           Approve
                                         </DropdownMenuItem>
                                         <DropdownMenuItem 
-                                          onClick={() => handleUpdateStatus(leave.id, "REJECTED")}
+                                          onClick={() => handleRejectLeave(leave.id)}
                                           className="text-red-600 focus:text-red-600"
                                         >
                                           <XCircle className="h-4 w-4 mr-2" />
@@ -876,16 +1239,356 @@ const LeaveManagement = () => {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+
+          {/* Enhanced Leave Requests - Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Leave Requests</h3>
+            </div>
+            
+            {filteredEnhancedLeaves.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-muted-foreground">No enhanced leave requests found</p>
+                </CardContent>
+              </Card>
+            ) : (
+              filteredEnhancedLeaves.map((leave) => {
+                const StatusIcon = statusIcons[leave.status];
+                return (
+                  <Card key={leave.id} className="p-4">
+                    <div className="space-y-3">
+                      {/* Header with Employee Info and Status */}
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-base">{leave.employeeName}</h4>
+                          <p className="text-sm text-muted-foreground">{leave.employeeEmail}</p>
+                          <Badge variant="outline" className="mt-1">
+                            {leave.employeePosition}
+                          </Badge>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <Badge className={statusColors[leave.status]}>
+                            <StatusIcon className="h-3 w-3 mr-1" />
+                            {leave.status}
+                          </Badge>
+                          {leave.isEmergency && (
+                            <Badge variant="destructive" className="text-xs">
+                              Emergency
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Leave Details */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="font-medium text-sm text-muted-foreground">Leave Type</h4>
+                          <p className="text-sm font-medium">
+                            {leave.leaveType.name || formatLeaveTypeEnum(leave.leaveType.leaveTypeEnum)}
+                          </p>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm text-muted-foreground">Duration</h4>
+                          <Badge variant="outline" className="mt-1">
+                            {leave.totalDays} days
+                          </Badge>
+                        </div>
+                      </div>
+
+                      {/* Dates */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="font-medium text-sm text-muted-foreground">Start Date</h4>
+                          <p className="text-sm">{new Date(leave.startDate).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm text-muted-foreground">End Date</h4>
+                          <p className="text-sm">{new Date(leave.endDate).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+
+                      {/* Reason */}
+                      <div>
+                        <h4 className="font-medium text-sm text-muted-foreground">Reason</h4>
+                        <p className="text-sm mt-1">{leave.reason}</p>
+                      </div>
+
+                      {/* Contact Info */}
+                      <div>
+                        <h4 className="font-medium text-sm text-muted-foreground">Contact</h4>
+                        <div className="text-sm mt-1">
+                          <p className="font-medium">{leave.contactNumber || leave.employeePhoneNumber || "N/A"}</p>
+                          {leave.emergencyContact && (
+                            <p className="text-muted-foreground">Emergency: {leave.emergencyContact}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Status Details */}
+                      {leave.status === "REJECTED" && leave.rejectionReason && (
+                        <div className="p-2 bg-red-50 rounded">
+                          <h4 className="font-medium text-sm text-red-600">Rejection Reason</h4>
+                          <p className="text-sm text-red-600">{leave.rejectionReason}</p>
+                        </div>
+                      )}
+                      {leave.status === "APPROVED" && leave.approvedBy && (
+                        <div className="p-2 bg-green-50 rounded">
+                          <h4 className="font-medium text-sm text-green-600">Approved By</h4>
+                          <p className="text-sm text-green-600">{leave.approvedBy}</p>
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 pt-2 border-t">
+                        {leave.status === "PENDING" ? (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleUpdateStatus(leave.id, "APPROVED")}
+                              className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            >
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleRejectLeave(leave.id)}
+                              className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <XCircle className="h-4 w-4 mr-1" />
+                              Reject
+                            </Button>
+                          </>
+                        ) : (
+                          <div className="w-full text-center">
+                            <p className="text-sm text-muted-foreground">
+                              {leave.status === "APPROVED" ? "Request already approved" : "Request already rejected"}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })
+            )}
+          </div>
+        </div>
+        )}
+
+        {/* Staff Leave Overview Tab */}
+        {!isStaffOrFrontdesk && activeTab === "staff" && (
+          <div className="space-y-6">
+            {/* Staff List */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Hotel Staff
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {allStaff.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No staff members found</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {allStaff.map((staffMember) => (
+                      <Card 
+                        key={staffMember.staffId || staffMember.id} 
+                        className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                          selectedStaff?.staffId === staffMember.staffId || selectedStaff?.id === staffMember.id
+                            ? 'ring-2 ring-primary bg-primary/5' 
+                            : 'hover:bg-muted/50'
+                        }`}
+                        onClick={() => handleStaffSelect(staffMember)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="space-y-3">
+                            {/* Header with Profile Picture and Basic Info */}
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
+                                {staffMember.profilePictureUrl ? (
+                                  <img 
+                                    src={staffMember.profilePictureUrl} 
+                                    alt={staffMember.fullName}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <User className="h-6 w-6 text-primary" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-sm truncate">
+                                  {staffMember.fullName || `${staffMember.firstName || ''} ${staffMember.lastName || ''}`.trim()}
+                                </h4>
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {staffMember.position || 'Staff Member'}
+                                </p>
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {staffMember.staffEmail || staffMember.email}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Additional Details */}
+                            <div className="space-y-2">
+                              {/* Contact Number */}
+                              {staffMember.number && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-muted-foreground">Phone:</span>
+                                  <span className="text-xs font-medium">{staffMember.number}</span>
+                                </div>
+                              )}
+
+                              {/* Role */}
+                              {staffMember.role && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-muted-foreground">Role:</span>
+                                  <div className="flex gap-1">
+                                    {staffMember.role.split(',').map((role, index) => {
+                                      const trimmedRole = role.trim();
+                                      // Filter out GUEST role
+                                      if (trimmedRole === 'GUEST') return null;
+                                      return (
+                                        <Badge key={index} variant="outline" className="text-xs">
+                                          {trimmedRole}
+                                        </Badge>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Date Joined */}
+                              {staffMember.dateJoined && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-muted-foreground">Joined:</span>
+                                  <span className="text-xs font-medium">
+                                    {new Date(staffMember.dateJoined).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Selected Staff Leave History */}
+            {selectedStaff && (
+              <Card ref={leaveHistoryRef}>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      Leave History - {selectedStaff.fullName || `${selectedStaff.firstName || ''} ${selectedStaff.lastName || ''}`.trim()}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedStaff(null);
+                        setStaffLeaves([]);
+                      }}
+                    >
+                      Close
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {staffLeavesLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <RefreshCw className="h-6 w-6 animate-spin mr-2" />
+                      <span>Loading leave history...</span>
+                    </div>
+                  ) : staffLeaves.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No leave requests found for this staff member</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Leave Balance Summary */}
+                      <div className="border rounded-lg overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead className="bg-muted/50">
+                              <tr>
+                                <th className="text-left p-3 font-medium">Leave Type</th>
+                                <th className="text-right p-3 font-medium">Total Allowed</th>
+                                <th className="text-right p-3 font-medium">Used</th>
+                                <th className="text-right p-3 font-medium">Remaining</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {Object.entries(
+                                staffLeaves.reduce((acc, leave) => {
+                                  const leaveTypeName = leave.leaveTypeName || getLeaveTypeName(leave.leaveTypeId || leave.leaveType);
+                                  if (!acc[leaveTypeName]) {
+                                    acc[leaveTypeName] = {
+                                      totalAllowed: 0,
+                                      used: 0,
+                                      leaveTypeCode: leave.leaveTypeCode
+                                    };
+                                  }
+                                  return acc;
+                                }, {})
+                              ).map(([leaveTypeName, data]) => {
+                                // Find the leave policy for this type
+                                const leavePolicy = leavePolicies.find(p => 
+                                  p.leaveTypeEnum === data.leaveTypeCode || 
+                                  formatLeaveTypeEnum(p.leaveTypeEnum) === leaveTypeName
+                                );
+                                
+                                const totalAllowed = leavePolicy?.maxDaysPerYear || 12;
+                                const used = staffLeaves
+                                  .filter(l => (l.leaveTypeName || getLeaveTypeName(l.leaveTypeId || l.leaveType)) === leaveTypeName && l.status === 'APPROVED')
+                                  .reduce((sum, l) => sum + (l.totalDays || calculateDays(l.startDate, l.endDate)), 0);
+                                const remaining = Math.max(0, totalAllowed - used);
+                                
+                                return (
+                                  <tr key={leaveTypeName} className="border-t">
+                                    <td className="p-3">
+                                      <div className="flex items-center gap-2">
+                                        <FileText className="h-4 w-4 flex-shrink-0" />
+                                        <span className="font-medium">{leaveTypeName}</span>
+                                      </div>
+                                    </td>
+                                    <td className="p-3 text-right font-medium">{totalAllowed}</td>
+                                    <td className="p-3 text-right font-medium">{used}</td>
+                                    <td className="p-3 text-right">
+                                      <span className={`font-medium ${remaining > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {remaining}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
 
         {/* Leave Policies Tab */}
-        <TabsContent value="policies" className="space-y-4">
-          <Card>
+        {canViewPolicies && activeTab === "policies" && (
+          <div className="space-y-4">
+          {/* Leave Policies - Desktop Table View */}
+          <Card className="hidden md:block">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Leave Policies ({leavePolicies.length})
-              </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
@@ -907,7 +1610,6 @@ const LeaveManagement = () => {
                       <TableRow>
                         <TableCell colSpan={8} className="text-center py-8">
                           <div className="flex flex-col items-center gap-2">
-                            <Shield className="h-8 w-8 text-muted-foreground" />
                             <p className="text-muted-foreground">No leave policies configured</p>
                             {canManagePolicies && (
                               <Button
@@ -1011,7 +1713,137 @@ const LeaveManagement = () => {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+
+          {/* Leave Policies - Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            {leavePolicies.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-muted-foreground mb-4">No leave policies configured</p>
+                  {canManagePolicies && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowPolicyForm(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add First Policy
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              leavePolicies.map((policy) => (
+                <Card key={policy.id} className="p-4">
+                  <div className="space-y-3">
+                    {/* Header with Leave Type and Status */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-base flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          {formatLeaveTypeEnum(policy.leaveTypeEnum)}
+                        </h4>
+                      </div>
+                      <Badge className={getPolicyStatusColor(policy.active)}>
+                        {policy.active ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+
+                    {/* Policy Details */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-medium text-sm text-muted-foreground">Max Days/Year</h4>
+                        <Badge variant="outline" className="mt-1">
+                          {policy.maxDaysPerYear} days
+                        </Badge>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-sm text-muted-foreground">Payment</h4>
+                        <Badge variant={policy.isPaid ? "default" : "secondary"} className="mt-1">
+                          {policy.isPaid ? "Paid" : "Unpaid"}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Additional Details */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-medium text-sm text-muted-foreground">Carry Forward</h4>
+                        <Badge variant={policy.carryForward ? "default" : "secondary"} className="mt-1">
+                          {policy.carryForward ? "Yes" : "No"}
+                        </Badge>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-sm text-muted-foreground">Requires Approval</h4>
+                        <Badge variant={policy.requiresApproval ? "default" : "secondary"} className="mt-1">
+                          {policy.requiresApproval ? "Yes" : "No"}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    {policy.description && (
+                      <div>
+                        <h4 className="font-medium text-sm text-muted-foreground">Description</h4>
+                        <p className="text-sm mt-1">{policy.description}</p>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 pt-2 border-t">
+                      {canManagePolicies ? (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditPolicy(policy)}
+                            className="flex-1"
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Leave Policy</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete this leave policy? This action cannot be undone and may affect existing leave requests.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeletePolicy(policy.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
+                      ) : (
+                        <div className="w-full text-center">
+                          <p className="text-sm text-muted-foreground">View Only</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
+        </div>
+        )}
       </Tabs>
 
       {/* Leave Summary Section - Hidden for Hotel Admin */}
@@ -1109,46 +1941,6 @@ const LeaveManagement = () => {
                           <p className="text-xs text-muted-foreground font-medium">Days Remaining</p>
                         </div>
                       </div>
-
-                      {/* Status breakdown */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="text-center p-2 border rounded">
-                          <p className="text-sm font-semibold">
-                            {leaveType.pendingDays}
-                          </p>
-                          <p className="text-xs text-muted-foreground">Pending</p>
-                        </div>
-                        <div className="text-center p-2 border rounded">
-                          <p className="text-sm font-semibold">
-                            {leaveType.approvedDays}
-                          </p>
-                          <p className="text-xs text-muted-foreground">Approved</p>
-                        </div>
-                      </div>
-                      
-                      {/* Additional status (if any) */}
-                      {(leaveType.rejectedDays > 0 || leaveType.cancelledDays > 0) && (
-                        <div className="mt-3 pt-3 border-t">
-                          <div className="grid grid-cols-2 gap-3">
-                            {leaveType.rejectedDays > 0 && (
-                              <div className="text-center p-2 border rounded">
-                                <p className="text-sm font-semibold">
-                                  {leaveType.rejectedDays}
-                                </p>
-                                <p className="text-xs text-muted-foreground">Rejected</p>
-                              </div>
-                            )}
-                            {leaveType.cancelledDays > 0 && (
-                              <div className="text-center p-2 border rounded">
-                                <p className="text-sm font-semibold">
-                                  {leaveType.cancelledDays}
-                                </p>
-                                <p className="text-xs text-muted-foreground">Cancelled</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -1450,6 +2242,52 @@ const LeaveManagement = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Rejection Reason Dialog */}
+      <Dialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reject Leave Request</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for rejecting this leave request. This reason will be visible to the employee.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="rejectionReason">Rejection Reason *</Label>
+              <Textarea
+                id="rejectionReason"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Enter the reason for rejection..."
+                rows={4}
+                required
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setShowRejectionDialog(false);
+                setRejectingLeaveId(null);
+                setRejectionReason("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleConfirmRejection}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Reject Leave
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

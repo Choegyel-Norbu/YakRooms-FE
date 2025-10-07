@@ -121,7 +121,7 @@ const HotelAdminDashboard = () => {
     }
     
     // Redirect FRONTDESK users away from restricted tabs
-    if (roles && roles.includes("FRONTDESK") && !["dashboard", "booking"].includes(activeTab)) {
+    if (roles && roles.includes("FRONTDESK") && !["dashboard", "booking", "leave"].includes(activeTab)) {
       setActiveTab("dashboard");
       toast.error("This feature is not available for Front Desk users.", {
         duration: 4000
@@ -363,10 +363,8 @@ const HotelAdminDashboard = () => {
         { id: "hotel", label: "Hotel Settings", icon: Settings, locked: true }
       ] : [])
     ] : []),
-    // Leave Management is available to all users except FRONTDESK
-    ...(roles && !roles.includes("FRONTDESK") ? [
-      { id: "leave", label: "Leave Management", icon: Clock, locked: true }
-    ] : [])
+    // Leave Management is available to all users
+    { id: "leave", label: "Leave Management", icon: Clock, locked: true }
   ];
 
   const getPageTitle = () => {
