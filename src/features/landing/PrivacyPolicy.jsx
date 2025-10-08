@@ -391,7 +391,7 @@ const PrivacyPolicy = () => {
 
                 <div className="bg-muted/30 rounded-lg p-3 space-y-1.5">
                   <p className="text-sm"><strong>Email:</strong> privacy@ezeeroom.com</p>
-                  <p className="text-sm"><strong>Phone:</strong> +975 17 123 456</p>
+                  <p className="text-sm"><strong>Phone:</strong> +97577965452</p>
                   <p className="text-sm"><strong>Address:</strong> EzeeRoom Pvt. Ltd., Thimphu, Bhutan</p>
                 </div>
 

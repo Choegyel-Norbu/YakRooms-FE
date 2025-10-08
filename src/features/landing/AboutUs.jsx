@@ -265,8 +265,8 @@ const AboutUs = () => {
                 </p>
                 <p className="text-sm">
                   <strong>Phone:</strong>{' '}
-                  <a href="tel:+97517123456" className="text-primary hover:underline">
-                    +975 17 123 456
+                  <a href="tel:+97577965452" className="text-primary hover:underline">
+                    +97577965452
                   </a>
                 </p>
                 <p className="text-sm">

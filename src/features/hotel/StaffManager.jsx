@@ -269,7 +269,8 @@ const StaffManager = () => {
 
       await api.delete(`/staff/${staffMember.staffId}`);
 
-      setStaff((prev) => prev.filter((member) => member.id !== staffMember.id));
+      // Use staffId for filtering since that's what we used for the API call
+      setStaff((prev) => prev.filter((member) => member.staffId !== staffMember.staffId));
       toast.success("Staff member removed successfully!", { duration: 6000 });
     } catch (error) {
       console.error("Error deleting staff:", error);

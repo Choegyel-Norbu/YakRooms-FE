@@ -117,7 +117,7 @@ const LeaveManagement = () => {
   const isHotelAdmin = roles?.includes("HOTEL_ADMIN");
   const canManagePolicies = !roles?.includes("STAFF") && !roles?.includes("FRONTDESK");
   const canViewPolicies = true; // All users can view policies
-  const canRequestLeave = !roles?.includes("MANAGER") && !roles?.includes("HOTEL_OWNER") && !roles?.includes("HOTEL_ADMIN"); // Managers, hotel owners, and hotel admins cannot request leave
+  const canRequestLeave = !roles?.includes("HOTEL_OWNER") && !roles?.includes("HOTEL_ADMIN"); // Only hotel owners and hotel admins cannot request leave
   const canViewBasicLeaves = !isHotelAdmin; // Hotel admins only see enhanced view
   const canEditStatus = !isStaffOrFrontdesk; // Only admins and managers can edit status
 
@@ -190,8 +190,22 @@ const LeaveManagement = () => {
         // Staff and Frontdesk users can only see their own leave requests
         const response = await api.get(`/leaves/user/${userId}`);
         setLeaves(response.data);
+      } else if (roles?.includes("MANAGER")) {
+        // Managers can see all leave requests for the hotel (including their own)
+        const response = await api.get(`/leaves/hotel/${hotelId}`);
+        const data = response.data || [];
+        
+        // Set the basic leaves data
+        setLeaves(data);
+        
+        // Check if the response has enhanced format with employee information
+        if (data.length > 0 && data[0].employeeName) {
+          setEnhancedLeaves(data);
+        } else {
+          setEnhancedLeaves([]);
+        }
       } else {
-        // Admins/managers can see all leave requests for the hotel
+        // Hotel admins and other roles can see all leave requests for the hotel
         const response = await api.get(`/leaves/hotel/${hotelId}`);
         const data = response.data || [];
         
@@ -682,9 +696,11 @@ ${leavesData.map(leave => `            <tr>
           <p className="text-muted-foreground text-sm">
             {isStaffOrFrontdesk 
               ? "Request leave and view your leave history"
-              : canRequestLeave
-                ? "Manage staff leave requests and configure leave policies"
-                : "Manage staff leave requests and configure leave policies (Leave requests disabled for admin roles)"
+              : roles?.includes("MANAGER")
+                ? "Request leave, view your leave history, and manage staff leave requests"
+                : canRequestLeave
+                  ? "Manage staff leave requests and configure leave policies"
+                  : "Manage staff leave requests and configure leave policies (Leave requests disabled for admin roles)"
             }
           </p>
         </div> */}
@@ -709,17 +725,6 @@ ${leavesData.map(leave => `            <tr>
               Add Policy
             </Button>
           )}
-          <Button
-            variant="outline"
-            onClick={() => {
-              fetchLeaves();
-              fetchLeavePolicies();
-            }}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
         </div>
       </div>
 
@@ -737,7 +742,7 @@ ${leavesData.map(leave => `            <tr>
                     : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                 }`}
               >
-                {isStaffOrFrontdesk ? "My Leave Requests" : "Leave Requests"}
+                {isStaffOrFrontdesk ? "My Leave Requests" : roles?.includes("MANAGER") ? "My Leave Requests" : "Leave Requests"}
               </button>
             )}
             {!isStaffOrFrontdesk && enhancedLeaves.length > 0 && (
@@ -1220,9 +1225,6 @@ ${leavesData.map(leave => `            <tr>
 
           {/* Enhanced Leave Requests - Mobile Card View */}
           <div className="md:hidden space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Leave Requests</h3>
-            </div>
             
             {filteredEnhancedLeaves.length === 0 ? (
               <Card>
@@ -1495,49 +1497,82 @@ ${leavesData.map(leave => `            <tr>
                               </tr>
                             </thead>
                             <tbody>
-                              {Object.entries(
-                                staffLeaves.reduce((acc, leave) => {
-                                  const leaveTypeName = leave.leaveTypeName || getLeaveTypeName(leave.leaveTypeId || leave.leaveType);
-                                  if (!acc[leaveTypeName]) {
-                                    acc[leaveTypeName] = {
-                                      totalAllowed: 0,
-                                      used: 0,
-                                      leaveTypeCode: leave.leaveTypeCode
-                                    };
-                                  }
-                                  return acc;
-                                }, {})
-                              ).map(([leaveTypeName, data]) => {
-                                // Find the leave policy for this type
-                                const leavePolicy = leavePolicies.find(p => 
-                                  p.leaveTypeEnum === data.leaveTypeCode || 
-                                  formatLeaveTypeEnum(p.leaveTypeEnum) === leaveTypeName
+                              {(() => {
+                                const leaveTypeData = Object.entries(
+                                  staffLeaves.reduce((acc, leave) => {
+                                    const leaveTypeName = leave.leaveTypeName || getLeaveTypeName(leave.leaveTypeId || leave.leaveType);
+                                    if (!acc[leaveTypeName]) {
+                                      acc[leaveTypeName] = {
+                                        totalAllowed: 0,
+                                        used: 0,
+                                        leaveTypeCode: leave.leaveTypeCode
+                                      };
+                                    }
+                                    return acc;
+                                  }, {})
                                 );
-                                
-                                const totalAllowed = leavePolicy?.maxDaysPerYear || 12;
-                                const used = staffLeaves
-                                  .filter(l => (l.leaveTypeName || getLeaveTypeName(l.leaveTypeId || l.leaveType)) === leaveTypeName && l.status === 'APPROVED')
-                                  .reduce((sum, l) => sum + (l.totalDays || calculateDays(l.startDate, l.endDate)), 0);
-                                const remaining = Math.max(0, totalAllowed - used);
-                                
-                                return (
-                                  <tr key={leaveTypeName} className="border-t">
+
+                                // Calculate totals
+                                let totalAllowedSum = 0;
+                                let totalUsedSum = 0;
+                                let totalRemainingSum = 0;
+
+                                const leaveRows = leaveTypeData.map(([leaveTypeName, data]) => {
+                                  // Find the leave policy for this type
+                                  const leavePolicy = leavePolicies.find(p => 
+                                    p.leaveTypeEnum === data.leaveTypeCode || 
+                                    formatLeaveTypeEnum(p.leaveTypeEnum) === leaveTypeName
+                                  );
+                                  
+                                  const totalAllowed = leavePolicy?.maxDaysPerYear || 12;
+                                  const used = staffLeaves
+                                    .filter(l => (l.leaveTypeName || getLeaveTypeName(l.leaveTypeId || l.leaveType)) === leaveTypeName && l.status === 'APPROVED')
+                                    .reduce((sum, l) => sum + (l.totalDays || calculateDays(l.startDate, l.endDate)), 0);
+                                  const remaining = Math.max(0, totalAllowed - used);
+
+                                  // Add to totals
+                                  totalAllowedSum += totalAllowed;
+                                  totalUsedSum += used;
+                                  totalRemainingSum += remaining;
+                                  
+                                  return (
+                                    <tr key={leaveTypeName} className="border-t">
+                                      <td className="p-3">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-sm">{leaveTypeName}</span>
+                                        </div>
+                                      </td>
+                                      <td className="p-3 text-right text-sm">{totalAllowed}</td>
+                                      <td className="p-3 text-right text-sm">{used}</td>
+                                      <td className="p-3 text-right">
+                                        <span className={`text-sm ${remaining > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                          {remaining}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  );
+                                });
+
+                                // Add total row
+                                const totalRow = (
+                                  <tr key="total" className="border-t-1 border-primary bg-primary/5">
                                     <td className="p-3">
                                       <div className="flex items-center gap-2">
-                                        <FileText className="h-4 w-4 flex-shrink-0" />
-                                        <span className="font-medium">{leaveTypeName}</span>
+                                        <span className="font-bold text-primary">Total Leaves</span>
                                       </div>
                                     </td>
-                                    <td className="p-3 text-right font-medium">{totalAllowed}</td>
-                                    <td className="p-3 text-right font-medium">{used}</td>
+                                    <td className="p-3 text-right font-bold text-primary">{totalAllowedSum}</td>
+                                    <td className="p-3 text-right font-bold text-primary">{totalUsedSum}</td>
                                     <td className="p-3 text-right">
-                                      <span className={`font-medium ${remaining > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        {remaining}
+                                      <span className={`font-bold ${totalRemainingSum > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {totalRemainingSum}
                                       </span>
                                     </td>
                                   </tr>
                                 );
-                              })}
+
+                                return [...leaveRows, totalRow];
+                              })()}
                             </tbody>
                           </table>
                         </div>
@@ -1813,8 +1848,8 @@ ${leavesData.map(leave => `            <tr>
         )}
       </Tabs>
 
-      {/* Leave Summary Section - Hidden for Hotel Admin */}
-      {!isHotelAdmin && (
+      {/* Leave Summary Section - Hidden for Hotel Admin and Hotel Owner */}
+      {!isHotelAdmin && !roles?.includes("HOTEL_OWNER") && (
         <Card>
           <CardContent className="space-y-6">
             <Button

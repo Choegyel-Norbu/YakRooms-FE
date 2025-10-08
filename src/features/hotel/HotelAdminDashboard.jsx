@@ -18,6 +18,9 @@ import {
   Settings,
   Lock,
   Clock,
+  User,
+  Shield,
+  AlertTriangle,
 } from "lucide-react";
 import {
   Card,
@@ -330,10 +333,6 @@ const HotelAdminDashboard = () => {
   };
 
 
-  // Navigate to account deletion page
-  const handleDeleteAccount = () => {
-    navigate("/account-deletion");
-  };
 
   const formatLoginTime = (date) => {
     if (!date) return "Never";
@@ -352,19 +351,19 @@ const HotelAdminDashboard = () => {
     { id: "dashboard", label: "Dashboard", icon: Home, locked: false },
     ...(roles && !roles.includes("STAFF") ? [
       { id: "booking", label: "Booking", icon: Calendar, locked: false },
-      // Only show additional tabs for non-FRONTDESK users
       ...(roles && !roles.includes("FRONTDESK") ? [
         { id: "inventory", label: "Bookings Inventory", icon: Package, locked: true },
         { id: "rooms", label: "Room Management", icon: Bed, locked: true },
         ...(roles && !roles.includes("STAFF")
           ? [{ id: "staff", label: "Staff Management", icon: Users, locked: true }]
           : []),
-        { id: "analytics", label: "Analytics", icon: PieChart, locked: true },
-        { id: "hotel", label: "Hotel Settings", icon: Settings, locked: true }
+        { id: "analytics", label: "Analytics", icon: PieChart, locked: true }
       ] : [])
     ] : []),
-    // Leave Management is available to all users
-    { id: "leave", label: "Leave Management", icon: Clock, locked: true }
+    { id: "leave", label: "Leave Management", icon: Clock, locked: true },
+    ...(roles && !roles.includes("FRONTDESK") && !roles.includes("STAFF") ? [
+      { id: "hotel", label: "Hotel Settings", icon: Settings, locked: true }
+    ] : [])
   ];
 
   const getPageTitle = () => {
@@ -709,17 +708,6 @@ const HotelAdminDashboard = () => {
                         </Link>
                       )}
 
-                      {!roles?.includes("STAFF") && !roles?.includes("MANAGER") && !roles?.includes("FRONTDESK") && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                          onClick={handleDeleteAccount}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete Account
-                        </Button>
-                      )}
                     </div>
                   </div>
                 </SheetContent>
@@ -769,18 +757,6 @@ const HotelAdminDashboard = () => {
                         <span>Subscription</span>
                       </Link>
                     </DropdownMenuItem>
-                  )}
-                  {!roles?.includes("STAFF") && !roles?.includes("MANAGER") && !roles?.includes("FRONTDESK") && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive cursor-pointer"
-                        onClick={handleDeleteAccount}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        <span>Delete Account</span>
-                      </DropdownMenuItem>
-                    </>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -1164,7 +1140,7 @@ const HotelAdminDashboard = () => {
           )}
 
           {activeTab === "hotel" && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {!isLoadingSubscription && isSubscriptionExpired() ? (
                 <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
                   <CardContent className="p-8 text-center">
@@ -1194,9 +1170,127 @@ const HotelAdminDashboard = () => {
                   </CardContent>
                 </Card>
               ) : (
-                hotel && (
-                  <HotelInfoForm hotel={hotel} onUpdate={updateHotel} />
-                )
+                <>
+                  {/* Hotel Information Section */}
+                  {hotel && (
+                    <HotelInfoForm hotel={hotel} onUpdate={updateHotel} />
+                  )}
+
+                  {/* Account Management Section */}
+                  <Card className="border-red-200 dark:border-red-800">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        Account Management
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Manage your account settings and data
+                      </p>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Account Information */}
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                <User className="h-4 w-4 text-primary" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-foreground">{userName}</p>
+                                <p className="text-xs text-muted-foreground">Account Holder</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                                <Hotel className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-foreground">{hotel?.name || "Hotel Name"}</p>
+                                <p className="text-xs text-muted-foreground">Associated Hotel</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                                <Shield className="h-4 w-4 text-green-600 dark:text-green-400" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-foreground">
+                                  {roles?.includes("SUPER_ADMIN") ? "Super Admin" :
+                                   roles?.includes("HOTEL_ADMIN") ? "Hotel Admin" :
+                                   roles?.includes("MANAGER") ? "Manager" :
+                                   roles?.includes("FRONTDESK") ? "Front Desk" :
+                                   roles?.includes("STAFF") ? "Staff" :
+                                   "Admin"}
+                                </p>
+                                <p className="text-xs text-muted-foreground">Role</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                                <CreditCard className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-foreground">
+                                  {subscriptionPlan === 'TRIAL' ? 'Trial Plan' : 
+                                   subscriptionPlan === 'BASIC' ? 'Basic Plan' :
+                                   subscriptionPlan === 'PREMIUM' ? 'Premium Plan' :
+                                   subscriptionPlan || 'No Plan'}
+                                </p>
+                                <p className="text-xs text-muted-foreground">Subscription</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Danger Zone */}
+                      <div className="space-y-4">
+                        <h4 className="text-base font-semibold flex items-center gap-2 text-red-600 dark:text-red-400">
+                          <AlertTriangle className="h-4 w-4" />
+                          Danger Zone
+                        </h4>
+                        <div className="p-4 border border-red-200 dark:border-red-800 rounded-lg bg-red-50/50 dark:bg-red-950/20">
+                          <div className="space-y-3">
+                            <div className="flex items-start gap-3">
+                              <div className="flex-1 min-w-0">
+                                <h5 className="text-sm font-semibold text-red-800 dark:text-red-200 mb-1">
+                                  Delete Account
+                                </h5>
+                                <p className="text-xs text-red-700 dark:text-red-300 leading-relaxed mb-3">
+                                  Permanently delete your account and all associated data. This action cannot be undone.
+                                  All hotel information, bookings, staff data, and settings will be permanently removed.
+                                </p>
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                  <Button 
+                                    variant="destructive" 
+                                    size="sm"
+                                    className="w-full sm:w-auto"
+                                    disabled={roles?.includes("STAFF") || roles?.includes("MANAGER") || roles?.includes("FRONTDESK")}
+                                    onClick={() => navigate("/account-deletion")}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete Account
+                                  </Button>
+                                  {roles?.includes("STAFF") || roles?.includes("MANAGER") || roles?.includes("FRONTDESK") && (
+                                    <p className="text-xs text-muted-foreground">
+                                      Account deletion is not available for your role level.
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
               )}
             </div>
           )}

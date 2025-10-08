@@ -587,7 +587,7 @@ const TermsAndConditions = () => {
                             
                             <div>
                               <p className="font-medium text-foreground">Phone Support</p>
-                              <p className="text-xs">+975 17482648</p>
+                              <p className="text-xs">+97577965452</p>
                             </div>
                           </div>
                         </div>
