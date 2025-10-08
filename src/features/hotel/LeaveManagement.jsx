@@ -1059,28 +1059,6 @@ ${leavesData.map(leave => `            <tr>
               Export to excel
             </Button>
           </div>
-          
-          {/* Enhanced Filters */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
-                  <Label htmlFor="enhanced-status-filter">Filter by Status</Label>
-                  <Select value={enhancedFilterStatus} onValueChange={setEnhancedFilterStatus}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Statuses" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="PENDING">Pending</SelectItem>
-                      <SelectItem value="APPROVED">Approved</SelectItem>
-                      <SelectItem value="REJECTED">Rejected</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Enhanced Leave Requests - Desktop Table View */}
           <Card className="hidden md:block">
@@ -1386,7 +1364,6 @@ ${leavesData.map(leave => `            <tr>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
                   Hotel Staff
                 </CardTitle>
               </CardHeader>
@@ -1402,7 +1379,7 @@ ${leavesData.map(leave => `            <tr>
                         key={staffMember.staffId || staffMember.id} 
                         className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
                           selectedStaff?.staffId === staffMember.staffId || selectedStaff?.id === staffMember.id
-                            ? 'ring-2 ring-primary bg-primary/5' 
+                            ? 'ring-1 ring-primary bg-primary/1' 
                             : 'hover:bg-muted/50'
                         }`}
                         onClick={() => handleStaffSelect(staffMember)}
@@ -1461,16 +1438,6 @@ ${leavesData.map(leave => `            <tr>
                                       );
                                     })}
                                   </div>
-                                </div>
-                              )}
-
-                              {/* Date Joined */}
-                              {staffMember.dateJoined && (
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-muted-foreground">Joined:</span>
-                                  <span className="text-xs font-medium">
-                                    {new Date(staffMember.dateJoined).toLocaleDateString()}
-                                  </span>
                                 </div>
                               )}
                             </div>
@@ -1966,7 +1933,7 @@ ${leavesData.map(leave => `            <tr>
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmitLeave} className="space-y-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="leaveType">Leave Type</Label>
               <Select
                 value={leaveForm.leaveType}
@@ -1975,7 +1942,7 @@ ${leavesData.map(leave => `            <tr>
                 }
                 required
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select leave type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1989,7 +1956,7 @@ ${leavesData.map(leave => `            <tr>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="startDate">Start Date</Label>
                 <Input
                   id="startDate"
@@ -2001,7 +1968,7 @@ ${leavesData.map(leave => `            <tr>
                   required
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="endDate">End Date</Label>
                 <Input
                   id="endDate"
@@ -2015,7 +1982,7 @@ ${leavesData.map(leave => `            <tr>
               </div>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="reason">Reason</Label>
               <Textarea
                 id="reason"
@@ -2029,7 +1996,7 @@ ${leavesData.map(leave => `            <tr>
             </div>
 
             {editingLeave && canEditStatus && (
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
                 <Select
                   value={leaveForm.status}
@@ -2091,7 +2058,7 @@ ${leavesData.map(leave => `            <tr>
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmitPolicy} className="space-y-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="leaveTypeEnum">Leave Type</Label>
               <Select
                 value={policyForm.leaveTypeEnum}
@@ -2101,7 +2068,7 @@ ${leavesData.map(leave => `            <tr>
                 required
                 disabled={editingPolicy} // Prevent changing leave type when editing
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select leave type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2114,7 +2081,7 @@ ${leavesData.map(leave => `            <tr>
               </Select>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="maxDaysPerYear">Maximum Days Per Year</Label>
               <Input
                 id="maxDaysPerYear"
@@ -2130,7 +2097,7 @@ ${leavesData.map(leave => `            <tr>
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
@@ -2253,7 +2220,7 @@ ${leavesData.map(leave => `            <tr>
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="rejectionReason">Rejection Reason *</Label>
               <Textarea
                 id="rejectionReason"
