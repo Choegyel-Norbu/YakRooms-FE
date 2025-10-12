@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import api from "../../shared/services/Api";
-import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft, Eye, X, MapPin, Phone, Mail, Globe, Calendar, Star, Bell, Trash2, Download } from "lucide-react";
+import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft, Eye, X, MapPin, Phone, Mail, Globe, Calendar, Star, Bell, Trash2, Download, MessageSquare, Monitor, User } from "lucide-react";
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
 import { Link } from "react-router-dom";
@@ -99,6 +99,16 @@ const SuperAdmin = () => {
   const [reviewsPagination, setReviewsPagination] = useState({
     pageNumber: 0,
     pageSize: 10,
+    totalPages: 1,
+    totalElements: 0,
+  });
+
+  // Feedback management states
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [loadingFeedbacks, setLoadingFeedbacks] = useState(false);
+  const [feedbacksPagination, setFeedbacksPagination] = useState({
+    pageNumber: 0,
+    pageSize: 20,
     totalPages: 1,
     totalElements: 0,
   });
@@ -272,6 +282,37 @@ const SuperAdmin = () => {
     fetchReviews();
   }, [reviewsPagination.pageNumber]);
 
+  // Fetch feedbacks
+  useEffect(() => {
+    const fetchFeedbacks = async () => {
+      try {
+        setLoadingFeedbacks(true);
+        const params = {
+          page: feedbacksPagination.pageNumber,
+          size: feedbacksPagination.pageSize,
+        };
+
+        const response = await api.get("/feedbacks", { params });
+        
+        console.log("[DEBUG] Feedbacks API response:", response.data);
+        
+        setFeedbacks(response.data.content || []);
+        setFeedbacksPagination((prev) => ({
+          ...prev,
+          totalPages: response.data.totalPages || 1,
+          totalElements: response.data.totalElements || 0,
+        }));
+      } catch (err) {
+        console.error("Error fetching feedbacks:", err);
+        toast.error("Failed to fetch feedbacks");
+      } finally {
+        setLoadingFeedbacks(false);
+      }
+    };
+
+    fetchFeedbacks();
+  }, [feedbacksPagination.pageNumber]);
+
   useEffect(() => {
     const fetchHotels = async () => {
       try {
@@ -435,6 +476,11 @@ const SuperAdmin = () => {
   // Handle reviews pagination
   const handleReviewsPageChange = (newPage) => {
     setReviewsPagination((prev) => ({ ...prev, pageNumber: newPage }));
+  };
+
+  // Handle feedbacks pagination
+  const handleFeedbacksPageChange = (newPage) => {
+    setFeedbacksPagination((prev) => ({ ...prev, pageNumber: newPage }));
   };
 
   // Handle clearing all read notifications
@@ -1342,6 +1388,82 @@ const SuperAdmin = () => {
     );
   };
 
+  const FeedbacksPaginationControls = () => {
+    const handlePrevious = () => {
+      if (feedbacksPagination.pageNumber > 0) {
+        handleFeedbacksPageChange(feedbacksPagination.pageNumber - 1);
+      }
+    };
+
+    const handleNext = () => {
+      if (feedbacksPagination.pageNumber < feedbacksPagination.totalPages - 1) {
+        handleFeedbacksPageChange(feedbacksPagination.pageNumber + 1);
+      }
+    };
+
+    return (
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex-1 flex justify-between md:hidden">
+          <Button
+            onClick={handlePrevious}
+            disabled={feedbacksPagination.pageNumber === 0}
+            variant="outline"
+          >
+            Previous
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={feedbacksPagination.pageNumber === feedbacksPagination.totalPages - 1}
+            variant="outline"
+          >
+            Next
+          </Button>
+        </div>
+        <div className="hidden md:flex flex-1 items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Page{" "}
+              <span className="font-medium">{feedbacksPagination.pageNumber + 1}</span>{" "}
+              of <span className="font-medium">{feedbacksPagination.totalPages}</span>
+            </p>
+          </div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={handlePrevious}
+                disabled={feedbacksPagination.pageNumber === 0}
+              >
+                <span className="sr-only">Go to previous page</span>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: feedbacksPagination.totalPages }, (_, i) => (
+                <Button
+                  key={i}
+                  variant={feedbacksPagination.pageNumber === i ? "default" : "outline"}
+                  className="h-8 w-8 p-0"
+                  onClick={() => handleFeedbacksPageChange(i)}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={handleNext}
+                disabled={feedbacksPagination.pageNumber === feedbacksPagination.totalPages - 1}
+              >
+                <span className="sr-only">Go to next page</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const AllNotificationsTable = () => {
     const getNotificationTypeColor = (type) => {
       switch (type) {
@@ -1844,6 +1966,145 @@ const SuperAdmin = () => {
     );
   };
 
+  const FeedbacksTable = () => {
+    const renderStars = (rating) => {
+      const stars = [];
+      for (let i = 1; i <= 10; i++) {
+        stars.push(
+          <Star
+            key={i}
+            className={`h-3 w-3 ${
+              i <= rating ? "text-yellow-400 fill-current" : "text-gray-300"
+            }`}
+          />
+        );
+      }
+      return stars;
+    };
+
+    const getRatingColor = (rating) => {
+      if (rating >= 8) return "text-green-600";
+      if (rating >= 6) return "text-yellow-600";
+      if (rating >= 4) return "text-orange-600";
+      return "text-red-600";
+    };
+
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-blue-500" />
+            System Feedbacks
+          </CardTitle>
+          <CardDescription>
+            User feedback and ratings for the YakRooms platform
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingFeedbacks ? (
+            <div className="flex justify-center items-center py-8">
+              <SimpleSpinner size={24} text="Loading feedbacks..." />
+            </div>
+          ) : feedbacks.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No feedbacks found</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Feedback</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Rating</TableHead>
+                  <TableHead>Device Info</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {feedbacks.map((feedback) => (
+                  <TableRow key={feedback.id}>
+                    <TableCell>
+                      <div className="max-w-md">
+                        <div className="text-sm font-medium mb-1">
+                          Feedback #{feedback.id}
+                        </div>
+                        <div className="text-sm text-muted-foreground line-clamp-3">
+                          {feedback.comment || "No comment provided"}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {feedback.isAnonymous ? "Anonymous feedback" : "Registered user"}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                          {feedback.isAnonymous ? (
+                            <User className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <div className="text-xs font-medium text-gray-600">
+                              {feedback.userName?.charAt(0) || "?"}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium">
+                            {feedback.userName || "Anonymous"}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {feedback.userEmail || "No email"}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          {renderStars(feedback.rating || 0)}
+                        </div>
+                        <span className={`text-sm font-medium ${getRatingColor(feedback.rating || 0)}`}>
+                          {feedback.rating || 0}/10
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div className="flex items-center gap-1 mb-1">
+                          <Monitor className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">
+                            {feedback.deviceInfo?.platform || "Unknown"}
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {feedback.deviceInfo?.screenResolution || "Unknown resolution"}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {feedback.deviceInfo?.language || "Unknown language"}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <p className="font-medium">
+                          {format(new Date(feedback.createdAt), "dd MMM yyyy")}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {format(new Date(feedback.createdAt), "HH:mm")}
+                        </p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+        {feedbacks.length > 0 && <FeedbacksPaginationControls />}
+      </Card>
+    );
+  };
+
   const HotelTable = () => (
     <Card className="mb-6">
       <Table>
@@ -2091,6 +2352,9 @@ const SuperAdmin = () => {
 
         {/* Reviews Management Section */}
         <ReviewsTable />
+
+        {/* System Feedbacks Section */}
+        <FeedbacksTable />
 
         {loading ? (
           <LoadingSpinner />
