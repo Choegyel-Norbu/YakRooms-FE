@@ -12,6 +12,7 @@ import { SuperAdmin } from "../features/admin";
 import { GuestDashboard } from "../features/guest";
 import { PrivacyPolicy, TermsAndConditions } from "../features/landing";
 import { SubscriptionPage } from "../features/subscription";
+import RatingScaleTestPage from "../components/RatingScaleTestPage";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -152,6 +153,12 @@ const AppRouting = () => {
             <AccountDeletionPage />
           </ProtectedRoute>
         }
+      />
+
+      {/* Test Routes */}
+      <Route
+        path="/rating-test"
+        element={<RatingScaleTestPage />}
       />
 
       {/* Catch all route */}

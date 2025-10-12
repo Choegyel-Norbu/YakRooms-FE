@@ -24,7 +24,7 @@ import {
 import { Separator } from "@/shared/components/separator";
 import { Switch } from "@/shared/components/switch";
 import { CheckCircle, AlertTriangle, UserCheck } from "lucide-react";
-import LoginModal from "../authentication/LoginModal"; // Assuming this is your LoginModal component
+import LoginModal from "../authentication/LoginModal";
 import { BookingSuccessModal, CustomDatePicker } from "../../shared/components";
 import { toast } from "sonner"; // Using sonner for toasts
 
@@ -63,6 +63,7 @@ export default function RoomBookingCard({ room, hotelId }) {
     isBhutanese: true,
   });
   const [errors, setErrors] = useState({});
+  const [isBookingLoading, setIsBookingLoading] = useState(false);
 
 
 
@@ -208,8 +209,6 @@ export default function RoomBookingCard({ room, hotelId }) {
     
     return false;
   };
-
-
 
   const calculateDays = () => {
     if (!bookingDetails.checkInDate) {
@@ -737,6 +736,7 @@ export default function RoomBookingCard({ room, hotelId }) {
     }
 
     try {
+      setIsBookingLoading(true);
       const payload = {
         ...bookingDetails,
         roomId: room.id,
@@ -795,6 +795,8 @@ export default function RoomBookingCard({ room, hotelId }) {
           "There was an error processing your custom booking. Please try again.",
         duration: 6000
       });
+    } finally {
+      setIsBookingLoading(false);
     }
   };
 
@@ -1417,7 +1419,9 @@ export default function RoomBookingCard({ room, hotelId }) {
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit">Confirm Booking</Button>
+              <Button type="submit" disabled={isBookingLoading}>
+                {isBookingLoading ? "Booking..." : "Book"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
