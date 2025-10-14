@@ -1066,10 +1066,10 @@ const HotelDetailsPage = () => {
                   {appState.hotel.amenities?.map((amenity, index) => (
                     <div
                       key={index}
-                      className="flex items-center p-1 rounded-lg"
+                      className="flex items-center"
                     >
-                      <span className="text-sm font-normal border border-gray-300 rounded-[20px] px-2 py-1">
-                        {amenity}
+                      <span className="text-sm font-normal px-2 py-1">
+                        - {amenity}
                       </span>
                     </div>
                   ))}
@@ -1314,15 +1314,15 @@ const HotelDetailsPage = () => {
 
                               {room.amenities?.length > 0 && (
                                 <div>
-                                  <h4 className="font-medium text-sm mb-3 text-muted-foreground">
-                                    Room Amenities
-                                  </h4>
+                                    <h4 className="font-light text-sm mb-3 text-black">
+                                      Room Amenities
+                                    </h4>
                                   <div className="flex flex-wrap gap-2">
                                     {room.amenities.map((amenity, index) => (
                                       <Badge
                                         key={index}
                                         variant="outline"
-                                        className="text-xs"
+                                        className="text-xs text-gray-500"
                                       >
                                         {amenity}
                                       </Badge>

@@ -997,7 +997,7 @@ export default function RoomBookingCard({ room, hotelId }) {
             <Button 
               onClick={handleCheckBookings}
               disabled={isLoadingBookedDates || !room.active}
-              className={`flex-1 sm:flex-none ${!room.active ? 'bg-gray-400 cursor-not-allowed' : 'bg-black text-white'}`}
+              className={`flex-1 text-xs sm:flex-none ${!room.active ? 'bg-gray-400 cursor-not-allowed' : 'bg-black text-white'}`}
               title={!room.active ? "Room is currently inactive" : "Check room availability and booking options"}
             >
               <span className="flex items-center gap-2">
@@ -1020,7 +1020,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                 /* Book Tonight Button - Available */
                 <Button 
                   onClick={handleInstantBookingClick}
-                  className="flex-1 sm:flex-none"
+                  className="flex-1 sm:flex-none text-xs"
                   title="Book this room starting tonight"
                 >
                   <span className="flex items-center gap-2">
@@ -1035,7 +1035,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                 <Button 
                   disabled={true}
                   variant="outline"
-                  className="flex-1 sm:flex-none border-red-300 text-red-500 cursor-not-allowed"
+                  className="flex-1 text-xs sm:flex-none border-red-300 text-red-500 cursor-not-allowed"
                   title="Room not available for tonight"
                 >
                   <span className="flex items-center gap-2">
@@ -1047,11 +1047,11 @@ export default function RoomBookingCard({ room, hotelId }) {
                 </Button>
               )}
               
-              {/* Custom Booking Button - Always Available */}
+              {/* Custom Booking Button*/}
               <Button 
                 onClick={handleAdvancedBookingClick}
                 variant="outline"
-                className="border-blue-600 text-blue-600 hover:bg-blue-50 flex-1 sm:flex-none"
+                className="border-blue-600 text-xs text-blue-600 hover:bg-blue-50 flex-1 sm:flex-none"
                 title="Open detailed booking form"
               >
                 <span className="flex items-center gap-2">
