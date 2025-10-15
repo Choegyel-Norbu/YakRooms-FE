@@ -10,6 +10,7 @@ import { calculateDaysUntil, formatDate } from '@/shared/utils/subscriptionUtils
 
 const SubscriptionPage = () => {
   const { 
+    userId,
     hotelId, 
     subscriptionId, 
     subscriptionIsActive, 
@@ -103,8 +104,8 @@ const SubscriptionPage = () => {
   ];
 
   const handleSubscribe = async (planId) => {
-    if (!hotelId) {
-      toast.error('Hotel ID not found. Please ensure you are logged in and have a hotel associated with your account.');
+    if (!userId) {
+      toast.error('User ID not found. Please ensure you are logged in.');
       return;
     }
 
@@ -120,7 +121,7 @@ const SubscriptionPage = () => {
       const subscriptionPlan = planId === 'free' ? 'TRIAL' : 'PRO';
       
       const subscriptionData = {
-        hotelId: parseInt(hotelId),
+        userId: parseInt(userId),
         subscriptionPlan: subscriptionPlan,
         paymentStatus: "PENDING",
         trialStartDate: trialStartDate.toISOString(),
@@ -128,7 +129,7 @@ const SubscriptionPage = () => {
         nextBillingDate: trialEndDate.toISOString(),
         cancelDate: null,
         lastPaymentDate: null,
-        notes: "Initial subscription setup for new hotel"
+        notes: "Initial subscription setup for new user"
       };
 
       console.log('Creating subscription with data:', subscriptionData);
@@ -165,8 +166,8 @@ const SubscriptionPage = () => {
   };
 
   const handleSubscriptionCard = async () => {
-    if (!hotelId) {
-      toast.error('Hotel ID not found. Please ensure you are logged in and have a hotel associated with your account.');
+    if (!userId) {
+      toast.error('User ID not found. Please ensure you are logged in.');
       return;
     }
 
@@ -187,7 +188,7 @@ const SubscriptionPage = () => {
 
       console.log('Updating subscription with data:', subscriptionData);
       
-      const response = await enhancedApi.put(`/subscriptions/hotel/${hotelId}`, subscriptionData);
+      const response = await enhancedApi.put(`/subscriptions/user/${userId}`, subscriptionData);
       
       if (response.status === 200 || response.status === 201) {
         toast.success('Subscription activated successfully! Your hotel is now discoverable.');
@@ -219,8 +220,8 @@ const SubscriptionPage = () => {
   };
 
   const handleSubscriptionRenewal = async () => {
-    if (!hotelId) {
-      toast.error('Hotel ID not found. Please ensure you are logged in and have a hotel associated with your account.');
+    if (!userId) {
+      toast.error('User ID not found. Please ensure you are logged in.');
       return;
     }
 
@@ -243,7 +244,7 @@ const SubscriptionPage = () => {
 
       console.log('Renewing subscription with data:', subscriptionData);
       
-      const response = await enhancedApi.put(`/subscriptions/hotel/${hotelId}`, subscriptionData);
+      const response = await enhancedApi.put(`/subscriptions/user/${userId}`, subscriptionData);
       
       if (response.status === 200 || response.status === 201) {
         toast.success('Subscription renewed successfully! Your hotel listing remains active.');

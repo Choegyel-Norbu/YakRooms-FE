@@ -33,7 +33,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
           pictureURL: res.data.user.profilePicUrl,
           flag: res.data.user.registerFlag || false,
           detailSet: res.data.user.detailSet || false,
-          hotelId: res.data.user.hotelId,
+          hotelIds: res.data.user.hotelIds || (res.data.user.hotelId ? [res.data.user.hotelId] : []),
         });
         
         // Close modal after successful login

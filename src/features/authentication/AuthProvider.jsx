@@ -24,6 +24,9 @@ const AUTH_STORAGE_KEYS = {
   REGISTER_FLAG: 'registerFlag',
   CLIENT_DETAIL_SET: 'clientDetailSet',
   HOTEL_ID: 'hotelId',
+  HOTEL_IDS: 'hotelIds',
+  SELECTED_HOTEL_ID: 'selectedHotelId',
+  USER_HOTELS: 'userHotels',
   TOP_HOTEL_IDS: 'topHotelIds',
   REDIRECT_URL: 'redirectUrl',
   LAST_AUTH_CHECK: 'lastAuthCheck',
@@ -87,6 +90,71 @@ const stringifyRolesForStorage = (roles) => {
   }
 };
 
+// === Utility to parse user hotels from storage ===
+const parseUserHotelsFromStorage = (userHotelsString) => {
+  try {
+    if (!userHotelsString) return [];
+    
+    // If it's already an array, return it
+    if (Array.isArray(userHotelsString)) return userHotelsString;
+    
+    // Try to parse as JSON
+    const parsed = JSON.parse(userHotelsString);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error("Failed to parse user hotels from storage", error);
+    return [];
+  }
+};
+
+// === Utility to stringify user hotels for storage ===
+const stringifyUserHotelsForStorage = (userHotels) => {
+  try {
+    if (!Array.isArray(userHotels)) return '[]';
+    return JSON.stringify(userHotels);
+  } catch (error) {
+    console.error("Failed to stringify user hotels for storage", error);
+    return '[]';
+  }
+};
+
+// === Utility to parse hotel IDs from storage ===
+const parseHotelIdsFromStorage = (hotelIdsString) => {
+  try {
+    if (!hotelIdsString) return [];
+    
+    // If it's already an array, return it
+    if (Array.isArray(hotelIdsString)) return hotelIdsString;
+    
+    // If it's a single string (not JSON), wrap it in an array
+    if (typeof hotelIdsString === 'string' && !hotelIdsString.startsWith('[')) {
+      return [hotelIdsString];
+    }
+    
+    // Try to parse as JSON
+    const parsed = JSON.parse(hotelIdsString);
+    return Array.isArray(parsed) ? parsed : [parsed];
+  } catch (error) {
+    console.error("Failed to parse hotel IDs from storage", error);
+    // If parsing fails, try to treat it as a single ID string
+    if (typeof hotelIdsString === 'string') {
+      return [hotelIdsString];
+    }
+    return [];
+  }
+};
+
+// === Utility to stringify hotel IDs for storage ===
+const stringifyHotelIdsForStorage = (hotelIds) => {
+  try {
+    if (!Array.isArray(hotelIds)) return '[]';
+    return JSON.stringify(hotelIds);
+  } catch (error) {
+    console.error("Failed to stringify hotel IDs for storage", error);
+    return '[]';
+  }
+};
+
 // === Utility to parse top hotel IDs from storage ===
 const parseTopHotelIdsFromStorage = (topHotelIdsString) => {
   try {
@@ -139,6 +207,9 @@ const defaultAuthState = {
   userId: "",
   flag: false,
   hotelId: null,
+  hotelIds: [],
+  selectedHotelId: null,
+  userHotels: [],
   topHotelIds: [],
   isValidatingAuth: false, // New flag for auth validation state
   subscriptionPaymentStatus: null,
@@ -147,6 +218,7 @@ const defaultAuthState = {
 };
 
 export const AuthProvider = ({ children }) => {
+  console.log("🔧 AuthProvider rendering...");
   const navigate = useNavigate();
 
   // Initialize auth state from localStorage with cookie-based authentication
@@ -171,6 +243,9 @@ export const AuthProvider = ({ children }) => {
         userId: userId || "",
         flag: false,
         hotelId: getStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID) || null,
+        hotelIds: parseHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS)),
+        selectedHotelId: getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID) || null,
+        userHotels: parseUserHotelsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS)),
         topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
         isValidatingAuth: hasUserData, // Will validate with server if we think we're authenticated
         subscriptionPaymentStatus: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS) || null,
@@ -194,12 +269,12 @@ export const AuthProvider = ({ children }) => {
   });
 
   // === FETCH SUBSCRIPTION DATA (memoized) ===
-  const fetchSubscriptionData = useCallback(async (hotelId) => {
+  const fetchSubscriptionData = useCallback(async (userId) => {
     try {
-      if (!hotelId) return null;
+      if (!userId) return null;
       
-      console.log("🔍 Fetching subscription data for hotel:", hotelId);
-      const response = await axios.get(`${API_BASE_URL}/api/subscriptions/hotel/${hotelId}`, {
+      console.log("🔍 Fetching subscription data for user:", userId);
+      const response = await axios.get(`${API_BASE_URL}/api/subscriptions/user/${userId}`, {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json'
@@ -244,6 +319,49 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  // === FETCH USER HOTELS (memoized) ===
+  const fetchUserHotels = useCallback(async (userId) => {
+    try {
+      if (!userId) return [];
+      
+      console.log("🔍 Fetching user hotels for user:", userId);
+      const response = await axios.get(`${API_BASE_URL}/api/hotels/user/${userId}/all`, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.status === 200 && response.data) {
+        console.log("✅ User hotels fetched successfully");
+        
+        const hotels = Array.isArray(response.data) ? response.data : [response.data];
+        
+        // Update localStorage with user hotels
+        setStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS, stringifyUserHotelsForStorage(hotels));
+        
+        // Update auth state
+        setAuthState(prev => ({
+          ...prev,
+          userHotels: hotels,
+        }));
+        
+        return hotels;
+      } else {
+        throw new Error('Invalid user hotels response');
+      }
+    } catch (error) {
+      console.error("❌ Failed to fetch user hotels:", error);
+      
+      // Don't clear auth state for hotel fetch errors, just log them
+      if (error.response?.status === 404) {
+        console.log("ℹ️ No hotels found for this user");
+      }
+      
+      return [];
+    }
+  }, []);
+
   // === VALIDATE AUTH STATUS WITH SERVER (memoized) ===
   const validateAuthStatus = useCallback(async () => {
     try {
@@ -278,9 +396,20 @@ export const AuthProvider = ({ children }) => {
         setStorageItem(AUTH_STORAGE_KEYS.USER_NAME, userData.name || "");
         setStorageItem(AUTH_STORAGE_KEYS.PICTURE_URL, userData.profilePicUrl || "");
         setStorageItem(AUTH_STORAGE_KEYS.CLIENT_DETAIL_SET, Boolean(userData.detailSet).toString());
-        if (userData.hotelId) {
+        
+        // Handle hotelIds array from server response
+        if (userData.hotelIds && Array.isArray(userData.hotelIds)) {
+          setStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS, stringifyHotelIdsForStorage(userData.hotelIds));
+          // Set the first hotelId as the primary hotelId for backward compatibility
+          if (userData.hotelIds.length > 0) {
+            setStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID, userData.hotelIds[0]);
+          }
+        } else if (userData.hotelId) {
+          // Fallback to single hotelId if hotelIds array is not provided
           setStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID, userData.hotelId);
+          setStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS, stringifyHotelIdsForStorage([userData.hotelId]));
         }
+        
         setStorageItem(AUTH_STORAGE_KEYS.LAST_AUTH_CHECK, Date.now().toString());
         
         // Update auth state
@@ -294,13 +423,14 @@ export const AuthProvider = ({ children }) => {
           activeRole: initialActiveRole,
           pictureURL: userData.profilePicUrl || "",
           clientDetailSet: Boolean(userData.detailSet),
-          hotelId: userData.hotelId || prev.hotelId,
+          hotelId: userData.hotelIds && userData.hotelIds.length > 0 ? userData.hotelIds[0] : (userData.hotelId || prev.hotelId),
+          hotelIds: userData.hotelIds && Array.isArray(userData.hotelIds) ? userData.hotelIds : (userData.hotelId ? [userData.hotelId] : prev.hotelIds),
           isValidatingAuth: false,
         }));
         
-        // Fetch subscription data if user has hotelId
-        if (userData.hotelId) {
-          await fetchSubscriptionData(userData.hotelId);
+        // Fetch subscription data if user has userId
+        if (userData.id) {
+          await fetchSubscriptionData(userData.id);
         }
         
         return true;
@@ -317,12 +447,15 @@ export const AuthProvider = ({ children }) => {
         // Clear auth state for expired authentication
         setAuthState({
           ...defaultAuthState,
-          topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS))
+          topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
+          hotelIds: parseHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS)),
+          selectedHotelId: getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID) || null,
+          userHotels: parseUserHotelsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS))
         });
         
-        // Clear user data but preserve top hotel IDs
+        // Clear user data but preserve top hotel IDs, hotel IDs, selected hotel ID, and user hotels
         const authKeys = Object.values(AUTH_STORAGE_KEYS).filter(key => 
-          key !== 'topHotelIds' && key !== 'lastAuthCheck'
+          key !== 'topHotelIds' && key !== 'hotelIds' && key !== 'selectedHotelId' && key !== 'userHotels' && key !== 'lastAuthCheck'
         );
         authKeys.forEach(key => {
           removeStorageItem(key);
@@ -333,12 +466,15 @@ export const AuthProvider = ({ children }) => {
         // For 403, clear auth data more aggressively
         setAuthState({
           ...defaultAuthState,
-          topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS))
+          topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
+          hotelIds: parseHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS)),
+          selectedHotelId: getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID) || null,
+          userHotels: parseUserHotelsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS))
         });
         
-        // Clear user data but preserve top hotel IDs
+        // Clear user data but preserve top hotel IDs, hotel IDs, selected hotel ID, and user hotels
         const authKeys = Object.values(AUTH_STORAGE_KEYS).filter(key => 
-          key !== 'topHotelIds' && key !== 'lastAuthCheck'
+          key !== 'topHotelIds' && key !== 'hotelIds' && key !== 'selectedHotelId' && key !== 'userHotels' && key !== 'lastAuthCheck'
         );
         authKeys.forEach(key => {
           removeStorageItem(key);
@@ -365,9 +501,15 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log("🚪 Logging out...");
       
-      // Preserve top hotel IDs during logout
+      // Preserve top hotel IDs, hotel IDs, selected hotel ID, and user hotels during logout
       const topHotelIds = getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS);
+      const hotelIds = getStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS);
+      const selectedHotelId = getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID);
+      const userHotels = getStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS);
       console.log("🔒 [LOGOUT] Preserving top hotel IDs:", topHotelIds);
+      console.log("🔒 [LOGOUT] Preserving hotel IDs:", hotelIds);
+      console.log("🔒 [LOGOUT] Preserving selected hotel ID:", selectedHotelId);
+      console.log("🔒 [LOGOUT] Preserving user hotels:", userHotels);
       
       // Call backend logout endpoint to invalidate cookies
       try {
@@ -382,9 +524,9 @@ export const AuthProvider = ({ children }) => {
         console.warn("⚠️ Server-side logout failed, continuing with client cleanup:", logoutError);
       }
       
-      // Clear all auth data from localStorage except top hotel IDs
+      // Clear all auth data from localStorage except top hotel IDs, hotel IDs, selected hotel ID, and user hotels
       const authKeys = Object.values(AUTH_STORAGE_KEYS).filter(key => 
-        key !== 'topHotelIds' && key !== 'lastAuthCheck'
+        key !== 'topHotelIds' && key !== 'hotelIds' && key !== 'selectedHotelId' && key !== 'userHotels' && key !== 'lastAuthCheck'
       );
       authKeys.forEach(key => {
         removeStorageItem(key);
@@ -397,15 +539,30 @@ export const AuthProvider = ({ children }) => {
         console.warn("⚠️ Failed to clear auth data via authService:", clearError);
       }
       
-      // Restore top hotel IDs after clearing
+      // Restore top hotel IDs, hotel IDs, selected hotel ID, and user hotels after clearing
       if (topHotelIds) {
         setStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS, topHotelIds);
         console.log("🔒 [LOGOUT] Restored top hotel IDs to localStorage");
       }
+      if (hotelIds) {
+        setStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS, hotelIds);
+        console.log("🔒 [LOGOUT] Restored hotel IDs to localStorage");
+      }
+      if (selectedHotelId) {
+        setStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID, selectedHotelId);
+        console.log("🔒 [LOGOUT] Restored selected hotel ID to localStorage");
+      }
+      if (userHotels) {
+        setStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS, userHotels);
+        console.log("🔒 [LOGOUT] Restored user hotels to localStorage");
+      }
       
       setAuthState({
         ...defaultAuthState,
-        topHotelIds: parseTopHotelIdsFromStorage(topHotelIds)
+        topHotelIds: parseTopHotelIdsFromStorage(topHotelIds),
+        hotelIds: parseHotelIdsFromStorage(hotelIds),
+        selectedHotelId: selectedHotelId || null,
+        userHotels: parseUserHotelsFromStorage(userHotels)
       });
       
       navigate("/");
@@ -418,7 +575,7 @@ export const AuthProvider = ({ children }) => {
       try {
         // Clear localStorage
         const authKeys = Object.values(AUTH_STORAGE_KEYS).filter(key => 
-          key !== 'topHotelIds' && key !== 'lastAuthCheck'
+          key !== 'topHotelIds' && key !== 'hotelIds' && key !== 'selectedHotelId' && key !== 'userHotels' && key !== 'lastAuthCheck'
         );
         authKeys.forEach(key => {
           removeStorageItem(key);
@@ -426,7 +583,10 @@ export const AuthProvider = ({ children }) => {
         
         setAuthState({
           ...defaultAuthState,
-          topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS))
+          topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
+          hotelIds: parseHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS)),
+          selectedHotelId: getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID) || null,
+          userHotels: parseUserHotelsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS))
         });
         navigate("/");
       } catch (fallbackError) {
@@ -551,6 +711,9 @@ export const AuthProvider = ({ children }) => {
             clientDetailSet: getStorageItem(AUTH_STORAGE_KEYS.CLIENT_DETAIL_SET) === "true",
             registerFlag: getStorageItem(AUTH_STORAGE_KEYS.REGISTER_FLAG) === "true",
             hotelId: getStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID) || null,
+            hotelIds: parseHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS)),
+            selectedHotelId: getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID) || null,
+            userHotels: parseUserHotelsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS)),
             topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
           }));
         }
@@ -596,12 +759,21 @@ export const AuthProvider = ({ children }) => {
       setStorageItem(AUTH_STORAGE_KEYS.CLIENT_DETAIL_SET, Boolean(authData.detailSet).toString());
       setStorageItem(AUTH_STORAGE_KEYS.LAST_AUTH_CHECK, Date.now().toString());
       
-      // Preserve existing hotelId if not provided in authData
-      if (authData.hotelId) {
+      // Handle hotelIds array from authData
+      if (authData.hotelIds && Array.isArray(authData.hotelIds)) {
+        setStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS, stringifyHotelIdsForStorage(authData.hotelIds));
+        // Set the first hotelId as the primary hotelId for backward compatibility
+        if (authData.hotelIds.length > 0) {
+          setStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID, authData.hotelIds[0]);
+        }
+      } else if (authData.hotelId) {
+        // Fallback to single hotelId if hotelIds array is not provided
         setStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID, authData.hotelId);
+        setStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS, stringifyHotelIdsForStorage([authData.hotelId]));
       }
 
       const existingHotelId = getStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID);
+      const existingHotelIds = parseHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS));
 
       const newAuthState = {
         isAuthenticated: true,
@@ -614,17 +786,18 @@ export const AuthProvider = ({ children }) => {
         registerFlag: Boolean(authData.flag),
         clientDetailSet: Boolean(authData.detailSet),
         flag: true,
-        hotelId: authData.hotelId || existingHotelId || null,
+        hotelId: authData.hotelIds && authData.hotelIds.length > 0 ? authData.hotelIds[0] : (authData.hotelId || existingHotelId || null),
+        hotelIds: authData.hotelIds && Array.isArray(authData.hotelIds) ? authData.hotelIds : (authData.hotelId ? [authData.hotelId] : existingHotelIds),
         topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
         isValidatingAuth: false, // Auth is validated since we just logged in
       };
 
       setAuthState(newAuthState);
 
-      // Fetch subscription data if user has hotelId
-      if (newAuthState.hotelId) {
+      // Fetch subscription data if user has userId
+      if (newAuthState.userId) {
         try {
-          await fetchSubscriptionData(newAuthState.hotelId);
+          await fetchSubscriptionData(newAuthState.userId);
         } catch (subscriptionError) {
           console.warn("⚠️ Failed to fetch subscription data during login:", subscriptionError);
           // Don't fail login if subscription fetch fails
@@ -667,6 +840,29 @@ export const AuthProvider = ({ children }) => {
       console.error("Failed to set hotelId", error);
     }
   }, []);
+
+  // === SET SELECTED HOTEL ID (memoized) ===
+  const setSelectedHotelId = useCallback((hotelId) => {
+    try {
+      const hotelIdString = hotelId?.toString() || null;
+      setStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID, hotelIdString);
+      setAuthState(prev => ({
+        ...prev,
+        selectedHotelId: hotelIdString,
+      }));
+    } catch (error) {
+      console.error("Failed to set selected hotel ID", error);
+    }
+  }, []);
+
+  // === GET SELECTED HOTEL (memoized) ===
+  const getSelectedHotel = useCallback(() => {
+    const selectedHotelId = authState.selectedHotelId;
+    if (!selectedHotelId || !authState.userHotels || !Array.isArray(authState.userHotels)) {
+      return null;
+    }
+    return authState.userHotels.find(hotel => hotel.id?.toString() === selectedHotelId) || null;
+  }, [authState.selectedHotelId, authState.userHotels]);
 
   // === SET REDIRECT URL (memoized) ===
   const setRedirectUrl = useCallback((url) => {
@@ -873,6 +1069,22 @@ export const AuthProvider = ({ children }) => {
     return authState.topHotelIds.includes(hotelIdToCheck.toString());
   }, [authState.topHotelIds]);
 
+  // === CHECK IF USER HAS ACCESS TO HOTEL (memoized) ===
+  const hasHotelAccess = useCallback((hotelIdToCheck) => {
+    if (!hotelIdToCheck || !authState.hotelIds || !Array.isArray(authState.hotelIds)) {
+      return false;
+    }
+    return authState.hotelIds.includes(hotelIdToCheck.toString());
+  }, [authState.hotelIds]);
+
+  // === GET PRIMARY HOTEL ID (memoized) ===
+  const getPrimaryHotelId = useCallback(() => {
+    if (authState.hotelIds && authState.hotelIds.length > 0) {
+      return authState.hotelIds[0];
+    }
+    return authState.hotelId || null;
+  }, [authState.hotelIds, authState.hotelId]);
+
   // === MEMOIZED CONTEXT VALUE ===
   const contextValue = useMemo(() => ({
     // State
@@ -888,6 +1100,9 @@ export const AuthProvider = ({ children }) => {
     clientDetailSet: authState.clientDetailSet,
     flag: authState.flag,
     hotelId: authState.hotelId,
+    hotelIds: authState.hotelIds,
+    selectedHotelId: authState.selectedHotelId,
+    userHotels: authState.userHotels,
     topHotelIds: authState.topHotelIds,
     isValidatingAuth: authState.isValidatingAuth,
     subscriptionPaymentStatus: authState.subscriptionPaymentStatus,
@@ -901,6 +1116,9 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     setHotelId,
+    setSelectedHotelId,
+    getSelectedHotel,
+    fetchUserHotels,
     setRedirectUrl,
     setRoles,
     addRole,
@@ -919,12 +1137,17 @@ export const AuthProvider = ({ children }) => {
     hasAnyRole,
     hasAllRoles,
     isTopHotel,
+    hasHotelAccess,
+    getPrimaryHotelId,
   }), [
     authState,
     lastLogin,
     login,
     logout,
     setHotelId,
+    setSelectedHotelId,
+    getSelectedHotel,
+    fetchUserHotels,
     setRedirectUrl,
     setRoles,
     addRole,
@@ -941,7 +1164,11 @@ export const AuthProvider = ({ children }) => {
     hasAnyRole,
     hasAllRoles,
     isTopHotel,
+    hasHotelAccess,
+    getPrimaryHotelId,
   ]);
+
+  console.log("🔧 AuthProvider context value created, rendering provider...");
 
   return (
     <AuthContext.Provider value={contextValue}>
@@ -953,6 +1180,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
+    console.error("useAuth must be used within an AuthProvider. Make sure the component is wrapped in <AuthProvider>");
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;

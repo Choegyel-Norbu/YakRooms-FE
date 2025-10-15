@@ -83,6 +83,7 @@ const HotelAdminDashboard = () => {
     userId,
     userName,
     hotelId,
+    selectedHotelId,
     lastLogin,
     roles,
     isTopHotel,
@@ -93,6 +94,7 @@ const HotelAdminDashboard = () => {
     subscriptionNextBillingDate,
     subscriptionExpirationNotification,
     fetchSubscriptionData,
+    fetchUserHotels,
   } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [hotel, setHotel] = useState(null);
@@ -106,6 +108,9 @@ const HotelAdminDashboard = () => {
   const [showStaffGrid, setShowStaffGrid] = useState(false);
   const [verificationTab, setVerificationTab] = useState("cid-verification"); // "cid-verification" or "passcode"
   const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
+
+  // Use selected hotel ID if available, otherwise fall back to hotelId
+  const currentHotelId = selectedHotelId || hotelId;
 
   // Check if subscription is expired
   const isSubscriptionExpired = () => {
@@ -139,6 +144,7 @@ const HotelAdminDashboard = () => {
       });
     }
   }, [activeTab, roles, subscriptionIsActive, subscriptionPlan, isLoadingSubscription]);
+
   // Simple media query hook for small screens (max-width: 640px)
   const isMobile =
     typeof window !== "undefined"
@@ -152,18 +158,20 @@ const HotelAdminDashboard = () => {
   // Debug logging for top hotel functionality
   useEffect(() => {
     console.log("🏨 [TOP HOTEL DEBUG] Hotel Dashboard Values:");
+    console.log("  - currentHotelId:", currentHotelId);
+    console.log("  - selectedHotelId:", selectedHotelId);
     console.log("  - hotelId:", hotelId);
     console.log("  - topHotelIds:", topHotelIds);
     console.log("  - topHotelIds length:", topHotelIds?.length);
     console.log("  - isTopHotel function exists:", typeof isTopHotel);
 
-    if (hotelId) {
-      const isTop = isTopHotel(hotelId);
-      console.log("  - isTopHotel(" + hotelId + "):", isTop);
-      console.log("  - hotelId type:", typeof hotelId);
+    if (currentHotelId) {
+      const isTop = isTopHotel(currentHotelId);
+      console.log("  - isTopHotel(" + currentHotelId + "):", isTop);
+      console.log("  - currentHotelId type:", typeof currentHotelId);
       console.log(
-        "  - topHotelIds includes hotelId:",
-        topHotelIds?.includes(hotelId)
+        "  - topHotelIds includes currentHotelId:",
+        topHotelIds?.includes(currentHotelId)
       );
 
       // Check if there's a type mismatch
@@ -172,43 +180,47 @@ const HotelAdminDashboard = () => {
         console.log("  - topHotelIds content:", JSON.stringify(topHotelIds));
       }
     } else {
-      console.log("  - No hotelId found!");
+      console.log("  - No currentHotelId found!");
     }
     console.log("🏨 [END DEBUG]");
-  }, [hotelId, topHotelIds, isTopHotel]);
+  }, [currentHotelId, selectedHotelId, hotelId, topHotelIds, isTopHotel]);
 
   useEffect(() => {
     const fetchHotelData = async () => {
       try {
-        const res = await api.get(`/hotels/${userId}`);
+        // Use currentHotelId if available, otherwise fall back to userId for backward compatibility
+        const hotelIdToUse = currentHotelId || userId;
+        const res = await api.get(`/hotels/${hotelIdToUse}`);
         setHotel(res.data);
       } catch (err) {
         console.log(err);
       }
     };
 
-    fetchHotelData();
-  }, [userId]);
+    if (currentHotelId || userId) {
+      fetchHotelData();
+    }
+  }, [currentHotelId, userId]);
 
-  // Fetch subscription data when hotelId is available
+  // Fetch subscription data when userId is available
   useEffect(() => {
     const loadSubscriptionData = async () => {
-      if (hotelId && fetchSubscriptionData) {
+      if (userId && fetchSubscriptionData) {
         try {
-          await fetchSubscriptionData(hotelId);
+          await fetchSubscriptionData(userId);
         } catch (error) {
           console.error("Failed to fetch subscription data:", error);
         } finally {
           setIsLoadingSubscription(false);
         }
       } else {
-        // If no hotelId, we can't fetch subscription data, so stop loading
+        // If no userId, we can't fetch subscription data, so stop loading
         setIsLoadingSubscription(false);
       }
     };
 
     loadSubscriptionData();
-  }, [hotelId, fetchSubscriptionData]);
+  }, [userId, fetchSubscriptionData]);
 
   // Fetch all notifications from backend when component mounts
   useEffect(() => {
@@ -217,7 +229,7 @@ const HotelAdminDashboard = () => {
 
       try {
         setLoadingNotifications(true);
-        const response = await api.get(`/notifications/hotel/${hotelId}/unread`);
+        const response = await api.get(`/notifications/hotel/${currentHotelId}/unread`);
         const fetchedNotifications = response.data;
 
         // Filter notifications to show BOOKING_CREATED and BOOKING_CANCELLATION_REQUEST types
@@ -247,7 +259,7 @@ const HotelAdminDashboard = () => {
     };
 
     fetchNotifications();
-  }, [userId]);
+  }, [userId, currentHotelId]);
 
   // Mark all notifications as read via API
   const markAllNotificationsAsRead = async () => {
@@ -872,7 +884,7 @@ const HotelAdminDashboard = () => {
 
                 {/* Top Hotel Congratulations Section */}
 
-                {hotelId && isTopHotel(hotelId) && (
+                {currentHotelId && isTopHotel(currentHotelId) && (
                   <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0">
@@ -894,7 +906,7 @@ const HotelAdminDashboard = () => {
                           <h4 className="text-base font-semibold text-yellow-800 dark:text-yellow-200">
                             Congratulations!
                           </h4>
-                          <TopHotelBadge hotelId={hotelId} className="ml-1" />
+                          <TopHotelBadge hotelId={currentHotelId} className="ml-1" />
                         </div>
                         <p className="text-sm text-yellow-700 dark:text-yellow-300 leading-relaxed">
                           Your hotel is featured among our{" "}
@@ -925,7 +937,7 @@ const HotelAdminDashboard = () => {
               {/* </Card> */}
 
                 <div className="mb-10">
-                  <RoomStatusTable hotelId={hotelId} />
+                  <RoomStatusTable hotelId={currentHotelId} />
                 </div>
 
               {/* Toggle for StaffCardGrid (visible on all screens) */}
@@ -941,7 +953,7 @@ const HotelAdminDashboard = () => {
                 </Button>
               </div>
 
-              {showStaffGrid && <StaffCardGrid hotelId={hotelId} />}
+              {showStaffGrid && <StaffCardGrid hotelId={currentHotelId} />}
             </div>
           )}
 
@@ -1017,7 +1029,7 @@ const HotelAdminDashboard = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <BookingsInventoryTable hotelId={hotelId} />
+                <BookingsInventoryTable hotelId={currentHotelId} />
               )}
             </div>
           )}
@@ -1331,7 +1343,7 @@ const HotelAdminDashboard = () => {
 
               {/* Admin Booking Form */}
               <AdminBookingForm
-                hotelId={hotelId}
+                hotelId={currentHotelId}
                 onBookingSuccess={handleBookingSuccess}
                 isDisabled={!isLoadingSubscription && isSubscriptionExpired()}
               />
@@ -1399,7 +1411,7 @@ const HotelAdminDashboard = () => {
                 <CardContent className="p-0 md:px-6 md:pb-6">
                   <div className="overflow-x-auto" data-booking-table>
                     <BookingTable
-                      hotelId={hotelId}
+                      hotelId={currentHotelId}
                       bookings={bookings}
                       onStatusChange={updateBookingStatus}
                       viewMode="compact"

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   Menu,
@@ -52,15 +52,18 @@ import {
   DialogTrigger,
 } from "@/shared/components/dialog";
 import { EzeeRoomLogo } from "@/shared/components";
+import HotelSelectionDialog from "@/shared/components/HotelSelectionDialog";
 
 const Navbar = ({ onLoginClick, onContactClick }) => {
-  const { isAuthenticated, logout, userName, email, roles, pictureURL, hasRole, getPrimaryRole, getCurrentActiveRole, switchToRole } = useAuth();
+  const navigate = useNavigate();
+  const { isAuthenticated, logout, userName, email, roles, pictureURL, hasRole, getPrimaryRole, getCurrentActiveRole, switchToRole, selectedHotelId, userHotels, userId, fetchUserHotels, setSelectedHotelId } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [theme, setTheme] = useState("light");
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const [isLogoutConfirmationOpen, setIsLogoutConfirmationOpen] = useState(false);
+  const [isHotelSelectionOpen, setIsHotelSelectionOpen] = useState(false);
 
   // Add CSS for hiding scrollbar
   useEffect(() => {
@@ -157,6 +160,66 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
     };
   };
 
+  const handleRoleSwitch = (role) => {
+    switchToRole(role);
+    const roleInfo = getRoleDisplayInfo(role);
+    
+    // Show success message for all role switches
+    toast(`Switched to ${roleInfo.label} user`, {
+      description: `You are now viewing the application as ${roleInfo.label}`,
+      duration: 3000,
+    });
+  };
+
+  const getSelectedHotelId = () => {
+    return selectedHotelId;
+  };
+
+  const handleDashboardNavigation = async () => {
+    const currentActiveRole = getCurrentActiveRole();
+    
+    // If user has hotel management roles, always fetch fresh hotel data and handle accordingly
+    if (currentActiveRole === 'HOTEL_ADMIN' || currentActiveRole === 'STAFF' || currentActiveRole === 'MANAGER' || currentActiveRole === 'FRONTDESK') {
+      try {
+        // Always fetch fresh hotel data when dashboard is clicked
+        if (userId && fetchUserHotels) {
+          console.log("🔄 [DASHBOARD] Fetching fresh user hotels data...");
+          const hotels = await fetchUserHotels(userId);
+          
+          if (hotels && hotels.length === 1) {
+            // Only one hotel - auto-select and navigate
+            const hotel = hotels[0];
+            setSelectedHotelId(hotel.id);
+            navigate('/dashboard');
+          } else if (hotels && hotels.length > 1) {
+            // Multiple hotels - show selection dialog
+            setIsHotelSelectionOpen(true);
+          } else {
+            // No hotels - show selection dialog (will show "no hotels" message)
+            setIsHotelSelectionOpen(true);
+          }
+        } else {
+          // Fallback - show selection dialog
+          setIsHotelSelectionOpen(true);
+        }
+      } catch (error) {
+        console.error("Error handling dashboard navigation:", error);
+        // Fallback - show selection dialog
+        setIsHotelSelectionOpen(true);
+      }
+    } else {
+      // For other roles, navigate to dashboard directly
+      navigate('/dashboard');
+    }
+  };
+
+  const handleHotelSelected = (hotel) => {
+    toast.success(`Selected ${hotel.name}`, {
+      description: "You can now access the hotel dashboard",
+      duration: 3000,
+    });
+  };
+
   const UserNav = () => {
     if (!isAuthenticated) {
       return (
@@ -220,13 +283,12 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           
           {/* Dashboard Navigation */}
           {(hasRole("HOTEL_ADMIN") || hasRole("SUPER_ADMIN") || hasRole("GUEST") || hasRole("STAFF")) && (
-            <DropdownMenuItem asChild>
-              <Link to="/dashboard">
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                <span>Dashboard</span>
-              </Link>
+            <DropdownMenuItem onClick={handleDashboardNavigation}>
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              <span>Dashboard</span>
             </DropdownMenuItem>
           )}
+
 
           {/* Role Switching Section */}
           {availableRoles.length > 0 && (
@@ -241,14 +303,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                 return (
                   <DropdownMenuItem
                     key={role}
-                    onClick={() => {
-                      switchToRole(role);
-                      const roleInfo = getRoleDisplayInfo(role);
-                      toast(`Switched to ${roleInfo.label} user`, {
-                        description: `You are now viewing the application as ${roleInfo.label}`,
-                        duration: 3000,
-                      });
-                    }}
+                    onClick={() => handleRoleSwitch(role)}
                     className="cursor-pointer hover:bg-accent/50 transition-colors"
                   >
                     <div className="flex items-center justify-between w-full">
@@ -440,22 +495,26 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           {(hasRole("HOTEL_ADMIN") || hasRole("SUPER_ADMIN") || hasRole("GUEST") || hasRole("STAFF")) && (
             <>
               <SheetClose asChild>
-                <Link
-                  to="/dashboard"
+                <button
+                  onClick={() => {
+                    handleDashboardNavigation();
+                    setIsMobileMenuOpen(false);
+                  }}
                   // Reduced vertical padding for mobile
-                  className="flex items-center justify-between px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group"
+                  className="flex items-center justify-between px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group w-full"
                 >
                   <div className="flex items-center">
                     <LayoutDashboard className="mr-3 h-4 w-4" />
                     Dashboard
                   </div>
                   <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
+                </button>
               </SheetClose>
               {/* Reduced margin */}
               <Separator className="my-1.5" />
             </>
           )}
+
 
           {/* Role Switching Section */}
           {availableRoles.length > 0 && (
@@ -474,13 +533,8 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                       variant="ghost"
                       className="w-full justify-between px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent/50 transition-colors"
                       onClick={() => {
-                        switchToRole(role);
+                        handleRoleSwitch(role);
                         setIsMobileMenuOpen(false);
-                        const roleInfo = getRoleDisplayInfo(role, true); // Will be active after switch
-                        toast(`Switched to ${roleInfo.label} user`, {
-                          description: `You are now viewing the application as ${roleInfo.label}`,
-                          duration: 3000,
-                        });
                       }}
                     >
                       <div className="flex items-center gap-2">
@@ -723,6 +777,13 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Hotel Selection Dialog */}
+      <HotelSelectionDialog
+        isOpen={isHotelSelectionOpen}
+        onClose={() => setIsHotelSelectionOpen(false)}
+        onHotelSelected={handleHotelSelected}
+      />
     </header>
   );
 };

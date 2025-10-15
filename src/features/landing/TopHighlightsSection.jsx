@@ -21,7 +21,15 @@ const TopHighlightsSection = () => {
   const [hotelsData, setHotelsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { setTopHotelIds } = useAuth();
+  
+  // Safely get auth context
+  let setTopHotelIds = null;
+  try {
+    const authContext = useAuth();
+    setTopHotelIds = authContext.setTopHotelIds;
+  } catch (error) {
+    console.warn("AuthProvider not available in TopHighlightsSection:", error.message);
+  }
 
   useEffect(() => {
     const fetchHotels = async () => {
@@ -34,14 +42,18 @@ const TopHighlightsSection = () => {
         }
         setHotelsData(response.data);
         
-        // Store hotel IDs in context
+        // Store hotel IDs in context only if setTopHotelIds is available
         const hotelIds = response.data.map(hotel => hotel.id);
         console.log("🏆 [TOP HIGHLIGHTS] Storing top hotel IDs:");
         console.log("  - Raw response.data:", response.data);
         console.log("  - Extracted hotel IDs:", hotelIds);
         console.log("  - Hotel IDs types:", hotelIds.map(id => typeof id));
-        setTopHotelIds(hotelIds);
-        console.log("  - Successfully called setTopHotelIds");
+        if (setTopHotelIds) {
+          setTopHotelIds(hotelIds);
+          console.log("  - Successfully called setTopHotelIds");
+        } else {
+          console.warn("  - setTopHotelIds not available");
+        }
       } catch (e) {
         console.error("Failed to fetch hotels:", e);
         setError("Failed to load hotels. Please try again later.");
@@ -52,7 +64,7 @@ const TopHighlightsSection = () => {
     };
 
     fetchHotels();
-  }, []);
+  }, [setTopHotelIds]);
 
   return (
     <>
