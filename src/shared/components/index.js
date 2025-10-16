@@ -47,6 +47,7 @@ export { default as SimpleSpinner } from './SimpleSpinner';
 export { default as AvailabilityDatePicker } from './AvailabilityDatePicker';
 export { default as BookingSuccessModal } from './BookingSuccessModal';
 export { default as CustomDatePicker } from './CustomDatePicker';
+export { default as PaymentDialog } from './PaymentDialog';
 export { default as GlobalReviewSheet } from './GlobalReviewSheet';
 export { default as QRCodeGenerator } from './QRCodeGenerator';
 export { default as RatingWidget } from './RatingWidget';

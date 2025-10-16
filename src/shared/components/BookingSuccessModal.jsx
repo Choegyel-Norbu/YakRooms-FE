@@ -5,9 +5,11 @@ import { Separator } from "./separator";
 import { Badge } from "./badge";
 import { CheckCircle, QrCode, Calendar, MapPin, Users, Phone, CreditCard, AlertCircle, Info } from "lucide-react";
 import QRCodeGenerator from "./QRCodeGenerator";
+import PaymentDialog from "./PaymentDialog";
 
 const BookingSuccessModal = ({ isOpen, onClose, bookingData }) => {
   const [showQRCode, setShowQRCode] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   const handleViewQRCode = () => {
     setShowQRCode(true);
@@ -15,6 +17,21 @@ const BookingSuccessModal = ({ isOpen, onClose, bookingData }) => {
 
   const handleCloseQRCode = () => {
     setShowQRCode(false);
+  };
+
+  const handlePaymentSuccess = (updatedBookingData) => {
+    // Update the booking data with payment information
+    // This could trigger a refresh of the booking status
+    console.log("Payment completed for booking:", updatedBookingData);
+    setShowPaymentDialog(false);
+    
+    // Update the booking data to reflect payment completion
+    // In a real app, you might want to update the parent component's state
+    // For now, we'll just show a success message
+    setTimeout(() => {
+      // This would typically update the booking data in the parent component
+      // bookingData.paymentStatus = 'completed';
+    }, 100);
   };
 
   const formatDate = (dateString) => {
@@ -113,10 +130,37 @@ const BookingSuccessModal = ({ isOpen, onClose, bookingData }) => {
                     <div className="text-lg font-bold text-blue-600">
                       {formatCurrency(bookingData?.totalPrice)}
                     </div>
+                    {bookingData?.paymentStatus === 'completed' && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm text-green-600 font-medium">Payment Completed</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
+
+            <Separator />
+
+            {/* Payment Button */}
+            {bookingData?.paymentStatus === 'completed' ? (
+              <Button 
+                disabled
+                className="w-full bg-green-600 cursor-not-allowed"
+              >
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Payment Completed
+              </Button>
+            ) : (
+              <Button 
+                onClick={() => setShowPaymentDialog(true)}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                <CreditCard className="mr-2 h-4 w-4" />
+                Proceed to Payment
+              </Button>
+            )}
 
             <Separator />
 
@@ -181,6 +225,14 @@ const BookingSuccessModal = ({ isOpen, onClose, bookingData }) => {
         isOpen={showQRCode}
         onClose={handleCloseQRCode}
         bookingData={bookingData}
+      />
+
+      {/* Payment Dialog */}
+      <PaymentDialog
+        isOpen={showPaymentDialog}
+        onClose={() => setShowPaymentDialog(false)}
+        bookingData={bookingData}
+        onPaymentSuccess={handlePaymentSuccess}
       />
     </>
   );

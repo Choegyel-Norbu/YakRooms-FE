@@ -745,12 +745,20 @@ export default function RoomBookingCard({ room, hotelId }) {
         userId,
         days: calculateDays(),
         adminBooking: false,
+        initiatePayment: true,
       };
       
       // Use advanced booking endpoint for detailed form submissions
       const res = await api.post("/bookings", payload);
       
       if (res.status === 200) {
+        // Check if BFS-Secure payment response is present
+        if (res.data?.paymentFormHtml) {
+          // Handle BFS-Secure payment redirect
+          handleBFSPaymentRedirect(res.data);
+          return;
+        }
+        
         // Prepare booking data for success modal
         const bookingData = {
           ...payload,
@@ -758,7 +766,9 @@ export default function RoomBookingCard({ room, hotelId }) {
           hotelName: room.hotelName,
           roomNumber: room.roomNumber,
           room: room,
-          bookingTime: new Date().toISOString()
+          bookingTime: new Date().toISOString(),
+          paymentStatus: res.data?.paymentStatus || 'pending',
+          passcode: res.data?.passcode
         };
         
         // Set success data and show modal
@@ -833,11 +843,19 @@ export default function RoomBookingCard({ room, hotelId }) {
         destination: immediateBookingDetails.destination,
         origin: immediateBookingDetails.origin,
         adminBooking: false,
+        initiatePayment: true,
       };
       
       const res = await api.post("/bookings", immediatePayload);
       
       if (res.status === 200) {
+        // Check if BFS-Secure payment response is present
+        if (res.data?.paymentFormHtml) {
+          // Handle BFS-Secure payment redirect
+          handleBFSPaymentRedirect(res.data);
+          return;
+        }
+        
         // Prepare booking data for success modal
         const bookingData = {
           ...immediatePayload,
@@ -845,7 +863,9 @@ export default function RoomBookingCard({ room, hotelId }) {
           hotelName: room.hotelName,
           roomNumber: room.roomNumber,
           room: room,
-          bookingTime: new Date().toISOString()
+          bookingTime: new Date().toISOString(),
+          paymentStatus: res.data?.paymentStatus || 'pending',
+          passcode: res.data?.passcode
         };
         
         // Set success data and show modal
@@ -883,6 +903,120 @@ export default function RoomBookingCard({ room, hotelId }) {
     } finally {
       setIsImmediateBookingLoading(false);
     }
+  };
+
+  // Handle BFS-Secure payment redirect
+  const handleBFSPaymentRedirect = (bookingResponse) => {
+    try {
+      // Create a temporary div to parse the HTML form
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = bookingResponse.paymentFormHtml;
+      
+      // Find the form element
+      const form = tempDiv.querySelector('form');
+      if (!form) {
+        throw new Error('Payment form not found in response');
+      }
+      
+      // Log payment form details for debugging
+      console.log("Payment Form Details:", {
+        action: form.action,
+        method: form.method,
+        transactionId: bookingResponse.transactionId,
+        bookingId: bookingResponse.id
+      });
+      
+      // Create a temporary form element and append it to the body
+      const paymentForm = document.createElement('form');
+      paymentForm.method = form.method || 'POST';
+      paymentForm.action = form.action;
+      paymentForm.style.display = 'none';
+      
+      // Copy all form inputs
+      const inputs = form.querySelectorAll('input');
+      inputs.forEach(input => {
+        const newInput = document.createElement('input');
+        newInput.type = input.type;
+        newInput.name = input.name;
+        newInput.value = input.value;
+        paymentForm.appendChild(newInput);
+      });
+      
+      // Append form to body and submit
+      document.body.appendChild(paymentForm);
+      paymentForm.submit();
+      
+      // Show success message
+      toast.success("Redirecting to Payment Gateway", {
+        description: "You are being redirected to BFS-Secure for payment processing. Please complete the payment and you will be redirected back.",
+        duration: 8000
+      });
+      
+      // Close any open dialogs
+      setOpenBookingDialog(false);
+      setOpenImmediateBookingDialog(false);
+      
+      // Set up payment status checking
+      checkPaymentStatus(bookingResponse.transactionId || bookingResponse.id);
+      
+    } catch (error) {
+      console.error("BFS Payment redirect failed:", error);
+      toast.error("Payment Redirect Failed", {
+        description: "There was an error redirecting to the payment gateway. Please try again.",
+        duration: 6000
+      });
+    }
+  };
+
+  // Check payment status periodically
+  const checkPaymentStatus = async (transactionId) => {
+    if (!transactionId) return;
+    
+    const maxAttempts = 30; // Check for 5 minutes (30 * 10 seconds)
+    let attempts = 0;
+    
+    const checkStatus = async () => {
+      try {
+        const response = await api.get(`/bookings/payment-status/${transactionId}`);
+        
+        if (response.data?.paymentStatus === 'completed') {
+          toast.success("Payment Successful!", {
+            description: "Your payment has been processed successfully.",
+            duration: 6000
+          });
+          return;
+        }
+        
+        if (response.data?.paymentStatus === 'failed') {
+          toast.error("Payment Failed", {
+            description: "Your payment could not be processed. Please try again.",
+            duration: 6000
+          });
+          return;
+        }
+        
+        // Continue checking if still pending
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkStatus, 10000); // Check every 10 seconds
+        } else {
+          toast.info("Payment Status Unknown", {
+            description: "Please check your booking status in your dashboard.",
+            duration: 6000
+          });
+        }
+        
+      } catch (error) {
+        console.error("Error checking payment status:", error);
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkStatus, 10000);
+        }
+      }
+    };
+    
+    // Start checking after 30 seconds
+    setTimeout(checkStatus, 30000);
   };
 
   // --- Core logic change: Handle opening of modals ---
@@ -1063,8 +1197,6 @@ export default function RoomBookingCard({ room, hotelId }) {
               </Button>
             </div>
           )}
-          
-
         </div>
       </div>
 
