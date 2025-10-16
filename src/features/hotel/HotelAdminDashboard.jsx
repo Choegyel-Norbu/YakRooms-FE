@@ -991,7 +991,7 @@ const HotelAdminDashboard = () => {
               ) : (
                 <Card>
                   <CardContent className="p-0 md:px-6 md:pb-6">
-                    <RoomManager />
+                    <RoomManager hotelId={currentHotelId} />
                   </CardContent>
                 </Card>
               )}

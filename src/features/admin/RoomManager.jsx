@@ -83,8 +83,7 @@ import {
   AlertDialogTrigger,
 } from "@/shared/components/alert-dialog";
 
-const RoomManager = () => {
-  const { hotelId } = useAuth();
+const RoomManager = ({ hotelId }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
   const [roomAdded, setRoomAdded] = useState(false);
@@ -193,6 +192,8 @@ const RoomManager = () => {
 
   // Fetch rooms
   useEffect(() => {
+    if (!hotelId) return;
+    
     console.log("Hotel ID from RoomManager:", hotelId);
     const fetchRooms = async () => {
       try {
@@ -210,7 +211,7 @@ const RoomManager = () => {
     };
 
     fetchRooms();
-  }, []);
+  }, [hotelId]);
 
   // Listen for localStorage changes
   useEffect(() => {
