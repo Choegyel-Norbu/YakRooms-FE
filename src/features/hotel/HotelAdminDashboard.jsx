@@ -516,6 +516,14 @@ const HotelAdminDashboard = () => {
               <h2 className="hidden md:block text-xl sm:text-xl lg:text-2xl font-semibold text-foreground truncate">
                 {getPageTitle()}
               </h2>
+              {/* Hotel Name Display */}
+              {hotel?.name && (
+                <div className="hidden md:flex items-center gap-2">
+                  <p className="text-sm font-medium text-primary truncate">
+                    {hotel.name}
+                  </p>
+                </div>
+              )}
               {activeTab !== "dashboard" && (
                 <p className="hidden md:block text-sm sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
                   {getPageDescription()}
@@ -638,6 +646,15 @@ const HotelAdminDashboard = () => {
                         <EzeeRoomLogo size="default" />
                       </div>
                     </SheetTitle>
+                    
+                    {/* Hotel Name for Mobile */}
+                    {hotel?.name && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <p className="text-sm font-medium text-primary truncate">
+                          {hotel.name}
+                        </p>
+                      </div>
+                    )}
                     
                     {/* Subscription Status for Mobile */}
                     {subscriptionPlan === 'TRIAL' && (
