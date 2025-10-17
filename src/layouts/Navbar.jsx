@@ -59,7 +59,6 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
   const { isAuthenticated, logout, userName, email, roles, pictureURL, hasRole, getPrimaryRole, getCurrentActiveRole, switchToRole, selectedHotelId, userHotels, userId, fetchUserHotels, setSelectedHotelId } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
   const [theme, setTheme] = useState("light");
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const [isLogoutConfirmationOpen, setIsLogoutConfirmationOpen] = useState(false);
@@ -88,7 +87,6 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       setIsScrolled(scrollY > 10);
-      setIsVisible(scrollY > 50); // Show navbar after scrolling 50px
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -560,9 +558,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
     <header
       className={cn(
         "fixed top-0 w-full z-50 transition-all duration-500 ease-in-out",
-        isVisible 
-          ? "translate-y-0 opacity-100" 
-          : "-translate-y-full opacity-0",
+        "translate-y-0 opacity-100",
         isScrolled
           ? "bg-white shadow-md"
           : "bg-white"
