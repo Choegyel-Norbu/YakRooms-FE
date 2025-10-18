@@ -30,6 +30,7 @@ const AUTH_STORAGE_KEYS = {
   TOP_HOTEL_IDS: 'topHotelIds',
   REDIRECT_URL: 'redirectUrl',
   LAST_AUTH_CHECK: 'lastAuthCheck',
+  SUBSCRIPTION_ID: 'subscriptionId',
   SUBSCRIPTION_PAYMENT_STATUS: 'subscriptionPaymentStatus',
   SUBSCRIPTION_PLAN: 'subscriptionPlan',
   SUBSCRIPTION_IS_ACTIVE: 'subscriptionIsActive',
@@ -212,6 +213,7 @@ const defaultAuthState = {
   userHotels: [],
   topHotelIds: [],
   isValidatingAuth: false, // New flag for auth validation state
+  subscriptionId: null,
   subscriptionPaymentStatus: null,
   subscriptionPlan: null,
   subscriptionIsActive: null,
@@ -248,6 +250,7 @@ export const AuthProvider = ({ children }) => {
         userHotels: parseUserHotelsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS)),
         topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
         isValidatingAuth: hasUserData, // Will validate with server if we think we're authenticated
+        subscriptionId: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_ID) || null,
         subscriptionPaymentStatus: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS) || null,
         subscriptionPlan: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PLAN) || null,
         subscriptionIsActive: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE) === "true" ? true : 
@@ -283,6 +286,7 @@ export const AuthProvider = ({ children }) => {
       
       if (response.status === 200 && response.data) {
         console.log("✅ Subscription data fetched successfully");
+        console.log("📋 Subscription data structure:", response.data);
         
         const subscriptionData = response.data;
         
@@ -293,9 +297,15 @@ export const AuthProvider = ({ children }) => {
         setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_NEXT_BILLING_DATE, subscriptionData.nextBillingDate || '');
         setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_EXPIRATION_NOTIFICATION, Boolean(subscriptionData.expirationNotification).toString());
         
+        // Store subscription ID if available
+        if (subscriptionData.id || subscriptionData.subscriptionId) {
+          setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_ID, (subscriptionData.id || subscriptionData.subscriptionId).toString());
+        }
+        
         // Update auth state
         setAuthState(prev => ({
           ...prev,
+          subscriptionId: subscriptionData.id || subscriptionData.subscriptionId || null,
           subscriptionPaymentStatus: subscriptionData.paymentStatus,
           subscriptionPlan: subscriptionData.subscriptionPlan,
           subscriptionIsActive: subscriptionData.isActive,

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../authentication";
 import api from "../../shared/services/Api";
+import { handlePaymentRedirect } from "@/shared/utils/paymentRedirect";
 
 import { Button } from "@/shared/components/button";
 import {
@@ -908,56 +909,29 @@ export default function RoomBookingCard({ room, hotelId }) {
   // Handle BFS-Secure payment redirect
   const handleBFSPaymentRedirect = (bookingResponse) => {
     try {
-      // Create a temporary div to parse the HTML form
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = bookingResponse.paymentFormHtml;
-      
-      // Find the form element
-      const form = tempDiv.querySelector('form');
-      if (!form) {
-        throw new Error('Payment form not found in response');
-      }
-      
-      // Log payment form details for debugging
-      console.log("Payment Form Details:", {
-        action: form.action,
-        method: form.method,
-        transactionId: bookingResponse.transactionId,
-        bookingId: bookingResponse.id
+      // Use the standardized payment redirect utility
+      handlePaymentRedirect(bookingResponse, {
+        gatewayName: 'BFS-Secure',
+        onSuccess: (paymentData) => {
+          toast.success("Redirecting to Payment Gateway", {
+            description: "You are being redirected to BFS-Secure for payment processing. Please complete the payment and you will be redirected back.",
+            duration: 8000
+          });
+          
+          // Close any open dialogs
+          setOpenBookingDialog(false);
+          setOpenImmediateBookingDialog(false);
+          
+          // Set up payment status checking
+          checkPaymentStatus(bookingResponse.transactionId || bookingResponse.id);
+        },
+        onError: (error) => {
+          toast.error("Payment Redirect Failed", {
+            description: "There was an error redirecting to the payment gateway. Please try again.",
+            duration: 6000
+          });
+        }
       });
-      
-      // Create a temporary form element and append it to the body
-      const paymentForm = document.createElement('form');
-      paymentForm.method = form.method || 'POST';
-      paymentForm.action = form.action;
-      paymentForm.style.display = 'none';
-      
-      // Copy all form inputs
-      const inputs = form.querySelectorAll('input');
-      inputs.forEach(input => {
-        const newInput = document.createElement('input');
-        newInput.type = input.type;
-        newInput.name = input.name;
-        newInput.value = input.value;
-        paymentForm.appendChild(newInput);
-      });
-      
-      // Append form to body and submit
-      document.body.appendChild(paymentForm);
-      paymentForm.submit();
-      
-      // Show success message
-      toast.success("Redirecting to Payment Gateway", {
-        description: "You are being redirected to BFS-Secure for payment processing. Please complete the payment and you will be redirected back.",
-        duration: 8000
-      });
-      
-      // Close any open dialogs
-      setOpenBookingDialog(false);
-      setOpenImmediateBookingDialog(false);
-      
-      // Set up payment status checking
-      checkPaymentStatus(bookingResponse.transactionId || bookingResponse.id);
       
     } catch (error) {
       console.error("BFS Payment redirect failed:", error);

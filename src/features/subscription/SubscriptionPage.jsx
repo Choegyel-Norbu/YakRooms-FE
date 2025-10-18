@@ -7,6 +7,7 @@ import { enhancedApi } from '@/shared/services/Api';
 import { useAuth } from '@/features/authentication/AuthProvider';
 import { toast } from 'sonner';
 import { calculateDaysUntil, formatDate } from '@/shared/utils/subscriptionUtils';
+import { handlePaymentRedirect } from '@/shared/utils/paymentRedirect';
 
 const SubscriptionPage = () => {
   const { 
@@ -180,24 +181,47 @@ const SubscriptionPage = () => {
       
       const subscriptionData = {
         subscriptionPlan: 'PRO',
-        paymentStatus: 'PAID',
-        nextBillingDate: nextBillingDate.toISOString(),
-        lastPaymentDate: new Date().toISOString(),
-        notes: `Subscription renewed on ${new Date().toLocaleDateString()} - Extended for 1 month from expiration date ${formatDate(subscriptionNextBillingDate)}`
+        amount: 1000.0,
+        userId: userId
       };
 
-      console.log('Updating subscription with data:', subscriptionData);
+      console.log('Initiating subscription payment with data:', subscriptionData);
       
-      const response = await enhancedApi.put(`/subscriptions/user/${userId}`, subscriptionData);
+      const response = await enhancedApi.post('/subscriptions/payment/initiate', subscriptionData, {
+        params: {
+          baseUrl: window.location.origin
+        }
+      });
       
       if (response.status === 200 || response.status === 201) {
-        toast.success('Subscription activated successfully! Your hotel is now discoverable.');
-        console.log('Subscription updated successfully:', response.data);
+        const responseData = response.data;
         
-        // Redirect to dashboard after 2 seconds
-        setTimeout(() => {
-          navigate('/hotelAdmin');
-        }, 2000);
+        if (responseData.success && responseData.payment?.paymentUrl) {
+          toast.success('Payment initiated successfully! Redirecting to RMA payment gateway...');
+          console.log('Payment initiated successfully:', responseData);
+          console.log('Transaction ID:', responseData.payment.transactionId);
+          console.log('Order Number:', responseData.payment.orderNumber);
+          console.log('Amount:', responseData.payment.amount, responseData.payment.currency);
+          
+          // Use proper form handling for payment redirect
+          handlePaymentRedirect(responseData.payment, {
+            gatewayName: 'RMA',
+            onSuccess: (paymentData) => {
+              toast.success("Redirecting to Payment Gateway", {
+                description: "You are being redirected to RMA payment gateway for processing. Please complete the payment and you will be redirected back.",
+                duration: 8000
+              });
+            },
+            onError: (error) => {
+              toast.error("Payment Redirect Failed", {
+                description: "There was an error redirecting to the payment gateway. Please try again.",
+                duration: 6000
+              });
+            }
+          });
+        } else {
+          throw new Error('Invalid payment response: missing payment URL');
+        }
       } else {
         throw new Error('Unexpected response status');
       }

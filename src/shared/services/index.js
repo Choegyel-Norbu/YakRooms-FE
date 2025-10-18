@@ -1,6 +1,7 @@
 // API Services
 export { default as api } from './Api';
 export { default as feedbackService } from './feedbackService';
+export { default as subscriptionService } from './subscriptionService';
 
 // Upload Services
 export { uploadFile } from './uploadService';

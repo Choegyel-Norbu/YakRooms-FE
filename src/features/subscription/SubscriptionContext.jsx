@@ -1,0 +1,550 @@
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
+import { useAuth } from "@/features/authentication/AuthProvider";
+import subscriptionService from "@/shared/services/subscriptionService";
+import { toast } from "sonner";
+
+// === Subscription Context Setup ===
+const SubscriptionContext = createContext(null);
+
+// === Subscription Plans Configuration ===
+export const SUBSCRIPTION_PLANS = {
+  TRIAL: {
+    id: 'TRIAL',
+    name: 'Free Trial',
+    price: 0,
+    currency: 'Nu.',
+    duration: 2, // months
+    features: [
+      'Access to all platform features',
+      'Hotel management dashboard',
+      'Guest booking system',
+      'Basic analytics & reports',
+      'Mobile app access',
+    ],
+    limitations: [
+      'Limited to trial period',
+      'No premium support',
+    ]
+  },
+  PRO: {
+    id: 'PRO',
+    name: 'Pro Subscription',
+    price: 1000,
+    currency: 'Nu.',
+    duration: 1, // month
+    features: [
+      'Activate your hotel listing',
+      'Make your hotel discoverable to guests',
+      'Appear in search results',
+      'Receive booking requests',
+      'Manage guest reservations',
+      'Access booking analytics',
+      'Priority customer support',
+      'Download reports',
+      'Advanced analytics',
+      'Marketing tools',
+    ],
+    limitations: []
+  }
+};
+
+// === Payment Status Constants ===
+export const PAYMENT_STATUS = {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED',
+  REFUNDED: 'REFUNDED'
+};
+
+// === Subscription Status Constants ===
+export const SUBSCRIPTION_STATUS = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  EXPIRED: 'EXPIRED',
+  CANCELLED: 'CANCELLED',
+  TRIAL: 'TRIAL'
+};
+
+const defaultSubscriptionState = {
+  subscription: null,
+  paymentHistory: [],
+  isLoading: false,
+  error: null,
+  lastUpdated: null,
+};
+
+export const SubscriptionProvider = ({ children }) => {
+  const { 
+    userId, 
+    hotelId, 
+    isAuthenticated,
+    subscriptionId,
+    subscriptionPaymentStatus,
+    subscriptionPlan,
+    subscriptionIsActive,
+    subscriptionNextBillingDate,
+    subscriptionExpirationNotification,
+    fetchSubscriptionData
+  } = useAuth();
+
+  const [subscriptionState, setSubscriptionState] = useState(defaultSubscriptionState);
+
+  // === FETCH SUBSCRIPTION DETAILS (memoized) ===
+  const fetchSubscriptionDetails = useCallback(async (forceRefresh = false) => {
+    if (!userId || !isAuthenticated) return null;
+
+    // Don't fetch if we already have data and it's not a forced refresh
+    if (!forceRefresh && subscriptionState.subscription && subscriptionState.lastUpdated) {
+      const timeSinceLastUpdate = Date.now() - subscriptionState.lastUpdated;
+      // Only refetch if data is older than 5 minutes
+      if (timeSinceLastUpdate < 5 * 60 * 1000) {
+        return subscriptionState.subscription;
+      }
+    }
+
+    setSubscriptionState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      console.log("🔍 Fetching detailed subscription data for user:", userId);
+      const subscriptionData = await subscriptionService.getSubscriptionByUserId(userId);
+      
+      setSubscriptionState(prev => ({
+        ...prev,
+        subscription: subscriptionData,
+        isLoading: false,
+        error: null,
+        lastUpdated: Date.now()
+      }));
+
+      // Update auth provider with latest subscription data
+      if (fetchSubscriptionData) {
+        await fetchSubscriptionData(userId);
+      }
+
+      return subscriptionData;
+    } catch (error) {
+      console.error("❌ Failed to fetch subscription details:", error);
+      
+      setSubscriptionState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: error.response?.status === 404 ? 'No subscription found' : 'Failed to load subscription data'
+      }));
+
+      if (error.response?.status !== 404) {
+        toast.error("Failed to load subscription data. Please try again.");
+      }
+
+      return null;
+    }
+  }, [userId, isAuthenticated, subscriptionState.subscription, subscriptionState.lastUpdated, fetchSubscriptionData]);
+
+  // === FETCH PAYMENT HISTORY (memoized) ===
+  const fetchPaymentHistory = useCallback(async () => {
+    if (!userId || !isAuthenticated) return [];
+
+    try {
+      console.log("📜 Fetching payment history for user:", userId);
+      const history = await subscriptionService.getSubscriptionHistory(userId);
+      
+      setSubscriptionState(prev => ({
+        ...prev,
+        paymentHistory: Array.isArray(history) ? history : []
+      }));
+
+      return history;
+    } catch (error) {
+      console.error("❌ Failed to fetch payment history:", error);
+      toast.error("Failed to load payment history.");
+      return [];
+    }
+  }, [userId, isAuthenticated]);
+
+  // === CREATE SUBSCRIPTION (memoized) ===
+  const createSubscription = useCallback(async (subscriptionData) => {
+    if (!userId || !isAuthenticated) {
+      throw new Error("User must be authenticated to create subscription");
+    }
+
+    setSubscriptionState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      console.log("📝 Creating new subscription:", subscriptionData);
+      
+      const newSubscription = await subscriptionService.createSubscription({
+        ...subscriptionData,
+        userId: parseInt(userId)
+      });
+
+      setSubscriptionState(prev => ({
+        ...prev,
+        subscription: newSubscription,
+        isLoading: false,
+        error: null,
+        lastUpdated: Date.now()
+      }));
+
+      // Refresh auth provider subscription data
+      if (fetchSubscriptionData) {
+        await fetchSubscriptionData(userId);
+      }
+
+      toast.success("Subscription created successfully!");
+      return newSubscription;
+    } catch (error) {
+      console.error("❌ Failed to create subscription:", error);
+      
+      setSubscriptionState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: 'Failed to create subscription'
+      }));
+
+      const errorMessage = error.response?.data?.message || "Failed to create subscription. Please try again.";
+      toast.error(errorMessage);
+      throw error;
+    }
+  }, [userId, isAuthenticated, fetchSubscriptionData]);
+
+  // === INITIATE PAYMENT (memoized) ===
+  const initiatePayment = useCallback(async (paymentData, baseUrl = "https://www.ezeeroom.bt") => {
+    if (!userId || !hotelId) {
+      throw new Error("User ID and Hotel ID are required for payment initiation");
+    }
+
+    setSubscriptionState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      console.log("💳 Initiating payment with data:", {
+        userId,
+        hotelId,
+        paymentData,
+        baseUrl
+      });
+      
+      const paymentRequest = {
+        hotelId: parseInt(hotelId),
+        userId: parseInt(userId),
+        subscriptionPlan: paymentData.subscriptionPlan || 'PRO',
+        amount: paymentData.amount || 1000.00,
+        notes: paymentData.notes || "Subscription payment"
+      };
+
+      console.log("📤 Sending payment request:", paymentRequest);
+      const paymentResponse = await subscriptionService.initiateSubscriptionPayment(paymentRequest, baseUrl);
+      console.log("📥 Received payment response:", paymentResponse);
+
+      setSubscriptionState(prev => ({ ...prev, isLoading: false }));
+
+      // Handle payment redirect - don't redirect automatically, return response for handling
+      if (paymentResponse.success) {
+        console.log("✅ Payment initiation successful");
+        
+        // Update subscription data if provided in response
+        if (paymentResponse.subscription) {
+          setSubscriptionState(prev => ({
+            ...prev,
+            subscription: paymentResponse.subscription,
+            lastUpdated: Date.now()
+          }));
+          
+          // Refresh auth provider data
+          if (fetchSubscriptionData) {
+            try {
+              await fetchSubscriptionData(userId);
+            } catch (refreshError) {
+              console.warn("⚠️ Failed to refresh auth subscription data:", refreshError);
+            }
+          }
+        }
+      }
+
+      return paymentResponse;
+    } catch (error) {
+      console.error("❌ Failed to initiate payment:", error);
+      
+      setSubscriptionState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: 'Failed to initiate payment'
+      }));
+
+      // Provide more specific error messages based on error type
+      let errorMessage = "Failed to initiate payment. Please try again.";
+      
+      if (error.response?.status === 400) {
+        errorMessage = "Invalid payment request. Please check your information and try again.";
+      } else if (error.response?.status === 401) {
+        errorMessage = "Authentication required. Please log in and try again.";
+      } else if (error.response?.status === 404) {
+        errorMessage = "Payment service not available. Please try again later.";
+      } else if (error.response?.status === 500) {
+        errorMessage = "Server error occurred. Please try again later or contact support.";
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      toast.error(errorMessage);
+      throw error;
+    }
+  }, [userId, hotelId, fetchSubscriptionData]);
+
+  // === UPDATE SUBSCRIPTION (memoized) ===
+  const updateSubscription = useCallback(async (subscriptionId, updateData) => {
+    if (!subscriptionId) {
+      throw new Error("Subscription ID is required for update");
+    }
+
+    setSubscriptionState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      console.log("📝 Updating subscription:", subscriptionId, updateData);
+      
+      const updatedSubscription = await subscriptionService.updateSubscription(subscriptionId, updateData);
+
+      setSubscriptionState(prev => ({
+        ...prev,
+        subscription: updatedSubscription,
+        isLoading: false,
+        error: null,
+        lastUpdated: Date.now()
+      }));
+
+      // Refresh auth provider subscription data
+      if (fetchSubscriptionData && userId) {
+        await fetchSubscriptionData(userId);
+      }
+
+      toast.success("Subscription updated successfully!");
+      return updatedSubscription;
+    } catch (error) {
+      console.error("❌ Failed to update subscription:", error);
+      
+      setSubscriptionState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: 'Failed to update subscription'
+      }));
+
+      const errorMessage = error.response?.data?.message || "Failed to update subscription. Please try again.";
+      toast.error(errorMessage);
+      throw error;
+    }
+  }, [fetchSubscriptionData, userId]);
+
+  // === CANCEL SUBSCRIPTION (memoized) ===
+  const cancelSubscription = useCallback(async (subscriptionId, reason = "User requested cancellation") => {
+    if (!subscriptionId) {
+      throw new Error("Subscription ID is required for cancellation");
+    }
+
+    setSubscriptionState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      console.log("❌ Cancelling subscription:", subscriptionId, reason);
+      
+      const cancellationResult = await subscriptionService.cancelSubscription(subscriptionId, reason);
+
+      // Refresh subscription data after cancellation
+      await fetchSubscriptionDetails(true);
+
+      toast.success("Subscription cancelled successfully!");
+      return cancellationResult;
+    } catch (error) {
+      console.error("❌ Failed to cancel subscription:", error);
+      
+      setSubscriptionState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: 'Failed to cancel subscription'
+      }));
+
+      const errorMessage = error.response?.data?.message || "Failed to cancel subscription. Please try again.";
+      toast.error(errorMessage);
+      throw error;
+    }
+  }, [fetchSubscriptionDetails]);
+
+  // === REACTIVATE SUBSCRIPTION (memoized) ===
+  const reactivateSubscription = useCallback(async (subscriptionId) => {
+    if (!subscriptionId) {
+      throw new Error("Subscription ID is required for reactivation");
+    }
+
+    setSubscriptionState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      console.log("🔄 Reactivating subscription:", subscriptionId);
+      
+      const reactivationResult = await subscriptionService.reactivateSubscription(subscriptionId);
+
+      // Refresh subscription data after reactivation
+      await fetchSubscriptionDetails(true);
+
+      toast.success("Subscription reactivated successfully!");
+      return reactivationResult;
+    } catch (error) {
+      console.error("❌ Failed to reactivate subscription:", error);
+      
+      setSubscriptionState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: 'Failed to reactivate subscription'
+      }));
+
+      const errorMessage = error.response?.data?.message || "Failed to reactivate subscription. Please try again.";
+      toast.error(errorMessage);
+      throw error;
+    }
+  }, [fetchSubscriptionDetails]);
+
+  // === GET PAYMENT STATUS (memoized) ===
+  const getPaymentStatus = useCallback(async (transactionId) => {
+    if (!transactionId) {
+      throw new Error("Transaction ID is required");
+    }
+
+    try {
+      console.log("🔍 Checking payment status for transaction:", transactionId);
+      const paymentStatus = await subscriptionService.getPaymentStatus(transactionId);
+      return paymentStatus;
+    } catch (error) {
+      console.error("❌ Failed to get payment status:", error);
+      throw error;
+    }
+  }, []);
+
+  // === UTILITY FUNCTIONS (memoized) ===
+  const getSubscriptionStatus = useCallback(() => {
+    if (!subscriptionPlan) return SUBSCRIPTION_STATUS.INACTIVE;
+    
+    if (subscriptionIsActive === true) {
+      return subscriptionPlan === 'TRIAL' ? SUBSCRIPTION_STATUS.TRIAL : SUBSCRIPTION_STATUS.ACTIVE;
+    } else if (subscriptionIsActive === false) {
+      return SUBSCRIPTION_STATUS.EXPIRED;
+    }
+    
+    return SUBSCRIPTION_STATUS.INACTIVE;
+  }, [subscriptionPlan, subscriptionIsActive]);
+
+  const isSubscriptionActive = useCallback(() => {
+    return subscriptionIsActive === true;
+  }, [subscriptionIsActive]);
+
+  const isTrialActive = useCallback(() => {
+    return subscriptionIsActive === true && subscriptionPlan === 'TRIAL';
+  }, [subscriptionIsActive, subscriptionPlan]);
+
+  const isProActive = useCallback(() => {
+    return subscriptionIsActive === true && subscriptionPlan === 'PRO';
+  }, [subscriptionIsActive, subscriptionPlan]);
+
+  const isExpired = useCallback(() => {
+    return subscriptionIsActive === false && subscriptionPlan;
+  }, [subscriptionIsActive, subscriptionPlan]);
+
+  const getDaysUntilExpiration = useCallback(() => {
+    if (!subscriptionNextBillingDate) return null;
+    
+    const expirationDate = new Date(subscriptionNextBillingDate);
+    const today = new Date();
+    const diffTime = expirationDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays;
+  }, [subscriptionNextBillingDate]);
+
+  const getSubscriptionPlan = useCallback((planId) => {
+    return SUBSCRIPTION_PLANS[planId] || null;
+  }, []);
+
+  // === AUTO-FETCH SUBSCRIPTION DATA ===
+  useEffect(() => {
+    if (userId && isAuthenticated && !subscriptionState.subscription) {
+      fetchSubscriptionDetails();
+    }
+  }, [userId, isAuthenticated, fetchSubscriptionDetails, subscriptionState.subscription]);
+
+  // === MEMOIZED CONTEXT VALUE ===
+  const contextValue = useMemo(() => ({
+    // State
+    subscription: subscriptionState.subscription,
+    paymentHistory: subscriptionState.paymentHistory,
+    isLoading: subscriptionState.isLoading,
+    error: subscriptionState.error,
+    lastUpdated: subscriptionState.lastUpdated,
+
+    // Auth-based subscription data
+    subscriptionId,
+    subscriptionPaymentStatus,
+    subscriptionPlan,
+    subscriptionIsActive,
+    subscriptionNextBillingDate,
+    subscriptionExpirationNotification,
+
+    // Actions
+    fetchSubscriptionDetails,
+    fetchPaymentHistory,
+    createSubscription,
+    initiatePayment,
+    updateSubscription,
+    cancelSubscription,
+    reactivateSubscription,
+    getPaymentStatus,
+
+    // Utility functions
+    getSubscriptionStatus,
+    isSubscriptionActive,
+    isTrialActive,
+    isProActive,
+    isExpired,
+    getDaysUntilExpiration,
+    getSubscriptionPlan,
+
+    // Constants
+    SUBSCRIPTION_PLANS,
+    PAYMENT_STATUS,
+    SUBSCRIPTION_STATUS,
+  }), [
+    subscriptionState,
+    subscriptionId,
+    subscriptionPaymentStatus,
+    subscriptionPlan,
+    subscriptionIsActive,
+    subscriptionNextBillingDate,
+    subscriptionExpirationNotification,
+    fetchSubscriptionDetails,
+    fetchPaymentHistory,
+    createSubscription,
+    initiatePayment,
+    updateSubscription,
+    cancelSubscription,
+    reactivateSubscription,
+    getPaymentStatus,
+    getSubscriptionStatus,
+    isSubscriptionActive,
+    isTrialActive,
+    isProActive,
+    isExpired,
+    getDaysUntilExpiration,
+    getSubscriptionPlan,
+  ]);
+
+  return (
+    <SubscriptionContext.Provider value={contextValue}>
+      {children}
+    </SubscriptionContext.Provider>
+  );
+};
+
+export const useSubscription = () => {
+  const context = useContext(SubscriptionContext);
+  if (!context) {
+    console.error("useSubscription must be used within a SubscriptionProvider. Make sure the component is wrapped in <SubscriptionProvider>");
+    throw new Error("useSubscription must be used within a SubscriptionProvider");
+  }
+  return context;
+};
+
+export default SubscriptionContext;

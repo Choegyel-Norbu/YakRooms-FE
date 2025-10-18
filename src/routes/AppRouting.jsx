@@ -12,6 +12,7 @@ import { SuperAdmin } from "../features/admin";
 import { GuestDashboard } from "../features/guest";
 import { PrivacyPolicy, TermsAndConditions } from "../features/landing";
 import { SubscriptionPage } from "../features/subscription";
+import { SubscriptionManagement } from "../shared/components";
 import RatingScaleTestPage from "../components/RatingScaleTestPage";
 
 // Protected Route Component
@@ -151,6 +152,15 @@ const AppRouting = () => {
         element={
           <ProtectedRoute allowedRoles={["HOTEL_ADMIN"]}>
             <AccountDeletionPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/subscription-management"
+        element={
+          <ProtectedRoute allowedRoles={["HOTEL_ADMIN", "STAFF", "MANAGER"]}>
+            <SubscriptionManagement />
           </ProtectedRoute>
         }
       />

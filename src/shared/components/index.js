@@ -60,4 +60,7 @@ export { default as SearchButton } from './SearchButton';
 export { default as HotelMap } from './HotelMap';
 export { default as SubscriptionExpirationNotification } from './SubscriptionExpirationNotification';
 export { default as RatingDialog } from './RatingDialog';
-export { default as RatingDialogProvider } from './RatingDialogProvider'; 
+export { default as RatingDialogProvider } from './RatingDialogProvider';
+
+// Subscription Components
+export { default as SubscriptionManagement } from './SubscriptionManagement'; 
