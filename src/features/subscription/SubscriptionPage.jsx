@@ -130,6 +130,7 @@ const SubscriptionPage = () => {
         nextBillingDate: trialEndDate.toISOString(),
         cancelDate: null,
         lastPaymentDate: null,
+        amount: 1000.0,
         notes: "Initial subscription setup for new user"
       };
 
