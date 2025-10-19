@@ -184,14 +184,21 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           console.log("🔄 [DASHBOARD] Fetching fresh user hotels data...");
           const hotels = await fetchUserHotels(userId);
           
-          if (hotels && hotels.length === 1) {
-            // Only one hotel - auto-select and navigate
-            const hotel = hotels[0];
-            setSelectedHotelId(hotel.id);
-            navigate('/dashboard');
-          } else if (hotels && hotels.length > 1) {
-            // Multiple hotels - show selection dialog
-            setIsHotelSelectionOpen(true);
+          if (hotels && hotels.length > 0) {
+            // Check if we already have a selected hotel that's still valid
+            const currentSelectedHotel = hotels.find(hotel => hotel.id?.toString() === selectedHotelId);
+            
+            if (currentSelectedHotel) {
+              // Current selected hotel is still valid, navigate directly
+              console.log("✅ [DASHBOARD] Using existing selected hotel:", currentSelectedHotel.name);
+              navigate('/dashboard');
+            } else {
+              // Current selected hotel is no longer valid or not set, auto-select the first hotel
+              const hotel = hotels[0];
+              console.log("🔄 [DASHBOARD] Auto-selecting first hotel:", hotel.name);
+              setSelectedHotelId(hotel.id);
+              navigate('/dashboard');
+            }
           } else {
             // No hotels - show selection dialog (will show "no hotels" message)
             setIsHotelSelectionOpen(true);
@@ -212,10 +219,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
   };
 
   const handleHotelSelected = (hotel) => {
-    toast.success(`Selected ${hotel.name}`, {
-      description: "You can now access the hotel dashboard",
-      duration: 3000,
-    });
+    // Hotel selection handled silently
   };
 
   const UserNav = () => {

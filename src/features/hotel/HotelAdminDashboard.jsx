@@ -374,15 +374,8 @@ const HotelAdminDashboard = () => {
       // Reset notifications for the new hotel
       setNotifications([]);
       setUnreadCount(0);
-      
-      toast.success(`Switched to ${res.data?.name || 'Hotel'}`, {
-        duration: 3000
-      });
     } catch (error) {
       console.error("Failed to switch hotel:", error);
-      toast.error("Failed to switch hotel. Please try again.", {
-        duration: 4000
-      });
     }
   };
 
@@ -1174,7 +1167,7 @@ const HotelAdminDashboard = () => {
               ) : (
                 <Card>
                   <CardContent className="p-0 md:px-6 md:pb-6">
-                    <StaffManager /> {/* Changed component */}
+                    <StaffManager hotelId={currentHotelId} />
                   </CardContent>
                 </Card>
               )}
@@ -1212,7 +1205,7 @@ const HotelAdminDashboard = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <LeaveManagement />
+                <LeaveManagement hotelId={currentHotelId} />
               )}
             </div>
           )}
@@ -1250,8 +1243,8 @@ const HotelAdminDashboard = () => {
               ) : (
                 <CardContent className="p-0 md:px-6 md:pb-6">
                   <div className="space-y-8">
-                    <BookingsTrendChart />
-                    <MonthlyPerformanceChart />
+                    <BookingsTrendChart hotelId={currentHotelId} />
+                    <MonthlyPerformanceChart hotelId={currentHotelId} />
                   </div>
                 </CardContent>
               )}

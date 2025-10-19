@@ -17,8 +17,7 @@ import * as XLSX from 'xlsx';
 import api from "../../shared/services/Api";
 import { useAuth } from "@/features/authentication";
 
-const MonthlyPerformanceChart = () => {
-  const { hotelId } = useAuth();
+const MonthlyPerformanceChart = ({ hotelId }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

@@ -65,8 +65,7 @@ const validators = {
   },
 };
 
-const StaffManager = () => {
-  const { hotelId } = useAuth();
+const StaffManager = ({ hotelId }) => {
 
   // State management
   const [staff, setStaff] = useState([]);

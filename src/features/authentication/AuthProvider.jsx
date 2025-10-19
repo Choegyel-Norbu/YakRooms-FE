@@ -413,11 +413,21 @@ export const AuthProvider = ({ children }) => {
           // Set the first hotelId as the primary hotelId for backward compatibility
           if (userData.hotelIds.length > 0) {
             setStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID, userData.hotelIds[0]);
+            // Initialize selectedHotelId if not already set
+            const existingSelectedHotelId = getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID);
+            if (!existingSelectedHotelId) {
+              setStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID, userData.hotelIds[0]);
+            }
           }
         } else if (userData.hotelId) {
           // Fallback to single hotelId if hotelIds array is not provided
           setStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID, userData.hotelId);
           setStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS, stringifyHotelIdsForStorage([userData.hotelId]));
+          // Initialize selectedHotelId if not already set
+          const existingSelectedHotelId = getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID);
+          if (!existingSelectedHotelId) {
+            setStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID, userData.hotelId);
+          }
         }
         
         setStorageItem(AUTH_STORAGE_KEYS.LAST_AUTH_CHECK, Date.now().toString());
@@ -435,6 +445,7 @@ export const AuthProvider = ({ children }) => {
           clientDetailSet: Boolean(userData.detailSet),
           hotelId: userData.hotelIds && userData.hotelIds.length > 0 ? userData.hotelIds[0] : (userData.hotelId || prev.hotelId),
           hotelIds: userData.hotelIds && Array.isArray(userData.hotelIds) ? userData.hotelIds : (userData.hotelId ? [userData.hotelId] : prev.hotelIds),
+          selectedHotelId: getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID) || prev.selectedHotelId,
           isValidatingAuth: false,
         }));
         
@@ -775,11 +786,21 @@ export const AuthProvider = ({ children }) => {
         // Set the first hotelId as the primary hotelId for backward compatibility
         if (authData.hotelIds.length > 0) {
           setStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID, authData.hotelIds[0]);
+          // Initialize selectedHotelId if not already set
+          const existingSelectedHotelId = getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID);
+          if (!existingSelectedHotelId) {
+            setStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID, authData.hotelIds[0]);
+          }
         }
       } else if (authData.hotelId) {
         // Fallback to single hotelId if hotelIds array is not provided
         setStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID, authData.hotelId);
         setStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS, stringifyHotelIdsForStorage([authData.hotelId]));
+        // Initialize selectedHotelId if not already set
+        const existingSelectedHotelId = getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID);
+        if (!existingSelectedHotelId) {
+          setStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID, authData.hotelId);
+        }
       }
 
       const existingHotelId = getStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID);
@@ -798,6 +819,7 @@ export const AuthProvider = ({ children }) => {
         flag: true,
         hotelId: authData.hotelIds && authData.hotelIds.length > 0 ? authData.hotelIds[0] : (authData.hotelId || existingHotelId || null),
         hotelIds: authData.hotelIds && Array.isArray(authData.hotelIds) ? authData.hotelIds : (authData.hotelId ? [authData.hotelId] : existingHotelIds),
+        selectedHotelId: getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID) || (authData.hotelIds && authData.hotelIds.length > 0 ? authData.hotelIds[0] : authData.hotelId),
         topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
         isValidatingAuth: false, // Auth is validated since we just logged in
       };

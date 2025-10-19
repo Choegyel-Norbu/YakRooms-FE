@@ -59,6 +59,7 @@ import SimpleSpinner from "@/shared/components/SimpleSpinner";
 import { SearchButton } from "@/shared/components";
 import { exportToExcel } from "@/shared/utils/utils";
 import * as XLSX from "xlsx";
+import { SuperAdminTabs } from "@/components/ui/super-admin-tabs";
 
 const SuperAdmin = () => {
   const [hotels, setHotels] = useState([]);
@@ -824,7 +825,7 @@ const SuperAdmin = () => {
       
       // Call the transfer endpoint for bookings
       const bookingId = selectedBookingForTransfer.id;
-      const transferStatus = 'TRANSFERRED'; // Default status as per requirement
+      const transferStatus = 'DEPOSITED'; // Default status as per requirement
       
       await api.put(`/bookings/${bookingId}/transfer-details`, null, {
         params: {
@@ -2417,16 +2418,106 @@ const SuperAdmin = () => {
       return `Nu. ${Number(price).toLocaleString()}`;
     };
 
+    // Export bookings to Excel
+    const exportBookingsToExcel = async () => {
+      try {
+        // Show loading toast
+        const loadingToast = toast.loading("Preparing Excel export...");
+
+        // Fetch ALL bookings data for export using /bookings/all endpoint
+        let allBookings = [];
+        try {
+          const response = await api.get("/bookings/all");
+          allBookings = response.data || [];
+          
+          console.log(`[EXPORT] Fetched ${allBookings.length} bookings for export`);
+        } catch (error) {
+          console.error("Error fetching all bookings for export:", error);
+          toast.dismiss(loadingToast);
+          toast.error("Failed to fetch bookings data for export");
+          return;
+        }
+
+        if (allBookings.length === 0) {
+          toast.dismiss(loadingToast);
+          toast.warning("No bookings data to export");
+          return;
+        }
+
+        // Prepare data for Excel export
+        const excelData = allBookings.map((booking) => ({
+          "Booking ID": booking.id,
+          "Guest Name": booking.guestName || booking.name || "Unknown Guest",
+          "Email": booking.email || "N/A",
+          "Phone": booking.phone || "N/A",
+          "CID": booking.cid || "N/A",
+          "Hotel Name": booking.hotelName || "Unknown Hotel",
+          "Hotel District": booking.hotelDistrict || "Unknown Location",
+          "Hotel Phone": booking.hotelPhone || "N/A",
+          "Room Number": booking.roomNumber || "N/A",
+          "Check-In Date": booking.checkInDate ? format(new Date(booking.checkInDate), "dd MMM yyyy") : "N/A",
+          "Check-Out Date": booking.checkOutDate ? format(new Date(booking.checkOutDate), "dd MMM yyyy") : "N/A",
+          "Guests": booking.guests || "N/A",
+          "Origin": booking.origin || "N/A",
+          "Destination": booking.destination || "N/A",
+          "Transfer Status": booking.transferStatus || "N/A",
+          "Transaction ID": booking.transactionId || "N/A",
+          "Booking Amount": booking.bookingAmount || "N/A",
+          "Order Number": booking.orderNumber || "N/A",
+          "Transaction Status": booking.transactionStatus || "N/A",
+          "Bank Type": booking.bankType || "N/A",
+          "Account Number": booking.accountNumber || "N/A",
+          "Account Holder": booking.accountHolderName || "N/A",
+          "Booking Status": booking.status || "UNKNOWN",
+          "Payment URL": booking.paymentUrl || "N/A",
+          "Created Date": booking.createdAt ? format(new Date(booking.createdAt), "dd MMM yyyy") : "N/A",
+          "Created Time": booking.createdAt ? format(new Date(booking.createdAt), "HH:mm") : "N/A",
+        }));
+
+        // Use the existing exportToExcel utility
+        const result = exportToExcel(
+          excelData,
+          `superadmin-bookings-export-${format(new Date(), "yyyy-MM-dd")}`,
+          "All Bookings"
+        );
+
+        if (result) {
+          // Dismiss loading toast and show success
+          toast.dismiss(loadingToast);
+          toast.success(`Exported ${allBookings.length} bookings to Excel`, {
+            duration: 6000,
+          });
+        } else {
+          toast.dismiss(loadingToast);
+          toast.error("Failed to export bookings data");
+        }
+      } catch (error) {
+        console.error("Error exporting bookings to Excel:", error);
+        toast.error("Failed to export bookings data to Excel");
+      }
+    };
+
     return (
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-green-500" />
-            Bookings Management
-          </CardTitle>
-          <CardDescription>
-            Complete overview of all hotel bookings with guest and hotel details
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                Booking Management
+              </CardTitle>
+              <CardDescription>
+                Complete overview of all hotel bookings with guest and hotel details
+              </CardDescription>
+            </div>
+            <Button
+              onClick={exportBookingsToExcel}
+              disabled={loadingBookings}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Export Excel
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {loadingBookings ? (
@@ -2528,7 +2619,7 @@ const SuperAdmin = () => {
                                 : "bg-gray-100 text-gray-800 border-gray-200"
                             }`}
                           >
-                            {booking.transferStatus || "UNKNOWN"}
+                            {booking.transferStatus || "N/A"}
                           </Badge>
                         </div>
                         {booking.transactionId && (
@@ -2564,7 +2655,7 @@ const SuperAdmin = () => {
                               : "bg-gray-100 text-gray-800 border-gray-200"
                           }`}
                         >
-                          {booking.transactionStatus || "UNKNOWN"}
+                          {booking.transactionStatus || "N/A"}
                         </Badge>
                       </div>
                     </TableCell>
@@ -2796,6 +2887,13 @@ const SuperAdmin = () => {
     </Card>
   );
 
+  const HotelTableWithPagination = () => (
+    <>
+      <HotelTable />
+      {hotels.length > 0 && <PaginationControls />}
+    </>
+  );
+
   return (
     <div className="min-h-screen bg-muted/40 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
@@ -2906,31 +3004,21 @@ const SuperAdmin = () => {
         {/* Transfer Form */}
         <TransferForm />
 
-        {/* Bookings Management Section */}
-        <BookingsTable />
-
-        {/* Hotel Deletion Requests Section */}
-        <HotelDeletionRequestsTable />
-
-        {/* Reviews Management Section */}
-        <ReviewsTable />
-
-        {/* System Feedbacks Section */}
-        <FeedbacksTable />
-
+        {/* Main Content with Tabs */}
         {loading ? (
           <LoadingSpinner />
         ) : error ? (
           <ErrorMessage />
         ) : (
-          <>
-            <HotelTable />
-            <PaginationControls />
-          </>
+          <SuperAdminTabs
+            BookingsTable={BookingsTable}
+            HotelDeletionRequestsTable={HotelDeletionRequestsTable}
+            ReviewsTable={ReviewsTable}
+            FeedbacksTable={FeedbacksTable}
+            HotelTable={HotelTableWithPagination}
+            AllNotificationsTable={AllNotificationsTable}
+          />
         )}
-
-        {/* All Notifications Section - Bottom Most */}
-        <AllNotificationsTable />
 
         {/* Hotel Details Modal */}
         <HotelDetailsModal />

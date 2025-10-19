@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import { Hotel, Loader2 } from "lucide-react";
 import {
   Dialog,
@@ -36,7 +35,6 @@ const HotelSelectionDialog = ({ isOpen, onClose, onHotelSelected }) => {
         } catch (error) {
           console.error("Failed to load hotels:", error);
           setHotels([]);
-          toast.error("Failed to load hotels. Please try again.");
         } finally {
           setLoading(false);
         }
@@ -52,11 +50,6 @@ const HotelSelectionDialog = ({ isOpen, onClose, onHotelSelected }) => {
     
     // Call the callback to notify parent component
     onHotelSelected?.(hotel);
-    
-    // Show success message
-    toast.success(`Selected ${hotel.name}`, {
-      description: "You can now access the hotel dashboard",
-    });
     
     // Close dialog and navigate to dashboard
     onClose();

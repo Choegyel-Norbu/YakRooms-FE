@@ -24,8 +24,7 @@ import api from "../../shared/services/Api";
 import { useAuth } from "@/features/authentication";
 import SimpleSpinner from "@/shared/components/SimpleSpinner";
 
-const BookingsTrendChart = () => {
-  const { hotelId } = useAuth();
+const BookingsTrendChart = ({ hotelId }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

@@ -82,9 +82,11 @@ import { Checkbox } from "@/shared/components/checkbox";
 import { toast } from "sonner";
 import { useAuth } from "../authentication";
 import api from "../../shared/services/Api";
+import { LeaveManagementTabs } from "@/components/ui/leave-management-tabs";
+import * as XLSX from "xlsx";
 
-const LeaveManagement = () => {
-  const { hotelId, userId, roles } = useAuth();
+const LeaveManagement = ({ hotelId }) => {
+  const { userId, roles } = useAuth();
   const [leaves, setLeaves] = useState([]);
   const [enhancedLeaves, setEnhancedLeaves] = useState([]);
   const [staff, setStaff] = useState([]);
@@ -315,83 +317,73 @@ const LeaveManagement = () => {
 
   const handleExportLeaves = async () => {
     try {
+      // Show loading toast
+      const loadingToast = toast.loading("Preparing Excel export...");
+
       // Fetch all leaves for the hotel
       const response = await api.get(`/leaves/hotel/${hotelId}`);
       const leavesData = response.data || [];
       
-      // Create Excel-compatible content with proper formatting
-      const headers = [
-        'Employee Name',
-        'Employee Email', 
-        'Position',
-        'Leave Type',
-        'Start Date',
-        'End Date',
-        'Total Days',
-        'Status',
-        'Reason',
-        'Rejection Reason',
-        'Approved By',
-        'Created At'
+      if (leavesData.length === 0) {
+        toast.dismiss(loadingToast);
+        toast.warning("No leave data to export");
+        return;
+      }
+
+      // Prepare data for Excel export
+      const excelData = leavesData.map((leave) => ({
+        "Employee Name": leave.employeeName || "N/A",
+        "Employee Email": leave.employeeEmail || "N/A",
+        "Position": leave.employeePosition || "N/A",
+        "Leave Type": leave.leaveType?.name || formatLeaveTypeEnum(leave.leaveType?.leaveTypeEnum) || "N/A",
+        "Start Date": leave.startDate ? new Date(leave.startDate).toLocaleDateString() : "N/A",
+        "End Date": leave.endDate ? new Date(leave.endDate).toLocaleDateString() : "N/A",
+        "Total Days": leave.totalDays || calculateDays(leave.startDate, leave.endDate) || "N/A",
+        "Status": leave.status || "N/A",
+        "Reason": leave.reason || "N/A",
+        "Rejection Reason": leave.rejectionReason || "N/A",
+        "Approved By": leave.approvedBy || "N/A",
+        "Created At": leave.createdAt ? new Date(leave.createdAt).toLocaleDateString() : "N/A",
+      }));
+
+      // Create workbook and worksheet
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+      // Set column widths for better formatting
+      const columnWidths = [
+        { wch: 20 }, // Employee Name
+        { wch: 25 }, // Employee Email
+        { wch: 15 }, // Position
+        { wch: 15 }, // Leave Type
+        { wch: 12 }, // Start Date
+        { wch: 12 }, // End Date
+        { wch: 10 }, // Total Days
+        { wch: 12 }, // Status
+        { wch: 30 }, // Reason
+        { wch: 30 }, // Rejection Reason
+        { wch: 20 }, // Approved By
+        { wch: 15 }, // Created At
       ];
-      
-      // Create HTML table content that Excel can open
-      const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Hotel Leaves Export</title>
-    <style>
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; font-weight: bold; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-    </style>
-</head>
-<body>
-    <h2>Hotel Leaves Export - ${new Date().toLocaleDateString()}</h2>
-    <table>
-        <thead>
-            <tr>
-${headers.map(header => `                <th>${header}</th>`).join('\n')}
-            </tr>
-        </thead>
-        <tbody>
-${leavesData.map(leave => `            <tr>
-                <td>${leave.employeeName || 'N/A'}</td>
-                <td>${leave.employeeEmail || 'N/A'}</td>
-                <td>${leave.employeePosition || 'N/A'}</td>
-                <td>${leave.leaveType?.name || formatLeaveTypeEnum(leave.leaveType?.leaveTypeEnum) || 'N/A'}</td>
-                <td>${new Date(leave.startDate).toLocaleDateString()}</td>
-                <td>${new Date(leave.endDate).toLocaleDateString()}</td>
-                <td>${leave.totalDays || calculateDays(leave.startDate, leave.endDate)}</td>
-                <td>${leave.status}</td>
-                <td>${(leave.reason || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-                <td>${(leave.rejectionReason || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>
-                <td>${leave.approvedBy || 'N/A'}</td>
-                <td>${new Date(leave.createdAt).toLocaleDateString()}</td>
-            </tr>`).join('\n')}
-        </tbody>
-    </table>
-</body>
-</html>`;
-      
-      // Create and download the HTML file (Excel can open HTML files)
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `hotel-leaves-${hotelId}-${new Date().toISOString().split('T')[0]}.xls`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast.success('Leave data exported to Excel successfully');
+      worksheet["!cols"] = columnWidths;
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Leave Requests");
+
+      // Generate filename with current date
+      const fileName = `Hotel_Leaves_${hotelId}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      // Write and download file
+      XLSX.writeFile(workbook, fileName);
+
+      // Dismiss loading toast and show success
+      toast.dismiss(loadingToast);
+      toast.success(`Exported ${leavesData.length} leave requests to Excel`, {
+        duration: 6000,
+      });
     } catch (error) {
-      console.error('Error exporting leaves:', error);
-      toast.error('Failed to export leave data');
+      console.error("Error exporting leaves:", error);
+      toast.error("Failed to export leave data to Excel");
     }
   };
 
@@ -728,61 +720,16 @@ ${leavesData.map(leave => `            <tr>
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        {/* Modern Card-Style Tab Navigation */}
-        <div className="bg-muted/30 p-1 rounded-lg mb-6">
-          <div className={`grid gap-1 ${canViewPolicies ? 'grid-cols-4' : 'grid-cols-3'}`}>
-            {canViewBasicLeaves && (
-              <button
-                onClick={() => setActiveTab("requests")}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
-                  activeTab === "requests"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                }`}
-              >
-                {isStaffOrFrontdesk ? "My Leave Requests" : roles?.includes("MANAGER") ? "My Leave Requests" : "Leave Requests"}
-              </button>
-            )}
-            {!isStaffOrFrontdesk && enhancedLeaves.length > 0 && (
-              <button
-                onClick={() => setActiveTab("enhanced")}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
-                  activeTab === "enhanced"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                }`}
-              >
-                Leave Requests
-              </button>
-            )}
-            {!isStaffOrFrontdesk && (
-              <button
-                onClick={() => setActiveTab("staff")}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
-                  activeTab === "staff"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                }`}
-              >
-                Staff Leave Overview
-              </button>
-            )}
-            {canViewPolicies && (
-              <button
-                onClick={() => setActiveTab("policies")}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 ${
-                  activeTab === "policies"
-                    ? "bg-background text-foreground shadow-sm border border-border"
-                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                }`}
-              >
-                Leave Policies
-              </button>
-            )}
-          </div>
-        </div>
+      {/* Tabs with Enhanced Styling */}
+      <LeaveManagementTabs
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        canViewBasicLeaves={canViewBasicLeaves}
+        canViewPolicies={canViewPolicies}
+        isStaffOrFrontdesk={isStaffOrFrontdesk}
+        enhancedLeaves={enhancedLeaves}
+        roles={roles}
+      />
 
         {/* Leave Requests Tab */}
         {canViewBasicLeaves && activeTab === "requests" && (
@@ -1366,7 +1313,7 @@ ${leavesData.map(leave => `            <tr>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  Hotel Staff
+                  Employee Leave Overview
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1846,7 +1793,6 @@ ${leavesData.map(leave => `            <tr>
           </div>
         </div>
         )}
-      </Tabs>
 
       {/* Leave Summary Section - Hidden for Hotel Admin and Hotel Owner */}
       {!isHotelAdmin && !roles?.includes("HOTEL_OWNER") && (

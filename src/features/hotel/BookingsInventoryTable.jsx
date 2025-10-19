@@ -210,6 +210,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
         "Check-Out Date": booking.checkOutDate,
         "Guests": booking.guests,
         "Status": booking.status,
+        "Transfer Status": booking.transferStatus || "N/A",
         "Total Price": booking.totalPrice,
         "Origin": booking.origin,
         "Destination": booking.destination,
@@ -235,6 +236,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
         { wch: 12 }, // Check-Out Date
         { wch: 8 },  // Guests
         { wch: 12 }, // Status
+        { wch: 15 }, // Transfer Status
         { wch: 12 }, // Total Price
         { wch: 15 }, // Origin
         { wch: 15 }, // Destination
@@ -280,6 +282,20 @@ const BookingsInventoryTable = ({ hotelId }) => {
     }
   };
 
+  // Get transfer status badge variant
+  const getTransferStatusBadgeVariant = (transferStatus) => {
+    switch (transferStatus?.toUpperCase()) {
+      case "TRANSFERRED":
+        return "default";
+      case "PENDING":
+        return "secondary";
+      case "FAILED":
+        return "destructive";
+      default:
+        return "outline";
+    }
+  };
+
   // Format currency
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-US", {
@@ -298,8 +314,6 @@ const BookingsInventoryTable = ({ hotelId }) => {
       day: "numeric",
     });
   };
-
-
 
   // Pagination handlers
   const handlePreviousPage = () => {
@@ -516,7 +530,8 @@ const BookingsInventoryTable = ({ hotelId }) => {
                   <TableHead className="min-w-32 font-bold">Room Info</TableHead>
                   <TableHead className="min-w-40 font-bold">Stay Period</TableHead>
                   <TableHead className="w-24 font-bold">Guests</TableHead>
-                  <TableHead className="w-28 font-bold">Status</TableHead>
+                  <TableHead className="w-28 font-bold">Booking Status</TableHead>
+                  <TableHead className="w-32 font-bold">Transfer Status</TableHead>
                   <TableHead className="w-32 font-bold">Price</TableHead>
                   <TableHead className="min-w-40 font-bold">Travel Info</TableHead>
                   <TableHead className="min-w-32 font-bold">Booked on</TableHead>
@@ -535,7 +550,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
                     {/* Guest Details */}
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="font-medium text-sm">{booking.name} {booking.guestName}</div>
+                        <div className="font-medium text-sm">{booking.guestName || booking.name}</div>
                         <div className="text-xs text-muted-foreground">{booking.email}</div>
                         <div className="text-xs text-muted-foreground">{booking.phone}</div>
                       </div>
@@ -544,9 +559,6 @@ const BookingsInventoryTable = ({ hotelId }) => {
                     <TableCell>
                       <div className="space-y-1">
                         <div className="font-medium text-sm">Room {booking.roomNumber}</div>
-                        <div className="text-xs text-muted-foreground">
-                          Code: {booking.passcode}
-                        </div>
                       </div>
                     </TableCell>
 
@@ -573,6 +585,13 @@ const BookingsInventoryTable = ({ hotelId }) => {
                     <TableCell>
                       <Badge variant={getStatusBadgeVariant(booking.status)}>
                         {booking.status}
+                      </Badge>
+                    </TableCell>
+
+                    {/* Transfer Status */}
+                    <TableCell>
+                      <Badge variant={getTransferStatusBadgeVariant(booking.transferStatus)}>
+                        {booking.transferStatus || "N/A"}
                       </Badge>
                     </TableCell>
 
