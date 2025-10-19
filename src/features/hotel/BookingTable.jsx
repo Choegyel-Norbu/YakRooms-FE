@@ -396,6 +396,9 @@ const BookingTable = ({ hotelId }) => {
       case "CANCELLATION_APPROVED":
         colorClass = "bg-green-50 text-green-700 border border-green-200";
         break;
+      case "TRANSFERRED":
+        colorClass = "bg-purple-50 text-purple-700 border border-purple-200";
+        break;
       default:
         colorClass = "bg-slate-50 text-slate-600 border border-slate-200";
     }
@@ -504,9 +507,9 @@ const BookingTable = ({ hotelId }) => {
                 <TableHead>Phone</TableHead>
                 <TableHead>Room</TableHead>
                 <TableHead>Guests</TableHead>
-                <TableHead>Check-in</TableHead>
-                <TableHead>Check-out</TableHead>
+                <TableHead>Stay Period</TableHead>
                 <TableHead>Total Price</TableHead>
+                <TableHead>Transfer Status</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -515,7 +518,7 @@ const BookingTable = ({ hotelId }) => {
               {bookings.map((booking) => (
                 <TableRow key={booking.id}>
                   <TableCell>
-                    <div className="font-medium">{booking.guestName} {booking.name}</div>
+                    <div className="font-medium">{booking.guestName || booking.name || 'Not provided'}</div>
                     <div className="text-sm text-muted-foreground">
                       {booking.email}
                     </div>
@@ -538,13 +541,10 @@ const BookingTable = ({ hotelId }) => {
                   <TableCell>
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                      {booking.checkInDate}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                      {booking.checkOutDate}
+                      <div className="flex flex-col text-sm">
+                        <span className="font-medium">{booking.checkInDate}</span>
+                        <span className="text-muted-foreground">to {booking.checkOutDate}</span>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">
@@ -557,8 +557,7 @@ const BookingTable = ({ hotelId }) => {
                     </div>
                   </TableCell>
 
-
-
+                  <TableCell>{getStatusBadge(booking.transferStatus)}</TableCell>
                   <TableCell>{getStatusBadge(booking.status)}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -744,7 +743,7 @@ const BookingTable = ({ hotelId }) => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Name:</span>
-                                            <span className="text-gray-900 text-sm">{selectedBooking.guestName || selectedBooking.name || 'Not provided'}</span>
+                    <span className="text-gray-900 text-sm">{selectedBooking.guestName || selectedBooking.name || 'Not provided'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Email:</span>
@@ -807,6 +806,10 @@ const BookingTable = ({ hotelId }) => {
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Status:</span>
                     <div className="mt-1">{getStatusBadge(selectedBooking.status)}</div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">Transfer Status:</span>
+                    <div className="mt-1">{getStatusBadge(selectedBooking.transferStatus)}</div>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Total Price:</span>

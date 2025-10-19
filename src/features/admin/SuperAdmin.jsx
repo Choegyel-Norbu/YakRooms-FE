@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import api from "../../shared/services/Api";
-import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft, Eye, X, MapPin, Phone, Mail, Globe, Calendar, Star, Bell, Trash2, Download, MessageSquare, Monitor, User } from "lucide-react";
+import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft, Eye, X, MapPin, Phone, Mail, Globe, Calendar, Star, Bell, Trash2, Download, MessageSquare, Monitor, User, MoreHorizontal } from "lucide-react";
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
 import { Link } from "react-router-dom";
@@ -48,6 +48,12 @@ import {
 } from "@/shared/components/table";
 import { Badge } from "@/shared/components/badge";
 import { Label } from "@/shared/components/label";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/dropdown-menu";
 import { toast } from "sonner";
 import SimpleSpinner from "@/shared/components/SimpleSpinner";
 import { SearchButton } from "@/shared/components";
@@ -113,6 +119,16 @@ const SuperAdmin = () => {
     totalElements: 0,
   });
 
+  // Bookings management states
+  const [bookings, setBookings] = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
+  const [bookingsPagination, setBookingsPagination] = useState({
+    pageNumber: 0,
+    pageSize: 10,
+    totalPages: 1,
+    totalElements: 0,
+  });
+
   const [pagination, setPagination] = useState({
     pageNumber: 0,
     pageSize: 10,
@@ -123,6 +139,11 @@ const SuperAdmin = () => {
     verified: "",
     searchQuery: "",
   });
+
+  // Transfer form states
+  const [selectedBookingForTransfer, setSelectedBookingForTransfer] = useState(null);
+  const [journalNumber, setJournalNumber] = useState("");
+  const [isTransferring, setIsTransferring] = useState(false);
 
   // Fetch notifications for super admin
   useEffect(() => {
@@ -313,6 +334,37 @@ const SuperAdmin = () => {
     fetchFeedbacks();
   }, [feedbacksPagination.pageNumber]);
 
+  // Fetch bookings
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        setLoadingBookings(true);
+        const params = {
+          page: bookingsPagination.pageNumber,
+          size: bookingsPagination.pageSize,
+        };
+
+        const response = await api.get("/bookings/all-with-details", { params });
+        
+        console.log("[DEBUG] Bookings API response:", response.data);
+        
+        setBookings(response.data.content || []);
+        setBookingsPagination((prev) => ({
+          ...prev,
+          totalPages: response.data.totalPages || 1,
+          totalElements: response.data.totalElements || 0,
+        }));
+      } catch (err) {
+        console.error("Error fetching bookings:", err);
+        toast.error("Failed to fetch bookings");
+      } finally {
+        setLoadingBookings(false);
+      }
+    };
+
+    fetchBookings();
+  }, [bookingsPagination.pageNumber]);
+
   useEffect(() => {
     const fetchHotels = async () => {
       try {
@@ -481,6 +533,11 @@ const SuperAdmin = () => {
   // Handle feedbacks pagination
   const handleFeedbacksPageChange = (newPage) => {
     setFeedbacksPagination((prev) => ({ ...prev, pageNumber: newPage }));
+  };
+
+  // Handle bookings pagination
+  const handleBookingsPageChange = (newPage) => {
+    setBookingsPagination((prev) => ({ ...prev, pageNumber: newPage }));
   };
 
   // Handle clearing all read notifications
@@ -730,6 +787,80 @@ const SuperAdmin = () => {
     }
   };
 
+  // Transfer form handlers
+  const handleTransferSelect = (booking) => {
+    console.log('Selected booking for transfer:', booking);
+    setSelectedBookingForTransfer(booking);
+    setJournalNumber("");
+  };
+
+  const handleTransferCancel = () => {
+    setSelectedBookingForTransfer(null);
+    setJournalNumber("");
+    setIsTransferring(false);
+  };
+
+  const handleTransferSubmit = async () => {
+    if (!journalNumber.trim()) {
+      toast.error("Please enter journal number", {
+        description: "The journal number field cannot be empty.",
+        icon: <XCircle className="text-red-600" />,
+        duration: 4000,
+      });
+      return;
+    }
+
+    if (!selectedBookingForTransfer) {
+      toast.error("No booking selected", {
+        description: "Please select a booking for transfer.",
+        icon: <XCircle className="text-red-600" />,
+        duration: 4000,
+      });
+      return;
+    }
+
+    try {
+      setIsTransferring(true);
+      
+      // Call the transfer endpoint for bookings
+      const bookingId = selectedBookingForTransfer.id;
+      const transferStatus = 'TRANSFERRED'; // Default status as per requirement
+      
+      await api.put(`/bookings/${bookingId}/transfer-details`, null, {
+        params: {
+          journalNumber: journalNumber.trim(),
+          transferStatus: transferStatus
+        }
+      });
+
+      toast.success("Transfer Completed", {
+        description: `Transfer details updated for booking "${selectedBookingForTransfer.guestName}" with journal number: ${journalNumber.trim()}`,
+        icon: <CheckCircle className="text-green-600" />,
+        duration: 5000,
+      });
+
+      // Refresh bookings data to show updated transfer status
+      const params = {
+        page: bookingsPagination.pageNumber,
+        size: bookingsPagination.pageSize,
+      };
+      const response = await api.get("/bookings/all-with-details", { params });
+      setBookings(response.data.content || []);
+
+      // Clear the form
+      handleTransferCancel();
+    } catch (err) {
+      console.error("Error performing transfer action:", err);
+      toast.error("Transfer Failed", {
+        description: err.response?.data?.message || "There was an error updating transfer details. Please try again.",
+        icon: <XCircle className="text-red-600" />,
+        duration: 5000,
+      });
+    } finally {
+      setIsTransferring(false);
+    }
+  };
+
   // Hotel Details Modal Component
   const HotelDetailsModal = () => {
     if (!selectedHotel) return null;
@@ -957,6 +1088,90 @@ const SuperAdmin = () => {
           </div>
         </DialogContent>
       </Dialog>
+    );
+  };
+
+  // Transfer Form Component
+  const TransferForm = () => {
+    if (!selectedBookingForTransfer) return null;
+    
+    return (
+      <Card className="mb-6 border-blue-200">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg text-blue-800">Transfer Details</CardTitle>
+              <CardDescription className="text-blue-600">
+                Update transfer details for booking: <strong>{selectedBookingForTransfer.guestName}</strong>
+              </CardDescription>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleTransferCancel}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div className="md:col-span-2">
+              <Label htmlFor="journalNumber" className="text-sm font-medium text-blue-800">
+                Journal Number
+              </Label>
+              <Input
+                id="journalNumber"
+                type="text"
+                placeholder="Enter journal number (e.g., JN123456)"
+                value={journalNumber}
+                onChange={(e) => setJournalNumber(e.target.value)}
+                className="mt-1 border-blue-300 focus:border-blue-500 focus:ring-blue-500"
+                maxLength={50}
+                autoComplete="off"
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleTransferCancel}
+                disabled={isTransferring}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleTransferSubmit}
+                disabled={!journalNumber.trim() || isTransferring}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                {isTransferring ? "Updating..." : "Update Transfer"}
+              </Button>
+            </div>
+          </div>
+          
+          {/* Booking Details */}
+          <div className="mt-4 p-3 bg-white rounded-md border border-blue-200">
+            <h4 className="text-sm font-medium text-gray-800 mb-2">Booking Details:</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-600">
+              <div>
+                <span className="font-medium">Guest:</span> {selectedBookingForTransfer.guestName}
+              </div>
+              <div>
+                <span className="font-medium">Hotel:</span> {selectedBookingForTransfer.hotelName}
+              </div>
+              <div>
+                <span className="font-medium">Amount:</span> {selectedBookingForTransfer.bookingAmount || 'N/A'}
+              </div>
+              <div>
+                <span className="font-medium">Status:</span> {selectedBookingForTransfer.transferStatus || 'PENDING'}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     );
   };
 
@@ -1453,6 +1668,82 @@ const SuperAdmin = () => {
                 className="h-8 w-8 p-0"
                 onClick={handleNext}
                 disabled={feedbacksPagination.pageNumber === feedbacksPagination.totalPages - 1}
+              >
+                <span className="sr-only">Go to next page</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const BookingsPaginationControls = () => {
+    const handlePrevious = () => {
+      if (bookingsPagination.pageNumber > 0) {
+        handleBookingsPageChange(bookingsPagination.pageNumber - 1);
+      }
+    };
+
+    const handleNext = () => {
+      if (bookingsPagination.pageNumber < bookingsPagination.totalPages - 1) {
+        handleBookingsPageChange(bookingsPagination.pageNumber + 1);
+      }
+    };
+
+    return (
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex-1 flex justify-between md:hidden">
+          <Button
+            onClick={handlePrevious}
+            disabled={bookingsPagination.pageNumber === 0}
+            variant="outline"
+          >
+            Previous
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={bookingsPagination.pageNumber === bookingsPagination.totalPages - 1}
+            variant="outline"
+          >
+            Next
+          </Button>
+        </div>
+        <div className="hidden md:flex flex-1 items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Page{" "}
+              <span className="font-medium">{bookingsPagination.pageNumber + 1}</span>{" "}
+              of <span className="font-medium">{bookingsPagination.totalPages}</span>
+            </p>
+          </div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={handlePrevious}
+                disabled={bookingsPagination.pageNumber === 0}
+              >
+                <span className="sr-only">Go to previous page</span>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: bookingsPagination.totalPages }, (_, i) => (
+                <Button
+                  key={i}
+                  variant={bookingsPagination.pageNumber === i ? "default" : "outline"}
+                  className="h-8 w-8 p-0"
+                  onClick={() => handleBookingsPageChange(i)}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={handleNext}
+                disabled={bookingsPagination.pageNumber === bookingsPagination.totalPages - 1}
               >
                 <span className="sr-only">Go to next page</span>
                 <ChevronRight className="h-4 w-4" />
@@ -2105,6 +2396,267 @@ const SuperAdmin = () => {
     );
   };
 
+  const BookingsTable = () => {
+    const getStatusColor = (status) => {
+      switch (status) {
+        case "CONFIRMED":
+          return "bg-green-100 text-green-800 border-green-200";
+        case "PENDING":
+          return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        case "CANCELLED":
+          return "bg-red-100 text-red-800 border-red-200";
+        case "COMPLETED":
+          return "bg-blue-100 text-blue-800 border-blue-200";
+        default:
+          return "bg-gray-100 text-gray-800 border-gray-200";
+      }
+    };
+
+    const formatPrice = (price) => {
+      if (!price) return "N/A";
+      return `Nu. ${Number(price).toLocaleString()}`;
+    };
+
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-green-500" />
+            Bookings Management
+          </CardTitle>
+          <CardDescription>
+            Complete overview of all hotel bookings with guest and hotel details
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingBookings ? (
+            <div className="flex justify-center items-center py-8">
+              <SimpleSpinner size={24} text="Loading bookings..." />
+            </div>
+          ) : bookings.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No bookings found</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Guest</TableHead>
+                  <TableHead>Hotel & Room</TableHead>
+                  <TableHead>Booking Details</TableHead>
+                  <TableHead>Transfer Status</TableHead>
+                  <TableHead>Transaction Status</TableHead>
+                  <TableHead>Bank Type</TableHead>
+                  <TableHead>Booking Status</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {bookings.map((booking) => (
+                  <TableRow key={booking.id}>
+                    <TableCell>
+                      <div className="max-w-xs">
+                        <div className="text-sm font-medium">
+                          {booking.guestName || booking.name || "Unknown Guest"}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Booking #{booking.id}
+                        </div>
+                        {booking.email && (
+                          <div className="text-xs text-muted-foreground">
+                            {booking.email}
+                          </div>
+                        )}
+                        {booking.phone && (
+                          <div className="text-xs text-muted-foreground">
+                             {booking.phone}
+                          </div>
+                        )}
+                      {booking.cid && booking.cid !== "N/A" && (
+                          <div className="text-xs text-muted-foreground">
+                            CID: {booking.cid}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs">
+                        <div className="text-sm font-medium">
+                          {booking.hotelName || "Unknown Hotel"}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Room: {booking.roomNumber || "N/A"}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {booking.hotelDistrict || "Unknown Location"}
+                        </div>
+                        {booking.hotelPhone && (
+                          <div className="text-xs text-muted-foreground">
+                             {booking.hotelPhone}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs">
+                        <div className="text-sm font-medium">
+                          {format(new Date(booking.checkInDate), "dd MMM yyyy")} - {format(new Date(booking.checkOutDate), "dd MMM yyyy")}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {booking.guests} guest{booking.guests !== 1 ? 's' : ''}
+                        </div>
+                        {booking.origin && booking.destination && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            <div>From: {booking.origin}</div>
+                            <div>To: {booking.destination}</div>
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs">
+                        <div className="flex items-center gap-1 mb-1">
+                          <Badge 
+                            variant="outline" 
+                            className={`text-xs ${
+                              booking.transferStatus === "COMPLETED" 
+                                ? "bg-green-100 text-green-800 border-green-200"
+                                : booking.transferStatus === "PENDING"
+                                ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                                : "bg-gray-100 text-gray-800 border-gray-200"
+                            }`}
+                          >
+                            {booking.transferStatus || "UNKNOWN"}
+                          </Badge>
+                        </div>
+                        {booking.transactionId && (
+                          <div className="text-xs text-muted-foreground">
+                            Txn ID: {booking.transactionId}
+                          </div>
+                        )}
+                        {booking.bookingAmount && (
+                          <div className="text-xs text-muted-foreground">
+                            Booking Amount: {booking.bookingAmount}
+                          </div>
+                        )}
+                        {booking.orderNumber && (
+                          <div className="text-xs text-muted-foreground">
+                            Order: {booking.orderNumber}
+                          </div>
+                        )}
+                        
+                        
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs ${
+                            booking.transactionStatus === "PAID" 
+                              ? "bg-green-100 text-green-800 border-green-200"
+                              : booking.transactionStatus === "PENDING"
+                              ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                              : booking.transactionStatus === "FAILED"
+                              ? "bg-red-100 text-red-800 border-red-200"
+                              : "bg-gray-100 text-gray-800 border-gray-200"
+                          }`}
+                        >
+                          {booking.transactionStatus || "UNKNOWN"}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div className="font-medium">
+                          {booking.bankType || "N/A"}
+                        </div>
+                        {booking.accountNumber && (
+                          <div className="text-xs text-muted-foreground">
+                            Account: {booking.accountNumber}
+                          </div>
+                        )}
+                        {booking.accountHolderName && (
+                          <div className="text-xs text-muted-foreground">
+                            Holder: {booking.accountHolderName}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <Badge 
+                          variant="outline" 
+                          className={`${getStatusColor(booking.status)} flex items-center gap-1`}
+                        >
+                          {booking.status || "UNKNOWN"}
+                        </Badge>
+                        {booking.paymentUrl && (
+                          <div className="text-xs">
+                            <a 
+                              href={booking.paymentUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              Payment Link
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <p className="font-medium">
+                          {format(new Date(booking.createdAt), "dd MMM yyyy")}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {format(new Date(booking.createdAt), "HH:mm")}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Open menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleTransferSelect(booking)}>
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            Transfer
+                          </DropdownMenuItem>
+                          {booking.paymentUrl && (
+                            <DropdownMenuItem asChild>
+                              <a 
+                                href={booking.paymentUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex items-center"
+                              >
+                                <Globe className="mr-2 h-4 w-4" />
+                                View Payment
+                              </a>
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+        {bookings.length > 0 && <BookingsPaginationControls />}
+      </Card>
+    );
+  };
+
   const HotelTable = () => (
     <Card className="mb-6">
       <Table>
@@ -2209,29 +2761,33 @@ const SuperAdmin = () => {
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    onClick={() => handleViewDetails(hotel)}
-                    variant="outline"
-                    size="sm"
-                    className="cursor-pointer"
-                  >
-                    <Eye className="h-4 w-4 mr-1" />
-                    View
-                  </Button>
-                  {!hotel.verified && (
-                    <Button
-                      onClick={() => handleVerifyHotel(hotel.id)}
-                      disabled={
-                        hasMissingData(hotel) || verifyingHotelId === hotel.id
-                      } // Disable if verifying
-                      size="sm"
-                      className="cursor-pointer"
-                    >
-                      {verifyingHotelId === hotel.id ? "Verifying..." : "Verify"}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Open menu</span>
                     </Button>
-                  )}
-                </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleViewDetails(hotel)}>
+                      <Eye className="mr-2 h-4 w-4" />
+                      View Details
+                    </DropdownMenuItem>
+                    {!hotel.verified && (
+                      <DropdownMenuItem 
+                        onClick={() => handleVerifyHotel(hotel.id)}
+                        disabled={hasMissingData(hotel) || verifyingHotelId === hotel.id}
+                      >
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        {verifyingHotelId === hotel.id ? "Verifying..." : "Verify Hotel"}
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onClick={() => handleActionDialogOpen(hotel)}>
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      Transfer
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}
@@ -2346,6 +2902,12 @@ const SuperAdmin = () => {
         </div>
 
         <SearchFilters />
+
+        {/* Transfer Form */}
+        <TransferForm />
+
+        {/* Bookings Management Section */}
+        <BookingsTable />
 
         {/* Hotel Deletion Requests Section */}
         <HotelDeletionRequestsTable />

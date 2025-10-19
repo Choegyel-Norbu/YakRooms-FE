@@ -34,7 +34,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { getCategorizedAmenities } from "../../shared/utils/amenitiesHelper";
-import { districts, getLocalitiesForDistrict } from "../../shared/constants";
+import { districts, getLocalitiesForDistrict, BankType, getBankOptions } from "../../shared/constants";
 
 // Custom TikTok icon component
 const TikTokIcon = ({ className = "h-4 w-4" }) => (
@@ -66,6 +66,10 @@ const formSchema = z.object({
   facebookUrl: z.string().url("Please enter a valid Facebook URL").optional().or(z.literal("")),
   instagramUrl: z.string().url("Please enter a valid Instagram URL").optional().or(z.literal("")),
   tiktokUrl: z.string().url("Please enter a valid TikTok URL").optional().or(z.literal("")),
+  // Bank Account Information
+  accountNumber: z.string().optional(),
+  accountHolderName: z.string().optional(),
+  bankType: z.string().optional(),
 });
 
 const HotelInfoForm = ({ hotel, onUpdate }) => {
@@ -187,6 +191,9 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       facebookUrl: hotel.facebookUrl || "",
       instagramUrl: hotel.instagramUrl || "",
       tiktokUrl: hotel.tiktokUrl || "",
+      accountNumber: hotel.accountNumber || "",
+      accountHolderName: hotel.accountHolderName || "",
+      bankType: hotel.bankType || "",
     },
   });
 
@@ -213,6 +220,9 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       facebookUrl: hotel.facebookUrl || "",
       instagramUrl: hotel.instagramUrl || "",
       tiktokUrl: hotel.tiktokUrl || "",
+      accountNumber: hotel.accountNumber || "",
+      accountHolderName: hotel.accountHolderName || "",
+      bankType: hotel.bankType || "",
     });
   }, [hotel, form]);
 
@@ -386,6 +396,10 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
         facebookUrl: values.facebookUrl || null,
         instagramUrl: values.instagramUrl || null,
         tiktokUrl: values.tiktokUrl || null,
+        // Include bank account information
+        accountNumber: values.accountNumber || null,
+        accountHolderName: values.accountHolderName || null,
+        bankType: values.bankType || null,
       };
 
       const res = await api.put(`/hotels/${formData.id}`, updateData);
@@ -437,6 +451,9 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                   facebookUrl: hotel.facebookUrl || "",
                   instagramUrl: hotel.instagramUrl || "",
                   tiktokUrl: hotel.tiktokUrl || "",
+                  accountNumber: hotel.accountNumber || "",
+                  accountHolderName: hotel.accountHolderName || "",
+                  bankType: hotel.bankType || "",
                 });
                 setFormData({
                   ...hotel,
@@ -863,6 +880,203 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                             <li>• Keep your social media profiles active and engaging</li>
                             <li>• Share photos of your hotel, amenities, and local attractions</li>
                             <li>• Respond to guest comments and messages promptly</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Bank Account Information Section */}
+              <div className="md:col-span-2 border-t pt-4 mt-2">
+                <div className="flex items-center gap-2 mb-4">
+                  <div>
+                    <h4 className="text-base font-semibold text-foreground">
+                      Bank Account Information
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Provide your bank account details for payment processing
+                    </p>
+                  </div>
+                </div>
+
+                {!isEditing ? (
+                  <div className="space-y-3">
+                    {(hotel.accountNumber || hotel.accountHolderName || hotel.bankType) ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {hotel.bankType && (
+                          <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                            <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center">
+                              <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                              </svg>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-green-900 dark:text-green-100">Bank</p>
+                              <p className="text-xs text-green-600 dark:text-green-400 truncate">
+                                {hotel.bankType}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {hotel.accountHolderName && (
+                          <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                              <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Account Holder</p>
+                              <p className="text-xs text-blue-600 dark:text-blue-400 truncate">
+                                {hotel.accountHolderName}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {hotel.accountNumber && (
+                          <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                            <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
+                              <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-purple-900 dark:text-purple-100">Account Number</p>
+                              <p className="text-xs text-purple-600 dark:text-purple-400 truncate">
+                                {hotel.accountNumber}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 px-4 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20">
+                        <div className="flex justify-center space-x-2 mb-3">
+                          <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                            <svg className="h-4 w-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          No bank account information added yet
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Click Edit to add your bank account details
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="bankType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center">
+                              <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                              </svg>
+                            </div>
+                            Bank Type
+                          </FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Bank" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {getBankOptions().map((bank) => (
+                                <SelectItem key={bank.value} value={bank.value}>
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">{bank.label}</span>
+                                    <span className="text-xs text-muted-foreground">{bank.description}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="accountHolderName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
+                              <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                            </div>
+                            Account Holder Name
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Enter account holder name"
+                              className="pl-3"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="accountNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center">
+                              <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                            </div>
+                            Account Number
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="Enter account number"
+                              className="pl-3"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="mt-4 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="flex items-start gap-3">
+                        <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="text-sm font-medium text-green-900 dark:text-green-100 mb-1">
+                            Bank Account Security
+                          </h5>
+                          <ul className="text-xs text-green-700 dark:text-green-300 space-y-1">
+                            <li>• Your bank account information is encrypted and securely stored</li>
+                            <li>• This information is only used for payment processing</li>
+                            <li>• Ensure the account holder name matches your business registration</li>
+                            <li>• Double-check your account number before saving</li>
                           </ul>
                         </div>
                       </div>

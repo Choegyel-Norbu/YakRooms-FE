@@ -193,6 +193,9 @@ const SubscriptionPage = () => {
           baseUrl: window.location.origin
         }
       });
+
+      console.log('Subscription payment API response:', response);
+
       
       if (response.status === 200 || response.status === 201) {
         const responseData = response.data;

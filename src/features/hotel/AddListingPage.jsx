@@ -40,7 +40,7 @@ import {
 } from "@/shared/components/select";
 import { useAuth } from "../authentication";
 import { getAmenitiesForType, getCategorizedAmenities } from "../../shared/utils/amenitiesHelper";
-import { districts, getLocalitiesForDistrict } from "../../shared/constants";
+import { districts, getLocalitiesForDistrict, getBankOptions } from "../../shared/constants";
 
 const AddListingPage = () => {
   const [step, setStep] = useState(1);
@@ -71,6 +71,10 @@ const AddListingPage = () => {
     checkinTime: "",
     checkoutTime: "",
     cancellationPolicy: "",
+    // Bank Account Information
+    accountNumber: "",
+    accountHolderName: "",
+    bankType: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -1321,6 +1325,87 @@ const AddListingPage = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Bank Account Information Section */}
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-base font-semibold text-foreground mb-2">
+                      Bank Account Information
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Provide your bank account details for payment processing (Optional)
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="bankType">Bank Type</Label>
+                      <Select
+                        value={formData.bankType}
+                        onValueChange={(value) => {
+                          setFormData(prev => ({ ...prev, bankType: value }));
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Bank" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getBankOptions().map((bank) => (
+                            <SelectItem key={bank.value} value={bank.value}>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{bank.label}</span>
+                                <span className="text-xs text-muted-foreground">{bank.description}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="accountHolderName">Account Holder Name</Label>
+                      <Input
+                        id="accountHolderName"
+                        name="accountHolderName"
+                        value={formData.accountHolderName}
+                        onChange={handleChange}
+                        placeholder="Enter account holder name"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="accountNumber">Account Number</Label>
+                      <Input
+                        id="accountNumber"
+                        name="accountNumber"
+                        value={formData.accountNumber}
+                        onChange={handleChange}
+                        placeholder="Enter account number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                          Bank Account Information
+                        </h5>
+                        <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                          <li>• Your bank account information is encrypted and securely stored</li>
+                          <li>• This information is only used for payment processing</li>
+                          <li>• You can add or update this information later in your hotel dashboard</li>
+                          <li>• Ensure the account holder name matches your business registration</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 <div className="space-y-4">
                   <Label>

@@ -21,6 +21,7 @@ import {
   User,
   Shield,
   AlertTriangle,
+  ChevronDown,
 } from "lucide-react";
 import {
   Card,
@@ -47,6 +48,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/select";
 import {
   Sheet,
   SheetContent,
@@ -95,6 +103,9 @@ const HotelAdminDashboard = () => {
     subscriptionExpirationNotification,
     fetchSubscriptionData,
     fetchUserHotels,
+    userHotels,
+    setSelectedHotelId,
+    getSelectedHotel,
   } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [hotel, setHotel] = useState(null);
@@ -202,6 +213,13 @@ const HotelAdminDashboard = () => {
     }
   }, [currentHotelId, userId]);
 
+  // Fetch user hotels when component mounts
+  useEffect(() => {
+    if (userId && fetchUserHotels) {
+      fetchUserHotels(userId);
+    }
+  }, [userId, fetchUserHotels]);
+
   // Fetch subscription data when userId is available
   useEffect(() => {
     const loadSubscriptionData = async () => {
@@ -222,10 +240,10 @@ const HotelAdminDashboard = () => {
     loadSubscriptionData();
   }, [userId, fetchSubscriptionData]);
 
-  // Fetch all notifications from backend when component mounts
+  // Fetch all notifications from backend when component mounts or hotel changes
   useEffect(() => {
     const fetchNotifications = async () => {
-      if (!userId) return;
+      if (!userId || !currentHotelId) return;
 
       try {
         setLoadingNotifications(true);
@@ -342,6 +360,30 @@ const HotelAdminDashboard = () => {
   const handleBookingSuccess = () => {
     // Refresh bookings when a new booking is created
     fetchHotelData();
+  };
+
+  // Handle hotel switching
+  const handleHotelSwitch = async (newHotelId) => {
+    try {
+      setSelectedHotelId(newHotelId);
+      
+      // Refresh hotel data for the new hotel
+      const res = await api.get(`/hotels/${newHotelId}`);
+      setHotel(res.data);
+      
+      // Reset notifications for the new hotel
+      setNotifications([]);
+      setUnreadCount(0);
+      
+      toast.success(`Switched to ${res.data?.name || 'Hotel'}`, {
+        duration: 3000
+      });
+    } catch (error) {
+      console.error("Failed to switch hotel:", error);
+      toast.error("Failed to switch hotel. Please try again.", {
+        duration: 4000
+      });
+    }
   };
 
 
@@ -516,12 +558,35 @@ const HotelAdminDashboard = () => {
               <h2 className="hidden md:block text-xl sm:text-xl lg:text-2xl font-semibold text-foreground truncate">
                 {getPageTitle()}
               </h2>
-              {/* Hotel Name Display */}
+              {/* Hotel Name Display and Switcher */}
               {hotel?.name && (
                 <div className="hidden md:flex items-center gap-2">
                   <p className="text-sm font-medium text-primary truncate">
                     {hotel.name}
                   </p>
+                  {/* Hotel Switcher - Only show if user has multiple hotels */}
+                  {userHotels && userHotels.length > 1 && (
+                    <Select
+                      value={currentHotelId || ""}
+                      onValueChange={handleHotelSwitch}
+                    >
+                      <SelectTrigger className="w-auto h-7 px-2 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10">
+                        <SelectValue placeholder="Switch Hotel" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {userHotels.map((hotelOption) => (
+                          <SelectItem key={hotelOption.id} value={hotelOption.id?.toString()}>
+                            <div className="flex items-center gap-2">
+                              <span className="truncate">{hotelOption.name}</span>
+                              {isTopHotel(hotelOption.id) && (
+                                <TopHotelBadge hotelId={hotelOption.id} className="ml-1" />
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               )}
               {activeTab !== "dashboard" && (
@@ -647,12 +712,37 @@ const HotelAdminDashboard = () => {
                       </div>
                     </SheetTitle>
                     
-                    {/* Hotel Name for Mobile */}
+                    {/* Hotel Name and Switcher for Mobile */}
                     {hotel?.name && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <p className="text-sm font-medium text-primary truncate">
-                          {hotel.name}
-                        </p>
+                      <div className="mt-2 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-primary truncate">
+                            {hotel.name}
+                          </p>
+                        </div>
+                        {/* Hotel Switcher for Mobile - Only show if user has multiple hotels */}
+                        {userHotels && userHotels.length > 1 && (
+                          <Select
+                            value={currentHotelId || ""}
+                            onValueChange={handleHotelSwitch}
+                          >
+                            <SelectTrigger className="w-full h-8 text-xs">
+                              <SelectValue placeholder="Switch Hotel" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {userHotels.map((hotelOption) => (
+                                <SelectItem key={hotelOption.id} value={hotelOption.id?.toString()}>
+                                  <div className="flex items-center gap-2">
+                                    <span className="truncate">{hotelOption.name}</span>
+                                    {isTopHotel(hotelOption.id) && (
+                                      <TopHotelBadge hotelId={hotelOption.id} className="ml-1" />
+                                    )}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       </div>
                     )}
                     
