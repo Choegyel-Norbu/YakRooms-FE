@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import api from "../../shared/services/Api";
-import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft, Eye, X, MapPin, Phone, Mail, Globe, Calendar, Star, Bell, Trash2, Download, MessageSquare, Monitor, User, MoreHorizontal } from "lucide-react";
+import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft, Eye, X, MapPin, Phone, Mail, Globe, Calendar, Star, Bell, Trash2, Download, MessageSquare, Monitor, User, MoreHorizontal, Clock } from "lucide-react";
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
 import { Link } from "react-router-dom";
@@ -145,6 +145,13 @@ const SuperAdmin = () => {
   const [selectedBookingForTransfer, setSelectedBookingForTransfer] = useState(null);
   const [journalNumber, setJournalNumber] = useState("");
   const [isTransferring, setIsTransferring] = useState(false);
+
+  // Extension form states
+  const [extensionDialog, setExtensionDialog] = useState(false);
+  const [selectedBookingForExtension, setSelectedBookingForExtension] = useState(null);
+  const [newCheckOutDate, setNewCheckOutDate] = useState("");
+  const [extensionAmount, setExtensionAmount] = useState("");
+  const [isExtending, setIsExtending] = useState(false);
 
   // Fetch notifications for super admin
   useEffect(() => {
@@ -799,6 +806,54 @@ const SuperAdmin = () => {
     setSelectedBookingForTransfer(null);
     setJournalNumber("");
     setIsTransferring(false);
+  };
+
+  // Extension handlers
+  const handleExtensionSelect = (booking) => {
+    console.log('Selected booking for extension:', booking);
+    setSelectedBookingForExtension(booking);
+    setNewCheckOutDate("");
+    setExtensionAmount("");
+  };
+
+  const handleExtensionCancel = () => {
+    setSelectedBookingForExtension(null);
+    setNewCheckOutDate("");
+    setExtensionAmount("");
+    setIsExtending(false);
+  };
+
+  const handleExtensionSubmit = async () => {
+    if (!selectedBookingForExtension || !newCheckOutDate || !extensionAmount) {
+      return;
+    }
+
+    setIsExtending(true);
+    try {
+      const payload = {
+        newCheckOutDate: newCheckOutDate,
+        guests: selectedBookingForExtension.guests,
+        phone: selectedBookingForExtension.phone,
+        destination: selectedBookingForExtension.destination,
+        origin: selectedBookingForExtension.origin,
+        extension: true,
+        extendedAmount: parseFloat(extensionAmount),
+      };
+
+      const response = await api.put(`/bookings/${selectedBookingForExtension.id}/extend`, payload);
+      
+      if (response.status === 200) {
+        console.log('Booking extended successfully:', response.data);
+        // Refresh bookings data
+        fetchBookings();
+        handleExtensionCancel();
+        setExtensionDialog(false);
+      }
+    } catch (error) {
+      console.error("Error extending booking:", error);
+    } finally {
+      setIsExtending(false);
+    }
   };
 
   const handleTransferSubmit = async () => {
@@ -2468,6 +2523,9 @@ const SuperAdmin = () => {
           "Bank Type": booking.bankType || "N/A",
           "Account Number": booking.accountNumber || "N/A",
           "Account Holder": booking.accountHolderName || "N/A",
+          "Extension": booking.extension ? "Yes" : "No",
+          "Extension Amount": booking.extendedAmount ? `Nu. ${booking.extendedAmount}` : "N/A",
+          "Journal Number": booking.journalNumber || "N/A",
           "Booking Status": booking.status || "UNKNOWN",
           "Payment URL": booking.paymentUrl || "N/A",
           "Created Date": booking.createdAt ? format(new Date(booking.createdAt), "dd MMM yyyy") : "N/A",
@@ -2539,6 +2597,7 @@ const SuperAdmin = () => {
                   <TableHead>Transfer Status</TableHead>
                   <TableHead>Transaction Status</TableHead>
                   <TableHead>Bank Type</TableHead>
+                  <TableHead>Extension</TableHead>
                   <TableHead>Booking Status</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -2673,6 +2732,27 @@ const SuperAdmin = () => {
                           <div className="text-xs text-muted-foreground">
                             Holder: {booking.accountHolderName}
                           </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {booking.extension ? (
+                          <div className="space-y-1">
+                            <Badge 
+                              variant="outline" 
+                              className="bg-blue-100 text-blue-800 border-blue-200 text-xs"
+                            >
+                              Extended
+                            </Badge>
+                            {booking.extendedAmount && (
+                              <div className="text-xs text-green-600 font-medium">
+                                Nu. {new Intl.NumberFormat("en-IN").format(booking.extendedAmount)}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">Not Extended</span>
                         )}
                       </div>
                     </TableCell>
@@ -3022,6 +3102,87 @@ const SuperAdmin = () => {
 
         {/* Hotel Details Modal */}
         <HotelDetailsModal />
+
+        {/* Extension Dialog */}
+        <Dialog open={extensionDialog} onOpenChange={setExtensionDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-blue-500" />
+                Extend Booking
+              </DialogTitle>
+              <DialogDescription>
+                Extend the checkout date for this booking
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedBookingForExtension && (
+              <div className="space-y-4">
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <h4 className="font-medium text-sm mb-2">Booking Details</h4>
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <p><strong>Guest:</strong> {selectedBookingForExtension.guestName || selectedBookingForExtension.name}</p>
+                    <p><strong>Room:</strong> {selectedBookingForExtension.roomNumber}</p>
+                    <p><strong>Current Checkout:</strong> {selectedBookingForExtension.checkOutDate}</p>
+                    <p><strong>Hotel:</strong> {selectedBookingForExtension.hotelName}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="newCheckOutDate" className="block text-sm font-medium text-gray-700 mb-1">
+                      New Checkout Date
+                    </label>
+                    <Input
+                      id="newCheckOutDate"
+                      type="date"
+                      value={newCheckOutDate}
+                      onChange={(e) => setNewCheckOutDate(e.target.value)}
+                      min={selectedBookingForExtension.checkOutDate}
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="extensionAmount" className="block text-sm font-medium text-gray-700 mb-1">
+                      Extension Amount (Nu.)
+                    </label>
+                    <Input
+                      id="extensionAmount"
+                      type="number"
+                      value={extensionAmount}
+                      onChange={(e) => setExtensionAmount(e.target.value)}
+                      placeholder="Enter extension amount"
+                      min="0"
+                      step="0.01"
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button variant="outline" onClick={handleExtensionCancel}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleExtensionSubmit}
+                disabled={!newCheckOutDate || !extensionAmount || isExtending}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isExtending ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Extending...
+                  </div>
+                ) : (
+                  "Extend Booking"
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

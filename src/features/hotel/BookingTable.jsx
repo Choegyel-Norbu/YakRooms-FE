@@ -18,6 +18,7 @@ import {
   X,
   ThumbsUp,
   ThumbsDown,
+  Clock,
 } from "lucide-react";
 
 import api from "../../shared/services/Api"; // Your API service for making requests
@@ -555,6 +556,16 @@ const BookingTable = ({ hotelId }) => {
                       )}
                       /-
                     </div>
+                    {booking.extension && (
+                      <div className="text-xs text-blue-600 font-medium mt-1">
+                        Extended Booking
+                      </div>
+                    )}
+                    {booking.extendedAmount && (
+                      <div className="text-xs text-green-600 font-medium">
+                        Extension Fee: Nu. {booking.extendedAmount}
+                      </div>
+                    )}
                   </TableCell>
 
                   <TableCell>{getStatusBadge(booking.transferStatus)}</TableCell>
@@ -617,6 +628,16 @@ const BookingTable = ({ hotelId }) => {
                             }
                           >
                             <ThumbsDown className="h-4 w-4 mr-2" /> Reject
+                          </DropdownMenuItem>
+                        )}
+                        {(booking.status === "CONFIRMED" || booking.status === "CHECKED_IN") && !booking.extension && (
+                          <DropdownMenuItem
+                            onClick={() => {
+                              // TODO: Implement extension functionality
+                              toast.info("Extension functionality coming soon!");
+                            }}
+                          >
+                            <Clock className="h-4 w-4 mr-2" /> Extend Booking
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem
@@ -817,6 +838,22 @@ const BookingTable = ({ hotelId }) => {
                       Nu. {new Intl.NumberFormat("en-IN").format(selectedBooking.totalPrice)}/-
                     </span>
                   </div>
+                  {selectedBooking.extension && (
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-gray-600 text-sm">Extension:</span>
+                      <span className="text-blue-600 font-bold text-sm">
+                        Extended Booking
+                      </span>
+                    </div>
+                  )}
+                  {selectedBooking.extendedAmount && (
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-gray-600 text-sm">Extension Fee:</span>
+                      <span className="text-green-600 font-bold text-sm">
+                        Nu. {new Intl.NumberFormat("en-IN").format(selectedBooking.extendedAmount)}/-
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
