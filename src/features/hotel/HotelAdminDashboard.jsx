@@ -765,7 +765,7 @@ const HotelAdminDashboard = () => {
                   </div>
 
                   <div className="flex-1 flex flex-col p-4">
-                    <nav className="space-y-1 flex-1">
+                    <nav className="space-y-1 flex-1 overflow-y-auto">
                       {navigationItems.map((item) => (
                         <NavigationButton
                           key={item.id}
