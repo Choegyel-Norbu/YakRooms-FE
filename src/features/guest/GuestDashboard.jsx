@@ -28,6 +28,7 @@ import { Button } from "@/shared/components/button";
 import { Link } from "react-router-dom";
 import api from "../../shared/services/Api";
 import { useAuth } from "../authentication";
+import { handlePaymentRedirect } from "../../shared/utils/paymentRedirect";
 import { toast } from "sonner";
 import { CustomDatePicker } from "../../shared/components";
 import AuthTest from "../../components/AuthTest";
@@ -517,12 +518,21 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
       const response = await api.put(`/bookings/${booking.id}/extend`, payload);
       
       if (response.status === 200) {
-        toast.success("Booking extended successfully!", {
-          description: `Your stay has been extended until ${new Date(newCheckOutDate).toLocaleDateString()}.`,
-          duration: 6000
-        });
-        onExtend(response.data);
-        onClose();
+        const extensionResponse = response.data;
+        
+        // Check if payment is required for the extension
+        if (extensionResponse.success && extensionResponse.paymentUrl) {
+          // Handle payment redirection for booking extension
+          handleExtensionPaymentRedirect(extensionResponse);
+        } else {
+          // Direct extension without payment (fallback)
+          toast.success("Booking extended successfully!", {
+            description: `Your stay has been extended until ${new Date(newCheckOutDate).toLocaleDateString()}.`,
+            duration: 6000
+          });
+          onExtend(extensionResponse);
+          onClose();
+        }
       }
     } catch (error) {
       console.error("Error extending booking:", error);
@@ -541,6 +551,97 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
     } finally {
       setIsExtending(false);
     }
+  };
+
+  // Handle payment redirection for booking extension
+  const handleExtensionPaymentRedirect = (extensionResponse) => {
+    try {
+      // Use the standardized payment redirect utility
+      handlePaymentRedirect(extensionResponse, {
+        gatewayName: 'BFS-Secure',
+        onSuccess: (paymentData) => {
+          toast.success("Redirecting to Payment Gateway", {
+            description: `Payment initiated for booking extension. Complete payment to confirm your ${paymentData.additionalDays} day extension.`,
+            duration: 8000
+          });
+          
+          // Close the extension dialog
+          onClose();
+          
+          // Set up payment status checking for extension
+          checkExtensionPaymentStatus(extensionResponse.transactionId || extensionResponse.orderNumber);
+        },
+        onError: (error) => {
+          toast.error("Payment Redirect Failed", {
+            description: "There was an error redirecting to the payment gateway. Please try again.",
+            duration: 6000
+          });
+        }
+      });
+      
+    } catch (error) {
+      console.error("Extension payment redirect failed:", error);
+      toast.error("Payment Redirect Failed", {
+        description: "There was an error redirecting to the payment gateway. Please try again.",
+        duration: 6000
+      });
+    }
+  };
+
+  // Check extension payment status periodically
+  const checkExtensionPaymentStatus = async (transactionId) => {
+    if (!transactionId) return;
+    
+    const maxAttempts = 30; // Check for 5 minutes (30 * 10 seconds)
+    let attempts = 0;
+    
+    const checkStatus = async () => {
+      try {
+        const response = await api.get(`/bookings/payment-status/${transactionId}`);
+        
+        if (response.data?.paymentStatus === 'completed') {
+          toast.success("Extension Payment Successful!", {
+            description: "Your booking extension has been confirmed. You will receive a confirmation email shortly.",
+            duration: 8000
+          });
+          
+          // Refresh the booking data to show updated checkout date
+          if (onExtend) {
+            onExtend(response.data.booking);
+          }
+          return;
+        }
+        
+        if (response.data?.paymentStatus === 'failed') {
+          toast.error("Payment Failed", {
+            description: "Your payment could not be processed. Please try extending your booking again.",
+            duration: 8000
+          });
+          return;
+        }
+        
+        // Continue checking if still pending
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkStatus, 10000); // Check every 10 seconds
+        } else {
+          toast.info("Payment Status Unknown", {
+            description: "Please check your booking status in your dashboard.",
+            duration: 6000
+          });
+        }
+        
+      } catch (error) {
+        console.error("Error checking extension payment status:", error);
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkStatus, 10000);
+        }
+      }
+    };
+    
+    // Start checking after 30 seconds
+    setTimeout(checkStatus, 30000);
   };
 
   // Check if extension is possible
