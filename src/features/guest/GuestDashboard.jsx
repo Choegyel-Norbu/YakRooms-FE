@@ -513,6 +513,8 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
         phone: booking.phone,                 
         destination: booking.destination,     
         origin: booking.origin,               
+        extension: true,
+        extendedAmount: extension.cost != null ? extension.cost.toFixed(2) : undefined,
       };
 
       const response = await api.put(`/bookings/${booking.id}/extend`, payload);
