@@ -35,7 +35,47 @@ const AUTH_STORAGE_KEYS = {
   SUBSCRIPTION_PLAN: 'subscriptionPlan',
   SUBSCRIPTION_IS_ACTIVE: 'subscriptionIsActive',
   SUBSCRIPTION_NEXT_BILLING_DATE: 'subscriptionNextBillingDate',
-  SUBSCRIPTION_EXPIRATION_NOTIFICATION: 'subscriptionExpirationNotification'
+  SUBSCRIPTION_EXPIRATION_NOTIFICATION: 'subscriptionExpirationNotification',
+  SUBSCRIPTION_FETCHED_SESSION: 'subscriptionFetchedSession'
+};
+
+// === Utility to generate session identifier ===
+const generateSessionId = () => {
+  try {
+    // Use sessionStorage to get/set session ID (clears when tab closes)
+    let sessionId = sessionStorage.getItem('yakrooms_session_id');
+    if (!sessionId) {
+      sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      sessionStorage.setItem('yakrooms_session_id', sessionId);
+    }
+    return sessionId;
+  } catch (error) {
+    console.error("Failed to generate session ID", error);
+    // Fallback to timestamp-based ID
+    return `session_${Date.now()}`;
+  }
+};
+
+// === Utility to check if subscription was fetched in current session ===
+const isSubscriptionFetchedInSession = (userId) => {
+  try {
+    const sessionId = generateSessionId();
+    const fetchedSession = getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_FETCHED_SESSION);
+    return fetchedSession === `${userId}_${sessionId}`;
+  } catch (error) {
+    console.error("Failed to check subscription fetch session", error);
+    return false;
+  }
+};
+
+// === Utility to mark subscription as fetched in current session ===
+const markSubscriptionFetchedInSession = (userId) => {
+  try {
+    const sessionId = generateSessionId();
+    setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_FETCHED_SESSION, `${userId}_${sessionId}`);
+  } catch (error) {
+    console.error("Failed to mark subscription as fetched in session", error);
+  }
 };
 
 // === Utility to check if we should validate authentication status ===
@@ -271,12 +311,43 @@ export const AuthProvider = ({ children }) => {
     return stored ? new Date(stored) : null;
   });
 
-  // === FETCH SUBSCRIPTION DATA (memoized) ===
+  // === FETCH SUBSCRIPTION DATA (memoized with session-based caching and role restriction) ===
   const fetchSubscriptionData = useCallback(async (userId) => {
     try {
       if (!userId) return null;
       
-      console.log("🔍 Fetching subscription data for user:", userId);
+      // Check if user has permission to access subscription data
+      // Only HOTEL_ADMIN (hotel owner) and STAFF (manager) roles can access subscription data
+      const allowedRoles = ['HOTEL_ADMIN', 'STAFF'];
+      const hasPermission = authState.roles.some(role => allowedRoles.includes(role));
+      
+      if (!hasPermission) {
+        console.log("🚫 User role does not have permission to access subscription data. Required roles: HOTEL_ADMIN or STAFF");
+        console.log("👤 Current user roles:", authState.roles);
+        
+        // Return null for users without permission
+        return null;
+      }
+      
+      // Check if subscription data was already fetched in this session
+      if (isSubscriptionFetchedInSession(userId)) {
+        console.log("🔄 Subscription data already fetched in current session, skipping API call");
+        
+        // Return cached data from localStorage/auth state
+        const cachedData = {
+          id: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_ID),
+          subscriptionId: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_ID),
+          paymentStatus: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS),
+          subscriptionPlan: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PLAN),
+          isActive: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE) === "true",
+          nextBillingDate: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_NEXT_BILLING_DATE),
+          expirationNotification: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_EXPIRATION_NOTIFICATION) === "true"
+        };
+        
+        return cachedData;
+      }
+      
+      console.log("🔍 Fetching subscription data for user:", userId, "with roles:", authState.roles);
       const response = await axios.get(`${API_BASE_URL}/api/subscriptions/user/${userId}`, {
         withCredentials: true,
         headers: {
@@ -301,6 +372,9 @@ export const AuthProvider = ({ children }) => {
         if (subscriptionData.id || subscriptionData.subscriptionId) {
           setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_ID, (subscriptionData.id || subscriptionData.subscriptionId).toString());
         }
+        
+        // Mark as fetched in current session
+        markSubscriptionFetchedInSession(userId);
         
         // Update auth state
         setAuthState(prev => ({
@@ -327,7 +401,7 @@ export const AuthProvider = ({ children }) => {
       
       return null;
     }
-  }, []);
+  }, [authState.roles]);
 
   // === FETCH USER HOTELS (memoized) ===
   const fetchUserHotels = useCallback(async (userId) => {
@@ -552,6 +626,13 @@ export const AuthProvider = ({ children }) => {
       authKeys.forEach(key => {
         removeStorageItem(key);
       });
+      
+      // Clear session-based subscription fetch flag
+      try {
+        sessionStorage.removeItem('yakrooms_session_id');
+      } catch (sessionError) {
+        console.warn('⚠️ Failed to clear session ID:', sessionError);
+      }
       
       // Clear all cookies (redundant but safer)
       try {

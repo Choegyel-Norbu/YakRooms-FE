@@ -541,10 +541,18 @@ const BookingTable = ({ hotelId }) => {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
                       <div className="flex flex-col text-sm">
                         <span className="font-medium">{booking.checkInDate}</span>
-                        <span className="text-muted-foreground">to {booking.checkOutDate}</span>
+                        <span className="font-medium"> <span className="text-muted-foreground">to</span> {booking.checkOutDate}</span>
+                        <span className="text-xs text-blue-600 font-medium mt-1">
+                          {(() => {
+                            const checkIn = new Date(booking.checkInDate);
+                            const checkOut = new Date(booking.checkOutDate);
+                            const diffTime = Math.abs(checkOut - checkIn);
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            return `${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
+                          })()}
+                        </span>
                       </div>
                     </div>
                   </TableCell>
@@ -552,9 +560,10 @@ const BookingTable = ({ hotelId }) => {
                     <div className="flex items-center">
                       Nu.{" "}
                       {new Intl.NumberFormat("en-IN").format(
-                        booking.totalPrice
+                        booking.extension && booking.extendedAmount 
+                          ? booking.totalPrice + booking.extendedAmount
+                          : booking.totalPrice
                       )}
-                      /-
                     </div>
                     {booking.extension && (
                       <div className="text-xs text-blue-600 font-medium mt-1">
@@ -563,7 +572,7 @@ const BookingTable = ({ hotelId }) => {
                     )}
                     {booking.extendedAmount && (
                       <div className="text-xs text-green-600 font-medium">
-                        Extension Fee: Nu. {booking.extendedAmount}
+                        Extension amount: Nu. {new Intl.NumberFormat("en-IN").format(booking.extendedAmount)}
                       </div>
                     )}
                   </TableCell>
@@ -825,6 +834,18 @@ const BookingTable = ({ hotelId }) => {
                     <span className="text-gray-900 text-sm">{selectedBooking.checkOutDate}</span>
                   </div>
                   <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">Duration:</span>
+                    <span className="text-blue-600 font-bold text-sm">
+                      {(() => {
+                        const checkIn = new Date(selectedBooking.checkInDate);
+                        const checkOut = new Date(selectedBooking.checkOutDate);
+                        const diffTime = Math.abs(checkOut - checkIn);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        return `${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
+                      })()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Status:</span>
                     <div className="mt-1">{getStatusBadge(selectedBooking.status)}</div>
                   </div>
@@ -835,7 +856,11 @@ const BookingTable = ({ hotelId }) => {
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Total Price:</span>
                     <span className="text-gray-900 font-bold text-sm text-green-600">
-                      Nu. {new Intl.NumberFormat("en-IN").format(selectedBooking.totalPrice)}/-
+                      Nu. {new Intl.NumberFormat("en-IN").format(
+                        selectedBooking.extension && selectedBooking.extendedAmount 
+                          ? selectedBooking.totalPrice + selectedBooking.extendedAmount
+                          : selectedBooking.totalPrice
+                      )}/-
                     </span>
                   </div>
                   {selectedBooking.extension && (

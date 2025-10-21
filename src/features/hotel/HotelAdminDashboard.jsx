@@ -101,7 +101,6 @@ const HotelAdminDashboard = () => {
     subscriptionIsActive,
     subscriptionNextBillingDate,
     subscriptionExpirationNotification,
-    fetchSubscriptionData,
     fetchUserHotels,
     userHotels,
     setSelectedHotelId,
@@ -119,6 +118,7 @@ const HotelAdminDashboard = () => {
   const [showStaffGrid, setShowStaffGrid] = useState(false);
   const [verificationTab, setVerificationTab] = useState("cid-verification"); // "cid-verification" or "passcode"
   const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
+  const [directSubscriptionData, setDirectSubscriptionData] = useState(null);
 
   // Use selected hotel ID if available, otherwise fall back to hotelId
   const currentHotelId = selectedHotelId || hotelId;
@@ -220,25 +220,55 @@ const HotelAdminDashboard = () => {
     }
   }, [userId, fetchUserHotels]);
 
-  // Fetch subscription data when userId is available
+  // Fetch subscription data directly via API call (not using AuthProvider state)
   useEffect(() => {
-    const loadSubscriptionData = async () => {
-      if (userId && fetchSubscriptionData) {
-        try {
-          await fetchSubscriptionData(userId);
-        } catch (error) {
-          console.error("Failed to fetch subscription data:", error);
-        } finally {
-          setIsLoadingSubscription(false);
+    const loadSubscriptionDataDirectly = async () => {
+      if (!userId) {
+        setIsLoadingSubscription(false);
+        return;
+      }
+
+      // Check if user has permission to access subscription data
+      // Only HOTEL_ADMIN (hotel owner) and STAFF (manager) roles can access subscription data
+      const allowedRoles = ['HOTEL_ADMIN', 'STAFF'];
+      const hasPermission = roles.some(role => allowedRoles.includes(role));
+      
+      if (!hasPermission) {
+        console.log("🚫 User role does not have permission to access subscription data. Required roles: HOTEL_ADMIN or STAFF");
+        console.log("👤 Current user roles:", roles);
+        setIsLoadingSubscription(false);
+        return;
+      }
+
+      try {
+        console.log("🔍 Making direct API call for subscription data for user:", userId);
+        
+        // Make direct API call to subscription endpoint
+        const response = await api.get(`/subscriptions/user/${userId}`);
+        
+        if (response.status === 200 && response.data) {
+          console.log("✅ Subscription data fetched successfully via direct API call");
+          console.log("📋 Subscription data:", response.data);
+          
+          // Store the subscription data in local state
+          setDirectSubscriptionData(response.data);
+          
+        } else {
+          throw new Error('Invalid subscription response');
         }
-      } else {
-        // If no userId, we can't fetch subscription data, so stop loading
+      } catch (error) {
+        console.error("❌ Failed to fetch subscription data via direct API call:", error);
+        
+        if (error.response?.status === 404) {
+          console.log("ℹ️ No subscription found for this user");
+        }
+      } finally {
         setIsLoadingSubscription(false);
       }
     };
 
-    loadSubscriptionData();
-  }, [userId, fetchSubscriptionData]);
+    loadSubscriptionDataDirectly();
+  }, [userId, roles]);
 
   // Fetch all notifications from backend when component mounts or hotel changes
   useEffect(() => {

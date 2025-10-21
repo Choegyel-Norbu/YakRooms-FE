@@ -79,6 +79,7 @@ export const SubscriptionProvider = ({ children }) => {
     userId, 
     hotelId, 
     isAuthenticated,
+    roles,
     subscriptionId,
     subscriptionPaymentStatus,
     subscriptionPlan,
@@ -90,9 +91,28 @@ export const SubscriptionProvider = ({ children }) => {
 
   const [subscriptionState, setSubscriptionState] = useState(defaultSubscriptionState);
 
-  // === FETCH SUBSCRIPTION DETAILS (memoized) ===
+  // === FETCH SUBSCRIPTION DETAILS (memoized with role-based access control) ===
   const fetchSubscriptionDetails = useCallback(async (forceRefresh = false) => {
     if (!userId || !isAuthenticated) return null;
+
+    // Check if user has permission to access subscription data
+    // Only HOTEL_ADMIN (hotel owner) and STAFF (manager) roles can access subscription data
+    const allowedRoles = ['HOTEL_ADMIN', 'STAFF'];
+    const hasPermission = roles.some(role => allowedRoles.includes(role));
+    
+    if (!hasPermission) {
+      console.log("🚫 User role does not have permission to access subscription data. Required roles: HOTEL_ADMIN or STAFF");
+      console.log("👤 Current user roles:", roles);
+      
+      setSubscriptionState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: 'Access denied: Subscription data is only available for hotel owners and managers',
+        subscription: null
+      }));
+      
+      return null;
+    }
 
     // Don't fetch if we already have data and it's not a forced refresh
     if (!forceRefresh && subscriptionState.subscription && subscriptionState.lastUpdated) {
@@ -107,22 +127,36 @@ export const SubscriptionProvider = ({ children }) => {
 
     try {
       console.log("🔍 Fetching detailed subscription data for user:", userId);
-      const subscriptionData = await subscriptionService.getSubscriptionByUserId(userId);
       
-      setSubscriptionState(prev => ({
-        ...prev,
-        subscription: subscriptionData,
-        isLoading: false,
-        error: null,
-        lastUpdated: Date.now()
-      }));
-
-      // Update auth provider with latest subscription data
-      if (fetchSubscriptionData) {
-        await fetchSubscriptionData(userId);
+      // Use AuthProvider's optimized fetchSubscriptionData instead of direct API call
+      // This ensures we use the session-based caching and avoid duplicate API calls
+      const subscriptionData = await fetchSubscriptionData(userId);
+      
+      if (subscriptionData) {
+        setSubscriptionState(prev => ({
+          ...prev,
+          subscription: subscriptionData,
+          isLoading: false,
+          error: null,
+          lastUpdated: Date.now()
+        }));
+        
+        return subscriptionData;
+      } else {
+        // If AuthProvider doesn't have data, fall back to direct API call
+        console.log("🔄 AuthProvider cache miss, fetching from API directly");
+        const directSubscriptionData = await subscriptionService.getSubscriptionByUserId(userId);
+        
+        setSubscriptionState(prev => ({
+          ...prev,
+          subscription: directSubscriptionData,
+          isLoading: false,
+          error: null,
+          lastUpdated: Date.now()
+        }));
+        
+        return directSubscriptionData;
       }
-
-      return subscriptionData;
     } catch (error) {
       console.error("❌ Failed to fetch subscription details:", error);
       
@@ -138,7 +172,7 @@ export const SubscriptionProvider = ({ children }) => {
 
       return null;
     }
-  }, [userId, isAuthenticated, subscriptionState.subscription, subscriptionState.lastUpdated, fetchSubscriptionData]);
+  }, [userId, isAuthenticated, subscriptionState.subscription, subscriptionState.lastUpdated, fetchSubscriptionData, roles]);
 
   // === FETCH PAYMENT HISTORY (memoized) ===
   const fetchPaymentHistory = useCallback(async () => {
@@ -185,10 +219,8 @@ export const SubscriptionProvider = ({ children }) => {
         lastUpdated: Date.now()
       }));
 
-      // Refresh auth provider subscription data
-      if (fetchSubscriptionData) {
-        await fetchSubscriptionData(userId);
-      }
+      // Note: AuthProvider subscription data will be updated automatically
+      // through the session-based caching mechanism when needed
 
       toast.success("Subscription created successfully!");
       return newSubscription;
@@ -249,14 +281,8 @@ export const SubscriptionProvider = ({ children }) => {
             lastUpdated: Date.now()
           }));
           
-          // Refresh auth provider data
-          if (fetchSubscriptionData) {
-            try {
-              await fetchSubscriptionData(userId);
-            } catch (refreshError) {
-              console.warn("⚠️ Failed to refresh auth subscription data:", refreshError);
-            }
-          }
+          // Note: AuthProvider subscription data will be updated automatically
+          // through the session-based caching mechanism when needed
         }
       }
 
@@ -311,10 +337,8 @@ export const SubscriptionProvider = ({ children }) => {
         lastUpdated: Date.now()
       }));
 
-      // Refresh auth provider subscription data
-      if (fetchSubscriptionData && userId) {
-        await fetchSubscriptionData(userId);
-      }
+      // Note: AuthProvider subscription data will be updated automatically
+      // through the session-based caching mechanism when needed
 
       toast.success("Subscription updated successfully!");
       return updatedSubscription;
