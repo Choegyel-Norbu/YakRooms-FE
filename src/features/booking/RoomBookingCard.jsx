@@ -27,19 +27,22 @@ import { Switch } from "@/shared/components/switch";
 import { CheckCircle, AlertTriangle, UserCheck } from "lucide-react";
 import LoginModal from "../authentication/LoginModal";
 import { BookingSuccessModal, CustomDatePicker } from "../../shared/components";
+import TimeBasedBookingDialog from "./TimeBasedBookingDialog";
 import { toast } from "sonner"; // Using sonner for toasts
 
-export default function RoomBookingCard({ room, hotelId }) {
+export default function RoomBookingCard({ room, hotelId, hotel }) {
   const { userId, isAuthenticated, getCurrentActiveRole, switchToRole, hasRole, setRedirectUrl } = useAuth();
   const [openBookingDialog, setOpenBookingDialog] = useState(false);
   const [openLoginModal, setOpenLoginModal] = useState(false);
   const [openRoleSwitchDialog, setOpenRoleSwitchDialog] = useState(false);
   const [openBookingSuccessModal, setOpenBookingSuccessModal] = useState(false);
   const [openImmediateBookingDialog, setOpenImmediateBookingDialog] = useState(false);
+  const [openTimeBasedBookingDialog, setOpenTimeBasedBookingDialog] = useState(false);
   const [successBookingData, setSuccessBookingData] = useState(null);
   const [pendingBookingType, setPendingBookingType] = useState(null); // Track which booking type was requested
   const [isImmediateBookingLoading, setIsImmediateBookingLoading] = useState(false);
   const [bookedDates, setBookedDates] = useState([]);
+  const [timeBasedBookings, setTimeBasedBookings] = useState([]);
   const [isLoadingBookedDates, setIsLoadingBookedDates] = useState(false);
   const [hasCheckedBookings, setHasCheckedBookings] = useState(false);
   const [isTodayAvailable, setIsTodayAvailable] = useState(true);
@@ -80,8 +83,12 @@ export default function RoomBookingCard({ room, hotelId }) {
       // Fetch booked dates
       const bookedResponse = await api.get(`/rooms/${room.id}/booked-dates`);
       
-      if (bookedResponse.data && bookedResponse.data.bookedDates) {
-        setBookedDates(bookedResponse.data.bookedDates);
+      if (bookedResponse.data) {
+        // Set regular booked dates
+        setBookedDates(bookedResponse.data.bookedDates || []);
+        
+        // Set time-based bookings
+        setTimeBasedBookings(bookedResponse.data.timeBasedBookings || []);
         
         // Check if today is available for immediate booking
         const today = new Date();
@@ -89,7 +96,8 @@ export default function RoomBookingCard({ room, hotelId }) {
           String(today.getMonth() + 1).padStart(2, '0') + '-' + 
           String(today.getDate()).padStart(2, '0');
         
-        const isTodayBooked = bookedResponse.data.bookedDates.includes(todayString);
+        // For immediate booking, only check regular booked dates (not time-based)
+        const isTodayBooked = (bookedResponse.data.bookedDates || []).includes(todayString);
         setIsTodayAvailable(!isTodayBooked);
         setHasCheckedBookings(true);
       }
@@ -178,6 +186,47 @@ export default function RoomBookingCard({ room, hotelId }) {
     return bookedDates.includes(nextDayString);
   };
 
+  // Helper function to check for time conflicts in time-based bookings
+  const hasTimeConflict = (date, checkInTime, bookHours) => {
+    if (!date || !checkInTime || !bookHours || timeBasedBookings.length === 0) {
+      return false;
+    }
+
+    const selectedDate = new Date(date);
+    const selectedDateString = selectedDate.getFullYear() + '-' + 
+      String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(selectedDate.getDate()).padStart(2, '0');
+
+    // Calculate selected booking time range
+    const [selectedHours, selectedMinutes] = checkInTime.split(':').map(Number);
+    const selectedStartMinutes = selectedHours * 60 + selectedMinutes;
+    const selectedEndMinutes = selectedStartMinutes + (bookHours * 60);
+
+    // Check against existing time-based bookings for the same date
+    return timeBasedBookings.some(booking => {
+      if (booking.date !== selectedDateString) {
+        return false;
+      }
+
+      // Calculate existing booking time range
+      const [existingStartHours, existingStartMins] = booking.checkInTime.split(':').map(Number);
+      const [existingEndHours, existingEndMins] = booking.checkOutTime.split(':').map(Number);
+      
+      const existingStartTotalMinutes = existingStartHours * 60 + existingStartMins;
+      const existingEndTotalMinutes = existingEndHours * 60 + existingEndMins;
+
+      // Check for overlap
+      return (selectedStartMinutes < existingEndTotalMinutes && selectedEndMinutes > existingStartTotalMinutes);
+    });
+  };
+
+  // Get blocked dates based on booking type
+  const getBlockedDates = () => {
+    // For regular booking, block both regular and time-based booking dates
+    const timeBasedDates = timeBasedBookings.map(booking => booking.date);
+    return [...bookedDates, ...timeBasedDates];
+  };
+
   // Get minimum date for check-out (must be after check-in)
   const getMinCheckOutDate = () => {
     if (!bookingDetails.checkInDate) {
@@ -237,6 +286,7 @@ export default function RoomBookingCard({ room, hotelId }) {
     return daysDiff > 0 ? daysDiff : 0;
   };
 
+
   const calculateTotalPrice = () => {
     const days = calculateDays();
     return days * room.price * bookingDetails.numberOfRooms;
@@ -250,7 +300,9 @@ export default function RoomBookingCard({ room, hotelId }) {
     // Define field priority order for scrolling
     const fieldPriority = [
       'checkInDate',
-      'checkOutDate', 
+      'checkOutDate',
+      'checkInTime',
+      'bookHours',
       'phone',
       'cid',
       'destination',
@@ -392,10 +444,10 @@ export default function RoomBookingCard({ room, hotelId }) {
       }
     }
     
-    // Comprehensive check-out date validation (skip if check-in is between booked dates)
-    if (!shouldHideCheckoutDate() && !bookingDetails.checkOutDate) {
+    // Comprehensive check-out date validation (skip if check-in is between booked dates or time-based booking)
+    if (!shouldHideCheckoutDate() && !bookingDetails.checkOutDate && bookingType === "regular") {
       newErrors.checkOutDate = "Check-out date is required";
-    } else if (bookingDetails.checkOutDate) {
+    } else if (bookingDetails.checkOutDate && bookingType === "regular") {
       const checkOutDate = new Date(bookingDetails.checkOutDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Set to start of day for proper comparison
@@ -423,6 +475,7 @@ export default function RoomBookingCard({ room, hotelId }) {
 
     }
 
+
     // Validate guest count
     if (!bookingDetails.guests || bookingDetails.guests < 1) {
       newErrors.guests = "Number of guests is required and must be at least 1";
@@ -442,7 +495,7 @@ export default function RoomBookingCard({ room, hotelId }) {
     setBookingDetails((prev) => ({
       ...prev,
       [name]:
-        name === "numberOfRooms" || name === "guests" ? parseInt(value) : value,
+        name === "numberOfRooms" || name === "guests" || name === "bookHours" ? parseInt(value) : value,
     }));
     
     // Clear error for this field when user starts typing
@@ -747,6 +800,7 @@ export default function RoomBookingCard({ room, hotelId }) {
         days: calculateDays(),
         adminBooking: false,
         initiatePayment: true,
+        bookingType: "regular"
       };
       
       // Use advanced booking endpoint for detailed form submissions
@@ -845,6 +899,10 @@ export default function RoomBookingCard({ room, hotelId }) {
         origin: immediateBookingDetails.origin,
         adminBooking: false,
         initiatePayment: true,
+        // Time-based booking fields (immediate booking is always regular)
+        timeBased: false,
+        bookHour: null,
+        bookingType: "regular"
       };
       
       const res = await api.post("/bookings", immediatePayload);
@@ -1055,6 +1113,35 @@ export default function RoomBookingCard({ room, hotelId }) {
     setOpenRoleSwitchDialog(true);
   };
 
+  // Handle time-based booking - opens the time-based booking dialog
+  const handleTimeBasedBookingClick = async () => {
+    if (!isAuthenticated) {
+      // Store current URL for redirect after login
+      setRedirectUrl(window.location.pathname + window.location.search);
+      setOpenLoginModal(true);
+      return;
+    }
+
+    const currentRole = getCurrentActiveRole();
+    
+    // Check if user is Admin (SUPER_ADMIN) - prevent booking
+    if (currentRole === "SUPER_ADMIN") {
+      setPendingBookingType("timeBased");
+      setOpenRoleSwitchDialog(true);
+      return;
+    }
+
+    // If user is already in GUEST role, allow direct booking
+    if (currentRole === "GUEST") {
+      setOpenTimeBasedBookingDialog(true);
+      return;
+    }
+
+    // For all other roles, show role switch dialog to switch to GUEST
+    setPendingBookingType("timeBased");
+    setOpenRoleSwitchDialog(true);
+  };
+
   // Handle role switching to Guest
   const handleSwitchToGuest = () => {
     if (hasRole("GUEST")) {
@@ -1077,6 +1164,11 @@ export default function RoomBookingCard({ room, hotelId }) {
           setErrors({}); // Reset errors when opening dialog after role switch
           await fetchBookedDates();
           setOpenBookingDialog(true);
+        }, 500);
+      } else if (pendingBookingType === "timeBased") {
+        // Open time-based booking dialog after role switch
+        setTimeout(() => {
+          setOpenTimeBasedBookingDialog(true);
         }, 500);
       }
       
@@ -1169,6 +1261,23 @@ export default function RoomBookingCard({ room, hotelId }) {
                   Custom Booking
                 </span>
               </Button>
+
+              {/* Time-Based Booking Button - Only show if hotel supports time-based booking */}
+              {hotel?.hasTimeBased && (
+                <Button 
+                  onClick={handleTimeBasedBookingClick}
+                  variant="outline"
+                  className="border-purple-600 text-xs text-purple-600 hover:bg-purple-50 flex-1 sm:flex-none"
+                  title="Open time-based booking form"
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Time-Based Booking
+                  </span>
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -1204,17 +1313,18 @@ export default function RoomBookingCard({ room, hotelId }) {
                 </div>
               )}
 
-
               {/* Date Selection - Moved to top */}
               <div className="space-y-4">
-                <h3 className="text-base font-semibold text-foreground">Select Your Dates</h3>
+                <h3 className="text-base font-semibold text-foreground">
+                  Select Your Dates
+                </h3>
                 
                 <div className="grid gap-2">
                   <div data-field="checkInDate">
                     <CustomDatePicker
                       selectedDate={bookingDetails.checkInDate ? new Date(bookingDetails.checkInDate + 'T12:00:00') : null}
                       onDateSelect={(date) => handleDateSelect("checkInDate", date)}
-                      blockedDates={bookedDates}
+                      blockedDates={getBlockedDates()}
                       minDate={new Date()}
                       placeholder="Select check-in date"
                       label="Check-in Date *"
@@ -1231,7 +1341,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                       <CustomDatePicker
                         selectedDate={bookingDetails.checkOutDate ? new Date(bookingDetails.checkOutDate + 'T12:00:00') : null}
                         onDateSelect={(date) => handleDateSelect("checkOutDate", date)}
-                        blockedDates={bookedDates}
+                        blockedDates={getBlockedDates()}
                         minDate={getMinCheckOutDate()}
                         placeholder="Select check-out date"
                         label="Check-out Date *"
@@ -1242,6 +1352,7 @@ export default function RoomBookingCard({ room, hotelId }) {
                     </div>
                   </div>
                 )}
+
                 
                 {shouldHideCheckoutDate() && (
                   <div className="grid gap-2">
@@ -1474,16 +1585,16 @@ export default function RoomBookingCard({ room, hotelId }) {
                   <span>Nu {totalPrice.toFixed(2)}</span>
                 </div>
                 {days === 0 &&
-                  (bookingDetails.checkInDate || bookingDetails.checkOutDate) && (
-                    <p className="text-sm text-amber-600">
-                      {!bookingDetails.checkInDate && !bookingDetails.checkOutDate 
-                        ? "Please select check-in and check-out dates."
-                        : !bookingDetails.checkInDate 
-                        ? "Please select a check-in date."
-                        : "Please select a valid check-out date."
-                      }
-                    </p>
-                  )}
+                    (bookingDetails.checkInDate || bookingDetails.checkOutDate) && (
+                      <p className="text-sm text-amber-600">
+                        {!bookingDetails.checkInDate && !bookingDetails.checkOutDate 
+                          ? "Please select check-in and check-out dates."
+                          : !bookingDetails.checkInDate 
+                          ? "Please select a check-in date."
+                          : "Please select a valid check-out date."
+                        }
+                      </p>
+                    )}
                 
                 {/* Date validation helper */}
                 {(errors.checkInDate || errors.checkOutDate) && (
@@ -1859,6 +1970,20 @@ export default function RoomBookingCard({ room, hotelId }) {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Time-Based Booking Dialog */}
+      <TimeBasedBookingDialog
+        isOpen={openTimeBasedBookingDialog}
+        onClose={() => setOpenTimeBasedBookingDialog(false)}
+        room={room}
+        hotelId={hotelId}
+        hotel={hotel}
+        onBookingSuccess={(bookingData) => {
+          // Handle successful time-based booking
+          setSuccessBookingData(bookingData);
+          setOpenBookingSuccessModal(true);
+        }}
+      />
 
       {/* Booking Success Modal with QR Code */}
       <BookingSuccessModal

@@ -71,6 +71,7 @@ const AddListingPage = () => {
     checkinTime: "",
     checkoutTime: "",
     cancellationPolicy: "",
+    hasTimeBased: false,
     // Bank Account Information
     accountNumber: "",
     accountHolderName: "",
@@ -1097,6 +1098,58 @@ const AddListingPage = () => {
                       </div>
                     </div>
 
+                    {/* Time-Based Booking Option */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3">
+                        <Checkbox
+                          id="hasTimeBased"
+                          checked={formData.hasTimeBased}
+                          onCheckedChange={(checked) => {
+                            setFormData(prev => ({ ...prev, hasTimeBased: checked }));
+                            if (errors.hasTimeBased) {
+                              setErrors(prev => {
+                                const newErrors = { ...prev };
+                                delete newErrors.hasTimeBased;
+                                return newErrors;
+                              });
+                            }
+                          }}
+                        />
+                        <div className="space-y-1">
+                          <Label htmlFor="hasTimeBased" className="text-sm font-medium cursor-pointer">
+                            Enable Time-Based Booking
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            Allow guests to book rooms for specific hours instead of full days
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {formData.hasTimeBased && (
+                        <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <div className="flex items-start gap-3">
+                            <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="flex-1">
+                              <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                                Time-Based Booking Features
+                              </h5>
+                              <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                                <li>• Guests can book rooms for specific hours (1-24 hours)</li>
+                                <li>• Pricing calculated per hour instead of per day</li>
+                                <li>• Flexible check-in and check-out times</li>
+                                <li>• Ideal for short stays, meetings, or day use</li>
+                                <li>• Can be used alongside regular daily bookings</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="space-y-4 sm:space-y-6">
                       <Label htmlFor="cancellationPolicy" className="text-sm sm:text-base">
                         Cancellation Policy <span className="text-destructive">*</span>
@@ -1645,6 +1698,14 @@ const AddListingPage = () => {
                             <div>
                               <Label className="text-muted-foreground">Cancellation Policy</Label>
                               <p className="font-bold text-sm lg:text-base">{formData.cancellationPolicy}</p>
+                            </div>
+                          )}
+                          {formData.hasTimeBased !== undefined && (
+                            <div>
+                              <Label className="text-muted-foreground">Time-Based Booking</Label>
+                              <p className="font-bold text-sm lg:text-base">
+                                {formData.hasTimeBased ? "Enabled" : "Disabled"}
+                              </p>
                             </div>
                           )}
                         </div>

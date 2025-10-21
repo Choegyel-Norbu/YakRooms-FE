@@ -1364,7 +1364,7 @@ const HotelDetailsPage = () => {
                             )}
 
                             <div className="mt-6 pt-4 border-t">
-                              <RoomBookingCard room={room} hotelId={id} />
+                              <RoomBookingCard room={room} hotelId={id} hotel={appState.hotel} />
                             </div>
                           </div>
                         </div>
