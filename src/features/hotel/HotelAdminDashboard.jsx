@@ -513,39 +513,43 @@ const HotelAdminDashboard = () => {
   return (
     <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
-      <aside className="w-56 lg:w-64 bg-card shadow-sm hidden md:block border-r flex flex-col">
-        <div className="p-4 lg:p-5 border-b">
-          <div className="flex items-center gap-2 lg:gap-3 mb-3">
-            <div>
-              <EzeeRoomLogo size="default" />
+      <aside className="w-56 lg:w-64 bg-card shadow-sm hidden md:block border-r flex flex-col h-screen">
+        {/* Fixed Header Section */}
+        <div className="flex-shrink-0">
+          <div className="p-4 lg:p-5 border-b">
+            <div className="flex items-center gap-2 lg:gap-3 mb-3">
+              <div>
+                <EzeeRoomLogo size="default" />
+              </div>
             </div>
+            
+            
+            {/* Subscription Status */}
+            {subscriptionPlan === 'TRIAL' && (
+              <Badge 
+                variant="secondary" 
+                className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0 shadow-sm hover:from-blue-600 hover:to-indigo-600 transition-all duration-200"
+              >
+                <CreditCard className="w-3 h-3 mr-1" />
+                Trial Plan
+              </Badge>
+            )}
           </div>
-          
-          
-          {/* Subscription Status */}
-          {subscriptionPlan === 'TRIAL' && (
-            <Badge 
-              variant="secondary" 
-              className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0 shadow-sm hover:from-blue-600 hover:to-indigo-600 transition-all duration-200"
-            >
-              <CreditCard className="w-3 h-3 mr-1" />
-              Trial Plan
-            </Badge>
-          )}
+
+          <div className="p-3 lg:p-4">
+          <p className="text-xs text-muted-foreground uppercase font-bold">
+            {roles?.includes("SUPER_ADMIN") ? "Super Admin Panel" :
+             roles?.includes("HOTEL_ADMIN") ? "Admin Panel" :
+             roles?.includes("MANAGER") ? "Manager Panel" :
+             roles?.includes("FRONTDESK") ? "Front Desk Panel" :
+             roles?.includes("STAFF") ? "Staff Panel" :
+             "Admin Panel"}
+          </p>
+          </div>
         </div>
 
-        <div className="p-3 lg:p-4">
-        <p className="text-xs text-muted-foreground uppercase font-bold">
-          {roles?.includes("SUPER_ADMIN") ? "Super Admin Panel" :
-           roles?.includes("HOTEL_ADMIN") ? "Admin Panel" :
-           roles?.includes("MANAGER") ? "Manager Panel" :
-           roles?.includes("FRONTDESK") ? "Front Desk Panel" :
-           roles?.includes("STAFF") ? "Staff Panel" :
-           "Admin Panel"}
-        </p>
-        </div>
-
-        <nav className="p-3 lg:p-4 flex-1">
+        {/* Scrollable Navigation Section */}
+        <nav className="flex-1 overflow-y-auto p-3 lg:p-4">
           <div className="space-y-1">
             {navigationItems.map((item) => (
               <NavigationButton
@@ -558,7 +562,8 @@ const HotelAdminDashboard = () => {
           </div>
         </nav>
 
-        <div className="p-3 lg:p-4 border-t">
+        {/* Fixed Footer Section */}
+        <div className="flex-shrink-0 p-3 lg:p-4 border-t">
           <Link to="/">
             <Button
               variant="default"
@@ -726,76 +731,80 @@ const HotelAdminDashboard = () => {
                 </SheetTrigger>
                 <SheetContent
                   side="left"
-                  className="w-[280px] p-0 flex flex-col"
+                  className="w-[280px] p-0 flex flex-col h-full"
                 >
-                  <SheetHeader className="p-4 border-b">
-                    <SheetTitle className="flex items-center gap-3">
-                      <div>
-                        <EzeeRoomLogo size="default" />
-                      </div>
-                    </SheetTitle>
-                    
-                    {/* Hotel Name and Switcher for Mobile */}
-                    {hotel?.name && (
-                      <div className="mt-2 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-primary truncate">
-                            {hotel.name}
-                          </p>
+                  {/* Fixed Header Section */}
+                  <div className="flex-shrink-0">
+                    <SheetHeader className="p-4 border-b">
+                      <SheetTitle className="flex items-center gap-3">
+                        <div>
+                          <EzeeRoomLogo size="default" />
                         </div>
-                        {/* Hotel Switcher for Mobile - Only show if user has multiple hotels */}
-                        {userHotels && userHotels.length > 1 && (
-                          <Select
-                            value={currentHotelId || ""}
-                            onValueChange={handleHotelSwitch}
+                      </SheetTitle>
+                      
+                      {/* Hotel Name and Switcher for Mobile */}
+                      {hotel?.name && (
+                        <div className="mt-2 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium text-primary truncate">
+                              {hotel.name}
+                            </p>
+                          </div>
+                          {/* Hotel Switcher for Mobile - Only show if user has multiple hotels */}
+                          {userHotels && userHotels.length > 1 && (
+                            <Select
+                              value={currentHotelId || ""}
+                              onValueChange={handleHotelSwitch}
+                            >
+                              <SelectTrigger className="w-full h-8 text-xs">
+                                <SelectValue placeholder="Switch Hotel" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {userHotels.map((hotelOption) => (
+                                  <SelectItem key={hotelOption.id} value={hotelOption.id?.toString()}>
+                                    <div className="flex items-center gap-2">
+                                      <span className="truncate">{hotelOption.name}</span>
+                                      {isTopHotel(hotelOption.id) && (
+                                        <TopHotelBadge hotelId={hotelOption.id} className="ml-1" />
+                                      )}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Subscription Status for Mobile */}
+                      {subscriptionPlan === 'TRIAL' && (
+                        <div className="mt-3">
+                          <Badge 
+                            variant="secondary" 
+                            className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0 shadow-sm hover:from-blue-600 hover:to-indigo-600 transition-all duration-200"
                           >
-                            <SelectTrigger className="w-full h-8 text-xs">
-                              <SelectValue placeholder="Switch Hotel" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {userHotels.map((hotelOption) => (
-                                <SelectItem key={hotelOption.id} value={hotelOption.id?.toString()}>
-                                  <div className="flex items-center gap-2">
-                                    <span className="truncate">{hotelOption.name}</span>
-                                    {isTopHotel(hotelOption.id) && (
-                                      <TopHotelBadge hotelId={hotelOption.id} className="ml-1" />
-                                    )}
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </div>
-                    )}
-                    
-                    {/* Subscription Status for Mobile */}
-                    {subscriptionPlan === 'TRIAL' && (
-                      <div className="mt-3">
-                        <Badge 
-                          variant="secondary" 
-                          className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0 shadow-sm hover:from-blue-600 hover:to-indigo-600 transition-all duration-200"
-                        >
-                          <CreditCard className="w-3 h-3 mr-1" />
-                          Trial Plan
-                        </Badge>
-                      </div>
-                    )}
-                  </SheetHeader>
+                            <CreditCard className="w-3 h-3 mr-1" />
+                            Trial Plan
+                          </Badge>
+                        </div>
+                      )}
+                    </SheetHeader>
 
-                  <div className="pl-3 lg:p-4">
-                    <p className="text-xs text-muted-foreground uppercase font-bold">
-                      {roles?.includes("SUPER_ADMIN") ? "Super Admin Panel" :
-                       roles?.includes("HOTEL_ADMIN") ? "Admin Panel" :
-                       roles?.includes("MANAGER") ? "Manager Panel" :
-                       roles?.includes("FRONTDESK") ? "Front Desk Panel" :
-                       roles?.includes("STAFF") ? "Staff Panel" :
-                       "Admin Panel"}
-                    </p>
+                    <div className="pl-3 lg:p-4">
+                      <p className="text-xs text-muted-foreground uppercase font-bold">
+                        {roles?.includes("SUPER_ADMIN") ? "Super Admin Panel" :
+                         roles?.includes("HOTEL_ADMIN") ? "Admin Panel" :
+                         roles?.includes("MANAGER") ? "Manager Panel" :
+                         roles?.includes("FRONTDESK") ? "Front Desk Panel" :
+                         roles?.includes("STAFF") ? "Staff Panel" :
+                         "Admin Panel"}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex-1 flex flex-col p-4">
-                    <nav className="space-y-1 flex-1 overflow-y-auto">
+                  {/* Scrollable Navigation Section */}
+                  <nav className="flex-1 overflow-y-auto p-4">
+                    <div className="space-y-1">
                       {navigationItems.map((item) => (
                         <NavigationButton
                           key={item.id}
@@ -807,50 +816,50 @@ const HotelAdminDashboard = () => {
                           }}
                         />
                       ))}
-                    </nav>
+                    </div>
+                  </nav>
 
-                    <div className="space-y-3 mt-4 pt-4 border-t">
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                        <Avatar className="h-9 w-9 border-2 border-primary/20">
-                          <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                            {userName?.charAt(0).toUpperCase() || "U"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium leading-none truncate">
-                            {userName}
-                          </p>
-                          <p className="text-xs leading-none text-muted-foreground mt-1">
-                            Hotel Administrator
-                          </p>
-                        </div>
+                  {/* Fixed Footer Section */}
+                  <div className="flex-shrink-0 space-y-3 p-4 border-t">
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                      <Avatar className="h-9 w-9 border-2 border-primary/20">
+                        <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                          {userName?.charAt(0).toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium leading-none truncate">
+                          {userName}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground mt-1">
+                          Hotel Administrator
+                        </p>
                       </div>
+                    </div>
 
-                      <Link to="/" className="block">
+                    <Link to="/" className="block">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                      >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back to Website
+                      </Button>
+                    </Link>
+
+                    {!roles?.includes("STAFF") && !roles?.includes("FRONTDESK") && (
+                      <Link to="/subscription" className="block">
                         <Button
-                          variant="default"
+                          variant="outline"
                           size="sm"
-                          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                          className="w-full"
                         >
-                          <ArrowLeft className="mr-2 h-4 w-4" />
-                          Back to Website
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Subscription
                         </Button>
                       </Link>
-
-                      {!roles?.includes("STAFF") && !roles?.includes("FRONTDESK") && (
-                        <Link to="/subscription" className="block">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                          >
-                            <CreditCard className="mr-2 h-4 w-4" />
-                            Subscription
-                          </Button>
-                        </Link>
-                      )}
-
-                    </div>
+                    )}
                   </div>
                 </SheetContent>
               </Sheet>
