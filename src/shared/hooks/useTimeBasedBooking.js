@@ -61,8 +61,11 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
       const existingStartTotalMinutes = existingStartHours * 60 + existingStartMins;
       const existingEndTotalMinutes = existingEndHours * 60 + existingEndMins;
 
-      // Check for overlap - two time ranges overlap if one starts before the other ends
-      return (selectedStartMinutes < existingEndTotalMinutes && selectedEndMinutes > existingStartTotalMinutes);
+      // Add 1-hour buffer (60 minutes) to existing booking end time
+      const existingEndWithBuffer = existingEndTotalMinutes + 60;
+
+      // Check for overlap with buffer - two time ranges overlap if one starts before the other ends (with buffer)
+      return (selectedStartMinutes < existingEndWithBuffer && selectedEndMinutes > existingStartTotalMinutes);
     });
   }, [timeBasedBookings]);
 
@@ -80,12 +83,12 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     return `${checkoutHours.toString().padStart(2, '0')}:${checkoutMinutes.toString().padStart(2, '0')}`;
   }, [bookingDetails.checkInTime, bookingDetails.bookHours]);
 
-  // Calculate total price for hourly booking
+  // Calculate total price for hourly booking - now uses full room price
   const calculateTotalPrice = useCallback(() => {
     if (!room?.price) return 0;
-    const hourlyRate = room.price / 24; // Assuming room.price is daily rate
-    return bookingDetails.bookHours * hourlyRate * bookingDetails.numberOfRooms;
-  }, [room?.price, bookingDetails.bookHours, bookingDetails.numberOfRooms]);
+    // Use full room price instead of calculating hourly rate
+    return room.price * bookingDetails.numberOfRooms;
+  }, [room?.price, bookingDetails.numberOfRooms]);
 
   // Validate phone number (Bhutanese format)
   const validateBhutanesePhone = useCallback((phone) => {
@@ -216,8 +219,8 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     // Validate book hours
     if (!bookingDetails.bookHours || bookingDetails.bookHours < 1) {
       newErrors.bookHours = "Booking duration must be at least 1 hour";
-    } else if (bookingDetails.bookHours > 12) {
-      newErrors.bookHours = "Maximum booking duration is 12 hours";
+    } else if (bookingDetails.bookHours > 4) {
+      newErrors.bookHours = "Maximum booking duration is 4 hours";
     }
 
     // Check for time conflicts with existing hourly bookings

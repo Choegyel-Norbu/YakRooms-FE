@@ -364,7 +364,7 @@ export default function TimeBasedBookingDialog({
                         <SelectValue placeholder="Select duration" />
                       </SelectTrigger>
                       <SelectContent>
-                        {Array.from({ length: 12 }, (_, i) => i + 1).map((hours) => (
+                        {Array.from({ length: 4 }, (_, i) => i + 1).map((hours) => (
                           <SelectItem key={hours} value={String(hours)}>
                             {hours} {hours === 1 ? "hour" : "hours"}
                           </SelectItem>
@@ -615,19 +615,18 @@ export default function TimeBasedBookingDialog({
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Price per hour</span>
+                  <span className="text-muted-foreground">Room Price</span>
                   <span className="font-medium">
-                    Nu {(room.price / 24).toFixed(2)}
+                    Nu {room.price.toFixed(2)}
                   </span>
                 </div>
-                {bookingDetails.bookHours > 0 && (
+                {bookingDetails.numberOfRooms > 1 && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">
-                      {bookingDetails.bookHours} {bookingDetails.bookHours === 1 ? "hour" : "hours"} ×{" "}
                       {bookingDetails.numberOfRooms} room(s)
                     </span>
                     <span className="font-medium">
-                      Nu {totalPrice.toFixed(2)}
+                      Nu {(room.price * bookingDetails.numberOfRooms).toFixed(2)}
                     </span>
                   </div>
                 )}

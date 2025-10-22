@@ -65,6 +65,16 @@ const calculateExtensionDays = (booking) => {
   return extensionNights;
 };
 
+// Helper function to format time
+const formatTime = (timeString) => {
+  if (!timeString) return '';
+  const [hours, minutes] = timeString.split(':');
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${displayHour}:${minutes} ${ampm}`;
+};
+
 // shadcn/ui AlertDialog components for the confirmation dialog
 import {
   AlertDialog,
@@ -565,14 +575,23 @@ const BookingTable = ({ hotelId }) => {
                       <div className="flex flex-col text-sm">
                         <span className="font-medium">{booking.checkInDate}</span>
                         <span className="font-medium"> <span className="text-muted-foreground">to</span> {booking.checkOutDate}</span>
+                        {booking.timeBased && booking.checkInTime && booking.checkOutTime && (
+                          <div className="text-xs text-blue-600 font-medium mt-1">
+                            {formatTime(booking.checkInTime)} - {formatTime(booking.checkOutTime)}
+                          </div>
+                        )}
                         <span className="text-xs text-blue-600 font-medium mt-1">
-                          {(() => {
-                            const checkIn = new Date(booking.checkInDate);
-                            const checkOut = new Date(booking.checkOutDate);
-                            const diffTime = Math.abs(checkOut - checkIn);
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            return `${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
-                          })()}
+                          {booking.timeBased && booking.bookHour ? (
+                            `${booking.bookHour} hour${booking.bookHour !== 1 ? 's' : ''}`
+                          ) : (
+                            (() => {
+                              const checkIn = new Date(booking.checkInDate);
+                              const checkOut = new Date(booking.checkOutDate);
+                              const diffTime = Math.abs(checkOut - checkIn);
+                              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                              return `${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
+                            })()
+                          )}
                         </span>
                         {booking.extension && calculateExtensionDays(booking) > 0 && (
                           <div className="flex items-center gap-1 mt-1">
@@ -860,23 +879,41 @@ const BookingTable = ({ hotelId }) => {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Check-in:</span>
-                    <span className="text-gray-900 text-sm">{selectedBooking.checkInDate}</span>
+                    <span className="text-gray-900 text-sm">
+                      {selectedBooking.checkInDate}
+                      {selectedBooking.timeBased && selectedBooking.checkInTime && (
+                        <span className="ml-2 text-xs text-blue-600">
+                          at {formatTime(selectedBooking.checkInTime)}
+                        </span>
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Check-out:</span>
-                    <span className="text-gray-900 text-sm">{selectedBooking.checkOutDate}</span>
+                    <span className="text-gray-900 text-sm">
+                      {selectedBooking.checkOutDate}
+                      {selectedBooking.timeBased && selectedBooking.checkOutTime && (
+                        <span className="ml-2 text-xs text-blue-600">
+                          at {formatTime(selectedBooking.checkOutTime)}
+                        </span>
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Duration:</span>
                     <div className="flex flex-col items-end">
                       <span className="text-blue-600 font-bold text-sm">
-                        {(() => {
-                          const checkIn = new Date(selectedBooking.checkInDate);
-                          const checkOut = new Date(selectedBooking.checkOutDate);
-                          const diffTime = Math.abs(checkOut - checkIn);
-                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                          return `${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
-                        })()}
+                        {selectedBooking.timeBased && selectedBooking.bookHour ? (
+                          `${selectedBooking.bookHour} hour${selectedBooking.bookHour !== 1 ? 's' : ''}`
+                        ) : (
+                          (() => {
+                            const checkIn = new Date(selectedBooking.checkInDate);
+                            const checkOut = new Date(selectedBooking.checkOutDate);
+                            const diffTime = Math.abs(checkOut - checkIn);
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            return `${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
+                          })()
+                        )}
                       </span>
                       {selectedBooking.extension && calculateExtensionDays(selectedBooking) > 0 && (
                         <div className="flex items-center gap-1 mt-1">

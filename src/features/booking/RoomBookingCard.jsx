@@ -211,8 +211,11 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       const existingStartTotalMinutes = existingStartHours * 60 + existingStartMins;
       const existingEndTotalMinutes = existingEndHours * 60 + existingEndMins;
 
-      // Check for overlap
-      return (selectedStartMinutes < existingEndTotalMinutes && selectedEndMinutes > existingStartTotalMinutes);
+      // Add 1-hour buffer (60 minutes) to existing booking end time
+      const existingEndWithBuffer = existingEndTotalMinutes + 60;
+
+      // Check for overlap with buffer - two time ranges overlap if one starts before the other ends (with buffer)
+      return (selectedStartMinutes < existingEndWithBuffer && selectedEndMinutes > existingStartTotalMinutes);
     });
   };
 

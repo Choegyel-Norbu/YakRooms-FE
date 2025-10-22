@@ -961,6 +961,16 @@ const BookingCard = ({
     booking.checkOutDate
   );
 
+  // Helper function to format time
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
   return (
     <div
       className={`relative rounded-lg border p-4 sm:p-6 transition-all hover:shadow-md ${
@@ -1034,6 +1044,11 @@ const BookingCard = ({
                 }`}
               >
                 {formatDateWithDay(booking.checkInDate)}
+                {booking.timeBased && booking.checkInTime && (
+                  <span className="ml-1 text-xs text-blue-600">
+                    at {formatTime(booking.checkInTime)}
+                  </span>
+                )}
               </p>
             </div>
           </div>
@@ -1047,6 +1062,11 @@ const BookingCard = ({
                 }`}
               >
                 {formatDateWithDay(booking.checkOutDate)}
+                {booking.timeBased && booking.checkOutTime && (
+                  <span className="ml-1 text-xs text-blue-600">
+                    at {formatTime(booking.checkOutTime)}
+                  </span>
+                )}
               </p>
             </div>
           </div>
@@ -1059,7 +1079,11 @@ const BookingCard = ({
                   isDisabled ? "text-muted-foreground" : "text-foreground"
                 }`}
               >
-                {numberOfNights} night{numberOfNights !== 1 ? "s" : ""}
+                {booking.timeBased && booking.bookHour ? (
+                  `${booking.bookHour} hour${booking.bookHour !== 1 ? "s" : ""}`
+                ) : (
+                  `${numberOfNights} night${numberOfNights !== 1 ? "s" : ""}`
+                )}
               </p>
             </div>
           </div>
@@ -1575,6 +1599,11 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
                     </label>
                     <p className="text-sm text-foreground">
                       {formatDate(booking.checkInDate)}
+                      {booking.timeBased && booking.checkInTime && (
+                        <span className="ml-2 text-xs text-blue-600">
+                          at {formatTime(booking.checkInTime)}
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -1588,6 +1617,11 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
                     </label>
                     <p className="text-sm text-foreground">
                       {formatDate(booking.checkOutDate)}
+                      {booking.timeBased && booking.checkOutTime && (
+                        <span className="ml-2 text-xs text-blue-600">
+                          at {formatTime(booking.checkOutTime)}
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -1622,7 +1656,11 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
                       Duration
                     </label>
                     <p className="text-sm text-foreground">
-                      {numberOfNights} night{numberOfNights !== 1 ? "s" : ""}
+                      {booking.timeBased && booking.bookHour ? (
+                        `${booking.bookHour} hour${booking.bookHour !== 1 ? "s" : ""}`
+                      ) : (
+                        `${numberOfNights} night${numberOfNights !== 1 ? "s" : ""}`
+                      )}
                     </p>
                   </div>
                 </div>
@@ -1672,7 +1710,7 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  Price per night
+                  {booking.timeBased ? "Room Price" : "Price per night"}
                 </span>
                 <span className="text-sm font-medium">
                   {formatCurrency(pricePerNight)}
@@ -1680,7 +1718,11 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  {numberOfNights} night{numberOfNights !== 1 ? "s" : ""}
+                  {booking.timeBased ? (
+                    `Time-based booking (${booking.bookHour} hour${booking.bookHour !== 1 ? "s" : ""})`
+                  ) : (
+                    `${numberOfNights} night${numberOfNights !== 1 ? "s" : ""}`
+                  )}
                 </span>
                 <span className="text-sm font-medium">
                   {formatCurrency(booking.totalPrice)}
