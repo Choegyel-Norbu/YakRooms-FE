@@ -22,6 +22,8 @@ import {
   Bell,
   Star,
   MessageCircle,
+  CalendarDays,
+  TrendingUp,
 } from "lucide-react";
 import { Separator } from "@/shared/components/separator";
 import { Button } from "@/shared/components/button";
@@ -47,7 +49,27 @@ import HotelReviewSheet from "../hotel/HotelReviewSheet";
 
 // Number formatting function
 const formatCurrency = (amount) => {
-  return `Nu. ${amount.toLocaleString("en-IN")} /-`;ad
+  return `Nu. ${amount.toLocaleString("en-IN")} /-`;
+};
+
+// Calculate extension days function
+const calculateExtensionDays = (booking) => {
+  if (!booking.extension || !booking.extendedAmount) {
+    return 0;
+  }
+  
+  // Calculate original nights
+  const originalCheckIn = new Date(booking.checkInDate);
+  const originalCheckOut = new Date(booking.checkOutDate);
+  const originalNights = Math.ceil((originalCheckOut - originalCheckIn) / (1000 * 60 * 60 * 24));
+  
+  // Calculate original price per night
+  const originalPricePerNight = booking.totalPrice / originalNights;
+  
+  // Calculate extension nights based on extended amount
+  const extensionNights = Math.round(booking.extendedAmount / originalPricePerNight);
+  
+  return extensionNights;
 };
 
 // Status configuration
@@ -142,6 +164,42 @@ const BookingCardSkeleton = () => (
     </div>
   </div>
 );
+
+// Extension visual feedback component
+const ExtensionBadge = ({ booking }) => {
+  const extensionDays = calculateExtensionDays(booking);
+  
+  if (!booking.extension || extensionDays <= 0) {
+    return null;
+  }
+
+  return (
+    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg p-3 mb-4">
+      <div className="flex items-center gap-3">
+        <div className="bg-emerald-100 p-2 rounded-full">
+          <CalendarDays className="text-emerald-600" size={16} />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <TrendingUp className="text-emerald-600" size={14} />
+            <span className="text-sm font-semibold text-emerald-800">
+              Stay Extended!
+            </span>
+          </div>
+          <div className="text-sm text-emerald-700">
+            <span className="font-medium">{extensionDays}</span> additional day{extensionDays !== 1 ? 's' : ''} added to your stay
+          </div>
+          <div className="text-xs text-emerald-600 mt-1">
+            Extension cost: <span className="font-medium">{formatCurrency(booking.extendedAmount)}</span>
+          </div>
+        </div>
+        <div className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs font-bold">
+          +{extensionDays}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Status badge component
 const StatusBadge = ({ status }) => {
@@ -957,6 +1015,9 @@ const BookingCard = ({
         </div>
       </div>
 
+      {/* Extension Badge */}
+      <ExtensionBadge booking={booking} />
+
       {/* Stay Details */}
       <div className="bg-muted/30 rounded-lg p-3 sm:p-4 mb-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
@@ -1031,14 +1092,44 @@ const BookingCard = ({
             size={16}
           />
           <div className="min-w-0">
-            <p className="text-xs text-muted-foreground">Total Amount</p>
-            <p
-              className={`text-base sm:text-lg font-bold ${
-                isDisabled ? "text-muted-foreground" : "text-foreground"
-              }`}
-            >
-              {formatCurrency(booking.totalPrice)}
-            </p>
+            {booking.extension && booking.extendedAmount ? (
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Pricing Breakdown</p>
+                <div className="space-y-0.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-600">Original booking:</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      {formatCurrency(booking.totalPrice)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-emerald-600">Extension fee:</span>
+                    <span className="text-sm font-medium text-emerald-600">
+                      +{formatCurrency(booking.extendedAmount)}
+                    </span>
+                  </div>
+                  <div className="border-t border-gray-200 pt-0.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-foreground">Total amount:</span>
+                      <span className="text-base font-bold text-emerald-700">
+                        {formatCurrency(booking.totalPrice + booking.extendedAmount)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs text-muted-foreground">Total Amount</p>
+                <p
+                  className={`text-base sm:text-lg font-bold ${
+                    isDisabled ? "text-muted-foreground" : "text-foreground"
+                  }`}
+                >
+                  {formatCurrency(booking.totalPrice)}
+                </p>
+              </div>
+            )}
           </div>
         </div>
         {booking.passcode && (

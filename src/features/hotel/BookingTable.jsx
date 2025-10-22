@@ -18,6 +18,8 @@ import {
   X,
   ThumbsUp,
   ThumbsDown,
+  CalendarDays,
+  TrendingUp,
 } from "lucide-react";
 
 import api from "../../shared/services/Api"; // Your API service for making requests
@@ -42,6 +44,26 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components";
 import { toast } from "sonner"; // For toast notifications
+
+// Calculate extension days function
+const calculateExtensionDays = (booking) => {
+  if (!booking.extension || !booking.extendedAmount) {
+    return 0;
+  }
+  
+  // Calculate original nights
+  const originalCheckIn = new Date(booking.checkInDate);
+  const originalCheckOut = new Date(booking.checkOutDate);
+  const originalNights = Math.ceil((originalCheckOut - originalCheckIn) / (1000 * 60 * 60 * 24));
+  
+  // Calculate original price per night
+  const originalPricePerNight = booking.totalPrice / originalNights;
+  
+  // Calculate extension nights based on extended amount
+  const extensionNights = Math.round(booking.extendedAmount / originalPricePerNight);
+  
+  return extensionNights;
+};
 
 // shadcn/ui AlertDialog components for the confirmation dialog
 import {
@@ -552,26 +574,46 @@ const BookingTable = ({ hotelId }) => {
                             return `${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
                           })()}
                         </span>
+                        {booking.extension && calculateExtensionDays(booking) > 0 && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <TrendingUp className="h-3 w-3 text-emerald-600" />
+                            <span className="text-xs text-emerald-600 font-medium">
+                              +{calculateExtensionDays(booking)} day{calculateExtensionDays(booking) !== 1 ? 's' : ''} extended
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">
-                    <div className="flex items-center">
-                      Nu.{" "}
-                      {new Intl.NumberFormat("en-IN").format(
-                        booking.extension && booking.extendedAmount 
-                          ? booking.totalPrice + booking.extendedAmount
-                          : booking.totalPrice
-                      )}
-                    </div>
-                    {booking.extension && (
-                      <div className="text-xs text-blue-600 font-medium mt-1">
-                        Extended Booking
+                    {booking.extension && booking.extendedAmount ? (
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-600">Original:</span>
+                          <span className="text-sm font-medium text-gray-700">
+                            Nu. {new Intl.NumberFormat("en-IN").format(booking.totalPrice)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-emerald-600">Extension:</span>
+                          <span className="text-sm font-medium text-emerald-600">
+                            +Nu. {new Intl.NumberFormat("en-IN").format(booking.extendedAmount)}
+                          </span>
+                        </div>
+                        <div className="border-t border-gray-200 pt-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-gray-800">Total:</span>
+                            <span className="text-sm font-bold text-emerald-700">
+                              Nu. {new Intl.NumberFormat("en-IN").format(booking.totalPrice + booking.extendedAmount)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    )}
-                    {booking.extendedAmount && (
-                      <div className="text-xs text-green-600 font-medium">
-                        Extension amount: Nu. {new Intl.NumberFormat("en-IN").format(booking.extendedAmount)}
+                    ) : (
+                      <div className="flex items-center">
+                        <span className="text-sm font-medium">
+                          Nu. {new Intl.NumberFormat("en-IN").format(booking.totalPrice)}
+                        </span>
                       </div>
                     )}
                   </TableCell>
@@ -826,15 +868,25 @@ const BookingTable = ({ hotelId }) => {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Duration:</span>
-                    <span className="text-blue-600 font-bold text-sm">
-                      {(() => {
-                        const checkIn = new Date(selectedBooking.checkInDate);
-                        const checkOut = new Date(selectedBooking.checkOutDate);
-                        const diffTime = Math.abs(checkOut - checkIn);
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        return `${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
-                      })()}
-                    </span>
+                    <div className="flex flex-col items-end">
+                      <span className="text-blue-600 font-bold text-sm">
+                        {(() => {
+                          const checkIn = new Date(selectedBooking.checkInDate);
+                          const checkOut = new Date(selectedBooking.checkOutDate);
+                          const diffTime = Math.abs(checkOut - checkIn);
+                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                          return `${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
+                        })()}
+                      </span>
+                      {selectedBooking.extension && calculateExtensionDays(selectedBooking) > 0 && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <TrendingUp className="h-3 w-3 text-emerald-600" />
+                          <span className="text-xs text-emerald-600 font-medium">
+                            +{calculateExtensionDays(selectedBooking)} day{calculateExtensionDays(selectedBooking) !== 1 ? 's' : ''} extended
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Status:</span>
@@ -844,29 +896,39 @@ const BookingTable = ({ hotelId }) => {
                     <span className="font-semibold text-gray-600 text-sm">Transfer Status:</span>
                     <div className="mt-1">{getStatusBadge(selectedBooking.transferStatus)}</div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-600 text-sm">Total Price:</span>
-                    <span className="text-gray-900 font-bold text-sm text-green-600">
-                      Nu. {new Intl.NumberFormat("en-IN").format(
-                        selectedBooking.extension && selectedBooking.extendedAmount 
-                          ? selectedBooking.totalPrice + selectedBooking.extendedAmount
-                          : selectedBooking.totalPrice
-                      )}/-
-                    </span>
-                  </div>
-                  {selectedBooking.extension && (
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-600 text-sm">Extension:</span>
-                      <span className="text-blue-600 font-bold text-sm">
-                        Extended Booking
-                      </span>
+                  {selectedBooking.extension && selectedBooking.extendedAmount ? (
+                    <div className="space-y-3">
+                      <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                        <h4 className="font-semibold text-gray-800 text-sm border-b border-gray-200 pb-1">Pricing Breakdown</h4>
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-gray-600 text-sm">Original booking:</span>
+                            <span className="text-gray-800 font-medium text-sm">
+                              Nu. {new Intl.NumberFormat("en-IN").format(selectedBooking.totalPrice)}/-
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-emerald-600 text-sm">Extension fee:</span>
+                            <span className="text-emerald-600 font-medium text-sm">
+                              +Nu. {new Intl.NumberFormat("en-IN").format(selectedBooking.extendedAmount)}/-
+                            </span>
+                          </div>
+                          <div className="border-t border-gray-300 pt-2">
+                            <div className="flex justify-between items-center">
+                              <span className="font-semibold text-gray-800 text-sm">Total amount:</span>
+                              <span className="text-emerald-700 font-bold text-base">
+                                Nu. {new Intl.NumberFormat("en-IN").format(selectedBooking.totalPrice + selectedBooking.extendedAmount)}/-
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  {selectedBooking.extendedAmount && (
+                  ) : (
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-600 text-sm">Extension Fee:</span>
-                      <span className="text-green-600 font-bold text-sm">
-                        Nu. {new Intl.NumberFormat("en-IN").format(selectedBooking.extendedAmount)}/-
+                      <span className="font-semibold text-gray-600 text-sm">Total Price:</span>
+                      <span className="text-gray-900 font-bold text-sm text-green-600">
+                        Nu. {new Intl.NumberFormat("en-IN").format(selectedBooking.totalPrice)}/-
                       </span>
                     </div>
                   )}
