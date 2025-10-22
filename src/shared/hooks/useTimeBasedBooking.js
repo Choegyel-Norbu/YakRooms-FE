@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 
 /**
- * Custom hook for time-based booking functionality
+ * Custom hook for hourly booking functionality
  * Provides state management, validation, and calculation utilities
  */
 export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
@@ -20,7 +20,7 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
   
   const [errors, setErrors] = useState({});
 
-  // Helper function to check for time conflicts in time-based bookings
+  // Helper function to check for time conflicts in hourly bookings
   const hasTimeConflict = useCallback((date, checkInTime, bookHours) => {
     if (!date || !checkInTime || !bookHours || timeBasedBookings.length === 0) {
       return false;
@@ -36,7 +36,7 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     const selectedStartMinutes = selectedHours * 60 + selectedMinutes;
     const selectedEndMinutes = selectedStartMinutes + (bookHours * 60);
 
-    // Check against existing time-based bookings for the same date
+    // Check against existing hourly bookings for the same date
     return timeBasedBookings.some(booking => {
       if (booking.date !== selectedDateString) {
         return false;
@@ -80,7 +80,7 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     return `${checkoutHours.toString().padStart(2, '0')}:${checkoutMinutes.toString().padStart(2, '0')}`;
   }, [bookingDetails.checkInTime, bookingDetails.bookHours]);
 
-  // Calculate total price for time-based booking
+  // Calculate total price for hourly booking
   const calculateTotalPrice = useCallback(() => {
     if (!room?.price) return 0;
     const hourlyRate = room.price / 24; // Assuming room.price is daily rate
@@ -162,7 +162,7 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     return null;
   }, []);
 
-  // Validate time-based booking form
+  // Validate hourly booking form
   const validateForm = useCallback(() => {
     const newErrors = {};
 
@@ -205,7 +205,7 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     
     // Validate check-in time
     if (!bookingDetails.checkInTime) {
-      newErrors.checkInTime = "Check-in time is required for time-based booking";
+      newErrors.checkInTime = "Check-in time is required for hourly booking";
     } else {
       const timePattern = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
       if (!timePattern.test(bookingDetails.checkInTime)) {
@@ -216,14 +216,14 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     // Validate book hours
     if (!bookingDetails.bookHours || bookingDetails.bookHours < 1) {
       newErrors.bookHours = "Booking duration must be at least 1 hour";
-    } else if (bookingDetails.bookHours > 24) {
-      newErrors.bookHours = "Maximum booking duration is 24 hours";
+    } else if (bookingDetails.bookHours > 12) {
+      newErrors.bookHours = "Maximum booking duration is 12 hours";
     }
 
-    // Check for time conflicts with existing time-based bookings
+    // Check for time conflicts with existing hourly bookings
     if (bookingDetails.checkInDate && bookingDetails.checkInTime && bookingDetails.bookHours) {
       if (hasTimeConflict(bookingDetails.checkInDate, bookingDetails.checkInTime, bookingDetails.bookHours)) {
-        newErrors.checkInTime = "This time slot conflicts with an existing time-based booking";
+        newErrors.checkInTime = "This time slot conflicts with an existing hourly booking";
       }
     }
 
@@ -382,7 +382,7 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     }
   }, []);
 
-  // Get existing time-based bookings for a specific date
+  // Get existing hourly bookings for a specific date
   const getExistingBookingsForDate = useCallback((date) => {
     if (!date) return [];
     

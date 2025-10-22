@@ -403,7 +403,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
         accountNumber: values.accountNumber || null,
         accountHolderName: values.accountHolderName || null,
         bankType: values.bankType || null,
-        // Include time-based booking setting
+        // Include hourly booking setting
         hasTimeBased: values.hasTimeBased || false,
       };
 
@@ -1269,7 +1269,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                 )}
               </div>
 
-              {/* Time-Based Booking Section */}
+              {/* Hourly Booking Section */}
               <div className="md:col-span-2 border-t pt-4 mt-2">
                 <h4 className="text-base font-semibold mb-3">
                   Booking Options
@@ -1293,7 +1293,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-foreground">
-                          Time-Based Booking: {hotel.hasTimeBased ? "Enabled" : "Disabled"}
+                          Hourly Booking: {hotel.hasTimeBased ? "Enabled" : "Disabled"}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {hotel.hasTimeBased 
@@ -1313,7 +1313,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                           <div className="space-y-0.5">
                             <FormLabel className="text-base">
-                              Enable Time-Based Booking
+                              Enable Hourly Booking
                             </FormLabel>
                             <div className="text-sm text-muted-foreground">
                               Allow guests to book rooms for specific hours instead of full days
@@ -1341,7 +1341,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                           </div>
                           <div className="flex-1">
                             <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                              Time-Based Booking Features
+                              Hourly Booking Features
                             </h5>
                             <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
                               <li>• Guests can book rooms for specific hours (1-24 hours)</li>

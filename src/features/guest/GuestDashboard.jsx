@@ -348,14 +348,14 @@ const GoogleMapsModal = ({ booking, isOpen, onClose }) => {
 
           {/* Action Buttons */}
           <div className="space-y-3">
-            <button
+            {/* <button
               onClick={openDirectionsWithAddress}
               className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-3 rounded-md hover:bg-primary/90 transition-colors cursor-pointer"
             >
               <Navigation size={18} />
               Open Directions in Google Maps
               <ExternalLink size={16} />
-            </button>
+            </button> */}
 
             {userLocation && (
               <button

@@ -1098,7 +1098,7 @@ const AddListingPage = () => {
                       </div>
                     </div>
 
-                    {/* Time-Based Booking Option */}
+                    {/* Hourly Booking Option */}
                     <div className="space-y-4">
                       <div className="flex items-center space-x-3">
                         <Checkbox
@@ -1117,7 +1117,7 @@ const AddListingPage = () => {
                         />
                         <div className="space-y-1">
                           <Label htmlFor="hasTimeBased" className="text-sm font-medium cursor-pointer">
-                            Enable Time-Based Booking
+                            Enable Hourly Booking
                           </Label>
                           <p className="text-xs text-muted-foreground">
                             Allow guests to book rooms for specific hours instead of full days
@@ -1135,7 +1135,7 @@ const AddListingPage = () => {
                             </div>
                             <div className="flex-1">
                               <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                                Time-Based Booking Features
+                                Hourly Booking Features
                               </h5>
                               <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
                                 <li>• Guests can book rooms for specific hours (1-24 hours)</li>
@@ -1702,7 +1702,7 @@ const AddListingPage = () => {
                           )}
                           {formData.hasTimeBased !== undefined && (
                             <div>
-                              <Label className="text-muted-foreground">Time-Based Booking</Label>
+                              <Label className="text-muted-foreground">Hourly Booking</Label>
                               <p className="font-bold text-sm lg:text-base">
                                 {formData.hasTimeBased ? "Enabled" : "Disabled"}
                               </p>

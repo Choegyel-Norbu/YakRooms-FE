@@ -68,12 +68,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
   });
   const [errors, setErrors] = useState({});
   const [isBookingLoading, setIsBookingLoading] = useState(false);
-  const bookingType = "regular"; // Define booking type for custom booking
-
-
-
-
-
+  const bookingType = "regular"; // Define booking type for standard booking
 
   // Fetch booked dates for the room and check availability
   const fetchBookedDates = async () => {
@@ -88,7 +83,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         // Set regular booked dates
         setBookedDates(bookedResponse.data.bookedDates || []);
         
-        // Set time-based bookings
+        // Set hourly bookings
         setTimeBasedBookings(bookedResponse.data.timeBasedBookings || []);
         
         // Check if today is available for immediate booking
@@ -97,7 +92,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
           String(today.getMonth() + 1).padStart(2, '0') + '-' + 
           String(today.getDate()).padStart(2, '0');
         
-        // For immediate booking, only check regular booked dates (not time-based)
+        // For immediate booking, only check regular booked dates (not hourly)
         const isTodayBooked = (bookedResponse.data.bookedDates || []).includes(todayString);
         setIsTodayAvailable(!isTodayBooked);
         setHasCheckedBookings(true);
@@ -187,7 +182,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
     return bookedDates.includes(nextDayString);
   };
 
-  // Helper function to check for time conflicts in time-based bookings
+  // Helper function to check for time conflicts in hourly bookings
   const hasTimeConflict = (date, checkInTime, bookHours) => {
     if (!date || !checkInTime || !bookHours || timeBasedBookings.length === 0) {
       return false;
@@ -203,7 +198,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
     const selectedStartMinutes = selectedHours * 60 + selectedMinutes;
     const selectedEndMinutes = selectedStartMinutes + (bookHours * 60);
 
-    // Check against existing time-based bookings for the same date
+    // Check against existing hourly bookings for the same date
     return timeBasedBookings.some(booking => {
       if (booking.date !== selectedDateString) {
         return false;
@@ -221,11 +216,31 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
     });
   };
 
+  // Helper function to check if a time-based booking is in the afternoon (after 12 noon)
+  const isAfternoonTimeBasedBooking = (booking) => {
+    if (!booking.checkInTime) return false;
+    
+    // Handle different time formats (HH:MM:SS or HH:MM)
+    let checkInTime = booking.checkInTime;
+    if (checkInTime.includes(':') && checkInTime.split(':').length === 3) {
+      checkInTime = checkInTime.substring(0, 5);
+    }
+    
+    const [hours] = checkInTime.split(':').map(Number);
+    return hours >= 12; // 12 noon and after
+  };
+
   // Get blocked dates based on booking type
   const getBlockedDates = () => {
-    // For regular booking, block both regular and time-based booking dates
-    const timeBasedDates = timeBasedBookings.map(booking => booking.date);
-    return [...bookedDates, ...timeBasedDates];
+    // For regular booking, block regular booked dates and only dates with afternoon time-based bookings
+    // This allows standard booking on dates that only have morning time-based bookings (before 12 noon)
+    const afternoonTimeBasedDates = timeBasedBookings
+      .filter(isAfternoonTimeBasedBooking)
+      .map(booking => booking.date);
+    
+    // Remove duplicates and return combined blocked dates
+    const allBlockedDates = [...bookedDates, ...afternoonTimeBasedDates];
+    return [...new Set(allBlockedDates)]; // Remove duplicates
   };
 
   // Get minimum date for check-out (must be after check-in)
@@ -445,7 +460,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       }
     }
     
-    // Comprehensive check-out date validation (skip if check-in is between booked dates or time-based booking)
+    // Comprehensive check-out date validation (skip if check-in is between booked dates or hourly booking)
     if (!shouldHideCheckoutDate() && !bookingDetails.checkOutDate && bookingType === "regular") {
       newErrors.checkOutDate = "Check-out date is required";
     } else if (bookingDetails.checkOutDate && bookingType === "regular") {
@@ -779,7 +794,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Custom booking form submitted, validating...");
+    console.log("Standard booking form submitted, validating...");
     const formErrors = validateForm();
     console.log("Form validation result:", formErrors);
     if (Object.keys(formErrors).length > 0) {
@@ -832,8 +847,8 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         setOpenBookingSuccessModal(true);
         
         // Show toast notification
-        toast.success("Custom Booking Successful!", {
-          description: "Your room has been booked with custom details. QR code generated!",
+        toast.success("Standard Booking Successful!", {
+          description: "Your room has been booked with standard details. QR code generated!",
           duration: 6000
         });
         
@@ -855,10 +870,10 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         setOpenBookingDialog(false);
       }
     } catch (error) {
-      console.error("Custom booking failed:", error);
-      toast.error("Custom Booking Failed", {
+      console.error("Standard booking failed:", error);
+      toast.error("Standard Booking Failed", {
         description:
-          "There was an error processing your custom booking. Please try again.",
+          "There was an error processing your standard booking. Please try again.",
         duration: 6000
       });
     } finally {
@@ -900,7 +915,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         origin: immediateBookingDetails.origin,
         adminBooking: false,
         initiatePayment: true,
-        // Time-based booking fields (immediate booking is always regular)
+        // Hourly booking fields (immediate booking is always regular)
         timeBased: false,
         bookHour: null,
         bookingType: "regular"
@@ -1114,7 +1129,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
     setOpenRoleSwitchDialog(true);
   };
 
-  // Handle time-based booking - opens the time-based booking dialog
+  // Handle hourly booking - opens the hourly booking dialog
   const handleTimeBasedBookingClick = async () => {
     if (!isAuthenticated) {
       // Store current URL for redirect after login
@@ -1127,7 +1142,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
     
     // Check if user is Admin (SUPER_ADMIN) - prevent booking
     if (currentRole === "SUPER_ADMIN") {
-      setPendingBookingType("timeBased");
+      setPendingBookingType("hourly");
       setOpenRoleSwitchDialog(true);
       return;
     }
@@ -1166,8 +1181,8 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
           await fetchBookedDates();
           setOpenBookingDialog(true);
         }, 500);
-      } else if (pendingBookingType === "timeBased") {
-        // Open time-based booking dialog after role switch
+      } else if (pendingBookingType === "hourly") {
+        // Open hourly booking dialog after role switch
         setTimeout(() => {
           setOpenTimeBasedBookingDialog(true);
         }, 500);
@@ -1216,19 +1231,19 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
             </Button>
           ) : (
             /* Booking Options - After Check */
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-2 max-w-xs sm:max-w-none">
               {isTodayAvailable ? (
                 /* Book Tonight Button - Available */
                 <Button 
                   onClick={handleInstantBookingClick}
-                  className="flex-1 sm:flex-none text-xs"
+                  className="flex-1 sm:flex-none lg:flex-1 xl:flex-none text-xs min-w-0"
                   title="Book this room starting tonight"
                 >
-                  <span className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span className="flex items-center gap-1 sm:gap-2 truncate">
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                    Book Tonight
+                    <span className="truncate">Book Tonight</span>
                   </span>
                 </Button>
               ) : (
@@ -1236,46 +1251,46 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                 <Button 
                   disabled={true}
                   variant="outline"
-                  className="flex-1 text-xs sm:flex-none border-red-300 text-red-500 cursor-not-allowed"
+                  className="flex-1 text-xs sm:flex-none lg:flex-1 xl:flex-none border-red-300 text-red-500 cursor-not-allowed min-w-0"
                   title="Room not available for tonight"
                 >
-                  <span className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span className="flex items-center gap-1 sm:gap-2 truncate">
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
                     </svg>
-                    Not Available for tonight
+                    <span className="truncate">Not Available</span>
                   </span>
                 </Button>
               )}
               
-              {/* Custom Booking Button*/}
+              {/* Standard Booking Button*/}
               <Button 
                 onClick={handleAdvancedBookingClick}
                 variant="outline"
-                className="border-blue-600 text-xs text-blue-600 hover:bg-blue-50 flex-1 sm:flex-none"
-                title="Open detailed booking form"
+                className="border-blue-600 text-xs text-blue-600 hover:bg-blue-50 flex-1 sm:flex-none lg:flex-1 xl:flex-none min-w-0"
+                title="Open standard booking form"
               >
-                <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span className="flex items-center gap-1 sm:gap-2 truncate">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z" />
                   </svg>
-                  Custom Booking
+                  <span className="truncate">Standard</span>
                 </span>
               </Button>
 
-              {/* Time-Based Booking Button - Only show if hotel supports time-based booking */}
+              {/* Hourly Booking Button - Only show if hotel supports hourly booking */}
               {hotel?.hasTimeBased && (
                 <Button 
                   onClick={handleTimeBasedBookingClick}
                   variant="outline"
-                  className="border-purple-600 text-xs text-purple-600 hover:bg-purple-50 flex-1 sm:flex-none"
-                  title="Open time-based booking form"
+                  className="border-purple-600 text-xs text-purple-600 hover:bg-purple-50 flex-1 sm:flex-none lg:flex-1 xl:flex-none min-w-0"
+                  title="Open hourly booking form"
                 >
-                  <span className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span className="flex items-center gap-1 sm:gap-2 truncate">
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Time-Based Booking
+                    <span className="truncate">Hourly</span>
                   </span>
                 </Button>
               )}
@@ -1299,7 +1314,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       >
         <DialogContent className="sm:max-w-md max-h-[80vh] overflow-hidden">
           <DialogHeader>
-            <DialogTitle>Custom Booking - {room.hotelName}</DialogTitle>
+            <DialogTitle>Standard Booking - {room.hotelName}</DialogTitle>
             <DialogDescription>Room {room.roomNumber} - Detailed Booking Form</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
@@ -1972,7 +1987,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         </DialogContent>
       </Dialog>
 
-      {/* Time-Based Booking Dialog */}
+      {/* Hourly Booking Dialog */}
       <TimeBasedBookingDialog
         isOpen={openTimeBasedBookingDialog}
         onClose={() => setOpenTimeBasedBookingDialog(false)}
@@ -1980,7 +1995,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         hotelId={hotelId}
         hotel={hotel}
         onBookingSuccess={(bookingData) => {
-          // Handle successful time-based booking
+          // Handle successful hourly booking
           setSuccessBookingData(bookingData);
           setOpenBookingSuccessModal(true);
         }}

@@ -95,10 +95,10 @@ export default function TimeBasedBookingDialog({
     }
   };
 
-  // Get blocked dates for time-based booking (only block dates that have regular bookings)
+  // Get blocked dates for hourly booking (only block dates that have regular bookings)
   const getBlockedDates = () => {
-    const timeBasedDates = timeBasedBookings.map(booking => booking.date);
-    return bookedDates.filter(date => !timeBasedDates.includes(date));
+    const hourlyDates = timeBasedBookings.map(booking => booking.date);
+    return bookedDates.filter(date => !hourlyDates.includes(date));
   };
 
   // Helper function to scroll to and focus the first error field
@@ -173,8 +173,8 @@ export default function TimeBasedBookingDialog({
         days: Math.ceil(bookingDetails.bookHours / 24), // Convert hours to days for pricing
         adminBooking: false,
         initiatePayment: true,
-        bookingType: "timeBased",
-        timeBased: true,
+        bookingType: "hourly",
+        hourly: true,
         bookHour: bookingDetails.bookHours,
         checkOutTime: calculateCheckOutTime(),
         durationHours: bookingDetails.bookHours
@@ -206,8 +206,8 @@ export default function TimeBasedBookingDialog({
         setOpenBookingSuccessModal(true);
         
         // Show toast notification
-        toast.success("Time-Based Booking Successful!", {
-          description: "Your room has been booked with time-based details. QR code generated!",
+        toast.success("Hourly Booking Successful!", {
+          description: "Your room has been booked with hourly details. QR code generated!",
           duration: 6000
         });
         
@@ -222,9 +222,9 @@ export default function TimeBasedBookingDialog({
         }
       }
     } catch (error) {
-      console.error("Time-based booking failed:", error);
-      toast.error("Time-Based Booking Failed", {
-        description: "There was an error processing your time-based booking. Please try again.",
+      console.error("Hourly booking failed:", error);
+      toast.error("Hourly Booking Failed", {
+        description: "There was an error processing your hourly booking. Please try again.",
         duration: 6000
       });
     } finally {
@@ -283,7 +283,7 @@ export default function TimeBasedBookingDialog({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md max-h-[80vh] overflow-hidden">
           <DialogHeader>
-            <DialogTitle>Time-Based Booking - {room.hotelName}</DialogTitle>
+            <DialogTitle>Hourly Booking - {room.hotelName}</DialogTitle>
             <DialogDescription>Room {room.roomNumber} - Hourly Booking</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
@@ -318,7 +318,7 @@ export default function TimeBasedBookingDialog({
                   </div>
                 </div>
 
-                {/* Time-based booking fields */}
+                {/* Hourly booking fields */}
                 <div className="grid gap-4">
                   <div className="grid gap-2" data-field="checkInTime">
                     <Label htmlFor="checkInTime" className="text-sm">
@@ -364,7 +364,7 @@ export default function TimeBasedBookingDialog({
                         <SelectValue placeholder="Select duration" />
                       </SelectTrigger>
                       <SelectContent>
-                        {Array.from({ length: 24 }, (_, i) => i + 1).map((hours) => (
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map((hours) => (
                           <SelectItem key={hours} value={String(hours)}>
                             {hours} {hours === 1 ? "hour" : "hours"}
                           </SelectItem>
@@ -376,7 +376,7 @@ export default function TimeBasedBookingDialog({
                     )}
                   </div>
 
-                  {/* Existing time-based bookings for selected date */}
+                  {/* Existing hourly bookings for selected date */}
                   {bookingDetails.checkInDate && (() => {
                     const blockedTimeSlots = getBlockedTimeSlots(bookingDetails.checkInDate);
                     
@@ -414,7 +414,7 @@ export default function TimeBasedBookingDialog({
                     );
                   })()}
 
-                  {/* Time-based booking summary */}
+                  {/* Hourly booking summary */}
                   {bookingDetails.checkInTime && bookingDetails.bookHours && (
                     <div className={`p-3 border rounded-lg ${
                       bookingDetails.checkInDate && !isTimeSlotAvailable(bookingDetails.checkInDate, bookingDetails.checkInTime, bookingDetails.bookHours)
@@ -441,7 +441,7 @@ export default function TimeBasedBookingDialog({
                           }`}>
                             {bookingDetails.checkInDate && !isTimeSlotAvailable(bookingDetails.checkInDate, bookingDetails.checkInTime, bookingDetails.bookHours)
                               ? 'Time Slot Conflict Detected'
-                              : 'Your Time-Based Booking'
+                              : 'Your Hourly Booking'
                             }
                           </p>
                           <p className={`mt-1 ${
@@ -655,9 +655,9 @@ export default function TimeBasedBookingDialog({
                     <div className="flex items-start gap-2">
                       <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                       <div className="text-sm">
-                        <p className="font-medium text-red-800">Time-Based Booking Issues</p>
+                        <p className="font-medium text-red-800">Hourly Booking Issues</p>
                         <p className="text-red-700 mt-1">
-                          Please review your date and time selections for time-based booking.
+                          Please review your date and time selections for hourly booking.
                         </p>
                         <button
                           type="button"
@@ -692,7 +692,7 @@ export default function TimeBasedBookingDialog({
                 </Button>
               </DialogClose>
               <Button type="submit" disabled={isBookingLoading}>
-                {isBookingLoading ? "Booking..." : "Book Time-Based"}
+                {isBookingLoading ? "Booking..." : "Book Hourly"}
               </Button>
             </DialogFooter>
           </form>
