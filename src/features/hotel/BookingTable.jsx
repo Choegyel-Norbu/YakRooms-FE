@@ -18,7 +18,6 @@ import {
   X,
   ThumbsUp,
   ThumbsDown,
-  Clock,
 } from "lucide-react";
 
 import api from "../../shared/services/Api"; // Your API service for making requests
@@ -639,25 +638,17 @@ const BookingTable = ({ hotelId }) => {
                             <ThumbsDown className="h-4 w-4 mr-2" /> Reject
                           </DropdownMenuItem>
                         )}
-                        {(booking.status === "CONFIRMED" || booking.status === "CHECKED_IN") && !booking.extension && (
+                        {booking.transactionStatus !== "PAID" && (
                           <DropdownMenuItem
                             onClick={() => {
-                              // TODO: Implement extension functionality
-                              toast.info("Extension functionality coming soon!");
+                              setBookingToDelete(booking.id); // Set the ID to be deleted
+                              setDeleteDialog(true); // Open the confirmation dialog
                             }}
+                            className="text-red-600" // Highlight delete action
                           >
-                            <Clock className="h-4 w-4 mr-2" /> Extend Booking
+                            <Trash2 className="h-4 w-4 mr-2" /> Delete
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setBookingToDelete(booking.id); // Set the ID to be deleted
-                            setDeleteDialog(true); // Open the confirmation dialog
-                          }}
-                          className="text-red-600" // Highlight delete action
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" /> Delete
-                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

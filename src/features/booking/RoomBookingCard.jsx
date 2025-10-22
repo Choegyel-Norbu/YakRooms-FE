@@ -68,6 +68,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
   });
   const [errors, setErrors] = useState({});
   const [isBookingLoading, setIsBookingLoading] = useState(false);
+  const bookingType = "regular"; // Define booking type for custom booking
 
 
 

@@ -47,7 +47,7 @@ import HotelReviewSheet from "../hotel/HotelReviewSheet";
 
 // Number formatting function
 const formatCurrency = (amount) => {
-  return `Nu. ${amount.toLocaleString("en-IN")} /-`;
+  return `Nu. ${amount.toLocaleString("en-IN")} /-`;ad
 };
 
 // Status configuration
@@ -467,10 +467,13 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
     setError("");
 
     // Check if there are any booked dates between current checkout and new checkout
+    // Note: Checkout dates are exclusive - the room is available starting from checkout date
     const conflictingDates = [];
     const hasConflict = bookedDates.some(blockedDate => {
       const blocked = new Date(blockedDate);
-      if (blocked > currentCheckOut && blocked <= selectedDate) {
+      // Only check dates AFTER current checkout and BEFORE new checkout
+      // The new checkout date itself should be available (exclusive checkout)
+      if (blocked > currentCheckOut && blocked < selectedDate) {
         conflictingDates.push(blocked.toLocaleDateString());
         return true;
       }
