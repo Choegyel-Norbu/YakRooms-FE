@@ -44,7 +44,14 @@ import { districts, getLocalitiesForDistrict, getBankOptions } from "../../share
 
 const AddListingPage = () => {
   const [step, setStep] = useState(1);
-  const { email, userId, setHotelId, setRoles } = useAuth();
+  const { 
+    email, 
+    userId, 
+    setHotelId, 
+    setRoles, 
+    subscriptionIsActive, 
+    subscriptionPlan 
+  } = useAuth();
   const [listingType, setListingType] = useState("");
   const [formData, setFormData] = useState({
     name: "",
@@ -579,12 +586,22 @@ const AddListingPage = () => {
     if (isSubmitted) {
       const timeout = setTimeout(() => {
         setIsSubmitted(false);
-        navigate("/subscription");
+        
+        // Check if user already has an active subscription
+        const hasActiveSubscription = subscriptionIsActive === true && (subscriptionPlan === 'TRIAL' || subscriptionPlan === 'PRO');
+        
+        if (hasActiveSubscription) {
+          // Redirect to hotel admin dashboard if subscription exists
+          navigate("/hotelAdmin");
+        } else {
+          // Redirect to subscription page if no active subscription
+          navigate("/subscription");
+        }
       }, 3000);
 
       return () => clearTimeout(timeout);
     }
-  }, [isSubmitted, navigate]);
+  }, [isSubmitted, navigate, subscriptionIsActive, subscriptionPlan]);
 
   if (isSubmitted) {
     return (

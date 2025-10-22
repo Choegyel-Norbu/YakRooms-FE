@@ -680,7 +680,7 @@ const BookingTable = ({ hotelId }) => {
                             <ThumbsDown className="h-4 w-4 mr-2" /> Reject
                           </DropdownMenuItem>
                         )}
-                        {booking.transactionStatus !== "PAID" && (
+                        {booking.transactionStatus !== "PAID" && !booking.extension && (
                           <DropdownMenuItem
                             onClick={() => {
                               setBookingToDelete(booking.id); // Set the ID to be deleted
