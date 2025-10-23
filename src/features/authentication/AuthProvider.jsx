@@ -311,29 +311,27 @@ export const AuthProvider = ({ children }) => {
     return stored ? new Date(stored) : null;
   });
 
-  // === FETCH SUBSCRIPTION DATA (memoized with session-based caching and role restriction) ===
-  const fetchSubscriptionData = useCallback(async (userId) => {
+  // === FETCH SUBSCRIPTION DATA (optimized for initial load only) ===
+  const fetchSubscriptionData = useCallback(async (userId, forceRefresh = false) => {
     try {
       if (!userId) return null;
       
       // Check if user has permission to access subscription data
-      // Only HOTEL_ADMIN (hotel owner) and STAFF (manager) roles can access subscription data
-      const allowedRoles = ['HOTEL_ADMIN', 'STAFF'];
+      // Only HOTEL_ADMIN (hotel owner) and MANAGER roles can access subscription data
+      const allowedRoles = ['HOTEL_ADMIN', 'MANAGER'];
       const hasPermission = authState.roles.some(role => allowedRoles.includes(role));
       
       if (!hasPermission) {
-        console.log("🚫 User role does not have permission to access subscription data. Required roles: HOTEL_ADMIN or STAFF");
+        console.log("🚫 User role does not have permission to access subscription data. Required roles: HOTEL_ADMIN or MANAGER");
         console.log("👤 Current user roles:", authState.roles);
-        
-        // Return null for users without permission
         return null;
       }
       
-      // Check if subscription data was already fetched in this session
-      if (isSubscriptionFetchedInSession(userId)) {
-        console.log("🔄 Subscription data already fetched in current session, skipping API call");
+      // Check if subscription data already exists in localStorage and not forcing refresh
+      if (!forceRefresh && getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_ID)) {
+        console.log("🔄 Using cached subscription data from localStorage");
         
-        // Return cached data from localStorage/auth state
+        // Return cached data from localStorage
         const cachedData = {
           id: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_ID),
           subscriptionId: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_ID),
@@ -347,7 +345,7 @@ export const AuthProvider = ({ children }) => {
         return cachedData;
       }
       
-      console.log("🔍 Fetching subscription data for user:", userId, "with roles:", authState.roles);
+      console.log("🔍 Fetching subscription data from API for user:", userId, "with roles:", authState.roles);
       const response = await axios.get(`${API_BASE_URL}/api/subscriptions/user/${userId}`, {
         withCredentials: true,
         headers: {
@@ -356,7 +354,7 @@ export const AuthProvider = ({ children }) => {
       });
       
       if (response.status === 200 && response.data) {
-        console.log("✅ Subscription data fetched successfully");
+        console.log("✅ Subscription data fetched successfully from API");
         console.log("📋 Subscription data structure:", response.data);
         
         const subscriptionData = response.data;
@@ -402,6 +400,40 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   }, [authState.roles]);
+
+  // === UPDATE SUBSCRIPTION CACHE (for when user subscribes) ===
+  const updateSubscriptionCache = useCallback((subscriptionData) => {
+    try {
+      console.log("🔄 Updating subscription cache with new data:", subscriptionData);
+      
+      // Update localStorage with new subscription data
+      setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS, subscriptionData.paymentStatus);
+      setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PLAN, subscriptionData.subscriptionPlan);
+      setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE, Boolean(subscriptionData.isActive).toString());
+      setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_NEXT_BILLING_DATE, subscriptionData.nextBillingDate || '');
+      setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_EXPIRATION_NOTIFICATION, Boolean(subscriptionData.expirationNotification).toString());
+      
+      // Store subscription ID if available
+      if (subscriptionData.id || subscriptionData.subscriptionId) {
+        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_ID, (subscriptionData.id || subscriptionData.subscriptionId).toString());
+      }
+      
+      // Update auth state
+      setAuthState(prev => ({
+        ...prev,
+        subscriptionId: subscriptionData.id || subscriptionData.subscriptionId || null,
+        subscriptionPaymentStatus: subscriptionData.paymentStatus,
+        subscriptionPlan: subscriptionData.subscriptionPlan,
+        subscriptionIsActive: subscriptionData.isActive,
+        subscriptionNextBillingDate: subscriptionData.nextBillingDate,
+        subscriptionExpirationNotification: subscriptionData.expirationNotification,
+      }));
+      
+      console.log("✅ Subscription cache updated successfully");
+    } catch (error) {
+      console.error("❌ Failed to update subscription cache:", error);
+    }
+  }, []);
 
   // === FETCH USER HOTELS (memoized) ===
   const fetchUserHotels = useCallback(async (userId) => {
@@ -523,8 +555,8 @@ export const AuthProvider = ({ children }) => {
           isValidatingAuth: false,
         }));
         
-        // Fetch subscription data if user has userId
-        if (userData.id) {
+        // Fetch subscription data only for HOTEL_ADMIN/MANAGER roles on initial validation
+        if (userData.id && (roles.includes('HOTEL_ADMIN') || roles.includes('MANAGER'))) {
           await fetchSubscriptionData(userData.id);
         }
         
@@ -907,8 +939,8 @@ export const AuthProvider = ({ children }) => {
 
       setAuthState(newAuthState);
 
-      // Fetch subscription data if user has userId
-      if (newAuthState.userId) {
+      // Fetch subscription data only for HOTEL_ADMIN/MANAGER roles after login
+      if (newAuthState.userId && (roles.includes('HOTEL_ADMIN') || roles.includes('MANAGER'))) {
         try {
           await fetchSubscriptionData(newAuthState.userId);
         } catch (subscriptionError) {
@@ -1244,6 +1276,7 @@ export const AuthProvider = ({ children }) => {
     addTopHotelId,
     removeTopHotelId,
     fetchSubscriptionData,
+    updateSubscriptionCache,
 
     // Role checks
     hasRole,
@@ -1273,6 +1306,7 @@ export const AuthProvider = ({ children }) => {
     addTopHotelId,
     removeTopHotelId,
     fetchSubscriptionData,
+    updateSubscriptionCache,
     hasRole,
     hasAnyRole,
     hasAllRoles,

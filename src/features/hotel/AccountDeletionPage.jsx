@@ -14,7 +14,7 @@ import { EzeeRoomLogo } from "@/shared/components";
 
 const AccountDeletionPage = () => {
   const navigate = useNavigate();
-  const { userId, hotelId, userName } = useAuth();
+  const { userId, hotelId, selectedHotelId, userName } = useAuth();
   const [selectedReason, setSelectedReason] = useState("");
   const [customReason, setCustomReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,8 +82,11 @@ const AccountDeletionPage = () => {
     setIsSubmitting(true);
 
     try {
+      // Use selectedHotelId if available, otherwise fall back to hotelId
+      const currentHotelId = selectedHotelId || hotelId;
+      
       const deletionData = {
-        hotelId: parseInt(hotelId),
+        hotelId: parseInt(currentHotelId),
         deletionReason: selectedReason === "other" ? customReason.trim() : deletionReasons.find(r => r.id === selectedReason)?.description || selectedReason
       };
 

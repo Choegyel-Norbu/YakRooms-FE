@@ -394,7 +394,10 @@ const GoogleMapsModal = ({ booking, isOpen, onClose }) => {
 // Extend Booking Modal Component
 const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
   const [newCheckOutDate, setNewCheckOutDate] = useState("");
+  const [newCheckOutTime, setNewCheckOutTime] = useState("");
+  const [extensionHours, setExtensionHours] = useState(1);
   const [bookedDates, setBookedDates] = useState([]);
+  const [timeBasedBookings, setTimeBasedBookings] = useState([]);
   const [isLoadingBookedDates, setIsLoadingBookedDates] = useState(false);
   const [isExtending, setIsExtending] = useState(false);
   const [error, setError] = useState("");
@@ -404,7 +407,10 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
   useEffect(() => {
     if (isOpen) {
       setNewCheckOutDate("");
+      setNewCheckOutTime("");
+      setExtensionHours(1);
       setBookedDates([]);
+      setTimeBasedBookings([]);
       setError("");
       setAvailabilityChecked(false);
       if (booking) {
@@ -420,15 +426,16 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
     setIsLoadingBookedDates(true);
     try {
       const response = await api.get(`/rooms/${booking.roomId}/booked-dates`);
-      if (response.data && response.data.bookedDates) {
-        setBookedDates(response.data.bookedDates);
+      if (response.data) {
+        setBookedDates(response.data.bookedDates || []);
+        setTimeBasedBookings(response.data.timeBasedBookings || []);
         
         // Check if extension is possible (tomorrow is available)
         const currentCheckOut = new Date(booking.checkOutDate);
         const tomorrow = new Date(currentCheckOut);
         tomorrow.setDate(tomorrow.getDate() + 1);
         
-        const tomorrowBlocked = response.data.bookedDates.some(blockedDate => {
+        const tomorrowBlocked = response.data.bookedDates?.some(blockedDate => {
           const blocked = new Date(blockedDate);
           return blocked.toDateString() === tomorrow.toDateString();
         });
@@ -461,27 +468,49 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
     return minDate;
   };
 
-  // Calculate additional nights and cost
+  // Calculate additional nights/hours and cost
   const calculateExtension = () => {
-    if (!newCheckOutDate || !booking?.checkOutDate) return { nights: 0, cost: 0 };
+    if (!booking?.checkOutDate) return { nights: 0, hours: 0, cost: 0 };
     
-    // Calculate extension from current checkout to new checkout
-    const currentCheckOut = new Date(booking.checkOutDate);
-    const newCheckOut = new Date(newCheckOutDate);
-    const diffTime = newCheckOut.getTime() - currentCheckOut.getTime();
-    const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    // Calculate cost based on original booking's per-night rate
-    const originalNights = calculateNights(booking.checkInDate, booking.checkOutDate);
-    const pricePerNight = booking.totalPrice / originalNights;
-    
-    // Require at least one night extension
-    const cost = nights > 0 ? nights * pricePerNight : 0;
-    
-    return { 
-      nights: nights > 0 ? nights : 0, 
-      cost: cost >= 0 ? cost : 0
-    };
+    if (booking.timeBased) {
+      // Time-based booking extension using selected hours
+      if (!extensionHours || extensionHours <= 0) return { nights: 0, hours: 0, cost: 0 };
+      
+      // Calculate cost based on original booking's hourly rate
+      const originalHours = booking.bookHour || 1;
+      const pricePerHour = booking.totalPrice / originalHours;
+      
+      // Calculate cost for selected extension hours
+      const cost = extensionHours * pricePerHour;
+      
+      return { 
+        nights: 0, 
+        hours: extensionHours, 
+        cost: cost >= 0 ? cost : 0
+      };
+    } else {
+      // Regular booking extension
+      if (!newCheckOutDate) return { nights: 0, hours: 0, cost: 0 };
+      
+      // Calculate extension from current checkout to new checkout
+      const currentCheckOut = new Date(booking.checkOutDate);
+      const newCheckOut = new Date(newCheckOutDate);
+      const diffTime = newCheckOut.getTime() - currentCheckOut.getTime();
+      const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      // Calculate cost based on original booking's per-night rate
+      const originalNights = calculateNights(booking.checkInDate, booking.checkOutDate);
+      const pricePerNight = booking.totalPrice / originalNights;
+      
+      // Require at least one night extension
+      const cost = nights > 0 ? nights * pricePerNight : 0;
+      
+      return { 
+        nights: nights > 0 ? nights : 0, 
+        hours: 0,
+        cost: cost >= 0 ? cost : 0
+      };
+    }
   };
 
   // Calculate nights between two dates
@@ -491,6 +520,20 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
     const diffTime = checkOutDate - checkInDate;
     const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return nights;
+  };
+
+  // Calculate new checkout time based on extension hours
+  const calculateNewCheckOutTime = () => {
+    if (!booking.timeBased || !booking.checkOutTime) return "";
+    
+    const currentCheckOutTime = booking.checkOutTime;
+    const [hours, minutes] = currentCheckOutTime.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes + (extensionHours * 60);
+    
+    const newHours = Math.floor(totalMinutes / 60) % 24;
+    const newMinutes = totalMinutes % 60;
+    
+    return `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
   };
 
   // Handle date selection
@@ -555,21 +598,91 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
     }
   };
 
+  // Handle extension hours change for time-based bookings
+  const handleExtensionHoursChange = (hours) => {
+    const numHours = parseInt(hours);
+    setExtensionHours(numHours);
+    setError("");
+
+    // Check for time conflicts with existing time-based bookings
+    if (booking.timeBased && booking.checkOutDate && numHours > 0) {
+      const currentCheckOutTime = booking.checkOutTime || "12:00";
+      const [currentHours, currentMinutes] = currentCheckOutTime.split(':').map(Number);
+      const currentTotalMinutes = currentHours * 60 + currentMinutes;
+      
+      // Calculate new checkout time based on extension hours
+      const newTotalMinutes = currentTotalMinutes + (numHours * 60);
+      
+      // Get existing bookings for the same date
+      const selectedDate = new Date(booking.checkOutDate);
+      const selectedDateString = selectedDate.getFullYear() + '-' + 
+        String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
+        String(selectedDate.getDate()).padStart(2, '0');
+
+      const existingBookings = timeBasedBookings.filter(booking => booking.date === selectedDateString);
+      
+      // Check for time conflicts
+      const hasTimeConflict = existingBookings.some(existingBooking => {
+        // Handle different time formats (HH:MM:SS or HH:MM)
+        let existingStartTime = existingBooking.checkInTime;
+        let existingEndTime = existingBooking.checkOutTime;
+        
+        // Remove seconds if present (e.g., "19:00:00" -> "19:00")
+        if (existingStartTime.includes(':') && existingStartTime.split(':').length === 3) {
+          existingStartTime = existingStartTime.substring(0, 5);
+        }
+        if (existingEndTime.includes(':') && existingEndTime.split(':').length === 3) {
+          existingEndTime = existingEndTime.substring(0, 5);
+        }
+
+        // Calculate existing booking time range
+        const [existingStartHours, existingStartMins] = existingStartTime.split(':').map(Number);
+        const [existingEndHours, existingEndMins] = existingEndTime.split(':').map(Number);
+        
+        const existingStartTotalMinutes = existingStartHours * 60 + existingStartMins;
+        const existingEndTotalMinutes = existingEndHours * 60 + existingEndMins;
+
+        // Add 1-hour buffer (60 minutes) to existing booking end time
+        const existingEndWithBuffer = existingEndTotalMinutes + 60;
+
+        // Check for overlap with buffer - two time ranges overlap if one starts before the other ends (with buffer)
+        return (currentTotalMinutes < existingEndWithBuffer && newTotalMinutes > existingStartTotalMinutes);
+      });
+
+      if (hasTimeConflict) {
+        setError(`This ${numHours}-hour extension conflicts with an existing hourly booking. Please choose fewer hours or a different time.`);
+      }
+    }
+  };
+
   // Handle extend booking
   const handleExtendBooking = async () => {
-    if (!newCheckOutDate || error) return;
-
-    const extension = calculateExtension();
-    // Require at least one night extension
-    if (extension.nights <= 0) {
-      setError("Please select a valid extension date (at least one day after your current checkout date).");
-      return;
+    if (booking.timeBased) {
+      // Time-based booking extension
+      if (!extensionHours || extensionHours <= 0 || error) return;
+      
+      const extension = calculateExtension();
+      // Require at least one hour extension
+      if (extension.hours <= 0) {
+        setError("Please select a valid extension duration (at least one hour).");
+        return;
+      }
+    } else {
+      // Regular booking extension
+      if (!newCheckOutDate || error) return;
+      
+      const extension = calculateExtension();
+      // Require at least one night extension
+      if (extension.nights <= 0) {
+        setError("Please select a valid extension date (at least one day after your current checkout date).");
+        return;
+      }
     }
 
     setIsExtending(true);
     try {
+      const extension = calculateExtension();
       const payload = {
-        newCheckOutDate: newCheckOutDate,     
         guests: booking.guests,               
         phone: booking.phone,                 
         destination: booking.destination,     
@@ -577,6 +690,15 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
         extension: true,
         extendedAmount: extension.cost != null ? extension.cost.toFixed(2) : undefined,
       };
+
+      // Add time-based or date-based extension fields
+      if (booking.timeBased) {
+        payload.newCheckOutTime = calculateNewCheckOutTime();
+        payload.timeBased = true;
+        payload.bookHour = extension.hours;
+      } else {
+        payload.newCheckOutDate = newCheckOutDate;
+      }
 
       const response = await api.put(`/bookings/${booking.id}/extend`, payload);
       
@@ -589,8 +711,12 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
           handleExtensionPaymentRedirect(extensionResponse);
         } else {
           // Direct extension without payment (fallback)
+          const extensionDescription = booking.timeBased 
+            ? `Your hourly booking has been extended by ${extension.hours} hour${extension.hours !== 1 ? 's' : ''} until ${calculateNewCheckOutTime()}.`
+            : `Your stay has been extended until ${new Date(newCheckOutDate).toLocaleDateString()}.`;
+            
           toast.success("Booking extended successfully!", {
-            description: `Your stay has been extended until ${new Date(newCheckOutDate).toLocaleDateString()}.`,
+            description: extensionDescription,
             duration: 6000
           });
           onExtend(extensionResponse);
@@ -602,9 +728,9 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
       
       // Handle specific error cases
       if (error.response?.status === 409) {
-        setError("The selected dates are no longer available. Please choose different dates.");
+        setError("The selected dates/times are no longer available. Please choose different dates/times.");
       } else if (error.response?.status === 400) {
-        setError(error.response.data?.message || "Invalid extension request. Please check your dates.");
+        setError(error.response.data?.message || "Invalid extension request. Please check your dates/times.");
       } else {
         toast.error("Failed to extend booking", {
           description: "There was an error processing your extension. Please try again.",
@@ -786,8 +912,8 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
                 </div>
               )}
 
-              {/* Date Picker */}
-              {availabilityChecked && (
+              {/* Date Picker for regular bookings */}
+              {availabilityChecked && !booking.timeBased && (
                 <div className="space-y-2">
                   <CustomDatePicker
                     selectedDate={newCheckOutDate ? new Date(newCheckOutDate + 'T12:00:00') : null}
@@ -803,27 +929,83 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
                 </div>
               )}
 
+              {/* Hour Selection for time-based bookings */}
+              {availabilityChecked && booking.timeBased && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Extension Duration *
+                  </label>
+                  <select
+                    value={extensionHours}
+                    onChange={(e) => handleExtensionHoursChange(e.target.value)}
+                    className={`w-full px-3 py-2 border rounded-md text-sm ${
+                      error ? "border-red-500 bg-red-50" : "border-input bg-background"
+                    }`}
+                    disabled={isLoadingBookedDates}
+                  >
+                    {Array.from({ length: 4 }, (_, i) => i + 1).map((hours) => (
+                      <option key={hours} value={hours}>
+                        {hours} hour{hours !== 1 ? 's' : ''}
+                      </option>
+                    ))}
+                  </select>
+                  {error && (
+                    <p className="text-sm text-red-600">{error}</p>
+                  )}
+                  <div className="text-xs text-muted-foreground">
+                    Current checkout time: {booking.checkOutTime || "12:00"}
+                    {extensionHours > 0 && (
+                      <span className="ml-2 text-blue-600">
+                        → New checkout: {calculateNewCheckOutTime()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Extension Summary */}
-              {extension.nights > 0 && !error && newCheckOutDate && (
+              {((booking.timeBased && extension.hours > 0 && !error && extensionHours > 0) || 
+                (!booking.timeBased && extension.nights > 0 && !error && newCheckOutDate)) && (
                 <div className="bg-green-50 border border-green-200 rounded-md p-4">
                   <h4 className="font-medium text-green-800 mb-2">
                     Extension Summary
                   </h4>
                   <div className="space-y-1 text-sm text-green-700">
-                    <div className="flex justify-between">
-                      <span>Current check-out:</span>
-                      <span className="font-medium">{new Date(booking.checkOutDate).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>New check-out:</span>
-                      <span className="font-medium">{new Date(newCheckOutDate).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Additional nights:</span>
-                      <span className="font-medium">
-                        {extension.nights}
-                      </span>
-                    </div>
+                    {booking.timeBased ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span>Current check-out time:</span>
+                          <span className="font-medium">{booking.checkOutTime || "12:00"}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>New check-out time:</span>
+                          <span className="font-medium">{calculateNewCheckOutTime()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Additional hours:</span>
+                          <span className="font-medium">
+                            {extension.hours} hour{extension.hours !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between">
+                          <span>Current check-out:</span>
+                          <span className="font-medium">{new Date(booking.checkOutDate).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>New check-out:</span>
+                          <span className="font-medium">{new Date(newCheckOutDate).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Additional nights:</span>
+                          <span className="font-medium">
+                            {extension.nights} night{extension.nights !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      </>
+                    )}
                     <div className="flex justify-between font-medium pt-2 border-t border-green-300">
                       <span>Additional cost:</span>
                       <span>{formatCurrency(extension.cost)}</span>
@@ -888,7 +1070,12 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
             </button>
             <button
               onClick={handleExtendBooking}
-              disabled={!newCheckOutDate || extension.nights <= 0 || error || isExtending}
+              disabled={
+                (booking.timeBased ? !extensionHours || extensionHours <= 0 : !newCheckOutDate) || 
+                (booking.timeBased ? extension.hours <= 0 : extension.nights <= 0) || 
+                error || 
+                isExtending
+              }
               className="flex-1 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isExtending ? (
@@ -897,7 +1084,7 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
                   Extending...
                 </span>
               ) : (
-                `Extend Stay (${formatCurrency(extension.cost)})`
+                `Extend ${booking.timeBased ? 'Time' : 'Stay'} (${formatCurrency(extension.cost)})`
               )}
             </button>
           </div>
@@ -1279,7 +1466,15 @@ const BookingCard = ({
 
       {/* Actions */}
       <div className="flex flex-wrap gap-2 pt-3 border-t">
-        {config.actions.map((action) => (
+        {config.actions
+          .filter(action => {
+            // Hide extend button for time-based bookings
+            if (action === "extend" && booking.timeBased) {
+              return false;
+            }
+            return true;
+          })
+          .map((action) => (
           <ActionButton
             key={action}
             action={action}

@@ -86,22 +86,23 @@ export const SubscriptionProvider = ({ children }) => {
     subscriptionIsActive,
     subscriptionNextBillingDate,
     subscriptionExpirationNotification,
-    fetchSubscriptionData
+    fetchSubscriptionData,
+    updateSubscriptionCache
   } = useAuth();
 
   const [subscriptionState, setSubscriptionState] = useState(defaultSubscriptionState);
 
-  // === FETCH SUBSCRIPTION DETAILS (memoized with role-based access control) ===
+  // === GET SUBSCRIPTION DETAILS FROM CACHE ===
   const fetchSubscriptionDetails = useCallback(async (forceRefresh = false) => {
     if (!userId || !isAuthenticated) return null;
 
     // Check if user has permission to access subscription data
-    // Only HOTEL_ADMIN (hotel owner) and STAFF (manager) roles can access subscription data
-    const allowedRoles = ['HOTEL_ADMIN', 'STAFF'];
+    // Only HOTEL_ADMIN (hotel owner) and MANAGER roles can access subscription data
+    const allowedRoles = ['HOTEL_ADMIN', 'MANAGER'];
     const hasPermission = roles.some(role => allowedRoles.includes(role));
     
     if (!hasPermission) {
-      console.log("🚫 User role does not have permission to access subscription data. Required roles: HOTEL_ADMIN or STAFF");
+      console.log("🚫 User role does not have permission to access subscription data. Required roles: HOTEL_ADMIN or MANAGER");
       console.log("👤 Current user roles:", roles);
       
       setSubscriptionState(prev => ({
@@ -114,65 +115,46 @@ export const SubscriptionProvider = ({ children }) => {
       return null;
     }
 
-    // Don't fetch if we already have data and it's not a forced refresh
-    if (!forceRefresh && subscriptionState.subscription && subscriptionState.lastUpdated) {
-      const timeSinceLastUpdate = Date.now() - subscriptionState.lastUpdated;
-      // Only refetch if data is older than 5 minutes
-      if (timeSinceLastUpdate < 5 * 60 * 1000) {
-        return subscriptionState.subscription;
-      }
-    }
+    // Use cached data from AuthProvider (localStorage)
+    const cachedSubscriptionData = {
+      id: subscriptionId,
+      subscriptionId: subscriptionId,
+      paymentStatus: subscriptionPaymentStatus,
+      subscriptionPlan: subscriptionPlan,
+      isActive: subscriptionIsActive,
+      nextBillingDate: subscriptionNextBillingDate,
+      expirationNotification: subscriptionExpirationNotification
+    };
 
-    setSubscriptionState(prev => ({ ...prev, isLoading: true, error: null }));
-
-    try {
-      console.log("🔍 Fetching detailed subscription data for user:", userId);
+    // Only fetch from API if forcing refresh or no cached data exists
+    if (forceRefresh || !subscriptionId) {
+      console.log("🔄 Fetching subscription data from API (force refresh or no cache)");
+      const apiData = await fetchSubscriptionData(userId, forceRefresh);
       
-      // Use AuthProvider's optimized fetchSubscriptionData instead of direct API call
-      // This ensures we use the session-based caching and avoid duplicate API calls
-      const subscriptionData = await fetchSubscriptionData(userId);
-      
-      if (subscriptionData) {
+      if (apiData) {
         setSubscriptionState(prev => ({
           ...prev,
-          subscription: subscriptionData,
+          subscription: apiData,
           isLoading: false,
           error: null,
           lastUpdated: Date.now()
         }));
-        
-        return subscriptionData;
-      } else {
-        // If AuthProvider doesn't have data, fall back to direct API call
-        console.log("🔄 AuthProvider cache miss, fetching from API directly");
-        const directSubscriptionData = await subscriptionService.getSubscriptionByUserId(userId);
-        
-        setSubscriptionState(prev => ({
-          ...prev,
-          subscription: directSubscriptionData,
-          isLoading: false,
-          error: null,
-          lastUpdated: Date.now()
-        }));
-        
-        return directSubscriptionData;
+        return apiData;
       }
-    } catch (error) {
-      console.error("❌ Failed to fetch subscription details:", error);
-      
-      setSubscriptionState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: error.response?.status === 404 ? 'No subscription found' : 'Failed to load subscription data'
-      }));
-
-      if (error.response?.status !== 404) {
-        toast.error("Failed to load subscription data. Please try again.");
-      }
-
-      return null;
     }
-  }, [userId, isAuthenticated, subscriptionState.subscription, subscriptionState.lastUpdated, fetchSubscriptionData, roles]);
+
+    // Use cached data
+    console.log("🔄 Using cached subscription data");
+    setSubscriptionState(prev => ({
+      ...prev,
+      subscription: cachedSubscriptionData,
+      isLoading: false,
+      error: null,
+      lastUpdated: Date.now()
+    }));
+    
+    return cachedSubscriptionData;
+  }, [userId, isAuthenticated, subscriptionId, subscriptionPaymentStatus, subscriptionPlan, subscriptionIsActive, subscriptionNextBillingDate, subscriptionExpirationNotification, fetchSubscriptionData, roles]);
 
   // === FETCH PAYMENT HISTORY (memoized) ===
   const fetchPaymentHistory = useCallback(async () => {
@@ -483,12 +465,16 @@ export const SubscriptionProvider = ({ children }) => {
     return SUBSCRIPTION_PLANS[planId] || null;
   }, []);
 
-  // === AUTO-FETCH SUBSCRIPTION DATA ===
+  // === AUTO-FETCH SUBSCRIPTION DATA (only if no cached data) ===
   useEffect(() => {
-    if (userId && isAuthenticated && !subscriptionState.subscription) {
+    if (userId && isAuthenticated && !subscriptionId && !subscriptionState.subscription) {
+      console.log("🔄 No cached subscription data found, fetching from API");
+      fetchSubscriptionDetails();
+    } else if (userId && isAuthenticated && subscriptionId && !subscriptionState.subscription) {
+      console.log("🔄 Using cached subscription data");
       fetchSubscriptionDetails();
     }
-  }, [userId, isAuthenticated, fetchSubscriptionDetails, subscriptionState.subscription]);
+  }, [userId, isAuthenticated, subscriptionId, fetchSubscriptionDetails, subscriptionState.subscription]);
 
   // === MEMOIZED CONTEXT VALUE ===
   const contextValue = useMemo(() => ({
@@ -516,6 +502,7 @@ export const SubscriptionProvider = ({ children }) => {
     cancelSubscription,
     reactivateSubscription,
     getPaymentStatus,
+    updateSubscriptionCache,
 
     // Utility functions
     getSubscriptionStatus,

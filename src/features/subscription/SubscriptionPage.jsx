@@ -17,7 +17,8 @@ const SubscriptionPage = () => {
     subscriptionIsActive, 
     subscriptionPlan,
     subscriptionNextBillingDate,
-    subscriptionExpirationNotification
+    subscriptionExpirationNotification,
+    updateSubscriptionCache
   } = useAuth();
   const navigate = useNavigate();
   const [isSubscribing, setIsSubscribing] = useState(false);
@@ -142,7 +143,20 @@ const SubscriptionPage = () => {
         toast.success('Free trial started successfully! Welcome to EzeeRoom.');
         console.log('Subscription created successfully:', response.data);
         
-        // Redirect to dashboard after 3 seconds
+        // Update subscription cache with new data
+        const newSubscriptionData = {
+          id: response.data.id,
+          subscriptionId: response.data.id,
+          paymentStatus: response.data.paymentStatus,
+          subscriptionPlan: response.data.subscriptionPlan,
+          isActive: true, // New subscription is active
+          nextBillingDate: response.data.nextBillingDate,
+          expirationNotification: false
+        };
+        
+        updateSubscriptionCache(newSubscriptionData);
+        
+        // Redirect to dashboard after 1 second
         setTimeout(() => {
           navigate('/hotelAdmin');
         }, 1000);
