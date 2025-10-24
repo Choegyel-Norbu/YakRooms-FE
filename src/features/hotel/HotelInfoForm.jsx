@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../authentication";
 import api from "../../shared/services/Api";
 import { uploadFile, deleteFileByUrl } from "../../shared/services/uploadService";
-import { CheckCircle, XCircle, Upload, Plus, X, MapPin, Loader2, Facebook, Instagram } from "lucide-react";
+import { CheckCircle, XCircle, Upload, Plus, X, MapPin, Loader2, Facebook, Instagram, Clock } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -63,6 +63,9 @@ const formSchema = z.object({
   longitude: z.number().optional(),
   cancellationPolicy: z.string().min(1, "Cancellation policy is required"),
   hasTimeBased: z.boolean().optional(),
+  // Check-in and Check-out Times (backend field names)
+  checkInTime: z.string().min(1, "Check-in time is required"),
+  checkOutTime: z.string().min(1, "Check-out time is required"),
   // Social Media Links
   facebookUrl: z.string().url("Please enter a valid Facebook URL").optional().or(z.literal("")),
   instagramUrl: z.string().url("Please enter a valid Instagram URL").optional().or(z.literal("")),
@@ -190,6 +193,8 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       longitude: hotel.longitude || undefined,
       cancellationPolicy: hotel.cancellationPolicy || "",
       hasTimeBased: hotel.hasTimeBased || false,
+      checkInTime: hotel.checkinTime || "01:00:00",
+      checkOutTime: hotel.checkoutTime || "13:00:00",
       facebookUrl: hotel.facebookUrl || "",
       instagramUrl: hotel.instagramUrl || "",
       tiktokUrl: hotel.tiktokUrl || "",
@@ -220,6 +225,8 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       longitude: hotel.longitude || undefined,
       cancellationPolicy: hotel.cancellationPolicy || "",
       hasTimeBased: hotel.hasTimeBased || false,
+      checkInTime: hotel.checkinTime || "01:00:00",
+      checkOutTime: hotel.checkoutTime || "01:00:00",
       facebookUrl: hotel.facebookUrl || "",
       instagramUrl: hotel.instagramUrl || "",
       tiktokUrl: hotel.tiktokUrl || "",
@@ -395,6 +402,9 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
         id: formData.id,
         latitude: values.latitude,
         longitude: values.longitude,
+        // Include check-in and check-out times (backend expects lowercase 'i' and 'o')
+        checkinTime: values.checkInTime,
+        checkoutTime: values.checkOutTime,
         // Include social media URLs with exact DTO field names
         facebookUrl: values.facebookUrl || null,
         instagramUrl: values.instagramUrl || null,
@@ -454,6 +464,8 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                   longitude: hotel.longitude || undefined,
                   cancellationPolicy: hotel.cancellationPolicy || "",
                   hasTimeBased: hotel.hasTimeBased || false,
+                  checkInTime: hotel.checkinTime || "14:00",
+                  checkOutTime: hotel.checkoutTime || "11:00",
                   facebookUrl: hotel.facebookUrl || "",
                   instagramUrl: hotel.instagramUrl || "",
                   tiktokUrl: hotel.tiktokUrl || "",
@@ -697,6 +709,131 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {/* Check-in and Check-out Times Section */}
+              <div className="md:col-span-2 border-t pt-4 mt-2">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-semibold text-foreground">
+                      Check-in & Check-out Times
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Set your hotel's standard check-in and check-out times
+                    </p>
+                  </div>
+                </div>
+
+                {!isEditing ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center">
+                        <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-green-900 dark:text-green-100">Check-in Time</p>
+                        <p className="text-xs text-green-600 dark:text-green-400">
+                          {hotel.checkinTime || "01:00:00"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                      <div className="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center">
+                        <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-orange-900 dark:text-orange-100">Check-out Time</p>
+                        <p className="text-xs text-orange-600 dark:text-orange-400">
+                          {hotel.checkoutTime || "01:00:00"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="checkInTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center">
+                              <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </div>
+                            Check-in Time
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="time"
+                              className="pl-3"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="checkOutTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full bg-orange-600 flex items-center justify-center">
+                              <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </div>
+                            Check-out Time
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="time"
+                              className="pl-3"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
+                {isEditing && (
+                  <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                          Check-in & Check-out Guidelines
+                        </h5>
+                        <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                          <li>• Set your preferred check-in and check-out times</li>
+                          <li>• Default times are set to 01:00:00 (1:00 AM)</li>
+                          <li>• These times help ensure room cleaning and preparation</li>
+                          <li>• Guests will be informed of these times during booking</li>
+                          <li>• Consider your cleaning schedule when setting these times</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Social Media Links Section */}

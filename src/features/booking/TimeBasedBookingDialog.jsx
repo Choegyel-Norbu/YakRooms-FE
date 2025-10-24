@@ -165,19 +165,23 @@ export default function TimeBasedBookingDialog({
     try {
       setIsBookingLoading(true);
       const payload = {
-        ...bookingDetails,
-        roomId: room.id,
+        userId: userId,
         hotelId: hotelId,
-        totalPrice: calculateTotalPrice(),
-        userId,
-        days: Math.ceil(bookingDetails.bookHours / 24), // Convert hours to days for pricing
-        adminBooking: false,
-        initiatePayment: true,
-        bookingType: "hourly",
-        hourly: true,
+        roomId: room.id,
+        checkInDate: bookingDetails.checkInDate,
+        checkInTime: bookingDetails.checkInTime,
         bookHour: bookingDetails.bookHours,
-        checkOutTime: calculateCheckOutTime(),
-        durationHours: bookingDetails.bookHours
+        guests: bookingDetails.guests,
+        numberOfRooms: 1,
+        totalPrice: calculateTotalPrice(),
+        phone: bookingDetails.phone,
+        cid: bookingDetails.cid,
+        destination: bookingDetails.destination,
+        origin: bookingDetails.origin,
+        guestName: bookingDetails.guestName || "Guest",
+        timeBased: true,
+        initiatePayment: true,
+        adminBooking: false
       };
       
       const res = await api.post("/bookings", payload);

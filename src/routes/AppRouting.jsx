@@ -95,7 +95,14 @@ const AppRouting = () => {
       <Route path="/hotel/:id" element={<HotelDetailsPage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
-      <Route path="/subscription" element={<SubscriptionPage />} />
+      <Route
+        path="/subscription"
+        element={
+          <ProtectedRoute allowedRoles={["HOTEL_ADMIN", "MANAGER"]}>
+            <SubscriptionPage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
       {/* Dashboard Route - Redirects based on active role */}
@@ -112,7 +119,7 @@ const AppRouting = () => {
       <Route
         path="/addListing"
         element={
-          <ProtectedRoute allowedRoles={["GUEST", "STAFF", "MANAGER", "FRONTDESK"]}>
+          <ProtectedRoute allowedRoles={["GUEST", "HOTEL_ADMIN", "STAFF", "MANAGER", "FRONTDESK"]}>
             <AddListingPage />
           </ProtectedRoute>
         }

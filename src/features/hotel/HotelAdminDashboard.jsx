@@ -351,6 +351,9 @@ const HotelAdminDashboard = () => {
       // Reset notifications for the new hotel
       setNotifications([]);
       setUnreadCount(0);
+      
+      // Subscription data will be automatically refreshed by AuthProvider when setSelectedHotelId is called
+      console.log("🔄 Hotel switched to:", newHotelId, "- subscription data will be refreshed automatically");
     } catch (error) {
       console.error("Failed to switch hotel:", error);
     }

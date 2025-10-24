@@ -219,7 +219,8 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
     });
   };
 
-  // Helper function to check if a time-based booking is in the afternoon (after 12 noon)
+  // Helper function to check if a time-based booking is in the afternoon (12 noon and after)
+  // This is used to determine which dates should be blocked for standard booking
   const isAfternoonTimeBasedBooking = (booking) => {
     if (!booking.checkInTime) return false;
     
@@ -235,14 +236,34 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
 
   // Get blocked dates based on booking type
   const getBlockedDates = () => {
-    // For regular booking, block regular booked dates and only dates with afternoon time-based bookings
+    // For standard booking, block dates that have:
+    // 1. Regular booked dates (EXCEPT those that only have morning time-based bookings)
+    // 2. Dates with afternoon time-based bookings (12 noon and after)
+    // 
     // This allows standard booking on dates that only have morning time-based bookings (before 12 noon)
+    // because morning bookings don't conflict with overnight standard bookings
+    
+    // Get dates that have afternoon time-based bookings
     const afternoonTimeBasedDates = timeBasedBookings
       .filter(isAfternoonTimeBasedBooking)
       .map(booking => booking.date);
     
-    // Remove duplicates and return combined blocked dates
-    const allBlockedDates = [...bookedDates, ...afternoonTimeBasedDates];
+    // Get dates that have any time-based bookings (morning or afternoon)
+    const allTimeBasedDates = timeBasedBookings.map(booking => booking.date);
+    
+    // Filter regular booked dates to exclude those that only have morning time-based bookings
+    const regularBookedDatesToBlock = bookedDates.filter(date => {
+      // If this date has time-based bookings, check if any are afternoon
+      if (allTimeBasedDates.includes(date)) {
+        // Only block if there are afternoon time-based bookings on this date
+        return afternoonTimeBasedDates.includes(date);
+      }
+      // If no time-based bookings on this date, block it (it's a regular booking)
+      return true;
+    });
+    
+    // Combine filtered regular booked dates with dates that have afternoon time-based bookings
+    const allBlockedDates = [...regularBookedDatesToBlock, ...afternoonTimeBasedDates];
     return [...new Set(allBlockedDates)]; // Remove duplicates
   };
 

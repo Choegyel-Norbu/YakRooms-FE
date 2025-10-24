@@ -225,16 +225,19 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
   const UserNav = () => {
     if (!isAuthenticated) {
       return (
-        <div className="hidden md:flex items-center gap-2">
-          <Button variant="ghost" onClick={onLoginClick}>
-            Login
-          </Button>
-          <Button
-            className="bg-yellow-500 hover:bg-yellow-600 text-slate-900"
+        <div className="hidden md:flex items-center gap-3">
+          <span 
+            className="text-sm font-bold mr-1 text-gray-600 hover:text-gray-900 cursor-pointer transition-colors underline-offset-4 hover:underline"
+            onClick={onLoginClick}
+          >
+            Login 
+          </span>
+          <span
+            className="text-sm font-bold text-gray-600 hover:text-gray-900 cursor-pointer transition-colors underline-offset-4 hover:underline"
             onClick={onLoginClick}
           >
             Register
-          </Button>
+          </span>
         </div>
       );
     }

@@ -33,16 +33,41 @@ class SubscriptionService {
   }
 
   /**
-   * Get subscription by user ID
+   * Get subscriptions by user ID (hotel-based)
+   * @param {number} userId - User ID
+   * @returns {Promise<Array>} List of subscription data
+   */
+  async getSubscriptionsByUserId(userId) {
+    try {
+      console.log("🔍 Fetching subscriptions for user:", userId);
+      const response = await enhancedApi.get(`/subscriptions/user/${userId}`);
+      console.log("✅ Subscriptions fetched successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Failed to fetch subscriptions:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get subscription by user ID (backward compatibility - returns first active subscription)
    * @param {number} userId - User ID
    * @returns {Promise<Object>} Subscription data
    */
   async getSubscriptionByUserId(userId) {
     try {
-      console.log("🔍 Fetching subscription for user:", userId);
-      const response = await enhancedApi.get(`/subscriptions/user/${userId}`);
-      console.log("✅ Subscription fetched successfully:", response.data);
-      return response.data;
+      console.log("🔍 Fetching subscription for user (compatibility method):", userId);
+      const subscriptions = await this.getSubscriptionsByUserId(userId);
+      
+      // Return the first active subscription or the first subscription if none are active
+      const activeSubscription = subscriptions.find(sub => sub.isActive) || subscriptions[0];
+      
+      if (!activeSubscription) {
+        throw new Error('No subscription found for user');
+      }
+      
+      console.log("✅ Subscription fetched successfully:", activeSubscription);
+      return activeSubscription;
     } catch (error) {
       console.error("❌ Failed to fetch subscription:", error);
       throw error;
@@ -210,11 +235,40 @@ class SubscriptionService {
   async getSubscriptionHistory(userId) {
     try {
       console.log("📜 Fetching subscription history for user:", userId);
-      const response = await enhancedApi.get(`/subscriptions/user/${userId}/history`);
+      const response = await enhancedApi.get(`/subscriptions/user/${userId}`);
       console.log("✅ Subscription history retrieved:", response.data);
       return response.data;
     } catch (error) {
       console.error("❌ Failed to get subscription history:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get subscription for specific hotel
+   * @param {number} userId - User ID
+   * @param {number} hotelId - Hotel ID
+   * @returns {Promise<Object|null>} Subscription data for the specific hotel
+   */
+  async getSubscriptionForHotel(userId, hotelId) {
+    try {
+      console.log("🔍 Fetching subscription for hotel:", hotelId, "user:", userId);
+      const subscriptions = await this.getSubscriptionsByUserId(userId);
+      
+      // Find subscription for the specific hotel
+      const hotelSubscription = subscriptions.find(sub => 
+        sub.hotelId && sub.hotelId.toString() === hotelId.toString()
+      );
+      
+      if (hotelSubscription) {
+        console.log("✅ Subscription found for hotel:", hotelSubscription);
+        return hotelSubscription;
+      } else {
+        console.log("ℹ️ No subscription found for hotel:", hotelId);
+        return null;
+      }
+    } catch (error) {
+      console.error("❌ Failed to get subscription for hotel:", error);
       throw error;
     }
   }

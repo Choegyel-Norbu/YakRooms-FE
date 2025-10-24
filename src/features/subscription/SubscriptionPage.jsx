@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/components/card';
 import { Button } from '@/shared/components/button';
@@ -12,16 +12,34 @@ import { handlePaymentRedirect } from '@/shared/utils/paymentRedirect';
 const SubscriptionPage = () => {
   const { 
     userId,
-    hotelId, 
+    hotelId,
+    selectedHotelId, 
     subscriptionId, 
     subscriptionIsActive, 
     subscriptionPlan,
     subscriptionNextBillingDate,
     subscriptionExpirationNotification,
-    updateSubscriptionCache
+    updateSubscriptionCache,
+    fetchSubscriptionData
   } = useAuth();
   const navigate = useNavigate();
   const [isSubscribing, setIsSubscribing] = useState(false);
+
+  // Refresh subscription data when component mounts or selectedHotelId changes
+  useEffect(() => {
+    const refreshSubscriptionData = async () => {
+      if (userId && selectedHotelId && fetchSubscriptionData) {
+        console.log("🔄 Refreshing subscription data for hotel:", selectedHotelId);
+        try {
+          await fetchSubscriptionData(userId, true, selectedHotelId);
+        } catch (error) {
+          console.error("Failed to refresh subscription data:", error);
+        }
+      }
+    };
+
+    refreshSubscriptionData();
+  }, [userId, selectedHotelId, fetchSubscriptionData]);
 
   // Determine subscription state based on both subscriptionIsActive and subscriptionPlan
   const isTrialActive = subscriptionIsActive === true && subscriptionPlan === 'TRIAL';
@@ -124,6 +142,7 @@ const SubscriptionPage = () => {
       
       const subscriptionData = {
         userId: parseInt(userId),
+        hotelId: parseInt(selectedHotelId || hotelId),
         subscriptionPlan: subscriptionPlan,
         paymentStatus: "PENDING",
         trialStartDate: trialStartDate.toISOString(),
@@ -197,7 +216,8 @@ const SubscriptionPage = () => {
       const subscriptionData = {
         subscriptionPlan: 'PRO',
         amount: 1000.0,
-        userId: userId
+        userId: userId,
+        hotelId: parseInt(selectedHotelId || hotelId)
       };
 
       console.log('Initiating subscription payment with data:', subscriptionData);
@@ -276,6 +296,7 @@ const SubscriptionPage = () => {
       nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
       
       const subscriptionData = {
+        hotelId: parseInt(selectedHotelId || hotelId),
         subscriptionPlan: 'PRO',
         paymentStatus: 'PAID',
         nextBillingDate: nextBillingDate.toISOString(),
@@ -286,7 +307,7 @@ const SubscriptionPage = () => {
 
       console.log('Renewing subscription with data:', subscriptionData);
       
-      const response = await enhancedApi.put(`/subscriptions/user/${userId}`, subscriptionData);
+      const response = await enhancedApi.post('/subscriptions', subscriptionData);
       
       if (response.status === 200 || response.status === 201) {
         toast.success('Subscription renewed successfully! Your hotel listing remains active.');

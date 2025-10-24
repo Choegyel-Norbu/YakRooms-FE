@@ -12,6 +12,7 @@ import {
 import api, { authService, enhancedApi } from "@/shared/services/Api";
 import axios from "axios";
 import { API_BASE_URL } from "@/shared/services/firebaseConfig";
+import subscriptionService from "@/shared/services/subscriptionService";
 
 // === Constants ===
 const AUTH_STORAGE_KEYS = {
@@ -312,7 +313,7 @@ export const AuthProvider = ({ children }) => {
   });
 
   // === FETCH SUBSCRIPTION DATA (optimized for initial load only) ===
-  const fetchSubscriptionData = useCallback(async (userId, forceRefresh = false) => {
+  const fetchSubscriptionData = useCallback(async (userId, forceRefresh = false, selectedHotelId = null) => {
     try {
       if (!userId) return null;
       
@@ -324,6 +325,14 @@ export const AuthProvider = ({ children }) => {
       if (!hasPermission) {
         console.log("🚫 User role does not have permission to access subscription data. Required roles: HOTEL_ADMIN or MANAGER");
         console.log("👤 Current user roles:", authState.roles);
+        return null;
+      }
+      
+      // Use selectedHotelId if provided, otherwise use current selectedHotelId from auth state
+      const hotelIdToUse = selectedHotelId || authState.selectedHotelId;
+      
+      if (!hotelIdToUse) {
+        console.log("⚠️ No hotel ID available for subscription fetch");
         return null;
       }
       
@@ -345,30 +354,25 @@ export const AuthProvider = ({ children }) => {
         return cachedData;
       }
       
-      console.log("🔍 Fetching subscription data from API for user:", userId, "with roles:", authState.roles);
-      const response = await axios.get(`${API_BASE_URL}/api/subscriptions/user/${userId}`, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      console.log("🔍 Fetching subscription data for user:", userId, "hotel:", hotelIdToUse, "with roles:", authState.roles);
       
-      if (response.status === 200 && response.data) {
-        console.log("✅ Subscription data fetched successfully from API");
-        console.log("📋 Subscription data structure:", response.data);
-        
-        const subscriptionData = response.data;
+      // Use the new subscription service to get subscription for specific hotel
+      const hotelSubscription = await subscriptionService.getSubscriptionForHotel(userId, hotelIdToUse);
+      
+      if (hotelSubscription) {
+        console.log("✅ Subscription data fetched successfully for hotel:", hotelIdToUse);
+        console.log("📋 Subscription data structure:", hotelSubscription);
         
         // Update localStorage with subscription data
-        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS, subscriptionData.paymentStatus);
-        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PLAN, subscriptionData.subscriptionPlan);
-        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE, Boolean(subscriptionData.isActive).toString());
-        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_NEXT_BILLING_DATE, subscriptionData.nextBillingDate || '');
-        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_EXPIRATION_NOTIFICATION, Boolean(subscriptionData.expirationNotification).toString());
+        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS, hotelSubscription.paymentStatus);
+        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PLAN, hotelSubscription.subscriptionPlan);
+        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE, Boolean(hotelSubscription.isActive).toString());
+        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_NEXT_BILLING_DATE, hotelSubscription.nextBillingDate || '');
+        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_EXPIRATION_NOTIFICATION, Boolean(hotelSubscription.expirationNotification).toString());
         
         // Store subscription ID if available
-        if (subscriptionData.id || subscriptionData.subscriptionId) {
-          setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_ID, (subscriptionData.id || subscriptionData.subscriptionId).toString());
+        if (hotelSubscription.id || hotelSubscription.subscriptionId) {
+          setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_ID, (hotelSubscription.id || hotelSubscription.subscriptionId).toString());
         }
         
         // Mark as fetched in current session
@@ -377,17 +381,38 @@ export const AuthProvider = ({ children }) => {
         // Update auth state
         setAuthState(prev => ({
           ...prev,
-          subscriptionId: subscriptionData.id || subscriptionData.subscriptionId || null,
-          subscriptionPaymentStatus: subscriptionData.paymentStatus,
-          subscriptionPlan: subscriptionData.subscriptionPlan,
-          subscriptionIsActive: subscriptionData.isActive,
-          subscriptionNextBillingDate: subscriptionData.nextBillingDate,
-          subscriptionExpirationNotification: subscriptionData.expirationNotification,
+          subscriptionId: hotelSubscription.id || hotelSubscription.subscriptionId || null,
+          subscriptionPaymentStatus: hotelSubscription.paymentStatus,
+          subscriptionPlan: hotelSubscription.subscriptionPlan,
+          subscriptionIsActive: hotelSubscription.isActive,
+          subscriptionNextBillingDate: hotelSubscription.nextBillingDate,
+          subscriptionExpirationNotification: hotelSubscription.expirationNotification,
         }));
         
-        return subscriptionData;
+        return hotelSubscription;
       } else {
-        throw new Error('Invalid subscription response');
+        console.log("ℹ️ No subscription found for hotel:", hotelIdToUse);
+        
+        // Clear subscription data from localStorage and state
+        removeStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_ID);
+        removeStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS);
+        removeStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PLAN);
+        removeStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE);
+        removeStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_NEXT_BILLING_DATE);
+        removeStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_EXPIRATION_NOTIFICATION);
+        
+        // Update auth state to clear subscription data
+        setAuthState(prev => ({
+          ...prev,
+          subscriptionId: null,
+          subscriptionPaymentStatus: null,
+          subscriptionPlan: null,
+          subscriptionIsActive: null,
+          subscriptionNextBillingDate: null,
+          subscriptionExpirationNotification: false,
+        }));
+        
+        return null;
       }
     } catch (error) {
       console.error("❌ Failed to fetch subscription data:", error);
@@ -399,7 +424,7 @@ export const AuthProvider = ({ children }) => {
       
       return null;
     }
-  }, [authState.roles]);
+  }, [authState.roles, authState.selectedHotelId]);
 
   // === UPDATE SUBSCRIPTION CACHE (for when user subscribes) ===
   const updateSubscriptionCache = useCallback((subscriptionData) => {
@@ -987,7 +1012,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // === SET SELECTED HOTEL ID (memoized) ===
-  const setSelectedHotelId = useCallback((hotelId) => {
+  const setSelectedHotelId = useCallback(async (hotelId) => {
     try {
       const hotelIdString = hotelId?.toString() || null;
       setStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID, hotelIdString);
@@ -995,10 +1020,21 @@ export const AuthProvider = ({ children }) => {
         ...prev,
         selectedHotelId: hotelIdString,
       }));
+      
+      // Refresh subscription data for the new hotel if user has permission
+      if (hotelIdString && authState.userId && authState.roles) {
+        const allowedRoles = ['HOTEL_ADMIN', 'MANAGER'];
+        const hasPermission = authState.roles.some(role => allowedRoles.includes(role));
+        
+        if (hasPermission) {
+          console.log("🔄 Refreshing subscription data for new hotel:", hotelIdString);
+          await fetchSubscriptionData(authState.userId, true, hotelIdString);
+        }
+      }
     } catch (error) {
       console.error("Failed to set selected hotel ID", error);
     }
-  }, []);
+  }, [authState.userId, authState.roles, fetchSubscriptionData]);
 
   // === GET SELECTED HOTEL (memoized) ===
   const getSelectedHotel = useCallback(() => {

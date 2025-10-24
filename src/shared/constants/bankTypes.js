@@ -8,43 +8,57 @@ export const BankType = {
   BOB: {
     code: "BOB",
     name: "Bank of Bhutan",
-    shortName: "BOB"
+    shortName: "BOB",
+    accountNumberLength: { min: 10, max: 16 },
+    accountNumberPattern: /^\d{10,16}$/
   },
   BNB: {
     code: "BNB", 
     name: "Bhutan National Bank",
-    shortName: "BNB"
+    shortName: "BNB",
+    accountNumberLength: { min: 10, max: 16 },
+    accountNumberPattern: /^\d{10,16}$/
   },
   DPNB: {
     code: "DPNB",
     name: "Druk PNB Bank", 
-    shortName: "DPNB"
+    shortName: "DPNB",
+    accountNumberLength: { min: 10, max: 16 },
+    accountNumberPattern: /^\d{10,16}$/
   },
   
   // Development Finance Institutions
   BDB: {
     code: "BDB",
     name: "Bhutan Development Bank",
-    shortName: "BDB"
+    shortName: "BDB",
+    accountNumberLength: { min: 8, max: 14 },
+    accountNumberPattern: /^\d{8,14}$/
   },
   
   // Mobile Financial Services
   TBANK: {
     code: "TBANK",
     name: "T-Bank (Tashi InfoComm)",
-    shortName: "T-Bank"
+    shortName: "T-Bank",
+    accountNumberLength: { min: 8, max: 12 },
+    accountNumberPattern: /^\d{8,12}$/
   },
   DKBANK: {
     code: "DKBANK",
     name: "Druk Khang Bank",
-    shortName: "DKBANK"
+    shortName: "DKBANK",
+    accountNumberLength: { min: 8, max: 12 },
+    accountNumberPattern: /^\d{8,12}$/
   },
   
   // Other/Unknown
   OTHER: {
     code: "OTHER",
     name: "Other Bank",
-    shortName: "Other"
+    shortName: "Other",
+    accountNumberLength: { min: 8, max: 20 },
+    accountNumberPattern: /^\d{8,20}$/
   }
 };
 
@@ -78,6 +92,78 @@ export const getBankNameByCode = (code) => {
 export const getBankShortNameByCode = (code) => {
   const bank = Object.values(BankType).find(b => b.code === code);
   return bank ? bank.shortName : "Unknown";
+};
+
+/**
+ * Get bank validation rules by code
+ * @param {string} code - Bank code
+ * @returns {Object} Bank validation rules or default rules if not found
+ */
+export const getBankValidationRules = (code) => {
+  const bank = Object.values(BankType).find(b => b.code === code);
+  return bank ? {
+    minLength: bank.accountNumberLength.min,
+    maxLength: bank.accountNumberLength.max,
+    pattern: bank.accountNumberPattern
+  } : {
+    minLength: 8,
+    maxLength: 20,
+    pattern: /^\d{8,20}$/
+  };
+};
+
+/**
+ * Validate bank account number
+ * @param {string} accountNumber - Account number to validate
+ * @param {string} bankCode - Bank code
+ * @returns {Object} Validation result with isValid and error message
+ */
+export const validateBankAccountNumber = (accountNumber, bankCode) => {
+  if (!accountNumber || !bankCode) {
+    return { isValid: false, error: "Account number and bank type are required" };
+  }
+
+  const rules = getBankValidationRules(bankCode);
+  
+  // Check if account number contains only digits
+  if (!/^\d+$/.test(accountNumber)) {
+    return { isValid: false, error: "Account number must contain only numbers" };
+  }
+
+  // Check length constraints
+  if (accountNumber.length < rules.minLength) {
+    return { 
+      isValid: false, 
+      error: `Account number must be at least ${rules.minLength} digits long` 
+    };
+  }
+
+  if (accountNumber.length > rules.maxLength) {
+    return { 
+      isValid: false, 
+      error: `Account number cannot exceed ${rules.maxLength} digits` 
+    };
+  }
+
+  // Check pattern match
+  if (!rules.pattern.test(accountNumber)) {
+    return { 
+      isValid: false, 
+      error: `Invalid account number format for selected bank` 
+    };
+  }
+
+  return { isValid: true, error: null };
+};
+
+/**
+ * Get maximum allowed length for account number input
+ * @param {string} bankCode - Bank code
+ * @returns {number} Maximum allowed length
+ */
+export const getMaxAccountNumberLength = (bankCode) => {
+  const rules = getBankValidationRules(bankCode);
+  return rules.maxLength;
 };
 
 export default BankType;
