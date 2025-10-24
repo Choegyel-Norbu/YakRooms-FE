@@ -601,13 +601,13 @@ export const AuthProvider = ({ children }) => {
           ...defaultAuthState,
           topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
           hotelIds: parseHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS)),
-          selectedHotelId: getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID) || null,
+          selectedHotelId: null, // Always clear selectedHotelId on auth failure
           userHotels: parseUserHotelsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS))
         });
         
-        // Clear user data but preserve top hotel IDs, hotel IDs, selected hotel ID, and user hotels
+        // Clear user data but preserve top hotel IDs, hotel IDs, and user hotels (removed selectedHotelId)
         const authKeys = Object.values(AUTH_STORAGE_KEYS).filter(key => 
-          key !== 'topHotelIds' && key !== 'hotelIds' && key !== 'selectedHotelId' && key !== 'userHotels' && key !== 'lastAuthCheck'
+          key !== 'topHotelIds' && key !== 'hotelIds' && key !== 'userHotels' && key !== 'lastAuthCheck'
         );
         authKeys.forEach(key => {
           removeStorageItem(key);
@@ -620,13 +620,13 @@ export const AuthProvider = ({ children }) => {
           ...defaultAuthState,
           topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
           hotelIds: parseHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS)),
-          selectedHotelId: getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID) || null,
+          selectedHotelId: null, // Always clear selectedHotelId on auth failure
           userHotels: parseUserHotelsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS))
         });
         
-        // Clear user data but preserve top hotel IDs, hotel IDs, selected hotel ID, and user hotels
+        // Clear user data but preserve top hotel IDs, hotel IDs, and user hotels (removed selectedHotelId)
         const authKeys = Object.values(AUTH_STORAGE_KEYS).filter(key => 
-          key !== 'topHotelIds' && key !== 'hotelIds' && key !== 'selectedHotelId' && key !== 'userHotels' && key !== 'lastAuthCheck'
+          key !== 'topHotelIds' && key !== 'hotelIds' && key !== 'userHotels' && key !== 'lastAuthCheck'
         );
         authKeys.forEach(key => {
           removeStorageItem(key);
@@ -653,15 +653,14 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log("🚪 Logging out...");
       
-      // Preserve top hotel IDs, hotel IDs, selected hotel ID, and user hotels during logout
+      // Preserve top hotel IDs, hotel IDs, and user hotels during logout (removed selectedHotelId)
       const topHotelIds = getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS);
       const hotelIds = getStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS);
-      const selectedHotelId = getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID);
       const userHotels = getStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS);
       console.log("🔒 [LOGOUT] Preserving top hotel IDs:", topHotelIds);
       console.log("🔒 [LOGOUT] Preserving hotel IDs:", hotelIds);
-      console.log("🔒 [LOGOUT] Preserving selected hotel ID:", selectedHotelId);
       console.log("🔒 [LOGOUT] Preserving user hotels:", userHotels);
+      console.log("🗑️ [LOGOUT] Removing selected hotel ID");
       
       // Call backend logout endpoint to invalidate cookies
       try {
@@ -676,9 +675,9 @@ export const AuthProvider = ({ children }) => {
         console.warn("⚠️ Server-side logout failed, continuing with client cleanup:", logoutError);
       }
       
-      // Clear all auth data from localStorage except top hotel IDs, hotel IDs, selected hotel ID, and user hotels
+      // Clear all auth data from localStorage except top hotel IDs, hotel IDs, and user hotels (removed selectedHotelId)
       const authKeys = Object.values(AUTH_STORAGE_KEYS).filter(key => 
-        key !== 'topHotelIds' && key !== 'hotelIds' && key !== 'selectedHotelId' && key !== 'userHotels' && key !== 'lastAuthCheck'
+        key !== 'topHotelIds' && key !== 'hotelIds' && key !== 'userHotels' && key !== 'lastAuthCheck'
       );
       authKeys.forEach(key => {
         removeStorageItem(key);
@@ -698,7 +697,7 @@ export const AuthProvider = ({ children }) => {
         console.warn("⚠️ Failed to clear auth data via authService:", clearError);
       }
       
-      // Restore top hotel IDs, hotel IDs, selected hotel ID, and user hotels after clearing
+      // Restore top hotel IDs, hotel IDs, and user hotels after clearing (removed selectedHotelId)
       if (topHotelIds) {
         setStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS, topHotelIds);
         console.log("🔒 [LOGOUT] Restored top hotel IDs to localStorage");
@@ -706,10 +705,6 @@ export const AuthProvider = ({ children }) => {
       if (hotelIds) {
         setStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS, hotelIds);
         console.log("🔒 [LOGOUT] Restored hotel IDs to localStorage");
-      }
-      if (selectedHotelId) {
-        setStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID, selectedHotelId);
-        console.log("🔒 [LOGOUT] Restored selected hotel ID to localStorage");
       }
       if (userHotels) {
         setStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS, userHotels);
@@ -720,7 +715,7 @@ export const AuthProvider = ({ children }) => {
         ...defaultAuthState,
         topHotelIds: parseTopHotelIdsFromStorage(topHotelIds),
         hotelIds: parseHotelIdsFromStorage(hotelIds),
-        selectedHotelId: selectedHotelId || null,
+        selectedHotelId: null, // Always set to null on logout
         userHotels: parseUserHotelsFromStorage(userHotels)
       });
       
@@ -734,7 +729,7 @@ export const AuthProvider = ({ children }) => {
       try {
         // Clear localStorage
         const authKeys = Object.values(AUTH_STORAGE_KEYS).filter(key => 
-          key !== 'topHotelIds' && key !== 'hotelIds' && key !== 'selectedHotelId' && key !== 'userHotels' && key !== 'lastAuthCheck'
+          key !== 'topHotelIds' && key !== 'hotelIds' && key !== 'userHotels' && key !== 'lastAuthCheck'
         );
         authKeys.forEach(key => {
           removeStorageItem(key);
@@ -744,7 +739,7 @@ export const AuthProvider = ({ children }) => {
           ...defaultAuthState,
           topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
           hotelIds: parseHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS)),
-          selectedHotelId: getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID) || null,
+          selectedHotelId: null, // Always set to null on logout
           userHotels: parseUserHotelsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS))
         });
         navigate("/");
