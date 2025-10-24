@@ -78,11 +78,11 @@ const HeroLG = () => {
 
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl text-white">
             Discover Authentic Stays in
-            <span className="block text-yellow-400">Bhutan with EzeeRoom</span>
+            <span className="block text-yellow-400">Bhutan with EzeeRooooooom</span>
           </h1>
 
           <p className="mx-auto max-w-2xl text-14 text-white/90 sm:text-xl">
-            Find your perfect stay anywhere in the country. 
+            Find your perfect stay anywhere innnn the country. 
             Discover authentic accommodations in unfamiliar destinations with confidence and ease.
           </p>
         </div>
