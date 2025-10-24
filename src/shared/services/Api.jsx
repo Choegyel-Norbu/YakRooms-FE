@@ -1,37 +1,9 @@
 import axios from "axios";
-import { getStorageItem, setStorageItem, removeStorageItem, getSafariAuthStrategy, testCookieSupport } from "@/shared/utils/safariLocalStorage";
+import { getStorageItem, setStorageItem, removeStorageItem } from "@/shared/utils/safariLocalStorage";
 import { API_BASE_URL } from "./firebaseConfig";
 
 // Cookie-based authentication - no client-side token management needed
 
-
-// Safari-specific API configuration
-const getSafariAwareConfig = () => {
-  const safariStrategy = getSafariAuthStrategy();
-  const basicCookieSupport = testCookieSupport();
-
-  // For Safari with cookie issues, use more conservative settings
-  if (safariStrategy.fallbackActive || !basicCookieSupport) {
-    console.log("🍎 Using Safari-aware API configuration:", safariStrategy);
-    return {
-      withCredentials: false, // Disable credentials for Safari fallback
-      headers: {
-        'Content-Type': 'application/json',
-        // Add Safari-specific headers if needed
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      }
-    };
-  }
-
-  // Default configuration for other browsers
-  return {
-    withCredentials: true,
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  };
-};
 
 // Cookie-based authentication utilities
 function clearAllCookies() {
@@ -53,11 +25,12 @@ function clearAllCookies() {
   }
 }
 
-// Create API instance with Safari-aware configuration
-const safariConfig = getSafariAwareConfig();
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
-  ...safariConfig,
+  withCredentials: true, // Enable cookies for HTTP-only authentication
+  headers: {
+    "Content-Type": "application/json",
+  },
   timeout: 10000, // 10 second timeout
 });
 
@@ -107,11 +80,12 @@ api.interceptors.response.use(
         console.log('🔄 Access token expired/invalid (401/403), attempting refresh...');
         
         // Attempt to refresh the access token using cookie-based refresh
-        const refreshConfig = {
-          ...getSafariAwareConfig(),
-          ...safariConfig // Ensure consistent config
-        };
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, refreshConfig);
+        const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
         
         if (response.status === 200) {
           console.log('✅ Token refreshed successfully via cookies');
@@ -202,8 +176,12 @@ export const authService = {
     try {
       console.log('🔄 Manually refreshing token...');
       
-      const refreshConfig = getSafariAwareConfig();
-      const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, refreshConfig);
+      const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       
       if (response.status === 200) {
         // Update last refresh time

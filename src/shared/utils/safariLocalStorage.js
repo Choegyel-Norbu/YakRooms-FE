@@ -92,81 +92,6 @@ class CrossBrowserStorage {
     }
   }
 
-  // Test if cookies are working properly (especially important for Safari)
-  testCookieSupport() {
-    try {
-      // Test cookie support
-      const testCookieName = '__cookie_test_' + Date.now();
-      const testCookieValue = 'test_value';
-
-      // Set test cookie
-      document.cookie = `${testCookieName}=${testCookieValue}; path=/; max-age=60`;
-
-      // Check if cookie was set
-      const cookies = document.cookie.split(';');
-      let cookieFound = false;
-      for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === testCookieName && value === testCookieValue) {
-          cookieFound = true;
-          break;
-        }
-      }
-
-      // Clean up test cookie
-      document.cookie = `${testCookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-
-      return cookieFound;
-    } catch (error) {
-      console.warn('Cookie support test failed:', error);
-      return false;
-    }
-  }
-
-  // Test if HTTP-only cookies are working (for authentication)
-  async testHttpOnlyCookieSupport(apiBaseUrl) {
-    try {
-      // Make a test request to check if cookies are being sent/received
-      const response = await fetch(`${apiBaseUrl}/auth/status`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      // If we get a response (even 401), cookies are working
-      return true;
-    } catch (error) {
-      console.warn('HTTP-only cookie test failed:', error);
-      return false;
-    }
-  }
-
-  // Get Safari-specific authentication strategy
-  getSafariAuthStrategy() {
-    if (this.platform !== 'safari' || !this.isIOS) {
-      return { method: 'cookie', fallback: null };
-    }
-
-    const cookieSupport = this.testCookieSupport();
-
-    if (!cookieSupport) {
-      return {
-        method: 'localStorage',
-        fallback: 'sessionStorage',
-        reason: 'iOS Safari cookies not supported or blocked'
-      };
-    }
-
-    // Even if cookies work, Safari might still have issues with HTTP-only cookies
-    return {
-      method: 'hybrid',
-      fallback: 'localStorage',
-      reason: 'Using hybrid approach for Safari reliability'
-    };
-  }
-
   // Initialize quota management
   initializeQuotaManagement() {
     // Set up periodic cleanup for old data
@@ -874,20 +799,6 @@ export const testStorageCompatibility = () => {
   return crossBrowserStorage.validateStorage();
 };
 
-// Safari-specific cookie testing
-export const testCookieSupport = () => {
-  return crossBrowserStorage.testCookieSupport();
-};
-
-// Test HTTP-only cookie support
-export const testHttpOnlyCookieSupport = (apiBaseUrl) => {
-  return crossBrowserStorage.testHttpOnlyCookieSupport(apiBaseUrl);
-};
-
-// Get Safari authentication strategy
-export const getSafariAuthStrategy = () => {
-  return crossBrowserStorage.getSafariAuthStrategy();
-};
 
 // Authentication storage helpers
 export const getAuthData = () => {

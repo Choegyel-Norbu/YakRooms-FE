@@ -7,10 +7,7 @@ import {
   clearStorage,
   getAuthData,
   setAuthData,
-  clearAuthData,
-  testCookieSupport,
-  testHttpOnlyCookieSupport,
-  getSafariAuthStrategy
+  clearAuthData
 } from "@/shared/utils/safariLocalStorage";
 import api, { authService, enhancedApi } from "@/shared/services/Api";
 import axios from "axios";
@@ -315,134 +312,6 @@ export const AuthProvider = ({ children }) => {
     return stored ? new Date(stored) : null;
   });
 
-  // Safari-specific authentication state
-  const [safariAuthStrategy, setSafariAuthStrategy] = useState(() => {
-    return getSafariAuthStrategy();
-  });
-
-  const [cookieSupportTested, setCookieSupportTested] = useState(false);
-  const [httpOnlyCookieWorking, setHttpOnlyCookieWorking] = useState(true); // Assume working initially
-
-  // === SAFARI COOKIE TESTING AND FALLBACK UTILITIES ===
-
-  // Test Safari cookie support and set appropriate authentication strategy
-  const testSafariCookieSupport = useCallback(async () => {
-    if (cookieSupportTested) return;
-
-    try {
-      console.log("🧪 Testing Safari cookie support...");
-
-      // Test basic cookie support
-      const basicCookieSupport = testCookieSupport();
-
-      // Test HTTP-only cookie support
-      const httpOnlySupport = await testHttpOnlyCookieSupport(API_BASE_URL);
-
-      setHttpOnlyCookieWorking(httpOnlySupport);
-      setCookieSupportTested(true);
-
-      // Update strategy based on test results
-      const strategy = getSafariAuthStrategy();
-
-      if (!basicCookieSupport || !httpOnlySupport) {
-        console.warn("🍎 Safari cookie issues detected:", {
-          basicCookieSupport,
-          httpOnlySupport,
-          strategy
-        });
-
-        // If cookies don't work, we'll need to use localStorage fallback
-        setSafariAuthStrategy({
-          ...strategy,
-          fallbackActive: true
-        });
-
-        // If we were authenticated via cookies but cookies aren't working, we need to re-authenticate
-        if (authState.isAuthenticated && !httpOnlySupport) {
-          console.log("🔄 Cookies not working, clearing auth state and requiring re-authentication");
-          setAuthState({
-            ...defaultAuthState,
-            topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
-            hotelIds: parseHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS)),
-            selectedHotelId: getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID) || null,
-            userHotels: parseUserHotelsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS))
-          });
-
-          // Clear user data but preserve hotel data
-          const authKeys = Object.values(AUTH_STORAGE_KEYS).filter(key =>
-            key !== 'topHotelIds' && key !== 'hotelIds' && key !== 'selectedHotelId' && key !== 'userHotels' && key !== 'lastAuthCheck'
-          );
-          authKeys.forEach(key => {
-            removeStorageItem(key);
-          });
-        }
-      } else {
-        console.log("✅ Safari cookies working properly");
-        setSafariAuthStrategy(strategy);
-      }
-    } catch (error) {
-      console.error("❌ Failed to test Safari cookie support:", error);
-      setCookieSupportTested(true);
-    }
-  }, [cookieSupportTested, authState.isAuthenticated]);
-
-  // Fallback authentication for Safari when cookies fail
-  const performSafariFallbackAuth = useCallback(async () => {
-    try {
-      console.log("🔄 Performing Safari fallback authentication...");
-
-      // Try to get stored tokens from localStorage (if any exist from previous sessions)
-      const storedToken = getStorageItem('fallback_access_token');
-      const storedRefreshToken = getStorageItem('fallback_refresh_token');
-
-      if (storedToken && storedRefreshToken) {
-        console.log("🔑 Found fallback tokens, attempting validation...");
-
-        // Try to validate with stored tokens
-        try {
-          const response = await axios.get(`${API_BASE_URL}/auth/validate-token`, {
-            headers: {
-              'Authorization': `Bearer ${storedToken}`,
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (response.status === 200 && response.data.success) {
-            console.log("✅ Fallback token validation successful");
-            return { success: true, user: response.data.user };
-          }
-        } catch (tokenError) {
-          console.warn("⚠️ Fallback token validation failed:", tokenError);
-
-          // Try refresh token
-          try {
-            const refreshResponse = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
-              refreshToken: storedRefreshToken
-            }, {
-              headers: {
-                'Content-Type': 'application/json'
-              }
-            });
-
-            if (refreshResponse.status === 200) {
-              // Store new tokens
-              setStorageItem('fallback_access_token', refreshResponse.data.accessToken);
-              setStorageItem('fallback_refresh_token', refreshResponse.data.refreshToken);
-              return { success: true, user: refreshResponse.data.user };
-            }
-          } catch (refreshError) {
-            console.warn("⚠️ Token refresh failed:", refreshError);
-          }
-        }
-      }
-
-      return { success: false, reason: 'No valid fallback tokens found' };
-    } catch (error) {
-      console.error("❌ Safari fallback authentication failed:", error);
-      return { success: false, reason: error.message };
-    }
-  }, []);
-
   // === FETCH SUBSCRIPTION DATA (optimized for initial load only) ===
   const fetchSubscriptionData = useCallback(async (userId, forceRefresh = false, selectedHotelId = null) => {
     try {
@@ -639,81 +508,6 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log("🔍 Validating authentication status with server...");
       setAuthState(prev => ({ ...prev, isValidatingAuth: true }));
-
-      // Check if we should use Safari fallback (cookies not working)
-      if (safariAuthStrategy.fallbackActive && !httpOnlyCookieWorking) {
-        console.log("🍎 Using Safari fallback authentication (cookies not working)");
-        const fallbackResult = await performSafariFallbackAuth();
-
-        if (fallbackResult.success) {
-          console.log("✅ Safari fallback authentication successful");
-          const userData = fallbackResult.user;
-          const roles = userData.roles || [];
-          const initialActiveRole = getStorageItem(AUTH_STORAGE_KEYS.ACTIVE_ROLE) ||
-                                   (roles.includes('HOTEL_ADMIN') ? 'HOTEL_ADMIN' :
-                                    roles.includes('SUPER_ADMIN') ? 'SUPER_ADMIN' :
-                                    roles.includes('STAFF') ? 'STAFF' :
-                                    roles.includes('GUEST') ? 'GUEST' :
-                                    roles[0] || null);
-
-          // Update localStorage with current user data
-          setStorageItem(AUTH_STORAGE_KEYS.USER_ID, userData.id);
-          setStorageItem(AUTH_STORAGE_KEYS.EMAIL, userData.email);
-          setStorageItem(AUTH_STORAGE_KEYS.ROLES, stringifyRolesForStorage(roles));
-          setStorageItem(AUTH_STORAGE_KEYS.ACTIVE_ROLE, initialActiveRole);
-          setStorageItem(AUTH_STORAGE_KEYS.USER_NAME, userData.name || "");
-          setStorageItem(AUTH_STORAGE_KEYS.PICTURE_URL, userData.profilePicUrl || "");
-          setStorageItem(AUTH_STORAGE_KEYS.CLIENT_DETAIL_SET, Boolean(userData.detailSet).toString());
-
-          // Handle hotelIds array from server response
-          if (userData.hotelIds && Array.isArray(userData.hotelIds)) {
-            setStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS, stringifyHotelIdsForStorage(userData.hotelIds));
-            if (userData.hotelIds.length > 0) {
-              setStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID, userData.hotelIds[0]);
-              const existingSelectedHotelId = getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID);
-              if (!existingSelectedHotelId) {
-                setStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID, userData.hotelIds[0]);
-              }
-            }
-          } else if (userData.hotelId) {
-            setStorageItem(AUTH_STORAGE_KEYS.HOTEL_ID, userData.hotelId);
-            setStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS, stringifyHotelIdsForStorage([userData.hotelId]));
-            const existingSelectedHotelId = getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID);
-            if (!existingSelectedHotelId) {
-              setStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID, userData.hotelId);
-            }
-          }
-
-          setStorageItem(AUTH_STORAGE_KEYS.LAST_AUTH_CHECK, Date.now().toString());
-
-          // Update auth state
-          setAuthState(prev => ({
-            ...prev,
-            isAuthenticated: true,
-            email: userData.email,
-            userId: userData.id,
-            userName: userData.name || "",
-            roles: roles,
-            activeRole: initialActiveRole,
-            pictureURL: userData.profilePicUrl || "",
-            clientDetailSet: Boolean(userData.detailSet),
-            hotelId: userData.hotelIds && userData.hotelIds.length > 0 ? userData.hotelIds[0] : (userData.hotelId || prev.hotelId),
-            hotelIds: userData.hotelIds && Array.isArray(userData.hotelIds) ? userData.hotelIds : (userData.hotelId ? [userData.hotelId] : prev.hotelIds),
-            selectedHotelId: getStorageItem(AUTH_STORAGE_KEYS.SELECTED_HOTEL_ID) || prev.selectedHotelId,
-            isValidatingAuth: false,
-          }));
-
-          // Fetch subscription data only for HOTEL_ADMIN/MANAGER roles on initial validation
-          if (userData.id && (roles.includes('HOTEL_ADMIN') || roles.includes('MANAGER'))) {
-            await fetchSubscriptionData(userData.id);
-          }
-
-          return true;
-        } else {
-          console.warn("⚠️ Safari fallback authentication failed:", fallbackResult.reason);
-          // Continue with normal cookie validation as fallback
-        }
-      }
 
       // Call backend to validate current authentication status via cookies
       const response = await axios.get(`${API_BASE_URL}/auth/status`, {
@@ -1052,12 +846,6 @@ export const AuthProvider = ({ children }) => {
     };
   }, [authState.isAuthenticated, refreshTokenPeriodically]);
 
-  // === TEST SAFARI COOKIE SUPPORT ===
-  useEffect(() => {
-    // Test Safari cookie support on component mount
-    testSafariCookieSupport();
-  }, []);
-
   // === Listen to storage changes (cross-tab sync) ===
   useEffect(() => {
     const handleStorageChange = (e) => {
@@ -1129,17 +917,6 @@ export const AuthProvider = ({ children }) => {
       setStorageItem(AUTH_STORAGE_KEYS.REGISTER_FLAG, Boolean(authData.flag).toString());
       setStorageItem(AUTH_STORAGE_KEYS.CLIENT_DETAIL_SET, Boolean(authData.detailSet).toString());
       setStorageItem(AUTH_STORAGE_KEYS.LAST_AUTH_CHECK, Date.now().toString());
-
-      // Store fallback tokens for Safari if needed
-      if (safariAuthStrategy.fallbackActive || safariAuthStrategy.method === 'hybrid') {
-        console.log("🍎 Storing fallback tokens for Safari compatibility");
-        if (authData.accessToken) {
-          setStorageItem('fallback_access_token', authData.accessToken);
-        }
-        if (authData.refreshToken) {
-          setStorageItem('fallback_refresh_token', authData.refreshToken);
-        }
-      }
 
       // Handle hotelIds array from authData
       if (authData.hotelIds && Array.isArray(authData.hotelIds)) {
