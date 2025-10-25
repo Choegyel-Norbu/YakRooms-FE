@@ -2691,6 +2691,15 @@ const SuperAdmin = () => {
                             Booking Amount: {booking.bookingAmount}
                           </div>
                         )}
+                        {booking.bookingAmount && (
+                          <div className="text-xs font-medium text-blue-600">
+                            Transferable Amount: {(() => {
+                              const totalPrice = parseFloat(booking.bookingAmount) || 0;
+                              const transferableAmount = totalPrice * 0.97; // Subtract 3%
+                              return `Nu. ${Math.ceil(transferableAmount)}`;
+                            })()}
+                          </div>
+                        )}
                         {booking.orderNumber && (
                           <div className="text-xs text-muted-foreground">
                             Order: {booking.orderNumber}

@@ -869,7 +869,10 @@ const HotelAdminDashboard = () => {
                 <div className="flex justify-end">
                   {subscriptionIsActive && subscriptionNextBillingDate ? (
                     <p className="text-xs text-muted-foreground">
-                      Subscription valid till: {new Date(subscriptionNextBillingDate).toLocaleDateString()}
+                      {subscriptionPlan === 'TRIAL' 
+                        ? `Trial expires: ${new Date(subscriptionNextBillingDate).toLocaleDateString()}`
+                        : `Subscription expires: ${new Date(subscriptionNextBillingDate).toLocaleDateString()}`
+                      }
                     </p>
                   ) : !subscriptionIsActive ? (
                     <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">

@@ -91,10 +91,24 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     return formatTimeTo12Hour(bookingDetails.checkInTime);
   }, [bookingDetails.checkInTime]);
 
-  // Calculate total price for hourly booking - now uses full room price
+  // Calculate total price for hourly booking - now includes 3% service tax
   const calculateTotalPrice = useCallback(() => {
     if (!room?.price) return 0;
-    // Use full room price instead of calculating hourly rate
+    const basePrice = room.price * bookingDetails.numberOfRooms;
+    const serviceTax = basePrice * 0.03; // 3% service tax
+    return basePrice + serviceTax;
+  }, [room?.price, bookingDetails.numberOfRooms]);
+
+  // Calculate service tax amount
+  const calculateServiceTax = useCallback(() => {
+    if (!room?.price) return 0;
+    const basePrice = room.price * bookingDetails.numberOfRooms;
+    return basePrice * 0.03; // 3% service tax
+  }, [room?.price, bookingDetails.numberOfRooms]);
+
+  // Calculate base price (before service tax)
+  const calculateBasePrice = useCallback(() => {
+    if (!room?.price) return 0;
     return room.price * bookingDetails.numberOfRooms;
   }, [room?.price, bookingDetails.numberOfRooms]);
 
@@ -459,6 +473,8 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     calculateCheckOutTime,
     getFormattedCheckInTime,
     calculateTotalPrice,
+    calculateServiceTax,
+    calculateBasePrice,
     validateForm,
     hasTimeConflict,
     getExistingBookingsForDate,

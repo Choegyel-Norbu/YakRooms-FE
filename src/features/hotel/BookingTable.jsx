@@ -25,6 +25,16 @@ import {
 import api from "../../shared/services/Api"; // Your API service for making requests
 import { useBookingContext } from "../../features/booking/BookingContext";
 
+// Custom hook to safely access booking context
+const useSafeBookingContext = () => {
+  try {
+    return useBookingContext();
+  } catch (error) {
+    console.warn('BookingContext not available:', error.message);
+    return { socket: null };
+  }
+};
+
 // shadcn/ui components
 import {
   Table,
@@ -121,7 +131,7 @@ const DeleteConfirmationDialog = ({
 };
 
 const BookingTable = ({ hotelId }) => {
-  const { socket } = useBookingContext();
+  const { socket } = useSafeBookingContext();
   const [bookings, setBookings] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);

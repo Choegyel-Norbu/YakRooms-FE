@@ -1720,6 +1720,15 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
     });
   };
 
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
   const calculateNights = (checkIn, checkOut) => {
     const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);

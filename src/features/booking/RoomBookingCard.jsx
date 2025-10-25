@@ -329,6 +329,19 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
 
   const calculateTotalPrice = () => {
     const days = calculateDays();
+    const basePrice = days * room.price * bookingDetails.numberOfRooms;
+    const serviceTax = basePrice * 0.03; // 3% service tax
+    return basePrice + serviceTax;
+  };
+
+  const calculateServiceTax = () => {
+    const days = calculateDays();
+    const basePrice = days * room.price * bookingDetails.numberOfRooms;
+    return basePrice * 0.03; // 3% service tax
+  };
+
+  const calculateBasePrice = () => {
+    const days = calculateDays();
     return days * room.price * bookingDetails.numberOfRooms;
   };
 
@@ -922,6 +935,10 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       const { checkInDate, checkOutDate } = getImmediateBookingDates();
       const daysDiff = 1; // Always 1 night for immediate booking
       
+      const basePrice = daysDiff * room.price;
+      const serviceTax = basePrice * 0.03; // 3% service tax
+      const totalPrice = basePrice + serviceTax;
+      
       const immediatePayload = {
         roomId: room.id,
         hotelId: hotelId,
@@ -930,7 +947,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         checkOutDate: checkOutDate,
         guests: immediateBookingDetails.guests,
         numberOfRooms: 1,
-        totalPrice: daysDiff * room.price,
+        totalPrice: totalPrice,
         days: daysDiff,
         // Use user input values
         phone: immediateBookingDetails.phone,
@@ -1615,7 +1632,15 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                       {bookingDetails.numberOfRooms} room(s)
                     </span>
                     <span className="font-medium">
-                      Nu {totalPrice.toFixed(2)}
+                      Nu {calculateBasePrice().toFixed(2)}
+                    </span>
+                  </div>
+                )}
+                {days > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Service Tax (3%)</span>
+                    <span className="font-medium">
+                      Nu {calculateServiceTax().toFixed(2)}
                     </span>
                   </div>
                 )}
@@ -1970,10 +1995,14 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                     <span className="text-muted-foreground">Price per night</span>
                     <span className="font-medium">Nu {room.price.toFixed(2)}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Service Tax (3%)</span>
+                    <span className="font-medium">- Nu {(room.price * 0.03).toFixed(2)}</span>
+                  </div>
                   <Separator className="my-2" />
                   <div className="flex justify-between font-bold text-base">
                     <span>Total Price</span>
-                    <span>Nu {room.price.toFixed(2)}</span>
+                    <span>Nu {(room.price * 1.03).toFixed(2)}</span>
                   </div>
                 </div>
               </div>

@@ -59,6 +59,8 @@ export default function TimeBasedBookingDialog({
     calculateCheckOutTime,
     getFormattedCheckInTime,
     calculateTotalPrice,
+    calculateServiceTax,
+    calculateBasePrice,
     validateForm,
     getExistingBookingsForDate,
     getBlockedTimeSlots,
@@ -622,19 +624,15 @@ export default function TimeBasedBookingDialog({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Room Price</span>
                   <span className="font-medium">
-                    Nu {room.price.toFixed(2)}
+                    Nu {calculateBasePrice().toFixed(2)}
                   </span>
                 </div>
-                {bookingDetails.numberOfRooms > 1 && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      {bookingDetails.numberOfRooms} room(s)
-                    </span>
-                    <span className="font-medium">
-                      Nu {(room.price * bookingDetails.numberOfRooms).toFixed(2)}
-                    </span>
-                  </div>
-                )}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Service Tax (3%)</span>
+                  <span className="font-medium">
+                    Nu {calculateServiceTax().toFixed(2)}
+                  </span>
+                </div>
                 <Separator className="my-2" />
                 <div className="flex justify-between font-bold text-base">
                   <span>Total Price</span>
