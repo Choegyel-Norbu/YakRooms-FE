@@ -410,8 +410,6 @@ const AddListingPage = () => {
     }));
   };
 
-
-
   const stepInfo = [
     { title: "Choose Type", description: "Select your business type", icon: Hotel },
     { title: "Business Details", description: "Tell us about your business", icon: FileText },
@@ -767,461 +765,527 @@ const AddListingPage = () => {
             )}
 
             {step === 2 && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-semibold text-foreground mb-2 font-sans">
+              <div className="space-y-8">
+                {/* Section Header */}
+                <div className="text-center">
+                  <h2 className="text-2xl font-semibold text-foreground mb-2 font-sans">
                     Business Information
                   </h2>
                   <p className="text-muted-foreground text-sm font-sans">
-                    Provide details about your {listingType}
+                    Provide comprehensive details about your {listingType}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">
-                      Business Name <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className={errors.name ? "border-destructive" : ""}
-                    />
-                    {errors.name && (
-                      <p className="text-destructive text-sm">{errors.name}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">
-                      Phone Number <span className="text-destructive">*</span>
-                    </Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                {/* 1. Basic Business Information */}
+                <Card>
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      Basic Information
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Core details about your business
+                    </p>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">
+                        Business Name <span className="text-destructive">*</span>
+                      </Label>
                       <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        value={formData.phone}
+                        id="name"
+                        name="name"
+                        value={formData.name}
                         onChange={handleChange}
-                        className={`pl-10 ${errors.phone ? "border-destructive" : ""}`}
+                        className={`w-full ${errors.name ? "border-destructive" : ""}`}
+                        placeholder="Enter your business name"
                       />
-                    </div>
-                    {errors.phone && (
-                      <p className="text-destructive text-sm">{errors.phone}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">
-                    Description <span className="text-destructive">*</span>
-                  </Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    rows={4}
-                    className={errors.description ? "border-destructive" : ""}
-                  />
-                  {errors.description && (
-                    <p className="text-destructive text-sm">{errors.description}</p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="district">
-                      District <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={formData.district}
-                      onValueChange={(value) => {
-                        setFormData(prev => ({ 
-                          ...prev, 
-                          district: value,
-                          locality: "" // Clear locality when district changes
-                        }));
-                        if (errors.district) {
-                          setErrors(prev => {
-                            const newErrors = { ...prev };
-                            delete newErrors.district;
-                            return newErrors;
-                          });
-                        }
-                        if (errors.locality) {
-                          setErrors(prev => {
-                            const newErrors = { ...prev };
-                            delete newErrors.locality;
-                            return newErrors;
-                          });
-                        }
-                      }}
-                    >
-                      <SelectTrigger className={errors.district ? "border-destructive" : ""}>
-                        <SelectValue placeholder="Select District" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {districts.map((district) => (
-                          <SelectItem key={district} value={district}>
-                            {district}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.district && (
-                      <p className="text-destructive text-sm">{errors.district}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="locality">
-                      Town/Locality <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={formData.locality}
-                      onValueChange={(value) => {
-                        setFormData(prev => ({ ...prev, locality: value }));
-                        if (errors.locality) {
-                          setErrors(prev => {
-                            const newErrors = { ...prev };
-                            delete newErrors.locality;
-                            return newErrors;
-                          });
-                        }
-                      }}
-                      disabled={!formData.district}
-                    >
-                      <SelectTrigger className={errors.locality ? "border-destructive" : ""}>
-                        <SelectValue placeholder={formData.district ? "Select Town/Locality" : "Please select your locality"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {formData.district && getLocalitiesForDistrict(formData.district).map((locality) => (
-                          <SelectItem key={locality} value={locality}>
-                            {locality}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.locality && (
-                      <p className="text-destructive text-sm">{errors.locality}</p>
-                    )}
-                    
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="address">Address (Optional)</Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="address"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleChange}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-
-                {/* Location Coordinates Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    
-                    {/* Use Current Location Button */}
-                    <Button
-                      type="button"
-                      onClick={getCurrentLocation}
-                      disabled={locationState.isGettingLocation}
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      {locationState.isGettingLocation ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Getting location...
-                        </>
-                      ) : (
-                        <>
-                          <Navigation className="text-sm h-4 w-4" />
-                          Use Current Location
-                        </>
-                      )}
-                    </Button>
-                  </div>
-
-                  {/* Location Status Messages */}
-                  {locationState.locationError && (
-                    <Alert className="border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        <div className="space-y-2">
-                          <p>{locationState.locationError}</p>
-                          <div className="text-xs text-destructive/80">
-                            <p><strong>Troubleshooting tips:</strong></p>
-                            <ul className="list-disc list-inside space-y-1 mt-1">
-                              <li>Make sure location/GPS is enabled on your device</li>
-                              <li>Check that your browser has location permissions</li>
-                              <li>Try refreshing the page and allowing location access</li>
-                              <li>If indoors, try moving closer to a window</li>
-                              <li>On mobile, ensure location services are enabled</li>
-                            </ul>
-                          </div>
-                        </div>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  {locationState.locationSuccess && (
-                    <Alert className="border-green-500/50 text-green-700 dark:border-green-500 [&>svg]:text-green-600">
-                      <CheckCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        Location captured successfully!
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  {/* Coordinate Input Fields */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="latitude">
-                        Latitude
-                        <span className="text-muted-foreground text-xs ml-1">(Auto-filled)</span>
-                      </Label>
-                      <Input
-                        id="latitude"
-                        name="latitude"
-                        type="number"
-                        step="any"
-                        value={formData.latitude}
-                        onChange={handleCoordinateChange}
-                        placeholder="e.g., 27.4728"
-                        className={formData.latitude ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : ""}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="longitude">
-                        Longitude
-                        <span className="text-muted-foreground text-xs ml-1">(Auto-filled)</span>
-                      </Label>
-                      <Input
-                        id="longitude"
-                        name="longitude"
-                        type="number"
-                        step="any"
-                        value={formData.longitude}
-                        onChange={handleCoordinateChange}
-                        placeholder="e.g., 89.6386"
-                        className={formData.longitude ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : ""}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Coordinates Display */}
-                  {areCoordinatesValid() && (
-                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
-                      <div className="flex items-start gap-2">
-                        <MapPin className="h-4 w-4 text-primary mt-0.5" />
-                        <div className="text-sm">
-                          <p className="text-primary font-medium">Location Coordinates:</p>
-                          <p className="text-muted-foreground">
-                            {formData.latitude}, {formData.longitude}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {listingType === "hotel" && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="hotelType">
-                        Hotel Type <span className="text-destructive">*</span>
-                      </Label>
-                      <Select
-                        value={formData.hotelType}
-                        onValueChange={(value) => {
-                          setFormData(prev => ({ ...prev, hotelType: value }));
-                          if (errors.hotelType) {
-                            setErrors(prev => {
-                              const newErrors = { ...prev };
-                              delete newErrors.hotelType;
-                              return newErrors;
-                            });
-                          }
-                        }}
-                      >
-                        <SelectTrigger className={errors.hotelType ? "border-destructive" : ""}>
-                          <SelectValue placeholder="Select Hotel Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ONE_STAR">One Star</SelectItem>
-                          <SelectItem value="TWO_STAR">Two Star</SelectItem>
-                          <SelectItem value="THREE_STAR">Three Star</SelectItem>
-                          <SelectItem value="FOUR_STAR">Four Star</SelectItem>
-                          <SelectItem value="FIVE_STAR">Five Star</SelectItem>
-                          <SelectItem value="BUDGET">Budget</SelectItem>
-                          <SelectItem value="BOUTIQUE">Boutique</SelectItem>
-                          <SelectItem value="RESORT">Resort</SelectItem>
-                          <SelectItem value="HOMESTAY">Homestay</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {errors.hotelType && (
-                        <p className="text-destructive text-sm">{errors.hotelType}</p>
+                      {errors.name && (
+                        <p className="text-destructive text-sm">{errors.name}</p>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="checkinTime">
-                          Check-in Time <span className="text-destructive">*</span>
-                        </Label>
-                        <TimePicker
-                          id="checkinTime"
-                          name="checkinTime"
-                          value={formData.checkinTime}
-                          onChange={handleChange}
-                          placeholder="Select check-in time"
-                          format24h={false}
-                          error={!!errors.checkinTime}
-                        />
-                        {errors.checkinTime && (
-                          <p className="text-destructive text-sm">{errors.checkinTime}</p>
-                        )}
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">
+                        Business Description <span className="text-destructive">*</span>
+                      </Label>
+                      <Textarea
+                        id="description"
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        rows={4}
+                        className={`w-full ${errors.description ? "border-destructive" : ""}`}
+                        placeholder="Describe your business, services, and what makes it unique..."
+                      />
+                      {errors.description && (
+                        <p className="text-destructive text-sm">{errors.description}</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="checkoutTime">
-                          Check-out Time <span className="text-destructive">*</span>
-                        </Label>
-                        <TimePicker
-                          id="checkoutTime"
-                          name="checkoutTime"
-                          value={formData.checkoutTime}
+                {/* 2. Location & Contact Information */}
+                <Card>
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      Location & Contact
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Where your business is located and how customers can reach you
+                    </p>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">
+                        Contact Phone Number <span className="text-destructive">*</span>
+                      </Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="phone"
+                          name="phone"
+                          type="tel"
+                          value={formData.phone}
                           onChange={handleChange}
-                          placeholder="Select check-out time"
-                          format24h={false}
-                          error={!!errors.checkoutTime}
+                          className={`w-full pl-10 ${errors.phone ? "border-destructive" : ""}`}
+                          placeholder="Enter your contact number"
                         />
-                        {errors.checkoutTime && (
-                          <p className="text-destructive text-sm">{errors.checkoutTime}</p>
-                        )}
                       </div>
+                      {errors.phone && (
+                        <p className="text-destructive text-sm">{errors.phone}</p>
+                      )}
                     </div>
 
-                    {/* Hourly Booking Option */}
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-3">
-                        <Checkbox
-                          id="hasTimeBased"
-                          checked={formData.hasTimeBased}
-                          onCheckedChange={(checked) => {
-                            setFormData(prev => ({ ...prev, hasTimeBased: checked }));
-                            if (errors.hasTimeBased) {
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="district">
+                          District <span className="text-destructive">*</span>
+                        </Label>
+                        <Select
+                          value={formData.district}
+                          onValueChange={(value) => {
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              district: value,
+                              locality: "" // Clear locality when district changes
+                            }));
+                            if (errors.district) {
                               setErrors(prev => {
                                 const newErrors = { ...prev };
-                                delete newErrors.hasTimeBased;
+                                delete newErrors.district;
+                                return newErrors;
+                              });
+                            }
+                            if (errors.locality) {
+                              setErrors(prev => {
+                                const newErrors = { ...prev };
+                                delete newErrors.locality;
                                 return newErrors;
                               });
                             }
                           }}
-                        />
-                        <div className="space-y-1">
-                          <Label htmlFor="hasTimeBased" className="text-sm font-medium cursor-pointer">
-                            Enable Hourly Booking
-                          </Label>
-                          <p className="text-xs text-muted-foreground">
-                            Allow guests to book rooms for specific hours instead of full days
-                          </p>
-                        </div>
+                        >
+                          <SelectTrigger className={`w-full ${errors.district ? "border-destructive" : ""}`}>
+                            <SelectValue placeholder="Select District" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {districts.map((district) => (
+                              <SelectItem key={district} value={district}>
+                                {district}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {errors.district && (
+                          <p className="text-destructive text-sm">{errors.district}</p>
+                        )}
                       </div>
-                      
-                      {formData.hasTimeBased && (
-                        <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                          <div className="flex items-start gap-3">
-                            <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                              </svg>
-                            </div>
-                            <div className="flex-1">
-                              <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                                Hourly Booking Features
-                              </h5>
-                              <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                                <li>• Guests can book rooms for specific hours (1-24 hours)</li>
-                                <li>• Pricing calculated per hour instead of per day</li>
-                                <li>• Flexible check-in and check-out times</li>
-                                <li>• Ideal for short stays, meetings, or day use</li>
-                                <li>• Can be used alongside regular daily bookings</li>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="locality">
+                          Town/Locality <span className="text-destructive">*</span>
+                        </Label>
+                        <Select
+                          value={formData.locality}
+                          onValueChange={(value) => {
+                            setFormData(prev => ({ ...prev, locality: value }));
+                            if (errors.locality) {
+                              setErrors(prev => {
+                                const newErrors = { ...prev };
+                                delete newErrors.locality;
+                                return newErrors;
+                              });
+                            }
+                          }}
+                          disabled={!formData.district}
+                        >
+                          <SelectTrigger className={`w-full ${errors.locality ? "border-destructive" : ""}`}>
+                            <SelectValue placeholder={formData.district ? "Select Town/Locality" : "Please select your locality"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {formData.district && getLocalitiesForDistrict(formData.district).map((locality) => (
+                              <SelectItem key={locality} value={locality}>
+                                {locality}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {errors.locality && (
+                          <p className="text-destructive text-sm">{errors.locality}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="address">Detailed Address (Optional)</Label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="address"
+                          name="address"
+                          value={formData.address}
+                          onChange={handleChange}
+                          className="w-full pl-10"
+                          placeholder="Enter street address, building name, or landmarks"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* GPS Coordinates Section */}
+                <Card>
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      GPS Location
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Precise location coordinates for better guest navigation
+                    </p>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium mb-1">Automatic Location Detection</p>
+                        <p className="text-xs text-muted-foreground">
+                          Use your device's GPS to automatically fill coordinates
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={getCurrentLocation}
+                        disabled={locationState.isGettingLocation}
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        {locationState.isGettingLocation ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Getting location...
+                          </>
+                        ) : (
+                          <>
+                            <Navigation className="text-sm h-4 w-4" />
+                            Use Current Location
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    {/* Location Status Messages */}
+                    {locationState.locationError && (
+                      <Alert className="border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          <div className="space-y-2">
+                            <p>{locationState.locationError}</p>
+                            <div className="text-xs text-destructive/80">
+                              <p><strong>Troubleshooting tips:</strong></p>
+                              <ul className="list-disc list-inside space-y-1 mt-1">
+                                <li>Make sure location/GPS is enabled on your device</li>
+                                <li>Check that your browser has location permissions</li>
+                                <li>Try refreshing the page and allowing location access</li>
+                                <li>If indoors, try moving closer to a window</li>
+                                <li>On mobile, ensure location services are enabled</li>
                               </ul>
                             </div>
                           </div>
-                        </div>
-                      )}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    {locationState.locationSuccess && (
+                      <Alert className="border-green-500/50 text-green-700 dark:border-green-500 [&>svg]:text-green-600">
+                        <CheckCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          Location captured successfully!
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    {/* Coordinate Input Fields */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="latitude">
+                          Latitude
+                          <span className="text-muted-foreground text-xs ml-1">(Auto-filled)</span>
+                        </Label>
+                        <Input
+                          id="latitude"
+                          name="latitude"
+                          type="number"
+                          step="any"
+                          value={formData.latitude}
+                          onChange={handleCoordinateChange}
+                          placeholder="e.g., 27.4728"
+                          className={`w-full ${formData.latitude ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : ""}`}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="longitude">
+                          Longitude
+                          <span className="text-muted-foreground text-xs ml-1">(Auto-filled)</span>
+                        </Label>
+                        <Input
+                          id="longitude"
+                          name="longitude"
+                          type="number"
+                          step="any"
+                          value={formData.longitude}
+                          onChange={handleCoordinateChange}
+                          placeholder="e.g., 89.6386"
+                          className={`w-full ${formData.longitude ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : ""}`}
+                        />
+                      </div>
                     </div>
 
-                    <div className="space-y-4 sm:space-y-6">
-                      <Label htmlFor="cancellationPolicy" className="text-sm sm:text-base">
-                        Cancellation Policy <span className="text-destructive">*</span>
-                      </Label>
-                      
-                      {/* Policy Selection Type */}
-                      <div className="space-y-4 sm:space-y-3">
-                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="radio"
-                              id="predefined-policy"
-                              name="policyType"
-                              value="predefined"
-                              checked={policySelectionType === "predefined"}
-                              onChange={(e) => {
-                                setPolicySelectionType(e.target.value);
-                                if (errors.cancellationPolicy) {
-                                  setErrors(prev => {
-                                    const newErrors = { ...prev };
-                                    delete newErrors.cancellationPolicy;
-                                    return newErrors;
-                                  });
-                                }
-                              }}
-                              className="h-4 w-4 text-primary flex-shrink-0"
-                            />
-                            <Label htmlFor="predefined-policy" className="text-sm font-normal cursor-pointer">
-                              Choose from common policies
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="radio"
-                              id="custom-policy"
-                              name="policyType"
-                              value="custom"
-                              checked={policySelectionType === "custom"}
-                              onChange={(e) => {
-                                setPolicySelectionType(e.target.value);
-                                if (errors.cancellationPolicy) {
-                                  setErrors(prev => {
-                                    const newErrors = { ...prev };
-                                    delete newErrors.cancellationPolicy;
-                                    return newErrors;
-                                  });
-                                }
-                              }}
-                              className="h-4 w-4 text-primary flex-shrink-0"
-                            />
-                            <Label htmlFor="custom-policy" className="text-sm font-normal cursor-pointer">
-                              Write custom policy
-                            </Label>
+                    {/* Coordinates Display */}
+                    {areCoordinatesValid() && (
+                      <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
+                        <div className="flex items-start gap-2">
+                          <MapPin className="h-4 w-4 text-primary mt-0.5" />
+                          <div className="text-sm">
+                            <p className="text-primary font-medium">Location Coordinates:</p>
+                            <p className="text-muted-foreground">
+                              {formData.latitude}, {formData.longitude}
+                            </p>
                           </div>
                         </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {listingType === "hotel" && (
+                  <>
+                    {/* 3. Hotel-Specific Details */}
+                    <Card>
+                      <CardHeader className="pb-4">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          Hotel Details
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Specific information for hotel operations
+                        </p>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="hotelType">
+                            Hotel Type <span className="text-destructive">*</span>
+                          </Label>
+                          <Select
+                            value={formData.hotelType}
+                            onValueChange={(value) => {
+                              setFormData(prev => ({ ...prev, hotelType: value }));
+                              if (errors.hotelType) {
+                                setErrors(prev => {
+                                  const newErrors = { ...prev };
+                                  delete newErrors.hotelType;
+                                  return newErrors;
+                                });
+                              }
+                            }}
+                          >
+                            <SelectTrigger className={`w-full ${errors.hotelType ? "border-destructive" : ""}`}>
+                              <SelectValue placeholder="Select Hotel Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="ONE_STAR">One Star</SelectItem>
+                              <SelectItem value="TWO_STAR">Two Star</SelectItem>
+                              <SelectItem value="THREE_STAR">Three Star</SelectItem>
+                              <SelectItem value="FOUR_STAR">Four Star</SelectItem>
+                              <SelectItem value="FIVE_STAR">Five Star</SelectItem>
+                              <SelectItem value="BUDGET">Budget</SelectItem>
+                              <SelectItem value="BOUTIQUE">Boutique</SelectItem>
+                              <SelectItem value="RESORT">Resort</SelectItem>
+                              <SelectItem value="HOMESTAY">Homestay</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {errors.hotelType && (
+                            <p className="text-destructive text-sm">{errors.hotelType}</p>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                          <div className="space-y-2">
+                            <Label htmlFor="checkinTime">
+                              Check-in Time <span className="text-destructive">*</span>
+                            </Label>
+                            <TimePicker
+                              id="checkinTime"
+                              name="checkinTime"
+                              value={formData.checkinTime}
+                              onChange={handleChange}
+                              placeholder="Select check-in time"
+                              format24h={false}
+                              error={!!errors.checkinTime}
+                            />
+                            {errors.checkinTime && (
+                              <p className="text-destructive text-sm">{errors.checkinTime}</p>
+                            )}
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="checkoutTime">
+                              Check-out Time <span className="text-destructive">*</span>
+                            </Label>
+                            <TimePicker
+                              id="checkoutTime"
+                              name="checkoutTime"
+                              value={formData.checkoutTime}
+                              onChange={handleChange}
+                              placeholder="Select check-out time"
+                              format24h={false}
+                              error={!!errors.checkoutTime}
+                            />
+                            {errors.checkoutTime && (
+                              <p className="text-destructive text-sm">{errors.checkoutTime}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Hourly Booking Option */}
+                        <div className="space-y-4">
+                          <div className="flex items-center space-x-3">
+                            <Checkbox
+                              id="hasTimeBased"
+                              checked={formData.hasTimeBased}
+                              onCheckedChange={(checked) => {
+                                setFormData(prev => ({ ...prev, hasTimeBased: checked }));
+                                if (errors.hasTimeBased) {
+                                  setErrors(prev => {
+                                    const newErrors = { ...prev };
+                                    delete newErrors.hasTimeBased;
+                                    return newErrors;
+                                  });
+                                }
+                              }}
+                            />
+                            <div className="space-y-1">
+                              <Label htmlFor="hasTimeBased" className="text-sm font-medium cursor-pointer">
+                                Enable Hourly Booking
+                              </Label>
+                              <p className="text-xs text-muted-foreground">
+                                Allow guests to book rooms for specific hours instead of full days
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {formData.hasTimeBased && (
+                            <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                              <div className="flex items-start gap-3">
+                                <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                                <div className="flex-1">
+                                  <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                                    Hourly Booking Features
+                                  </h5>
+                                  <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                                    <li>• Guests can book rooms for specific hours (1-24 hours)</li>
+                                    <li>• Pricing calculated per hour instead of per day</li>
+                                    <li>• Flexible check-in and check-out times</li>
+                                    <li>• Ideal for short stays, meetings, or day use</li>
+                                    <li>• Can be used alongside regular daily bookings</li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* 4. Policies & Operations */}
+                    <Card>
+                      <CardHeader className="pb-4">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          Policies & Operations
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Business rules and operational policies
+                        </p>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <div className="space-y-4">
+                          <Label htmlFor="cancellationPolicy" className="text-base font-medium">
+                            Cancellation Policy <span className="text-destructive">*</span>
+                          </Label>
+                          
+                          {/* Policy Selection Type */}
+                          <div className="space-y-4">
+                            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="radio"
+                                  id="predefined-policy"
+                                  name="policyType"
+                                  value="predefined"
+                                  checked={policySelectionType === "predefined"}
+                                  onChange={(e) => {
+                                    setPolicySelectionType(e.target.value);
+                                    if (errors.cancellationPolicy) {
+                                      setErrors(prev => {
+                                        const newErrors = { ...prev };
+                                        delete newErrors.cancellationPolicy;
+                                        return newErrors;
+                                      });
+                                    }
+                                  }}
+                                  className="h-4 w-4 text-primary flex-shrink-0"
+                                />
+                                <Label htmlFor="predefined-policy" className="text-sm font-normal cursor-pointer">
+                                  Choose from common policies
+                                </Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="radio"
+                                  id="custom-policy"
+                                  name="policyType"
+                                  value="custom"
+                                  checked={policySelectionType === "custom"}
+                                  onChange={(e) => {
+                                    setPolicySelectionType(e.target.value);
+                                    if (errors.cancellationPolicy) {
+                                      setErrors(prev => {
+                                        const newErrors = { ...prev };
+                                        delete newErrors.cancellationPolicy;
+                                        return newErrors;
+                                      });
+                                    }
+                                  }}
+                                  className="h-4 w-4 text-primary flex-shrink-0"
+                                />
+                                <Label htmlFor="custom-policy" className="text-sm font-normal cursor-pointer">
+                                  Write custom policy
+                                </Label>
+                              </div>
+                            </div>
 
                         {/* Predefined Policy Selection */}
                         {policySelectionType === "predefined" && (
@@ -1352,191 +1416,219 @@ const AddListingPage = () => {
                             </div>
                           </div>
                         )}
-                      </div>
+                        </div>
 
-                      {errors.cancellationPolicy && (
-                        <p className="text-destructive text-sm">{errors.cancellationPolicy}</p>
-                      )}
-                    </div>
+                        {errors.cancellationPolicy && (
+                          <p className="text-destructive text-sm">{errors.cancellationPolicy}</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                   </>
                 )}
 
+                {/* 5. Amenities & Features */}
                 {currentAmenities.length > 0 && (
-                  <div className="space-y-4">
-                    <Label>Amenities</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {currentAmenities.map((amenity) => (
-                        <div key={amenity} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`amenity-${amenity}`}
-                            checked={formData.amenities.includes(amenity)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setFormData(prev => ({
-                                  ...prev,
-                                  amenities: [...prev.amenities, amenity]
-                                }));
-                              } else {
-                                setFormData(prev => ({
-                                  ...prev,
-                                  amenities: prev.amenities.filter(item => item !== amenity)
-                                }));
-                              }
-                            }}
-                          />
-                          <Label
-                            htmlFor={`amenity-${amenity}`}
-                            className="text-sm font-normal"
-                          >
-                            {amenity}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Bank Account Information Section */}
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-base font-semibold text-foreground mb-2">
-                      Bank Account Information
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Provide your bank account details for payment processing (Optional)
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="bankType">Bank Type</Label>
-                      <Select
-                        value={formData.bankType}
-                        onValueChange={(value) => {
-                          setFormData(prev => ({ ...prev, bankType: value }));
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Bank" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getBankOptions().map((bank) => (
-                            <SelectItem key={bank.value} value={bank.value}>
-                              <div className="flex flex-col">
-                                <span className="font-medium">{bank.label}</span>
-                                <span className="text-xs text-muted-foreground">{bank.description}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="accountHolderName">Account Holder Name</Label>
-                      <Input
-                        id="accountHolderName"
-                        name="accountHolderName"
-                        value={formData.accountHolderName}
-                        onChange={handleChange}
-                        placeholder="Enter account holder name"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="accountNumber">Account Number</Label>
-                      <Input
-                        id="accountNumber"
-                        name="accountNumber"
-                        value={formData.accountNumber}
-                        onChange={handleChange}
-                        placeholder="Enter account number"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <div className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                        </svg>
+                  <Card>
+                    <CardHeader className="pb-4">
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        Amenities & Features
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Select the amenities and features your business offers
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {currentAmenities.map((amenity) => (
+                          <div key={amenity} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`amenity-${amenity}`}
+                              checked={formData.amenities.includes(amenity)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    amenities: [...prev.amenities, amenity]
+                                  }));
+                                } else {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    amenities: prev.amenities.filter(item => item !== amenity)
+                                  }));
+                                }
+                              }}
+                            />
+                            <Label
+                              htmlFor={`amenity-${amenity}`}
+                              className="text-sm font-normal cursor-pointer"
+                            >
+                              {amenity}
+                            </Label>
+                          </div>
+                        ))}
                       </div>
-                      <div className="flex-1">
-                        <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                          Bank Account Information
-                        </h5>
-                        <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                          <li>• Your bank account information is encrypted and securely stored</li>
-                          <li>• This information is only used for payment processing</li>
-                          <li>• You can add or update this information later in your hotel dashboard</li>
-                          <li>• Ensure the account holder name matches your business registration</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <Label>
-                    Photos <span className="text-destructive">*</span>
-                  </Label>
-                  
-                  {formData.photos.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
-                      {formData.photos.map((photo, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={photo.url}
-                            alt={`Preview ${index}`}
-                            className="w-full h-24 object-cover rounded-lg border"
-                          />
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                            onClick={() => removePhoto(index)}
-                          >
-                            ×
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
-                    <CardContent className="p-6">
-                      <Label 
-                        htmlFor="photos" 
-                        className="flex flex-col items-center justify-center cursor-pointer"
-                      >
-                        <Camera className="h-8 w-8 text-muted-foreground mb-2" />
-                        <span className="text-sm text-muted-foreground text-center">
-                          Upload photo
-                        </span>
-                        <Input
-                          id="photos"
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          onChange={handlePhotoUpload}
-                          className="hidden"
-                          disabled={formData.photos.length >= 5}
-                        />
-                      </Label>
                     </CardContent>
                   </Card>
-                  
-                  {errors.photos && (
-                    <p className="text-destructive text-sm">{errors.photos}</p>
-                  )}
-                  {formData.photos.length >= 5 && (
-                    <p className="text-muted-foreground text-xs">
-                      Maximum 5 photos reached
+                )}
+
+                {/* 6. Financial Information */}
+                <Card>
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      Financial Information
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Bank account details for payment processing (Optional)
                     </p>
-                  )}
-                </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="bankType">Bank Type</Label>
+                        <Select
+                          value={formData.bankType}
+                          onValueChange={(value) => {
+                            setFormData(prev => ({ ...prev, bankType: value }));
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select Bank" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {getBankOptions().map((bank) => (
+                              <SelectItem key={bank.value} value={bank.value}>
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{bank.label}</span>
+                                  <span className="text-xs text-muted-foreground">{bank.description}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="accountHolderName">Account Holder Name</Label>
+                        <Input
+                          id="accountHolderName"
+                          name="accountHolderName"
+                          value={formData.accountHolderName}
+                          onChange={handleChange}
+                          placeholder="Enter account holder name"
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="accountNumber">Account Number</Label>
+                        <Input
+                          id="accountNumber"
+                          name="accountNumber"
+                          value={formData.accountNumber}
+                          onChange={handleChange}
+                          placeholder="Enter account number"
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-start gap-3">
+                        <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                            Bank Account Information
+                          </h5>
+                          <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                            <li>• Your bank account information is encrypted and securely stored</li>
+                            <li>• This information is only used for payment processing</li>
+                            <li>• You can add or update this information later in your hotel dashboard</li>
+                            <li>• Ensure the account holder name matches your business registration</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* 7. Media & Documentation */}
+                <Card>
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      Photos & Media
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Upload photos to showcase your business
+                    </p>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                      <Label className="text-base font-medium">
+                        Business Photos <span className="text-destructive">*</span>
+                      </Label>
+                      
+                      {formData.photos.length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                          {formData.photos.map((photo, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={photo.url}
+                                alt={`Preview ${index}`}
+                                className="w-full h-24 object-cover rounded-lg border"
+                              />
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                                onClick={() => removePhoto(index)}
+                              >
+                                ×
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
+                        <CardContent className="p-6">
+                          <Label 
+                            htmlFor="photos" 
+                            className="flex flex-col items-center justify-center cursor-pointer"
+                          >
+                            <Camera className="h-8 w-8 text-muted-foreground mb-2" />
+                            <span className="text-sm text-muted-foreground text-center">
+                              Upload photo
+                            </span>
+                            <Input
+                              id="photos"
+                              type="file"
+                              multiple
+                              accept="image/*"
+                              onChange={handlePhotoUpload}
+                              className="hidden"
+                              disabled={formData.photos.length >= 5}
+                            />
+                          </Label>
+                        </CardContent>
+                      </Card>
+                      
+                      {errors.photos && (
+                        <p className="text-destructive text-sm">{errors.photos}</p>
+                      )}
+                      {formData.photos.length >= 5 && (
+                        <p className="text-muted-foreground text-xs">
+                          Maximum 5 photos reached
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             )}
 

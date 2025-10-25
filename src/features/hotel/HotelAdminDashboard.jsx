@@ -531,51 +531,53 @@ const HotelAdminDashboard = () => {
       <div className="flex-1 overflow-auto">
         {/* Top Header */}
         <header className="bg-card shadow-sm border-b sticky top-0 z-10">
-          <div className="px-4 py-3 lg:px-6 lg:py-4 flex justify-between items-center">
-            <div className="space-y-0.5 flex-1 min-w-0">
-              <h2 className="hidden md:block text-xl sm:text-xl lg:text-2xl font-semibold text-foreground truncate">
-                {getPageTitle()}
-              </h2>
-              {/* Hotel Name Display and Switcher */}
-              {hotel?.name && (
-                <div className="hidden md:flex items-center gap-2">
-                  <p className="text-sm font-medium text-primary truncate">
-                    {hotel.name}
+          <div className="px-4 py-3 lg:px-6 lg:py-4">
+            <div className="flex justify-between items-start">
+              <div className="space-y-0.5 flex-1 min-w-0">
+                <h2 className="hidden md:block text-xl sm:text-xl lg:text-2xl font-semibold text-foreground truncate">
+                  {getPageTitle()}
+                </h2>
+                {/* Hotel Name Display and Switcher */}
+                {hotel?.name && (
+                  <div className="hidden md:flex items-center gap-2">
+                    <p className="text-sm font-medium text-primary truncate">
+                      {hotel.name}
+                    </p>
+                    {/* Hotel Switcher - Only show if user has multiple hotels */}
+                    {userHotels && userHotels.length > 1 && (
+                      <Select
+                        value={currentHotelId || ""}
+                        onValueChange={handleHotelSwitch}
+                      >
+                        <SelectTrigger className="w-auto h-7 px-2 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10">
+                          <SelectValue placeholder="Switch Hotel" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {userHotels.map((hotelOption) => (
+                            <SelectItem key={hotelOption.id} value={hotelOption.id?.toString()}>
+                              <div className="flex items-center gap-2">
+                                <span className="truncate">{hotelOption.name}</span>
+                                {isTopHotel(hotelOption.id) && (
+                                  <TopHotelBadge hotelId={hotelOption.id} className="ml-1" />
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                )}
+                {activeTab !== "dashboard" && (
+                  <p className="hidden md:block text-sm sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
+                    {getPageDescription()}
                   </p>
-                  {/* Hotel Switcher - Only show if user has multiple hotels */}
-                  {userHotels && userHotels.length > 1 && (
-                    <Select
-                      value={currentHotelId || ""}
-                      onValueChange={handleHotelSwitch}
-                    >
-                      <SelectTrigger className="w-auto h-7 px-2 text-xs border-primary/20 bg-primary/5 hover:bg-primary/10">
-                        <SelectValue placeholder="Switch Hotel" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {userHotels.map((hotelOption) => (
-                          <SelectItem key={hotelOption.id} value={hotelOption.id?.toString()}>
-                            <div className="flex items-center gap-2">
-                              <span className="truncate">{hotelOption.name}</span>
-                              {isTopHotel(hotelOption.id) && (
-                                <TopHotelBadge hotelId={hotelOption.id} className="ml-1" />
-                              )}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-              )}
-              {activeTab !== "dashboard" && (
-                <p className="hidden md:block text-sm sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
-                  {getPageDescription()}
-                </p>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* Right side actions */}
-            <div className="flex items-center space-x-3 flex-shrink-0">
+              {/* Right side actions */}
+              <div className="flex flex-col items-end space-y-2 flex-shrink-0">
+                <div className="flex items-center space-x-3">
               {/* Notification Bell */}
               <div className="relative" ref={notificationRef}>
                 <Button
@@ -861,6 +863,21 @@ const HotelAdminDashboard = () => {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
+                </div>
+                
+                {/* Subscription Status Message - Below both notification and avatar */}
+                <div className="flex justify-end">
+                  {subscriptionIsActive && subscriptionNextBillingDate ? (
+                    <p className="text-xs text-muted-foreground">
+                      Subscription valid till: {new Date(subscriptionNextBillingDate).toLocaleDateString()}
+                    </p>
+                  ) : !subscriptionIsActive ? (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                      Please subscribe to continue
+                    </p>
+                  ) : null}
+                </div>
+              </div>
             </div>
           </div>
         </header>
@@ -1293,9 +1310,6 @@ const HotelAdminDashboard = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
                           <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                <User className="h-4 w-4 text-primary" />
-                              </div>
                               <div>
                                 <p className="text-sm font-medium text-foreground">{userName}</p>
                                 <p className="text-xs text-muted-foreground">Account Holder</p>
@@ -1304,9 +1318,6 @@ const HotelAdminDashboard = () => {
                           </div>
                           <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                                <Hotel className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                              </div>
                               <div>
                                 <p className="text-sm font-medium text-foreground">{hotel?.name || "Hotel Name"}</p>
                                 <p className="text-xs text-muted-foreground">Associated Hotel</p>
@@ -1315,9 +1326,6 @@ const HotelAdminDashboard = () => {
                           </div>
                           <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                                <Shield className="h-4 w-4 text-green-600 dark:text-green-400" />
-                              </div>
                               <div>
                                 <p className="text-sm font-medium text-foreground">
                                   {roles?.includes("SUPER_ADMIN") ? "Super Admin" :
@@ -1333,9 +1341,6 @@ const HotelAdminDashboard = () => {
                           </div>
                           <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                                <CreditCard className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                              </div>
                               <div>
                                 <p className="text-sm font-medium text-foreground">
                                   {subscriptionPlan === 'TRIAL' ? 'Trial Plan' : 

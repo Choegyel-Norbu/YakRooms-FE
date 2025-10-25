@@ -39,26 +39,17 @@ export const BankType = {
   // Mobile Financial Services
   TBANK: {
     code: "TBANK",
-    name: "T-Bank (Tashi InfoComm)",
+    name: "T-Bank",
     shortName: "T-Bank",
     accountNumberLength: { min: 8, max: 12 },
     accountNumberPattern: /^\d{8,12}$/
   },
   DKBANK: {
     code: "DKBANK",
-    name: "Druk Khang Bank",
-    shortName: "DKBANK",
+    name: "Digital Kidu Bank",
+    shortName: "DK Bank",
     accountNumberLength: { min: 8, max: 12 },
     accountNumberPattern: /^\d{8,12}$/
-  },
-  
-  // Other/Unknown
-  OTHER: {
-    code: "OTHER",
-    name: "Other Bank",
-    shortName: "Other",
-    accountNumberLength: { min: 8, max: 20 },
-    accountNumberPattern: /^\d{8,20}$/
   }
 };
 

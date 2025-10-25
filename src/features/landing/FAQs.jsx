@@ -106,23 +106,23 @@ const FAQs = () => {
   const hotelOnboardingFAQs = [
     {
       question: "How do I register my hotel on EzeeRoom?",
-      answer: "To register your hotel, click on 'Add Your Property' in the navigation menu or visit /addListing. You'll need to provide basic information about your hotel including name, location, contact details, and upload photos. Our team will review your application within 24-48 hours."
+      answer: "To register your hotel, click on 'Add Your Property' in the landing page under 'Partner with EzeeRoom & Grow Your Business' section. You'll need to provide basic information about your hotel including name, location, contact details, and upload photos. Our team will review your application within 24 hours."
     },
     {
       question: "What documents do I need to register my hotel?",
-      answer: "You'll need: 1) CID (Citizen Identity Document), 2) Trade License, 3) Bank Account Number, 4) High-quality photos of rooms and facilities, 5) Valid contact information and emergency contact details."
+      answer: "You'll need: 1) CID (Citizen Identity Document), 2) Trade License, 3) Bank Account detials, 4) Photos of rooms and facilities, 5) Valid contact information."
     },
     {
       question: "How long does the hotel approval process take?",
-      answer: "The approval process typically takes 24-48 hours after you submit all required documents. Our team reviews each application to ensure quality standards and compliance with local regulations. You'll receive SMS notifications after approval."
+      answer: "The approval process typically takes less than 24 hours after you submit all required documents. Our team reviews each application to ensure quality standards and compliance with local regulations. You will discover your hotel in the search results after approval."
     },
     {
       question: "How do I manage my hotel listings and bookings?",
-      answer: "Once approved, you'll get access to your hotel admin dashboard where you can: update room availability, manage pricing, view bookings, communicate with guests, update hotel information, and track performance analytics. The dashboard is mobile-friendly for on-the-go management."
+      answer: "Once approved, you'll get access to your hotel admin dashboard where you can: update room availability, manage pricing, view bookings, update hotel information, and track performance analytics. The dashboard is mobile-friendly for on-the-go management."
     },
     {
       question: "Can I set my own pricing and availability?",
-      answer: "Yes, you have full control over your pricing and availability. You can set different rates for different seasons, room types, and special events. You can also block dates when rooms are unavailable for maintenance or personal use."
+      answer: "Yes, you have full control over your pricing and availability. You can set different rates for different seasons, room types, and special events. You can block rooms when they are unavailable for maintenance or personal use."
     }
   ];
 
@@ -130,19 +130,19 @@ const FAQs = () => {
   const bookingProcessFAQs = [
     {
       question: "How do I make a hotel booking on EzeeRoom?",
-      answer: "1) Search for hotels using our search filters, 2) Select your preferred hotel and room type, 3) Choose your check-in and check-out dates, 4) Review the booking details and pricing, 5) Enter your information and payment details, 6) Confirm your booking. The system will notify your booking confirmation and you can mange it from the dashboard."
+      answer: "1) Search for hotels using our search filters, 2) Select your preferred hotel and room type, 3) Choose your check-in and check-out dates 4) Enter your information 5) You will be redirected to RMA payment page, fill in you account details 6) Confirm your payment. You will see booking confirmation message and you can mange it from the dashboard."
     },
     {
       question: "What payment methods do you accept?",
       answer: "We accept payments through local banks including BOB (Bank of Bhutan), BNB (Bhutan National Bank), BDBL (Bhutan Development Bank Limited), DK, and Druk PNB Bank. All payments are processed securely through encrypted channels."
     },
     {
-      question: "Can I modify or cancel my booking?",
-      answer: "Yes, you can modify or cancel your booking through your account dashboard or by contacting our customer support. Cancellation policies vary by hotel and their own policy."
+      question: "Can I cancel my booking?",
+      answer: "Yes, you can cancel your booking through your account dashboard. Cancellation policies vary by hotel and their own policy."
     },
     {
       question: "How do I get my booking confirmation?",
-      answer: "You will receive a booking notification and can check your dashboard for all booking details and confirmations."
+      answer: "You will see a booking notification and can check your dashboard for all booking details and confirmations."
     }
   ];
 

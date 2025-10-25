@@ -37,6 +37,7 @@ const TermsAndConditions = () => {
     services: true,
     userTerms: true,
     hotelOwnerTerms: true,
+    subscription: true,
     cancellation: true,
     payments: true,
     liability: true,
@@ -189,15 +190,9 @@ const TermsAndConditions = () => {
                       <div className="space-y-4 text-sm text-muted-foreground">
                         <p>
                           These Terms and Conditions ("Terms") govern your use of EzeeRoom's online platform 
-                          and services. By accessing or using our website, mobile application, or services, 
+                          and services. By accessing or using our platform 
                           you acknowledge that you have read, understood, and agree to be bound by these Terms.
                         </p>
-                        <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
-                          <p className="text-amber-800 dark:text-amber-200 font-medium">
-                            <strong>Important:</strong> If you are booking on behalf of others, you represent 
-                            that you have the authority to bind them to these Terms.
-                          </p>
-                        </div>
                       </div>
                     </SectionContent>
                   </div>
@@ -216,11 +211,10 @@ const TermsAndConditions = () => {
                           services in Bhutan. Our services include:
                         </p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
-                          <li>Hotel search and comparison tools</li>
+                          <li>Hotel search and comparison</li>
                           <li>Online booking and reservation management</li>
                           <li>Payment processing and confirmation</li>
                           <li>Customer support and assistance</li>
-                          <li>Travel information and recommendations</li>
                         </ul>
                         <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                           <p className="text-blue-800 dark:text-blue-200">
@@ -254,7 +248,7 @@ const TermsAndConditions = () => {
                           <li>All bookings are subject to availability and confirmation</li>
                           <li>You must provide accurate and complete information</li>
                           <li>Bookings are confirmed only after payment is processed</li>
-                          <li>Upon successful booking, you will receive a confirmation notification and can manage your booking from the dashboard</li>
+                          <li>Upon successful booking, you will see a confirmation message after payment and can manage your booking from the dashboard</li>
                         </ul>
 
                         <h4 className="font-semibold text-foreground">3.2 Age Requirements</h4>
@@ -272,10 +266,10 @@ const TermsAndConditions = () => {
                         <h4 className="font-semibold text-foreground">3.4 Payment Terms</h4>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                           <li>Payment is required at the time of booking</li>
-                          <li>We accept credit cards, debit cards, and digital wallets</li>
+                          <li>Payment is done through RMA</li>
                           <li>Prices are displayed in Bhutanese Ngultrum (BTN)</li>
                           <li>Final charges may include taxes and service fees</li>
-                          <li>Payment processing fees may apply</li>
+                          <li>No payment processing fees applied</li>
                         </ul>
                       </div>
                     </SectionContent>
@@ -303,15 +297,13 @@ const TermsAndConditions = () => {
                           <li>Valid business license</li>
                           <li>Valid property ownership or management authorization</li>
                           <li>Contact on working hours</li>
-                          <li>Valid insurance coverage for guest safety</li>
                         </ul>
 
                         <h4 className="font-semibold text-foreground">4.2 Property Listing Requirements</h4>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                           <li>Accurate and up-to-date property information</li>
-                          <li>High-quality photos</li>
+                          <li>Standard photos</li>
                           <li>Detailed room descriptions and amenities</li>
-                          <li>Real-time availability calendar</li>
                           <li>Regular updates on property status and facilities</li>
                         </ul>
 
@@ -345,7 +337,6 @@ const TermsAndConditions = () => {
                         <h4 className="font-semibold text-foreground">4.5 Data Protection and Privacy</h4>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                           <li>Guest data sharing only for booking purposes</li>
-                          <li>Compliance with Bhutan data protection laws</li>
                           <li>Secure handling of payment information</li>
                           <li>Guest consent for data processing</li>
                         </ul>
@@ -361,7 +352,6 @@ const TermsAndConditions = () => {
 
                         <h4 className="font-semibold text-foreground">4.7 Partnership Support</h4>
                         <ul className="list-disc list-inside space-y-2 ml-4">
-                          <li>Training on platform usage and best practices</li>
                           <li>Regular performance reviews and optimization</li>
                           <li>24/7 technical support for booking issues</li>
                         </ul>
@@ -369,10 +359,84 @@ const TermsAndConditions = () => {
                     </SectionContent>
                   </div>
 
-                  {/* 5. Cancellation Policy */}
+                  {/* 5. Subscription and Trial Requirements */}
+                  <div className="border-b">
+                    <SectionHeader
+                      title="5. Subscription and Trial Requirements"
+                      isExpanded={expandedSections.subscription}
+                      onToggle={() => toggleSection('subscription')}
+                      badge="Important"
+                    />
+                    <SectionContent isExpanded={expandedSections.subscription}>
+                      <div className="space-y-4 text-sm text-muted-foreground">
+                        <div className="bg-orange-50 dark:bg-orange-950/20 p-4 rounded-lg border border-orange-200 dark:border-orange-800">
+                          <p className="text-orange-800 dark:text-orange-200 font-medium">
+                            <strong>Mandatory Trial Activation:</strong> All hotel owners must start a trial subscription 
+                            to activate their hotel listing and access platform features.
+                          </p>
+                        </div>
+
+                        <h4 className="font-semibold text-foreground">5.1 Trial Period</h4>
+                        <div className="space-y-3">
+                          <ul className="list-disc list-inside space-y-2 ml-4">
+                            <li><strong>Duration:</strong> Trial period lasts for 2 months from activation</li>
+                            <li><strong>Activation Required:</strong> Hotel listing remains inactive until trial is started</li>
+                            <li><strong>Full Access:</strong> During trial, hotel owners have access to all platform features</li>
+                            <li><strong>No Payment Required:</strong> Trial period is completely free</li>
+                          </ul>
+                        </div>
+
+                        <h4 className="font-semibold text-foreground">5.2 Post-Trial Restrictions</h4>
+                        <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                          <h5 className="font-semibold text-red-800 dark:text-red-200 mb-2">
+                            Feature Limitations After Trial
+                          </h5>
+                          <p className="text-red-700 dark:text-red-300 mb-2">
+                            <strong>Important:</strong> Once the 2-month trial period ends, most platform features 
+                            will be blocked until a paid subscription is activated.
+                          </p>
+                          <ul className="text-red-700 dark:text-red-300 space-y-1 list-disc list-inside">
+                            <li>Hotel listing becomes inactive and hidden from search results</li>
+                            <li>No new bookings can be accepted</li>
+                            <li>Booking management features are disabled</li>
+                            <li>Analytics and reporting access is restricted</li>
+                            <li>Payment processing is suspended</li>
+                            <li>Customer support is limited to basic assistance</li>
+                          </ul>
+                        </div>
+
+                        <h4 className="font-semibold text-foreground">5.3 Subscription Activation</h4>
+                        <div className="space-y-3">
+                          <p>
+                            To continue using platform features after the trial period, hotel owners must:
+                          </p>
+                          <ul className="list-disc list-inside space-y-2 ml-4">
+                            <li>Pay for a subscription</li>
+                            <li>Complete payment for the subscription</li>
+                          </ul>
+                        </div>
+
+                        <h4 className="font-semibold text-foreground">5.4 Trial Extension Policy</h4>
+                        <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <p className="text-blue-800 dark:text-blue-200">
+                            <strong>No Extensions:</strong> Trial periods cannot be extended beyond the initial 2-month period. 
+                            Hotel owners must subscribe to a paid plan to continue using the platform after trial expiration.
+                          </p>
+                        </div>
+
+                        <h4 className="font-semibold text-foreground">5.5 Data Retention</h4>
+                        <p>
+                          Hotel data and booking history will be retained for 30 days after trial expiration. 
+                          After this period, data may be archived or deleted if no subscription is activated.
+                        </p>
+                      </div>
+                    </SectionContent>
+                  </div>
+
+                  {/* 6. Cancellation Policy */}
                   <div id="cancellation-policy" className="border-b">
                     <SectionHeader
-                      title="5. Cancellation and Refund Policy"
+                      title="6. Cancellation and Refund Policy"
                       isExpanded={expandedSections.cancellation}
                       onToggle={() => toggleSection('cancellation')}
                       badge="Important"
@@ -389,7 +453,7 @@ const TermsAndConditions = () => {
                           </p>
                         </div>
 
-                        <h4 className="font-semibold text-foreground">5.1 How to Cancel Your Booking</h4>
+                        <h4 className="font-semibold text-foreground">6.1 How to Cancel Your Booking</h4>
                         <div className="space-y-3">
                           <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                             <h5 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">
@@ -402,7 +466,7 @@ const TermsAndConditions = () => {
                           </div>
                         </div>
 
-                        <h4 className="font-semibold text-foreground">5.2 EzeeRoom's Role</h4>
+                        <h4 className="font-semibold text-foreground">6.2 EzeeRoom's Role</h4>
                         <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                           <p className="text-blue-800 dark:text-blue-200">
                             <strong>EzeeRoom's Limited Role:</strong> We facilitate communication between guests and hotels 
@@ -411,7 +475,7 @@ const TermsAndConditions = () => {
                           </p>
                         </div>
 
-                        <h4 className="font-semibold text-foreground">5.3 What EzeeRoom Can Help With</h4>
+                        <h4 className="font-semibold text-foreground">6.3 What EzeeRoom Can Help With</h4>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                           <li>Providing hotel contact information</li>
                           <li>Helping you locate your booking confirmation</li>
@@ -419,7 +483,7 @@ const TermsAndConditions = () => {
                           <li>Technical support for platform issues</li>
                         </ul>
 
-                        <h4 className="font-semibold text-foreground">5.4 What EzeeRoom Cannot Do</h4>
+                        <h4 className="font-semibold text-foreground">6.4 What EzeeRoom Cannot Do</h4>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                           <li>Process cancellations on behalf of hotels</li>
                           <li>Override hotel cancellation policies</li>
@@ -431,71 +495,71 @@ const TermsAndConditions = () => {
                     </SectionContent>
                   </div>
 
-                  {/* 6. Payment Terms */}
+                  {/* 7. Payment Terms */}
                   <div className="border-b">
                     <SectionHeader
-                      title="6. Payment Terms and Conditions"
+                      title="7. Payment Terms and Conditions"
                       isExpanded={expandedSections.payments}
                       onToggle={() => toggleSection('payments')}
                     />
                     <SectionContent isExpanded={expandedSections.payments}>
                       <div className="space-y-4 text-sm text-muted-foreground">
-                        <h4 className="font-semibold text-foreground">6.1 Payment Methods</h4>
+                        <h4 className="font-semibold text-foreground">7.1 Payment Methods</h4>
                         <p>
                           We accept payments through local banks including BOB (Bank of Bhutan), BNB (Bhutan National Bank), 
                           BDBL (Bhutan Development Bank Limited), PNB, and DK. All payments are processed securely.
                         </p>
 
-                        <h4 className="font-semibold text-foreground">6.2 Currency and Pricing</h4>
+                        <h4 className="font-semibold text-foreground">7.2 Currency and Pricing</h4>
                         <ul className="list-disc list-inside space-y-1 ml-4">
                           <li>Prices are displayed for each room in Bhutanese Ngultrum (BTN) respectively</li>
                           <li>Final charges may include taxes and service fees</li>
                           <li>Prices are subject to change without notice</li>
                         </ul>
 
-                        <h4 className="font-semibold text-foreground">6.3 Payment Security</h4>
+                        <h4 className="font-semibold text-foreground">7.3 Payment Security</h4>
                         <p>
                           All payment information is encrypted and processed through secure payment gateway(RMA). 
-                          We do not store your complete payment information on our servers.
+                          We do not store your account details on our servers.
                         </p>
 
-                        <h4 className="font-semibold text-foreground">6.4 Payment Issues</h4>
+                        <h4 className="font-semibold text-foreground">7.4 Payment Issues</h4>
                         <p>
-                          If payment fails, your booking will not be confirmed. Please ensure sufficient 
+                          If payment fails, there will be no booking created for that selected date. Please ensure sufficient 
                           funds and correct payment information. Contact your bank if issues persist.
                         </p>
                       </div>
                     </SectionContent>
                   </div>
 
-                  {/* 7. Limitation of Liability */}
+                  {/* 8. Limitation of Liability */}
                   <div className="border-b">
                     <SectionHeader
-                      title="7. Limitation of Liability and Disclaimers"
+                      title="8. Limitation of Liability and Disclaimers"
                       isExpanded={expandedSections.liability}
                       onToggle={() => toggleSection('liability')}
                     />
                     <SectionContent isExpanded={expandedSections.liability}>
                       <div className="space-y-4 text-sm text-muted-foreground">
-                        <h4 className="font-semibold text-foreground">7.1 Service Availability</h4>
+                        <h4 className="font-semibold text-foreground">8.1 Service Availability</h4>
                         <p>
                           EzeeRoom does not guarantee uninterrupted service availability. We reserve the 
                           right to modify, suspend, or discontinue services at any time.
                         </p>
 
-                        <h4 className="font-semibold text-foreground">7.2 Third-Party Services</h4>
+                        <h4 className="font-semibold text-foreground">8.2 Third-Party Services</h4>
                         <p>
                           We are not responsible for the quality, safety, or availability of third-party 
                           services (hotels, etc.) booked through our platform.
                         </p>
 
-                        <h4 className="font-semibold text-foreground">7.3 Limitation of Damages</h4>
+                        <h4 className="font-semibold text-foreground">8.3 Limitation of Damages</h4>
                         <p>
                           To the maximum extent permitted by law, EzeeRoom's liability is limited to the 
                           amount paid for the specific booking in question.
                         </p>
 
-                        <h4 className="font-semibold text-foreground">7.4 Force Majeure</h4>
+                        <h4 className="font-semibold text-foreground">8.4 Force Majeure</h4>
                         <p>
                           We are not liable for delays or failures caused by circumstances beyond our 
                           control, including natural disasters, government actions, or technical failures.
@@ -504,10 +568,10 @@ const TermsAndConditions = () => {
                     </SectionContent>
                   </div>
 
-                  {/* 8. Privacy and Data Protection */}
+                  {/* 9. Privacy and Data Protection */}
                   <div className="border-b">
                     <SectionHeader
-                      title="8. Privacy and Data Protection"
+                      title="9. Privacy and Data Protection"
                       isExpanded={expandedSections.privacy}
                       onToggle={() => toggleSection('privacy')}
                     />
@@ -515,18 +579,18 @@ const TermsAndConditions = () => {
                       <div className="space-y-4 text-sm text-muted-foreground">
                         <p>
                           Your privacy is important to us. Please review our 
-                          <Link to="/privacy-policy" className="text-primary hover:underline ml-1">
+                          <Link to="/privacy-policy" className="text-primary hover:underline ml-1 cursor-pointer">
                             Privacy Policy
                           </Link> for detailed information about how we collect, use, and protect your data.
                         </p>
                         
-                        <h4 className="font-semibold text-foreground">8.1 Data Collection</h4>
+                        <h4 className="font-semibold text-foreground">9.1 Data Collection</h4>
                         <p>
                           We collect personal information necessary to process bookings and provide services. 
                           This includes contact information, payment details, and travel preferences.
                         </p>
 
-                        <h4 className="font-semibold text-foreground">8.2 Data Sharing</h4>
+                        <h4 className="font-semibold text-foreground">9.2 Data Sharing</h4>
                         <p>
                           We may share your information with hotels and service providers to fulfill 
                           your bookings. We do not sell your personal information to third parties.
@@ -535,10 +599,10 @@ const TermsAndConditions = () => {
                     </SectionContent>
                   </div>
 
-                  {/* 9. Modifications to Terms */}
+                  {/* 10. Modifications to Terms */}
                   <div className="border-b">
                     <SectionHeader
-                      title="9. Modifications to Terms"
+                      title="10. Modifications to Terms"
                       isExpanded={expandedSections.modifications}
                       onToggle={() => toggleSection('modifications')}
                     />
@@ -556,7 +620,7 @@ const TermsAndConditions = () => {
                           </p>
                         </div>
 
-                        <h4 className="font-semibold text-foreground">9.1 Notification of Changes</h4>
+                        <h4 className="font-semibold text-foreground">10.1 Notification of Changes</h4>
                         <p>
                           We will notify users of significant changes through our platform.
                         </p>
@@ -564,10 +628,10 @@ const TermsAndConditions = () => {
                     </SectionContent>
                   </div>
 
-                  {/* 10. Contact Information */}
+                  {/* 11. Contact Information */}
                   <div>
                     <SectionHeader
-                      title="10. Contact Information and Support"
+                      title="11. Contact Information and Support"
                       isExpanded={expandedSections.contact}
                       onToggle={() => toggleSection('contact')}
                     />
@@ -582,20 +646,20 @@ const TermsAndConditions = () => {
                           <div className="space-y-3">
                             <div>
                               <p className="font-medium text-foreground">Email Support</p>
-                              <p className="text-xs">choegyell@gmail.com</p>
+                              <p className="text-xs">choegyell@gmail.com, zepadorji222@gmail.com</p>
                             </div>
                             
                             <div>
                               <p className="font-medium text-foreground">Phone Support</p>
-                              <p className="text-xs">+97577965452</p>
+                              <p className="text-xs">+97577965452, +97577236000</p>
                             </div>
                           </div>
                         </div>
 
                         <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
                           <p className="text-green-800 dark:text-green-200">
-                            <strong>Quick Support:</strong> For urgent booking issues, please call our 
-                            support line. For general inquiries, email is preferred.
+                            <strong>Quick Support:</strong> For urgent booking issues, please call @+97517482648
+                            . For general inquiries, email is preferred.
                           </p>
                         </div>
                       </div>

@@ -1336,13 +1336,13 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
           }
         }}
       >
-        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-hidden">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Standard Booking - {room.hotelName}</DialogTitle>
-            <DialogDescription>Room {room.roomNumber} - Detailed Booking Form</DialogDescription>
+            <DialogDescription>Room {room.roomNumber} - Standard Booking</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4 max-h-[50vh] overflow-y-auto pr-2">
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+            <div className="grid gap-4 py-4 flex-1 overflow-y-auto pr-2">
               {/* Loading indicator for booked dates */}
               {isLoadingBookedDates && (
                 <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -1558,7 +1558,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                       }
                     }}
                   >
-                    <SelectTrigger className={`text-sm ${errors.guests ? "border-destructive" : ""}`}>
+                    <SelectTrigger className={`w-full text-sm ${errors.guests ? "border-destructive" : ""}`}>
                       <SelectValue placeholder="Select guests" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1670,15 +1670,17 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                 )}
               </div>
             </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="outline">
-                  Cancel
+            <DialogFooter className="flex-shrink-0 mt-4 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row gap-2 w-full">
+                <DialogClose asChild>
+                  <Button type="button" variant="outline" className="flex-1 sm:flex-none">
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button type="submit" disabled={isBookingLoading} className="flex-1 sm:flex-none">
+                  {isBookingLoading ? "Booking..." : "Book"}
                 </Button>
-              </DialogClose>
-              <Button type="submit" disabled={isBookingLoading}>
-                {isBookingLoading ? "Booking..." : "Book"}
-              </Button>
+              </div>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -1744,12 +1746,9 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
           }
         }}
       >
-        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
+        <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle className="flex justify-center items-center gap-2">
               Book Tonight - {room.hotelName}
             </DialogTitle>
             <DialogDescription>
@@ -1762,8 +1761,8 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
               </div>
           </DialogHeader>
           
-          <form onSubmit={(e) => { e.preventDefault(); handleImmediateBooking(); }}>
-            <div className="py-4 space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+          <form onSubmit={(e) => { e.preventDefault(); handleImmediateBooking(); }} className="flex flex-col flex-1 min-h-0">
+            <div className="py-4 space-y-4 flex-1 overflow-y-auto pr-2">
               {/* Loading indicator for booked dates */}
               {isLoadingBookedDates && (
                 <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -1919,7 +1918,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                     }
                   }}
                 >
-                  <SelectTrigger className={`text-sm ${immediateBookingErrors.guests ? "border-destructive" : ""}`}>
+                  <SelectTrigger className={`w-full text-sm ${immediateBookingErrors.guests ? "border-destructive" : ""}`}>
                     <SelectValue placeholder="Select guests" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1982,30 +1981,33 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
               
             </div>
 
-            <DialogFooter>
-              <Button 
-                type="button"
-                variant="outline" 
-                onClick={() => setOpenImmediateBookingDialog(false)}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit"
-                className="bg-green-600 hover:bg-green-700"
-                disabled={isImmediateBookingLoading}
-              >
-                {isImmediateBookingLoading ? (
-                  <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.646 9.646 8 0 0118 15.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                ) : (
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                )}
-                {isImmediateBookingLoading ? "Booking..." : "Confirm Tonight's Booking"}
-              </Button>
+            <DialogFooter className="flex-shrink-0 mt-4 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row gap-2 w-full">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  onClick={() => setOpenImmediateBookingDialog(false)}
+                  className="flex-1 sm:flex-none"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit"
+                  className="flex-1 sm:flex-none"
+                  disabled={isImmediateBookingLoading}
+                >
+                  {isImmediateBookingLoading ? (
+                    <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.646 9.646 8 0 0118 15.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  )}
+                  {isImmediateBookingLoading ? "Booking..." : "Book"}
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </DialogContent>

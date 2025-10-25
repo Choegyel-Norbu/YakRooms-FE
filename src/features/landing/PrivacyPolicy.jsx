@@ -29,7 +29,7 @@ const Breadcrumb = ({ items }) => {
 };
 
 const PrivacyPolicy = () => {
-  const lastUpdated = "September 28, 2025";
+  const lastUpdated = "October 25, 2025";
   const [showScrollToTop, setShowScrollToTop] = useState(false);
 
   // Ensure page scrolls to top when component mounts
@@ -172,7 +172,7 @@ const PrivacyPolicy = () => {
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
-                    <span><strong>Communication Data:</strong> Messages, reviews, and feedback you provide</span>
+                    <span><strong>Communication Data:</strong> Reviews and feedback you provide</span>
                   </p>
                 </div>
               </div>
@@ -190,11 +190,7 @@ const PrivacyPolicy = () => {
                 <div className="ml-4 space-y-1.5">
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
-                    <span>Process and manage your hotel bookings</span>
-                  </p>
-                  <p className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span>Send booking confirmations and important updates</span>
+                    <span>Process your hotel bookings</span>
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
@@ -232,7 +228,7 @@ const PrivacyPolicy = () => {
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
-                    <span><strong>Service Providers:</strong> With trusted third parties who help us operate our platform (payment processors, email services)</span>
+                    <span><strong>Service Providers:</strong> With trusted third parties who help us operate our platform (payment processors(RMA))</span>
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
@@ -300,15 +296,11 @@ const PrivacyPolicy = () => {
                     <span className="text-primary mt-0.5">•</span>
                     <span><strong>Account Deletion:</strong> Request complete deletion of your account and associated data</span>
                   </p>
-                  <p className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span><strong>Communication Preferences:</strong> Unsubscribe from marketing emails and notifications</span>
-                  </p>
                 </div>
 
                 <p className="mt-3 text-sm">
-                  To exercise these rights or for any privacy-related concerns, please contact us at privacy@ezeeroom.com. 
-                  We will respond to your request within 30 days.
+                  To exercise these rights or for any privacy-related concerns, please contact us at choegyell@gmail.com. 
+                  We will respond to your request within 12-24 hours.
                 </p>
               </div>
             </section>
@@ -338,15 +330,7 @@ const PrivacyPolicy = () => {
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
-                    <span>Analytics services to improve our platform</span>
-                  </p>
-                  <p className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-0.5">•</span>
                     <span>Google Maps service for navigation and location features</span>
-                  </p>
-                  <p className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span>Email service providers for communications</span>
                   </p>
                   <p className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
@@ -390,13 +374,13 @@ const PrivacyPolicy = () => {
                 </p>
 
                 <div className="bg-muted/30 rounded-lg p-3 space-y-1.5">
-                  <p className="text-sm"><strong>Email:</strong> privacy@ezeeroom.com</p>
-                  <p className="text-sm"><strong>Phone:</strong> +97577965452</p>
-                  <p className="text-sm"><strong>Address:</strong> EzeeRoom Pvt. Ltd., Thimphu, Bhutan</p>
+                  <p className="text-sm"><strong>Email:</strong> choegyell@gmail.com, zepadorji222@gmail.com</p>
+                  <p className="text-sm"><strong>Phone:</strong> +97577965452, +97577236000</p>
+                  <p className="text-sm"><strong>Address:</strong> EzeeRoom Pvt, Thimphu, Bhutan</p>
                 </div>
 
                 <p className="text-sm">
-                  Our dedicated privacy team will respond to your inquiry within 30 days.
+                  Our team will respond to your inquiry within 12-24 hours.
                 </p>
               </div>
             </section>

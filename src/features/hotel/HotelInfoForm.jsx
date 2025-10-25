@@ -519,7 +519,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                       disabled={!isEditing}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select Hotel Type" />
                         </SelectTrigger>
                       </FormControl>
@@ -552,7 +552,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                       disabled={!isEditing}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select District" />
                         </SelectTrigger>
                       </FormControl>
@@ -581,7 +581,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                       disabled={!isEditing}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select Locality" />
                         </SelectTrigger>
                       </FormControl>
@@ -714,9 +714,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
               {/* Check-in and Check-out Times Section */}
               <div className="md:col-span-2 border-t pt-4 mt-2">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                    <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  </div>
+                  
                   <div>
                     <h4 className="text-base font-semibold text-foreground">
                       Check-in & Check-out Times
@@ -765,11 +763,6 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center">
-                              <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                            </div>
                             Check-in Time
                           </FormLabel>
                           <FormControl>
@@ -790,11 +783,6 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full bg-orange-600 flex items-center justify-center">
-                              <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                            </div>
                             Check-out Time
                           </FormLabel>
                           <FormControl>
@@ -808,30 +796,6 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                         </FormItem>
                       )}
                     />
-                  </div>
-                )}
-
-                {isEditing && (
-                  <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <div className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <div className="flex-1">
-                        <h5 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                          Check-in & Check-out Guidelines
-                        </h5>
-                        <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                          <li>• Set your preferred check-in and check-out times</li>
-                          <li>• Default times are set to 01:00:00 (1:00 AM)</li>
-                          <li>• These times help ensure room cleaning and preparation</li>
-                          <li>• Guests will be informed of these times during booking</li>
-                          <li>• Consider your cleaning schedule when setting these times</li>
-                        </ul>
-                      </div>
-                    </div>
                   </div>
                 )}
               </div>
@@ -935,77 +899,79 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="facebookUrl"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
-                              <Facebook className="h-3 w-3 text-white" />
-                            </div>
-                            Facebook Page URL
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="url"
-                              placeholder="https://facebook.com/yourhotel"
-                              className="pl-3"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="facebookUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
+                                <Facebook className="h-3 w-3 text-white" />
+                              </div>
+                              Facebook Page URL
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type="url"
+                                placeholder="https://facebook.com/yourhotel"
+                                className="pl-3"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name="instagramUrl"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                              <Instagram className="h-3 w-3 text-white" />
-                            </div>
-                            Instagram Profile URL
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="url"
-                              placeholder="https://instagram.com/yourhotel"
-                              className="pl-3"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name="instagramUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                                <Instagram className="h-3 w-3 text-white" />
+                              </div>
+                              Instagram Profile URL
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type="url"
+                                placeholder="https://instagram.com/yourhotel"
+                                className="pl-3"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name="tiktokUrl"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full bg-black dark:bg-white flex items-center justify-center">
-                              <TikTokIcon className="h-3 w-3 text-white dark:text-black" />
-                            </div>
-                            TikTok Profile URL
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="url"
-                              placeholder="https://tiktok.com/@yourhotel"
-                              className="pl-3"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name="tiktokUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              <div className="w-5 h-5 rounded-full bg-black dark:bg-white flex items-center justify-center">
+                                <TikTokIcon className="h-3 w-3 text-white dark:text-black" />
+                              </div>
+                              TikTok Profile URL
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                type="url"
+                                placeholder="https://tiktok.com/@yourhotel"
+                                className="pl-3"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
                     <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
                       <div className="flex items-start gap-3">
@@ -1116,113 +1082,79 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="bankType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center">
-                              <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                              </svg>
-                            </div>
-                            Bank Type
-                          </FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="bankType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              Bank Type
+                            </FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select Bank" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {getBankOptions().map((bank) => (
+                                  <SelectItem key={bank.value} value={bank.value}>
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">{bank.label}</span>
+                                      <span className="text-xs text-muted-foreground">{bank.description}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="accountHolderName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              Account Holder Name
+                            </FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select Bank" />
-                              </SelectTrigger>
+                              <Input
+                                {...field}
+                                placeholder="Enter account holder name"
+                                className="pl-3"
+                              />
                             </FormControl>
-                            <SelectContent>
-                              {getBankOptions().map((bank) => (
-                                <SelectItem key={bank.value} value={bank.value}>
-                                  <div className="flex flex-col">
-                                    <span className="font-medium">{bank.label}</span>
-                                    <span className="text-xs text-muted-foreground">{bank.description}</span>
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name="accountHolderName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
-                              <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                              </svg>
-                            </div>
-                            Account Holder Name
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="Enter account holder name"
-                              className="pl-3"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="accountNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center">
-                              <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                              </svg>
-                            </div>
-                            Account Number
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="Enter account number"
-                              className="pl-3"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="mt-4 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                      <div className="flex items-start gap-3">
-                        <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <h5 className="text-sm font-medium text-green-900 dark:text-green-100 mb-1">
-                            Bank Account Security
-                          </h5>
-                          <ul className="text-xs text-green-700 dark:text-green-300 space-y-1">
-                            <li>• Your bank account information is encrypted and securely stored</li>
-                            <li>• This information is only used for payment processing</li>
-                            <li>• Ensure the account holder name matches your business registration</li>
-                            <li>• Double-check your account number before saving</li>
-                          </ul>
-                        </div>
-                      </div>
+                      <FormField
+                        control={form.control}
+                        name="accountNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              Account Number
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="Enter account number"
+                                className="pl-3"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
                   </div>
                 )}
@@ -1482,7 +1414,6 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                             </h5>
                             <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
                               <li>• Guests can book rooms for specific hours (1-24 hours)</li>
-                              <li>• Pricing calculated per hour instead of per day</li>
                               <li>• Flexible check-in and check-out times</li>
                               <li>• Ideal for short stays, meetings, or day use</li>
                               <li>• Can be used alongside regular daily bookings</li>

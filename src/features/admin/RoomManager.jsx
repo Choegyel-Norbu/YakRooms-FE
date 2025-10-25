@@ -559,7 +559,7 @@ const RoomManager = ({ hotelId }) => {
                   value={roomForm.roomType}
                   onValueChange={(value) => handleSelectChange("roomType", value)}
                 >
-                  <SelectTrigger className={errors.roomType ? "border-destructive" : ""}>
+                  <SelectTrigger className={`w-full ${errors.roomType ? "border-destructive" : ""}`}>
                     <SelectValue placeholder="Select Room Type" />
                   </SelectTrigger>
                   <SelectContent>

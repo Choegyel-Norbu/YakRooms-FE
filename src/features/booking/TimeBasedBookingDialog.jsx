@@ -357,7 +357,7 @@ export default function TimeBasedBookingDialog({
                       value={String(bookingDetails.bookHours)}
                       onValueChange={handleBookHoursChange}
                     >
-                      <SelectTrigger className={`text-sm ${
+                      <SelectTrigger className={`w-full text-sm ${
                         errors.bookHours 
                           ? "border-destructive" 
                           : bookingDetails.checkInDate && bookingDetails.checkInTime && bookingDetails.bookHours && 
@@ -582,7 +582,7 @@ export default function TimeBasedBookingDialog({
                       value={String(bookingDetails.guests)}
                       onValueChange={handleGuestsChange}
                     >
-                    <SelectTrigger className={`text-sm ${errors.guests ? "border-destructive" : ""}`}>
+                    <SelectTrigger className={`w-full text-sm ${errors.guests ? "border-destructive" : ""}`}>
                       <SelectValue placeholder="Select guests" />
                     </SelectTrigger>
                     <SelectContent>
