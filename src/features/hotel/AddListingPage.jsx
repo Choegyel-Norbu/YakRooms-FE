@@ -565,12 +565,7 @@ const AddListingPage = () => {
       if (res.status === 200) {
         setHotelId(res.data.id);
         setRoles(['GUEST', 'HOTEL_ADMIN']);
-        toast.success("Hotel submitted for verification", {
-          description: "Your hotel listing has been submitted successfully and will be verified shortly before going live on Ezeeroom!",
-          duration: 6000
-        });
       }
-
       setIsSubmitted(true);
     } catch (error) {
       console.error("Submission failed:", error);
@@ -1307,7 +1302,7 @@ const AddListingPage = () => {
                                 }
                               }}
                             >
-                              <SelectTrigger className={errors.cancellationPolicy ? "border-destructive" : ""}>
+                              <SelectTrigger className={`w-full ${errors.cancellationPolicy ? "border-destructive" : ""}`}>
                                 <SelectValue placeholder="Select a cancellation policy" />
                               </SelectTrigger>
                               <SelectContent className="max-h-[60vh] overflow-y-auto w-[calc(100vw-2rem)] sm:w-auto max-w-[calc(100vw-2rem)] sm:max-w-none">

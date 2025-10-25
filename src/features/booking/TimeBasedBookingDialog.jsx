@@ -57,6 +57,7 @@ export default function TimeBasedBookingDialog({
     handleBookHoursChange,
     resetForm,
     calculateCheckOutTime,
+    getFormattedCheckInTime,
     calculateTotalPrice,
     validateForm,
     getExistingBookingsForDate,
@@ -453,7 +454,7 @@ export default function TimeBasedBookingDialog({
                               ? 'text-red-700'
                               : 'text-blue-700'
                           }`}>
-                            Check-in: {bookingDetails.checkInTime} | 
+                            Check-in: {getFormattedCheckInTime()} | 
                             Duration: {bookingDetails.bookHours} {bookingDetails.bookHours === 1 ? "hour" : "hours"} | 
                             Check-out: {calculateCheckOutTime()}
                           </p>

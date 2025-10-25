@@ -289,9 +289,6 @@ const TimePicker = ({
               onChange={handleDirectInput}
               className="text-center font-mono"
             />
-            <p className="text-xs text-muted-foreground text-center mt-1">
-              {format24h ? "Enter time in 24-hour format" : "Enter time with AM/PM (e.g., 2:30 PM)"}
-            </p>
           </div>
           
           {/* Time selectors */}

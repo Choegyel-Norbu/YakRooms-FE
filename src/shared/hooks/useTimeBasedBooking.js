@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { formatTimeTo12Hour } from '../utils/utils';
 
 /**
  * Custom hook for hourly booking functionality
@@ -80,8 +81,15 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     const checkoutHours = Math.floor(totalMinutes / 60) % 24;
     const checkoutMinutes = totalMinutes % 60;
     
-    return `${checkoutHours.toString().padStart(2, '0')}:${checkoutMinutes.toString().padStart(2, '0')}`;
+    const checkoutTime24 = `${checkoutHours.toString().padStart(2, '0')}:${checkoutMinutes.toString().padStart(2, '0')}`;
+    return formatTimeTo12Hour(checkoutTime24);
   }, [bookingDetails.checkInTime, bookingDetails.bookHours]);
+
+  // Format check-in time to 12-hour format
+  const getFormattedCheckInTime = useCallback(() => {
+    if (!bookingDetails.checkInTime) return "";
+    return formatTimeTo12Hour(bookingDetails.checkInTime);
+  }, [bookingDetails.checkInTime]);
 
   // Calculate total price for hourly booking - now uses full room price
   const calculateTotalPrice = useCallback(() => {
@@ -417,8 +425,8 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
       }
 
       return {
-        startTime,
-        endTime,
+        startTime: formatTimeTo12Hour(startTime),
+        endTime: formatTimeTo12Hour(endTime),
         duration: booking.bookHour || booking.durationHours || 1,
         status: booking.status,
         bookingId: booking.id || booking.bookingId
@@ -449,6 +457,7 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     
     // Computed values
     calculateCheckOutTime,
+    getFormattedCheckInTime,
     calculateTotalPrice,
     validateForm,
     hasTimeConflict,

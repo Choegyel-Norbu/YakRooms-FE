@@ -171,3 +171,51 @@ export function exportMonthlyPerformanceToExcel(performanceData, hotelName = 'Ho
   
   return exportToExcel(excelData, filename, 'Monthly Performance', { columnWidths });
 }
+
+/**
+ * Converts 24-hour time format to 12-hour format with AM/PM
+ * @param {string} time24 - Time in 24-hour format (e.g., "19:00", "09:30", "00:00")
+ * @returns {string} - Time in 12-hour format (e.g., "7:00 PM", "9:30 AM", "12:00 AM")
+ */
+export function formatTimeTo12Hour(time24) {
+  if (!time24) return '';
+  
+  // Handle different time formats (HH:MM:SS or HH:MM)
+  let time = time24;
+  if (time.includes(':') && time.split(':').length === 3) {
+    time = time.substring(0, 5); // Remove seconds
+  }
+  
+  const [hours, minutes] = time.split(':').map(Number);
+  
+  if (isNaN(hours) || isNaN(minutes)) return time24;
+  
+  let period = 'AM';
+  let displayHours = hours;
+  
+  if (hours === 0) {
+    displayHours = 12; // Midnight
+  } else if (hours === 12) {
+    period = 'PM'; // Noon
+  } else if (hours > 12) {
+    displayHours = hours - 12;
+    period = 'PM';
+  }
+  
+  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+}
+
+/**
+ * Formats a time range from 24-hour to 12-hour format
+ * @param {string} startTime - Start time in 24-hour format
+ * @param {string} endTime - End time in 24-hour format
+ * @returns {string} - Formatted time range (e.g., "7:00 PM - 8:00 PM")
+ */
+export function formatTimeRangeTo12Hour(startTime, endTime) {
+  if (!startTime || !endTime) return '';
+  
+  const formattedStart = formatTimeTo12Hour(startTime);
+  const formattedEnd = formatTimeTo12Hour(endTime);
+  
+  return `${formattedStart} - ${formattedEnd}`;
+}
