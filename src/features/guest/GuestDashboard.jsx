@@ -476,9 +476,9 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
       // Time-based booking extension using selected hours
       if (!extensionHours || extensionHours <= 0) return { nights: 0, hours: 0, cost: 0 };
       
-      // Calculate cost based on original booking's hourly rate
+      // Calculate cost based on roomPrice per hour (without service tax)
       const originalHours = booking.bookHour || 1;
-      const pricePerHour = (booking.txnTotalPrice || booking.totalPrice) / originalHours;
+      const pricePerHour = (booking.roomPrice || 0) / originalHours;
       
       // Calculate cost for selected extension hours
       const cost = extensionHours * pricePerHour;
@@ -498,9 +498,9 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
       const diffTime = newCheckOut.getTime() - currentCheckOut.getTime();
       const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
-      // Calculate cost based on original booking's per-night rate
+      // Calculate cost based on roomPrice per night (without service tax)
       const originalNights = calculateNights(booking.checkInDate, booking.checkOutDate);
-      const pricePerNight = (booking.txnTotalPrice || booking.totalPrice) / originalNights;
+      const pricePerNight = (booking.roomPrice || 0) / originalNights;
       
       // Require at least one night extension
       const cost = nights > 0 ? nights * pricePerNight : 0;
@@ -682,9 +682,11 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
     setIsExtending(true);
     try {
       const extension = calculateExtension();
-      const totalPrice = Math.ceil(extension.cost); // Base price without tax, rounded up to zero decimals
-      const extendedAmount = Math.ceil(extension.cost); // Same as totalPrice
-      const txnTotalPrice = Math.ceil(extension.cost * 1.03); // Base price + 3% transaction fee, rounded up to zero decimals
+      // Calculate base prices from roomPrice (without service tax)
+      const totalPrice = Math.ceil(extension.cost);
+      const extendedAmount = Math.ceil(extension.cost);
+      // Add 3% service tax for transaction total
+      const txnTotalPrice = Math.ceil(extension.cost * 1.03);
       
       const payload = {
         guests: booking.guests,               
