@@ -916,7 +916,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       console.error("Standard booking failed:", error);
       toast.error("Standard Booking Failed", {
         description:
-          "There was an error processing your standard booking. Please try again.",
+          "There was conflict while booking. Please try another date or time.",
         duration: 6000
       });
     } finally {
@@ -1020,7 +1020,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       console.error("Booking failed:", error);
       toast.error("Booking Failed", {
         description:
-          "There was an error processing your booking. Please try again.",
+          "There was conflict while booking. Please try another date or time.",
         duration: 6000
       });
     } finally {

@@ -290,8 +290,8 @@ const GoogleMapsModal = ({ booking, isOpen, onClose }) => {
   if (!isOpen || !booking) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-background rounded-lg max-w-md w-full border">
+    <div className="fixed inset-0 bg-black/50 animate-in fade-in-0 flex items-center justify-center p-4 z-50">
+      <div className="bg-background rounded-lg max-w-md w-full border animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
           <div>
@@ -861,8 +861,8 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
   const minDate = getMinCheckOutDate();
 
   return (
-    <div className="fixed inset-0 bg-opacity-30 backdrop-blur-[2px] flex items-center justify-center p-4 z-50">
-      <div className="bg-background rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto border">
+    <div className="fixed inset-0 bg-black/50 animate-in fade-in-0 flex items-center justify-center p-4 z-50">
+      <div className="bg-background rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto border animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
           <div>
@@ -1750,8 +1750,8 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
   const pricePerNight = (booking.txnTotalPrice || booking.totalPrice) / numberOfNights;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border">
+    <div className="fixed inset-0 bg-black/50 animate-in fade-in-0 flex items-center justify-center p-4 z-50">
+      <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b">
           <div>

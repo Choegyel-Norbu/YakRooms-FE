@@ -231,7 +231,7 @@ export default function TimeBasedBookingDialog({
     } catch (error) {
       console.error("Hourly booking failed:", error);
       toast.error("Hourly Booking Failed", {
-        description: "There was an error processing your hourly booking. Please try again.",
+        description: "There was conflict while booking. Please try another date or time.",
         duration: 6000
       });
     } finally {
