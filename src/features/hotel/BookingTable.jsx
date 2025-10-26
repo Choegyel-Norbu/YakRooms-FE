@@ -552,7 +552,6 @@ const BookingTable = ({ hotelId }) => {
                 <TableHead>Stay Period</TableHead>
                 <TableHead>Total Price</TableHead>
                 <TableHead>Transfer Status</TableHead>
-                <TableHead>Journal Number</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -648,11 +647,15 @@ const BookingTable = ({ hotelId }) => {
                     )}
                   </TableCell>
 
-                  <TableCell>{getStatusBadge(booking.transferStatus)}</TableCell>
                   <TableCell>
-                    {booking.journalNumber || (
-                      <span className="text-muted-foreground italic">N/A</span>
-                    )}
+                    <div className="flex flex-col gap-1">
+                      {getStatusBadge(booking.transferStatus)}
+                      {booking.journalNumber && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Journal: {booking.journalNumber}
+                        </div>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>{getStatusBadge(booking.status)}</TableCell>
                   <TableCell className="text-right">

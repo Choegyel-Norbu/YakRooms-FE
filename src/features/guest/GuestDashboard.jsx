@@ -682,9 +682,9 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
     setIsExtending(true);
     try {
       const extension = calculateExtension();
-      const totalPrice = Math.round(extension.cost); // Base price without tax, rounded to zero decimals
-      const extendedAmount = Math.round(extension.cost); // Same as totalPrice
-      const txnTotalPrice = Math.round(extension.cost * 1.03); // Base price + 3% transaction fee, rounded to zero decimals
+      const totalPrice = Math.ceil(extension.cost); // Base price without tax, rounded up to zero decimals
+      const extendedAmount = Math.ceil(extension.cost); // Same as totalPrice
+      const txnTotalPrice = Math.ceil(extension.cost * 1.03); // Base price + 3% transaction fee, rounded up to zero decimals
       
       const payload = {
         guests: booking.guests,               

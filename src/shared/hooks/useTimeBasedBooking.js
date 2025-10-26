@@ -95,21 +95,20 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
   const calculateTotalPrice = useCallback(() => {
     if (!room?.price) return 0;
     const basePrice = room.price * bookingDetails.numberOfRooms;
-    const serviceTax = basePrice * 0.03; // 3% service tax
-    return basePrice + serviceTax;
+    return Math.ceil(basePrice * 1.03); // Base price + 3% service tax, rounded up to zero decimals
   }, [room?.price, bookingDetails.numberOfRooms]);
 
   // Calculate service tax amount
   const calculateServiceTax = useCallback(() => {
     if (!room?.price) return 0;
     const basePrice = room.price * bookingDetails.numberOfRooms;
-    return basePrice * 0.03; // 3% service tax
+    return Math.ceil(basePrice * 0.03); // 3% service tax, rounded up to zero decimals
   }, [room?.price, bookingDetails.numberOfRooms]);
 
   // Calculate base price (before service tax)
   const calculateBasePrice = useCallback(() => {
     if (!room?.price) return 0;
-    return room.price * bookingDetails.numberOfRooms;
+    return Math.ceil(room.price * bookingDetails.numberOfRooms); // Base price, rounded up to zero decimals
   }, [room?.price, bookingDetails.numberOfRooms]);
 
   // Validate phone number (Bhutanese format)

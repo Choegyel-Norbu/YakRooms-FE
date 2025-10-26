@@ -330,19 +330,19 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
   const calculateTotalPrice = () => {
     const days = calculateDays();
     const basePrice = days * room.price * bookingDetails.numberOfRooms;
-    return basePrice; // Just the base price without tax
+    return Math.ceil(basePrice); // Just the base price without tax, rounded up to zero decimals
   };
 
   const calculateTxnTotalPrice = () => {
     const days = calculateDays();
     const basePrice = days * room.price * bookingDetails.numberOfRooms;
-    return basePrice * 1.03; // basePrice + 3% = basePrice * 1.03
+    return Math.ceil(basePrice * 1.03); // basePrice + 3%, rounded up to zero decimals
   };
 
   const calculateServiceTax = () => {
     const days = calculateDays();
     const basePrice = days * room.price * bookingDetails.numberOfRooms;
-    return basePrice * 0.03; // 3% service tax
+    return Math.ceil(basePrice * 0.03); // 3% service tax, rounded up to zero decimals
   };
 
   const calculateBasePrice = () => {
@@ -942,8 +942,8 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       const daysDiff = 1; // Always 1 night for immediate booking
       
       const basePrice = daysDiff * room.price;
-      const totalPrice = basePrice; // Just the base price without tax
-      const txnTotalPrice = basePrice * 1.03; // basePrice + 3% = basePrice * 1.03
+      const totalPrice = Math.ceil(basePrice); // Just the base price without tax, rounded up to zero decimals
+      const txnTotalPrice = Math.ceil(basePrice * 1.03); // basePrice + 3%, rounded up to zero decimals
       
       const immediatePayload = {
         roomId: room.id,

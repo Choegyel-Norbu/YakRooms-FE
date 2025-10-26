@@ -2701,8 +2701,11 @@ const SuperAdmin = () => {
                             Order: {booking.orderNumber}
                           </div>
                         )}
-                        
-                        
+                        {booking.journalNumber && (
+                          <div className="text-xs font-medium text-purple-600">
+                            Journal: {booking.journalNumber}
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>

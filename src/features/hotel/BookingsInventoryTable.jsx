@@ -590,9 +590,16 @@ const BookingsInventoryTable = ({ hotelId }) => {
 
                     {/* Transfer Status */}
                     <TableCell>
-                      <Badge variant={getTransferStatusBadgeVariant(booking.transferStatus)}>
-                        {booking.transferStatus || "N/A"}
-                      </Badge>
+                      <div className="flex flex-col gap-1">
+                        <Badge variant={getTransferStatusBadgeVariant(booking.transferStatus)}>
+                          {booking.transferStatus || "N/A"}
+                        </Badge>
+                        {booking.journalNumber && (
+                          <div className="text-xs text-muted-foreground">
+                            Journal: {booking.journalNumber}
+                          </div>
+                        )}
+                      </div>
                     </TableCell>
 
                     {/* Price */}
