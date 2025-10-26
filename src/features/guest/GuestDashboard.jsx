@@ -682,8 +682,9 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
     setIsExtending(true);
     try {
       const extension = calculateExtension();
-      const totalPrice = extension.cost; // Base price without tax
-      const txnTotalPrice = extension.cost * 1.03; // Base price + 3% transaction fee
+      const totalPrice = Math.round(extension.cost); // Base price without tax, rounded to zero decimals
+      const extendedAmount = Math.round(extension.cost); // Same as totalPrice
+      const txnTotalPrice = Math.round(extension.cost * 1.03); // Base price + 3% transaction fee, rounded to zero decimals
       
       const payload = {
         guests: booking.guests,               
@@ -691,9 +692,9 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
         destination: booking.destination,     
         origin: booking.origin,               
         extension: true,
-        extendedAmount: extension.cost != null ? extension.cost.toFixed(2) : undefined,
-        totalPrice: totalPrice != null ? totalPrice.toFixed(2) : undefined,
-        txnTotalPrice: txnTotalPrice != null ? txnTotalPrice.toFixed(2) : undefined,
+        extendedAmount: extendedAmount != null ? extendedAmount.toString() : undefined,
+        totalPrice: totalPrice != null ? totalPrice.toString() : undefined,
+        txnTotalPrice: txnTotalPrice != null ? txnTotalPrice.toString() : undefined,
       };
 
       // Add time-based or date-based extension fields
