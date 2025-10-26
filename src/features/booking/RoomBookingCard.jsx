@@ -330,8 +330,13 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
   const calculateTotalPrice = () => {
     const days = calculateDays();
     const basePrice = days * room.price * bookingDetails.numberOfRooms;
-    const serviceTax = basePrice * 0.03; // 3% service tax
-    return basePrice + serviceTax;
+    return basePrice; // Just the base price without tax
+  };
+
+  const calculateTxnTotalPrice = () => {
+    const days = calculateDays();
+    const basePrice = days * room.price * bookingDetails.numberOfRooms;
+    return basePrice * 1.03; // basePrice + 3% = basePrice * 1.03
   };
 
   const calculateServiceTax = () => {
@@ -849,6 +854,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         roomId: room.id,
         hotelId: hotelId,
         totalPrice: calculateTotalPrice(),
+        txnTotalPrice: calculateTxnTotalPrice(),
         userId,
         days: calculateDays(),
         adminBooking: false,
@@ -936,8 +942,8 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       const daysDiff = 1; // Always 1 night for immediate booking
       
       const basePrice = daysDiff * room.price;
-      const serviceTax = basePrice * 0.03; // 3% service tax
-      const totalPrice = basePrice + serviceTax;
+      const totalPrice = basePrice; // Just the base price without tax
+      const txnTotalPrice = basePrice * 1.03; // basePrice + 3% = basePrice * 1.03
       
       const immediatePayload = {
         roomId: room.id,
@@ -948,6 +954,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         guests: immediateBookingDetails.guests,
         numberOfRooms: 1,
         totalPrice: totalPrice,
+        txnTotalPrice: txnTotalPrice,
         days: daysDiff,
         // Use user input values
         phone: immediateBookingDetails.phone,
@@ -1238,6 +1245,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
 
   const days = calculateDays();
   const totalPrice = calculateTotalPrice();
+  const txnTotalPrice = calculateTxnTotalPrice();
 
   return (
     <>
@@ -1649,6 +1657,10 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                   <span>Total Price</span>
                   <span>Nu {totalPrice.toFixed(2)}</span>
                 </div>
+                <div className="flex justify-between font-bold text-base text-blue-600">
+                  <span>Transaction Total</span>
+                  <span>Nu {txnTotalPrice.toFixed(2)}</span>
+                </div>
                 {days === 0 &&
                     (bookingDetails.checkInDate || bookingDetails.checkOutDate) && (
                       <p className="text-sm text-amber-600">
@@ -1997,17 +2009,19 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Service Tax (3%)</span>
-                    <span className="font-medium">- Nu {(room.price * 0.03).toFixed(2)}</span>
+                    <span className="font-medium">Nu {(room.price * 0.03).toFixed(2)}</span>
                   </div>
                   <Separator className="my-2" />
                   <div className="flex justify-between font-bold text-base">
                     <span>Total Price</span>
+                    <span>Nu {room.price.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-base text-blue-600">
+                    <span>Transaction Total</span>
                     <span>Nu {(room.price * 1.03).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
-
-              
             </div>
 
             <DialogFooter className="flex-shrink-0 mt-4 pt-4 border-t">

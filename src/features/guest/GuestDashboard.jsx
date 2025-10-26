@@ -64,7 +64,7 @@ const calculateExtensionDays = (booking) => {
   const originalNights = Math.ceil((originalCheckOut - originalCheckIn) / (1000 * 60 * 60 * 24));
   
   // Calculate original price per night
-  const originalPricePerNight = booking.totalPrice / originalNights;
+  const originalPricePerNight = (booking.txnTotalPrice || booking.totalPrice) / originalNights;
   
   // Calculate extension nights based on extended amount
   const extensionNights = Math.round(booking.extendedAmount / originalPricePerNight);
@@ -478,7 +478,7 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
       
       // Calculate cost based on original booking's hourly rate
       const originalHours = booking.bookHour || 1;
-      const pricePerHour = booking.totalPrice / originalHours;
+      const pricePerHour = (booking.txnTotalPrice || booking.totalPrice) / originalHours;
       
       // Calculate cost for selected extension hours
       const cost = extensionHours * pricePerHour;
@@ -500,7 +500,7 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
       
       // Calculate cost based on original booking's per-night rate
       const originalNights = calculateNights(booking.checkInDate, booking.checkOutDate);
-      const pricePerNight = booking.totalPrice / originalNights;
+      const pricePerNight = (booking.txnTotalPrice || booking.totalPrice) / originalNights;
       
       // Require at least one night extension
       const cost = nights > 0 ? nights * pricePerNight : 0;
@@ -682,6 +682,9 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
     setIsExtending(true);
     try {
       const extension = calculateExtension();
+      const totalPrice = extension.cost; // Base price without tax
+      const txnTotalPrice = extension.cost * 1.03; // Base price + 3% transaction fee
+      
       const payload = {
         guests: booking.guests,               
         phone: booking.phone,                 
@@ -689,6 +692,8 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
         origin: booking.origin,               
         extension: true,
         extendedAmount: extension.cost != null ? extension.cost.toFixed(2) : undefined,
+        totalPrice: totalPrice != null ? totalPrice.toFixed(2) : undefined,
+        txnTotalPrice: txnTotalPrice != null ? txnTotalPrice.toFixed(2) : undefined,
       };
 
       // Add time-based or date-based extension fields
@@ -1310,7 +1315,7 @@ const BookingCard = ({
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-600">Original booking:</span>
                     <span className="text-sm font-medium text-gray-700">
-                      {formatCurrency(booking.totalPrice)}
+                      {formatCurrency(booking.txnTotalPrice || booking.totalPrice)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -1323,7 +1328,7 @@ const BookingCard = ({
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-semibold text-foreground">Total amount:</span>
                       <span className="text-base font-bold text-emerald-700">
-                        {formatCurrency(booking.totalPrice + booking.extendedAmount)}
+                        {formatCurrency((booking.txnTotalPrice || booking.totalPrice) + booking.extendedAmount)}
                       </span>
                     </div>
                   </div>
@@ -1337,7 +1342,7 @@ const BookingCard = ({
                     isDisabled ? "text-muted-foreground" : "text-foreground"
                   }`}
                 >
-                  {formatCurrency(booking.totalPrice)}
+                  {formatCurrency(booking.txnTotalPrice || booking.totalPrice)}
                 </p>
               </div>
             )}
@@ -1741,7 +1746,7 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
     booking.checkInDate,
     booking.checkOutDate
   );
-  const pricePerNight = booking.totalPrice / numberOfNights;
+  const pricePerNight = (booking.txnTotalPrice || booking.totalPrice) / numberOfNights;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -1929,7 +1934,7 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
                   )}
                 </span>
                 <span className="text-sm font-medium">
-                  {formatCurrency(booking.totalPrice)}
+                  {formatCurrency(booking.txnTotalPrice || booking.totalPrice)}
                 </span>
               </div>
               <div className="border-t pt-2 flex justify-between items-center">
@@ -1937,7 +1942,7 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
                   Total Amount
                 </span>
                 <span className="text-sm font-bold text-foreground">
-                  {formatCurrency(booking.totalPrice)}
+                  {formatCurrency(booking.txnTotalPrice || booking.totalPrice)}
                 </span>
               </div>
             </div>

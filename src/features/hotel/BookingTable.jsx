@@ -552,6 +552,7 @@ const BookingTable = ({ hotelId }) => {
                 <TableHead>Stay Period</TableHead>
                 <TableHead>Total Price</TableHead>
                 <TableHead>Transfer Status</TableHead>
+                <TableHead>Journal Number</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -648,6 +649,11 @@ const BookingTable = ({ hotelId }) => {
                   </TableCell>
 
                   <TableCell>{getStatusBadge(booking.transferStatus)}</TableCell>
+                  <TableCell>
+                    {booking.journalNumber || (
+                      <span className="text-muted-foreground italic">N/A</span>
+                    )}
+                  </TableCell>
                   <TableCell>{getStatusBadge(booking.status)}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -848,6 +854,10 @@ const BookingTable = ({ hotelId }) => {
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">CID:</span>
                     <span className="text-gray-900 text-sm">{selectedBooking.cid || 'Not provided'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-600 text-sm">Journal Number:</span>
+                    <span className="text-gray-900 text-sm">{selectedBooking.journalNumber || 'Not provided'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Guests:</span>

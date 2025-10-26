@@ -2517,7 +2517,7 @@ const SuperAdmin = () => {
           "Destination": booking.destination || "N/A",
           "Transfer Status": booking.transferStatus || "N/A",
           "Transaction ID": booking.transactionId || "N/A",
-          "Booking Amount": booking.bookingAmount || "N/A",
+          "Booking Amount": booking.txnTotalPrice || booking.bookingAmount || "N/A",
           "Order Number": booking.orderNumber || "N/A",
           "Transaction Status": booking.transactionStatus || "N/A",
           "Bank Type": booking.bankType || "N/A",
@@ -2686,18 +2686,14 @@ const SuperAdmin = () => {
                             Txn ID: {booking.transactionId}
                           </div>
                         )}
-                        {booking.bookingAmount && (
+                        {(booking.txnTotalPrice) && (
                           <div className="text-xs text-muted-foreground">
-                            Booking Amount: {booking.bookingAmount}
+                            Booking Amount: {booking.txnTotalPrice || booking.bookingAmount}
                           </div>
                         )}
-                        {booking.bookingAmount && (
+                        {(booking.totalPrice) && (
                           <div className="text-xs font-medium text-blue-600">
-                            Transferable Amount: {(() => {
-                              const totalPrice = parseFloat(booking.bookingAmount) || 0;
-                              const transferableAmount = totalPrice * 0.97; // Subtract 3%
-                              return `Nu. ${Math.ceil(transferableAmount)}`;
-                            })()}
+                            Transferable Amount: {booking.totalPrice}
                           </div>
                         )}
                         {booking.orderNumber && (
