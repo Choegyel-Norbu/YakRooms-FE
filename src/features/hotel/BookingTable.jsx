@@ -615,36 +615,11 @@ const BookingTable = ({ hotelId }) => {
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">
-                    {booking.extension && booking.extendedAmount ? (
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-600">Original:</span>
-                          <span className="text-sm font-medium text-gray-700">
-                            Nu. {new Intl.NumberFormat("en-IN").format(booking.totalPrice)}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-emerald-600">Extension:</span>
-                          <span className="text-sm font-medium text-emerald-600">
-                            +Nu. {new Intl.NumberFormat("en-IN").format(booking.extendedAmount)}
-                          </span>
-                        </div>
-                        <div className="border-t border-gray-200 pt-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-gray-800">Total:</span>
-                            <span className="text-sm font-bold text-emerald-700">
-                              Nu. {new Intl.NumberFormat("en-IN").format(booking.totalPrice + booking.extendedAmount)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center">
-                        <span className="text-sm font-medium">
-                          Nu. {new Intl.NumberFormat("en-IN").format(booking.totalPrice)}
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex items-center">
+                      <span className="text-sm font-medium">
+                        Nu. {new Intl.NumberFormat("en-IN").format(booking.totalPrice)}
+                      </span>
+                    </div>
                   </TableCell>
 
                   <TableCell>
