@@ -268,8 +268,9 @@ const TermsAndConditions = () => {
                           <li>Payment is required at the time of booking</li>
                           <li>Payment is done through RMA</li>
                           <li>Prices are displayed in Bhutanese Ngultrum (BTN)</li>
-                          <li>Final charges may include taxes and service fees</li>
-                          <li>No payment processing fees applied</li>
+                          <li>Final charges include a 3% service tax on all bookings</li>
+                          <li>Service tax is non-negotiable and non-refundable</li>
+                          <li>No additional payment processing fees applied</li>
                         </ul>
                       </div>
                     </SectionContent>
@@ -513,7 +514,7 @@ const TermsAndConditions = () => {
                         <h4 className="font-semibold text-foreground">7.2 Currency and Pricing</h4>
                         <ul className="list-disc list-inside space-y-1 ml-4">
                           <li>Prices are displayed for each room in Bhutanese Ngultrum (BTN) respectively</li>
-                          <li>Final charges may include taxes and service fees</li>
+                          <li>Final charges include a mandatory 3% service tax on all bookings</li>
                           <li>Prices are subject to change without notice</li>
                         </ul>
 
@@ -528,6 +529,47 @@ const TermsAndConditions = () => {
                           If payment fails, there will be no booking created for that selected date. Please ensure sufficient 
                           funds and correct payment information. Contact your bank if issues persist.
                         </p>
+
+                        <h4 className="font-semibold text-foreground">7.5 Service Tax</h4>
+                        <div className="space-y-3">
+                          <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <p className="text-blue-800 dark:text-blue-200 font-medium">
+                              <strong>Mandatory Service Tax:</strong> A service tax of 3% is automatically applied 
+                              to every booking made through the EzeeRoom platform.
+                            </p>
+                          </div>
+
+                          <p>
+                            Service tax is a standard fee applied to all accommodation bookings to support platform 
+                            operations, payment processing, customer support, and system maintenance.
+                          </p>
+
+                          <h5 className="font-medium text-foreground">7.5.1 Calculation and Application</h5>
+                          <ul className="list-disc list-inside space-y-1 ml-4">
+                            <li>Service tax is calculated at 3% of the booking total amount</li>
+                            <li>The tax applies to all booking types including daily, standard and hourly</li>
+                            <li>The final total amount shown includes the service tax</li>
+                          </ul>
+
+                          <h5 className="font-medium text-foreground">7.5.2 Payment Processing</h5>
+                          <p>
+                            The service tax is included in the total amount charged at the time of booking. 
+                            You will see a clear breakdown showing:
+                          </p>
+                          <ul className="list-disc list-inside space-y-1 ml-4">
+                            <li>Base room price</li>
+                            <li>Service tax amount</li>
+                            <li>Total transaction amount</li>
+                          </ul>
+
+                          <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
+                            <p className="text-amber-800 dark:text-amber-200">
+                              <strong>Important:</strong> Service tax is non-refundable, even in cases where 
+                              cancellations are processed through the hotel. The hotel's refund policy will 
+                              apply to the base room price only.
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </SectionContent>
                   </div>

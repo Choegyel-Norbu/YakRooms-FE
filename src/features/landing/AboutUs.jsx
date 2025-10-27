@@ -47,7 +47,6 @@ const AboutUs = () => {
               
               <div className="flex-1 flex justify-center">
                 <Badge variant="outline" className="text-xs">
-                  <Mountain className="w-3 h-3 mr-1" />
                   About Us
                 </Badge>
               </div>
@@ -117,7 +116,6 @@ const AboutUs = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl font-heading flex items-center gap-2">
-                <Mountain className="w-6 h-6 text-primary" />
                 Our Mission
               </CardTitle>
               <CardDescription>
@@ -133,7 +131,6 @@ const AboutUs = () => {
                 {/* For Accommodation Providers */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-primary" />
                     <h4 className="font-semibold text-sm">For Accommodation Providers</h4>
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">
@@ -146,7 +143,6 @@ const AboutUs = () => {
                 {/* For Travelers */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-primary" />
                     <h4 className="font-semibold text-sm">For Travelers</h4>
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">
@@ -160,7 +156,6 @@ const AboutUs = () => {
               {/* Vision Statement */}
               <div className="pt-4 border-t">
                 <div className="flex items-center gap-2 mb-3">
-                  <Heart className="w-5 h-5 text-primary" />
                   <h4 className="font-semibold text-sm">Our Vision</h4>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">

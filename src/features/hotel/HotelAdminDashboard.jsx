@@ -22,6 +22,9 @@ import {
   Shield,
   AlertTriangle,
   ChevronDown,
+  Upload,
+  Camera,
+  Loader2,
 } from "lucide-react";
 import {
   Card,
@@ -33,6 +36,8 @@ import { Button } from "@/shared/components/button";
 import { Separator } from "@/shared/components/separator";
 import { Badge } from "@/shared/components/badge";
 import { Avatar, AvatarFallback } from "@/shared/components/avatar";
+import { Input } from "@/shared/components/input";
+import { Label } from "@/shared/components/label";
 import StaffManager from "./StaffManager";
 import StaffCardGrid from "../admin/StaffCardGrid";
 import RoomStatusTable from "./RoomStatusTable";
@@ -63,6 +68,16 @@ import {
   SheetTrigger,
 } from "@/shared/components/sheet";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/components/alert-dialog";
+import {
   Tabs,
   TabsContent,
   TabsList,
@@ -84,6 +99,7 @@ import { API_BASE_URL } from "../../shared/services/firebaseConfig";
 import { toast } from "sonner";
 import { EzeeRoomLogo } from "@/shared/components";
 import SubscriptionExpirationNotification from "@/shared/components/SubscriptionExpirationNotification";
+import { uploadFile } from "../../shared/services/uploadService";
 
 const HotelAdminDashboard = () => {
   const navigate = useNavigate();
@@ -117,6 +133,13 @@ const HotelAdminDashboard = () => {
   const notificationRef = useRef(null);
   const [showStaffGrid, setShowStaffGrid] = useState(false);
   const [verificationTab, setVerificationTab] = useState("cid-verification"); // "cid-verification" or "passcode"
+  
+  // File upload states for denied verification
+  const [tradeLicense, setTradeLicense] = useState(null);
+  const [idProof, setIdProof] = useState(null);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
+  const [uploadErrors, setUploadErrors] = useState({});
+  const [documentsSubmitted, setDocumentsSubmitted] = useState(false);
 
   // Use selected hotel ID if available, otherwise fall back to hotelId
   const currentHotelId = selectedHotelId || hotelId;
@@ -208,6 +231,14 @@ const HotelAdminDashboard = () => {
       fetchHotelData();
     }
   }, [currentHotelId, userId]);
+
+  // Reset documentsSubmitted state when hotel changes or verification status changes
+  useEffect(() => {
+    setDocumentsSubmitted(false);
+    setTradeLicense(null);
+    setIdProof(null);
+    setUploadErrors({});
+  }, [currentHotelId, hotel?.isVerified, hotel?.verificationDenialReason]);
 
   // Fetch user hotels when component mounts
   useEffect(() => {
@@ -335,8 +366,7 @@ const HotelAdminDashboard = () => {
   };
 
   const handleBookingSuccess = () => {
-    // Refresh bookings when a new booking is created
-    fetchHotelData();
+    // Bookings will be refreshed automatically by the BookingTable component
   };
 
   // Handle hotel switching
@@ -359,7 +389,117 @@ const HotelAdminDashboard = () => {
     }
   };
 
+  // Handle file upload for verification documents
+  const handleFileUpload = (e, field) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
+    // Validate file size (4MB limit per file)
+    const maxFileSize = 4 * 1024 * 1024; // 4MB in bytes
+    if (file.size > maxFileSize) {
+      setUploadErrors((prev) => ({ 
+        ...prev, 
+        [field]: `File size too large: ${file.name}. File must be smaller than 4MB. Please compress your file and try again.`
+      }));
+      return;
+    }
+
+    const fileData = {
+      file: file,
+      name: file.name,
+      type: file.type,
+      url: URL.createObjectURL(file),
+    };
+
+    if (field === 'tradeLicense') {
+      setTradeLicense(fileData);
+    } else if (field === 'idProof') {
+      setIdProof(fileData);
+    }
+
+    // Clear all errors when any file is selected (since at least one is required)
+    setUploadErrors({});
+  };
+
+  // Handle submission of new verification documents
+  const handleSubmitNewDocuments = async (e) => {
+    e.preventDefault();
+
+    // Prevent resubmission
+    if (documentsSubmitted) {
+      toast.error("Documents have already been submitted. Please wait for verification.");
+      return;
+    }
+
+    // Validate that at least one file is selected
+    if (!tradeLicense?.file && !idProof?.file) {
+      setUploadErrors({ 
+        tradeLicense: "Please upload at least one document",
+        idProof: "Please upload at least one document"
+      });
+      toast.error("Please upload at least one document");
+      return;
+    }
+
+    setIsUploadingFiles(true);
+
+    try {
+      // Only upload files that are actually selected
+      const uploadPromises = [];
+      if (tradeLicense?.file) {
+        uploadPromises.push(uploadFile(tradeLicense.file, "license"));
+      }
+      if (idProof?.file) {
+        uploadPromises.push(uploadFile(idProof.file, "idProof"));
+      }
+
+      const uploadResults = await Promise.all(uploadPromises);
+
+      // Prepare update data
+      const updateData = {};
+      uploadResults.forEach((result) => {
+        if (result.field === "license") {
+          updateData.licenseUrl = result.url;
+        } else if (result.field === "idProof") {
+          updateData.idProofUrl = result.url;
+        }
+      });
+
+      // Reset verification denial reason and resubmit for verification
+      updateData.isVerified = false;
+      updateData.verificationDenialReason = null;
+      updateData.hotelResubmit = true;
+
+      // Update hotel with new documents
+      const response = await api.put(`/hotels/${currentHotelId}`, updateData);
+
+      if (response.status === 200) {
+        toast.success("Documents uploaded successfully. Your hotel is being re-verified.", {
+          duration: 5000
+        });
+        
+        // Mark documents as submitted
+        setDocumentsSubmitted(true);
+        
+        // Refresh hotel data
+        const res = await api.get(`/hotels/${currentHotelId}`);
+        setHotel(res.data);
+        
+        // Clear file uploads
+        setTradeLicense(null);
+        setIdProof(null);
+        setUploadErrors({});
+      }
+    } catch (error) {
+      console.error("Error uploading documents:", error);
+      toast.error("Failed to upload documents", {
+        description: error.response?.data?.message || "An error occurred while uploading documents.",
+        duration: 6000
+      });
+    } finally {
+      setIsUploadingFiles(false);
+    }
+  };
 
   const formatLoginTime = (date) => {
     if (!date) return "Never";
@@ -786,6 +926,17 @@ const HotelAdminDashboard = () => {
                         <p className="text-xs leading-none text-muted-foreground mt-1">
                           Hotel Administrator
                         </p>
+                        {/* Verification Status in Mobile */}
+                        {hotel && (
+                          <div className="mt-2">
+                            <Badge
+                              variant={hotel.isVerified ? "default" : hotel.verificationDenialReason ? "destructive" : "secondary"}
+                              className="text-xs font-medium px-2 py-0.5"
+                            >
+                              {hotel.isVerified ? "✓ Verified" : hotel.verificationDenialReason ? "✗ Denied" : "⏳ Pending"}
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -876,7 +1027,13 @@ const HotelAdminDashboard = () => {
                     </p>
                   ) : !subscriptionIsActive ? (
                     <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
-                      Please subscribe to continue
+                      {hotel && !hotel.isVerified && subscriptionNextBillingDate ? 
+                        (subscriptionPlan === 'TRIAL' 
+                          ? `Trial expires: ${new Date(subscriptionNextBillingDate).toLocaleDateString()}.`
+                          : "Please start trial to start hotel verification process")
+                        : hotel && !hotel.isVerified
+                          ? "Please start trial to start hotel verification process"
+                          : "Please subscribe to continue"}
                     </p>
                   ) : null}
                 </div>
@@ -932,6 +1089,190 @@ const HotelAdminDashboard = () => {
                 </div>
               )}
 
+              {/* Verification Status Banner */}
+              {hotel && !hotel.isVerified && (hotel.verificationDenialReason || hotel.hotelResubmit) && (
+                <>
+                  <div className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20 rounded-lg mb-4">
+                    <div className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                            <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-base font-semibold text-red-800 dark:text-red-200 mb-1">
+                            {hotel.verificationDenialReason ? 'Verification Denied' : 'Verification Required'}
+                          </h4>
+                          <p className="text-sm text-red-700 dark:text-red-300 leading-relaxed mb-3">
+                            {hotel.verificationDenialReason 
+                              ? <>Your hotel verification has been denied. Reason: <strong>{hotel.verificationDenialReason}</strong></>
+                              : 'Please resubmit your verification documents to continue using the platform.'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Resubmit Verification Documents */}
+                  {hotel.hotelResubmit ? (
+                    /* Documents Already Resubmitted */
+                    <div className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20 rounded-lg mb-4 p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                            <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-base font-semibold text-blue-800 dark:text-blue-200 mb-1">
+                            Documents Resubmitted for Verification
+                          </h4>
+                          <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
+                            Your verification documents have been resubmitted and are pending review. We'll notify you once your hotel is verified.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <Card className="border-blue-200 dark:border-blue-800 mb-4">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3 mb-4">
+                          <div className="flex-shrink-0">
+                            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                              <Upload className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="text-base font-semibold text-blue-800 dark:text-blue-200 mb-1">
+                              Resubmit Verification Documents
+                            </h4>
+                            <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
+                              Please upload the required documents again to resubmit your hotel for verification.
+                            </p>
+                          </div>
+                        </div>
+
+                        {documentsSubmitted ? (
+                        <div className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0">
+                              <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <h5 className="text-sm font-semibold text-green-800 dark:text-green-200 mb-1">
+                                Documents Submitted Successfully
+                              </h5>
+                              <p className="text-sm text-green-700 dark:text-green-300">
+                                Your verification documents have been submitted and are pending review. Please wait for approval before submitting again.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <form onSubmit={handleSubmitNewDocuments} className="space-y-6">
+                          {/* Helper text */}
+                          <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                              <span className="text-destructive">*</span> At least one document is required
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Trade License */}
+                            <div className="space-y-2">
+                              <Label htmlFor="tradeLicense">
+                                Trade License
+                              </Label>
+                              <Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
+                                <CardContent className="p-6">
+                                  <Label 
+                                    htmlFor="tradeLicense" 
+                                    className="flex flex-col items-center justify-center cursor-pointer"
+                                  >
+                                    <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                                    <span className="text-sm text-muted-foreground text-center">
+                                      {tradeLicense
+                                        ? tradeLicense.name
+                                        : "Upload trade license (PDF or image)"}
+                                    </span>
+                                    <Input
+                                      id="tradeLicense"
+                                      type="file"
+                                      accept=".pdf,.jpg,.jpeg,.png"
+                                      onChange={(e) => handleFileUpload(e, "tradeLicense")}
+                                      className="hidden"
+                                      disabled={documentsSubmitted}
+                                    />
+                                  </Label>
+                                </CardContent>
+                              </Card>
+                              {uploadErrors.tradeLicense && (
+                                <p className="text-destructive text-sm">{uploadErrors.tradeLicense}</p>
+                              )}
+                            </div>
+
+                            {/* ID Proof */}
+                            <div className="space-y-2">
+                              <Label htmlFor="idProof">
+                                ID Proof
+                              </Label>
+                              <Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
+                                <CardContent className="p-6">
+                                  <Label 
+                                    htmlFor="idProof" 
+                                    className="flex flex-col items-center justify-center cursor-pointer"
+                                  >
+                                    <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                                    <span className="text-sm text-muted-foreground text-center">
+                                      {idProof
+                                        ? idProof.name
+                                        : "Upload ID proof (PDF or image)"}
+                                    </span>
+                                    <Input
+                                      id="idProof"
+                                      type="file"
+                                      accept=".pdf,.jpg,.jpeg,.png"
+                                      onChange={(e) => handleFileUpload(e, "idProof")}
+                                      className="hidden"
+                                      disabled={documentsSubmitted}
+                                    />
+                                  </Label>
+                                </CardContent>
+                              </Card>
+                              {uploadErrors.idProof && (
+                                <p className="text-destructive text-sm">{uploadErrors.idProof}</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <Button 
+                            type="submit"
+                            className="w-full"
+                            disabled={isUploadingFiles || documentsSubmitted}
+                          >
+                            {isUploadingFiles ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Uploading Documents...
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="mr-2 h-4 w-4" />
+                                Submit Documents for Verification
+                              </>
+                            )}
+                          </Button>
+                        </form>
+                      )}
+                    </CardContent>
+                  </Card>
+                  )}
+                </>
+              )}
+
               {/* Welcome Card */}
               {/* <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200"> */}
               <CardContent className="p-4 md:p-6">
@@ -956,10 +1297,16 @@ const HotelAdminDashboard = () => {
                       </div>
                       <div>
                         <h3 className="text-lg sm:text-lg font-semibold text-foreground mb-1 truncate">
-                          Welcome back, {userName}!
+                          Welcome, {userName}!
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                          Here's what's happening with your hotel today.
+                          {hotel && !hotel.isVerified && hotel.verificationDenialReason 
+                            ? "Your hotel verification has been denied. Please review the denial reason and resubmit your documentation."
+                            : hotel && !hotel.isVerified && hotel.hotelResubmit
+                            ? "Please resubmit your verification documents to continue using the platform."
+                            : hotel && !hotel.isVerified && !hotel.verificationDenialReason
+                            ? "Your hotel is currently pending verification."
+                            : "Here's what's happening with your hotel today."}
                         </p>
                       </div>
                     </div>
@@ -967,17 +1314,29 @@ const HotelAdminDashboard = () => {
 
                   {/* Right Content */}
                   <div className="hidden md:block flex-shrink-0 flex flex-col items-end gap-8">
-                    <Badge
-                      variant="secondary"
-                      className="bg-primary/10 text-primary border-primary/20 text-xs font-medium px-3 py-1"
-                    >
-                      {roles?.includes("SUPER_ADMIN") ? "Super Admin" :
-                       roles?.includes("HOTEL_ADMIN") ? "Admin" :
-                       roles?.includes("MANAGER") ? "Manager" :
-                       roles?.includes("FRONTDESK") ? "Front Desk" :
-                       roles?.includes("STAFF") ? "Staff" :
-                       "Admin"}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge
+                        variant="secondary"
+                        className="bg-primary/10 text-primary border-primary/20 text-xs font-medium px-3 py-1"
+                      >
+                        {roles?.includes("SUPER_ADMIN") ? "Super Admin" :
+                         roles?.includes("HOTEL_ADMIN") ? "Admin" :
+                         roles?.includes("MANAGER") ? "Manager" :
+                         roles?.includes("FRONTDESK") ? "Front Desk" :
+                         roles?.includes("STAFF") ? "Staff" :
+                         "Admin"}
+                      </Badge>
+
+                      {/* Verification Status Badge */}
+                      {hotel && (
+                        <Badge
+                          variant={hotel.isVerified ? "default" : hotel.verificationDenialReason ? "destructive" : "secondary"}
+                          className="text-xs font-medium px-3 py-1"
+                        >
+                          {hotel.isVerified ? "✓ Verified" : hotel.verificationDenialReason ? "✗ Denied" : "⏳ Pending"}
+                        </Badge>
+                      )}
+                    </div>
 
                     <div className="text-left">
                       <p className="text-xs text-muted-foreground">
@@ -1520,7 +1879,6 @@ const HotelAdminDashboard = () => {
           )}
         </main>
       </div>
-
     </div>
   );
 };

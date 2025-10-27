@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import api from "../../shared/services/Api";
-import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft, Eye, X, MapPin, Phone, Mail, Globe, Calendar, Star, Bell, Trash2, Download, MessageSquare, Monitor, User, MoreHorizontal, Clock } from "lucide-react";
+import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft, Eye, X, MapPin, Phone, Mail, Globe, Calendar, Star, Bell, Trash2, Download, MessageSquare, Monitor, User, MoreHorizontal, Clock, XOctagon, Upload } from "lucide-react";
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
+import { Textarea } from "@/shared/components/textarea";
 import { Link } from "react-router-dom";
 import {
   Select,
@@ -68,6 +69,12 @@ const SuperAdmin = () => {
   const [verifyingHotelId, setVerifyingHotelId] = useState(null); // New state for tracking verification
   const [selectedHotel, setSelectedHotel] = useState(null); // For hotel details modal
   const [showHotelDetails, setShowHotelDetails] = useState(false); // Modal state
+  
+  // Deny hotel states
+  const [denyDialogOpen, setDenyDialogOpen] = useState(false);
+  const [selectedHotelForDeny, setSelectedHotelForDeny] = useState(null);
+  const [denyRemarks, setDenyRemarks] = useState("");
+  const [isDenying, setIsDenying] = useState(false);
 
   // Notification states
   const [notifications, setNotifications] = useState([]);
@@ -456,6 +463,68 @@ const SuperAdmin = () => {
       setError(err.message);
     } finally {
       setVerifyingHotelId(null); // Clear the verifying ID
+    }
+  };
+
+  const handleDenyHotelOpen = (hotel) => {
+    setSelectedHotelForDeny(hotel);
+    setDenyRemarks("");
+    setDenyDialogOpen(true);
+  };
+
+  const handleDenyHotelCancel = () => {
+    setSelectedHotelForDeny(null);
+    setDenyRemarks("");
+    setDenyDialogOpen(false);
+  };
+
+  const handleDenyHotelSubmit = async () => {
+    if (!selectedHotelForDeny || !denyRemarks.trim()) {
+      toast.error("Remarks Required", {
+        description: "Please provide a reason for denying the hotel verification.",
+        icon: <XCircle className="text-red-600" />,
+        duration: 4000,
+      });
+      return;
+    }
+
+    setIsDenying(true);
+    try {
+      const res = await api.post(`/hotels/deny-verification`, {
+        hotelId: selectedHotelForDeny.id,
+        verificationDenialReason: denyRemarks.trim(),
+      });
+      
+      if (res.status === 200 && res.data) {
+        toast.success("Hotel Denied Successfully", {
+          description: `${selectedHotelForDeny.name} has been denied verification.`,
+          icon: <XOctagon className="text-orange-600" />,
+          duration: 6000,
+        });
+        
+        // Refresh the hotels list
+        const params = {
+          page: pagination.pageNumber,
+          size: pagination.pageSize,
+        };
+        const response = await api.get("/hotels/superAdmin", { params });
+        setHotels(response.data.content || []);
+        setPagination((prev) => ({
+          ...prev,
+          totalPages: response.data.totalPages || 1,
+        }));
+        
+        handleDenyHotelCancel();
+      }
+    } catch (err) {
+      console.error("Error denying hotel:", err);
+      toast.error("Denial Failed", {
+        description: "There was an error denying the hotel. Please try again.",
+        icon: <XCircle className="text-red-600" />,
+        duration: 6000,
+      });
+    } finally {
+      setIsDenying(false);
     }
   };
 
@@ -1048,9 +1117,27 @@ const SuperAdmin = () => {
 
                   <div>
                     <p className="text-sm font-medium">Verification Status</p>
-                    <Badge variant={selectedHotel.verified ? "default" : "secondary"} className="mt-1">
-                      {selectedHotel.verified ? "Verified" : "Pending"}
-                    </Badge>
+                    <div className="mt-1 flex items-center gap-2">
+                      <Badge variant={selectedHotel.verified ? "default" : "secondary"}>
+                        {selectedHotel.verified ? "Verified" : selectedHotel.verificationDenialReason ? "Denied" : "Pending"}
+                      </Badge>
+                      {selectedHotel.hotelResubmit && !selectedHotel.verified && (
+                        <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded text-xs text-blue-700 dark:text-blue-300 font-medium">
+                          <Upload className="h-3 w-3" />
+                          Documents Pending
+                        </div>
+                      )}
+                    </div>
+                    {!selectedHotel.verified && selectedHotel.verificationDenialReason && (
+                      <div className="mt-2 p-2 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-md">
+                        <p className="text-xs font-medium text-red-800 dark:text-red-200 mb-1">
+                          Denial Reason:
+                        </p>
+                        <p className="text-xs text-red-700 dark:text-red-300">
+                          {selectedHotel.verificationDenialReason}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {selectedHotel.lowestPrice && (
@@ -2853,7 +2940,7 @@ const SuperAdmin = () => {
           {hotels.map((hotel) => (
             <TableRow
               key={hotel.id}
-              className={hasMissingData(hotel) ? "bg-yellow-50/20" : ""}
+              className={`${hasMissingData(hotel) ? "bg-yellow-50/20" : ""} ${hotel.hotelResubmit && !hotel.verified ? "border-l-4 border-blue-500 bg-blue-50/10" : ""}`}
             >
               <TableCell>
                 <div className="flex items-center">
@@ -2935,9 +3022,24 @@ const SuperAdmin = () => {
                 </div>
               </TableCell>
               <TableCell>
-                <Badge variant={hotel.verified ? "default" : "secondary"}>
-                  {hotel.verified ? "Verified" : "Pending"}
-                </Badge>
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant={hotel.verified ? "default" : "secondary"}>
+                      {hotel.verified ? "Verified" : hotel.verificationDenialReason ? "Denied" : "Pending"}
+                    </Badge>
+                    {hotel.hotelResubmit && !hotel.verified && (
+                      <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded text-xs text-blue-700 dark:text-blue-300 font-medium">
+                        <Upload className="h-3 w-3" />
+                        Documents resubmitted for Verification
+                      </div>
+                    )}
+                  </div>
+                  {!hotel.verified && hotel.verificationDenialReason && (
+                    <p className="text-xs text-red-600 mt-1 max-w-xs truncate" title={hotel.verificationDenialReason}>
+                      {hotel.verificationDenialReason}
+                    </p>
+                  )}
+                </div>
               </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
@@ -2959,6 +3061,15 @@ const SuperAdmin = () => {
                       >
                         <CheckCircle className="mr-2 h-4 w-4" />
                         {verifyingHotelId === hotel.id ? "Verifying..." : "Verify Hotel"}
+                      </DropdownMenuItem>
+                    )}
+                    {!hotel.verified && (
+                      <DropdownMenuItem 
+                        onClick={() => handleDenyHotelOpen(hotel)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <XOctagon className="mr-2 h-4 w-4" />
+                        Deny Verification
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem onClick={() => handleActionDialogOpen(hotel)}>
@@ -3186,6 +3297,73 @@ const SuperAdmin = () => {
                   </div>
                 ) : (
                   "Extend Booking"
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Deny Hotel Dialog */}
+        <Dialog open={denyDialogOpen} onOpenChange={setDenyDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <XOctagon className="h-5 w-5 text-red-500" />
+                Deny Hotel Verification
+              </DialogTitle>
+              <DialogDescription>
+                Please provide a reason for denying the hotel verification
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedHotelForDeny && (
+              <div className="space-y-4">
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <h4 className="font-medium text-sm mb-2">Hotel Details</h4>
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <p><strong>Name:</strong> {selectedHotelForDeny.name}</p>
+                    <p><strong>Phone:</strong> {selectedHotelForDeny.phone || "N/A"}</p>
+                    <p><strong>Email:</strong> {selectedHotelForDeny.email || "N/A"}</p>
+                    <p><strong>District:</strong> {selectedHotelForDeny.district}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="denyRemarks" className="block text-sm font-medium text-gray-700 mb-1">
+                    Reason for Denial *
+                  </label>
+                  <Textarea
+                    id="denyRemarks"
+                    value={denyRemarks}
+                    onChange={(e) => setDenyRemarks(e.target.value)}
+                    placeholder="Please provide a detailed reason for denying this hotel verification..."
+                    rows={4}
+                    className="w-full"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This information will be sent to the hotel owner.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button variant="outline" onClick={handleDenyHotelCancel}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleDenyHotelSubmit}
+                disabled={!denyRemarks.trim() || isDenying}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isDenying ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Denying...
+                  </div>
+                ) : (
+                  "Deny Verification"
                 )}
               </Button>
             </div>
