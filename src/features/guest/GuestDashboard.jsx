@@ -189,9 +189,6 @@ const ExtensionBadge = ({ booking }) => {
           <div className="text-sm text-emerald-700">
             <span className="font-medium">{extensionDays}</span> additional day{extensionDays !== 1 ? 's' : ''} added to your stay
           </div>
-          <div className="text-xs text-emerald-600 mt-1">
-            Extension cost: <span className="font-medium">{formatCurrency(booking.extendedAmount)}</span>
-          </div>
         </div>
         <div className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs font-bold">
           +{extensionDays}
@@ -1377,44 +1374,16 @@ const BookingCard = ({
             size={16}
           />
           <div className="min-w-0">
-            {booking.extension && booking.extendedAmount ? (
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Pricing Breakdown</p>
-                <div className="space-y-0.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600">Original booking:</span>
-                    <span className="text-sm font-medium text-gray-700">
-                      {formatCurrency(booking.txnTotalPrice || booking.totalPrice)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-emerald-600">Extension fee:</span>
-                    <span className="text-sm font-medium text-emerald-600">
-                      +{formatCurrency(booking.extendedAmount)}
-                    </span>
-                  </div>
-                  <div className="border-t border-gray-200 pt-0.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-foreground">Total amount:</span>
-                      <span className="text-base font-bold text-emerald-700">
-                        {formatCurrency((booking.txnTotalPrice || booking.totalPrice) + booking.extendedAmount)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <p className="text-xs text-muted-foreground">Total Amount</p>
-                <p
-                  className={`text-base sm:text-lg font-bold ${
-                    isDisabled ? "text-muted-foreground" : "text-foreground"
-                  }`}
-                >
-                  {formatCurrency(booking.txnTotalPrice || booking.totalPrice)}
-                </p>
-              </div>
-            )}
+            <div>
+              <p className="text-xs text-muted-foreground">Total Amount</p>
+              <p
+                className={`text-base sm:text-lg font-bold ${
+                  isDisabled ? "text-muted-foreground" : "text-foreground"
+                }`}
+              >
+                {formatCurrency(booking.txnTotalPrice || booking.totalPrice)}
+              </p>
+            </div>
           </div>
         </div>
         {booking.passcode && (
