@@ -470,27 +470,38 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
 
   // Calculate additional nights/hours and cost
   const calculateExtension = () => {
-    if (!booking?.checkOutDate) return { nights: 0, hours: 0, cost: 0 };
+    if (!booking?.checkOutDate) return { nights: 0, hours: 0, cost: 0, priceBreakdown: null };
     
     if (booking.timeBased) {
       // Time-based booking extension using selected hours
-      if (!extensionHours || extensionHours <= 0) return { nights: 0, hours: 0, cost: 0 };
+      if (!extensionHours || extensionHours <= 0) return { nights: 0, hours: 0, cost: 0, priceBreakdown: null };
       
-      // Calculate cost based on roomPrice per hour (without service tax)
+      // Price per hour = roomPrice / original hours (for time-based bookings, roomPrice is total for original hours)
       const originalHours = booking.bookHour || 1;
-      const pricePerHour = (booking.roomPrice || 0) / originalHours;
+      const pricePerHour = booking.roomPrice / originalHours;
       
-      // Calculate cost for selected extension hours
-      const cost = extensionHours * pricePerHour;
+      // Calculate extension cost: additional hours × price per hour
+      const extensionCost = extensionHours * pricePerHour;
+      
+      // Price breakdown
+      const priceBreakdown = {
+        roomPrice: booking.roomPrice,  // Original room price for the time period
+        pricePerHour: pricePerHour,
+        extensionHours: extensionHours,
+        extendedAmount: extensionCost,  // Cost for extension only (hours × pricePerHour)
+        serviceTax: extensionCost * 0.03,  // 3% service tax on extension
+        totalAmount: extensionCost + (extensionCost * 0.03)  // Total with service tax
+      };
       
       return { 
         nights: 0, 
         hours: extensionHours, 
-        cost: cost >= 0 ? cost : 0
+        cost: extensionCost >= 0 ? extensionCost : 0,
+        priceBreakdown: priceBreakdown
       };
     } else {
       // Regular booking extension
-      if (!newCheckOutDate) return { nights: 0, hours: 0, cost: 0 };
+      if (!newCheckOutDate) return { nights: 0, hours: 0, cost: 0, priceBreakdown: null };
       
       // Calculate extension from current checkout to new checkout
       const currentCheckOut = new Date(booking.checkOutDate);
@@ -498,17 +509,27 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
       const diffTime = newCheckOut.getTime() - currentCheckOut.getTime();
       const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
-      // Calculate cost based on roomPrice per night (without service tax)
-      const originalNights = calculateNights(booking.checkInDate, booking.checkOutDate);
-      const pricePerNight = (booking.roomPrice || 0) / originalNights;
+      // roomPrice is the price PER NIGHT
+      const pricePerNight = booking.roomPrice;
       
-      // Require at least one night extension
-      const cost = nights > 0 ? nights * pricePerNight : 0;
+      // Calculate extension cost: nights × price per night
+      const extensionCost = nights > 0 ? nights * pricePerNight : 0;
+      
+      // Price breakdown
+      const priceBreakdown = {
+        roomPrice: booking.roomPrice,  // Price per night
+        pricePerNight: pricePerNight,
+        extensionNights: nights,
+        extendedAmount: extensionCost,  // Cost for extension only (nights × pricePerNight)
+        serviceTax: extensionCost * 0.03,  // 3% service tax on extension
+        totalAmount: extensionCost + (extensionCost * 0.03)  // Total with service tax
+      };
       
       return { 
         nights: nights > 0 ? nights : 0, 
         hours: 0,
-        cost: cost >= 0 ? cost : 0
+        cost: extensionCost >= 0 ? extensionCost : 0,
+        priceBreakdown: priceBreakdown
       };
     }
   };
@@ -682,11 +703,17 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
     setIsExtending(true);
     try {
       const extension = calculateExtension();
-      // Calculate base prices from roomPrice (without service tax)
-      const totalPrice = Math.ceil(extension.cost);
-      const extendedAmount = Math.ceil(extension.cost);
-      // Add 3% service tax for transaction total
-      const txnTotalPrice = Math.ceil(extension.cost * 1.03);
+      const breakdown = extension.priceBreakdown;
+      
+      if (!breakdown) {
+        setError("Unable to calculate extension cost. Please try again.");
+        return;
+      }
+      
+      // Calculate totals based on price breakdown
+      const extendedAmount = Math.ceil(breakdown.extendedAmount);  // Extension cost only (no service tax)
+      const totalPrice = Math.ceil(breakdown.extendedAmount);  // Total price for extension = extendedAmount
+      const txnTotalPrice = Math.ceil(breakdown.totalAmount);  // Total with 3% service tax
       
       const payload = {
         guests: booking.guests,               
@@ -694,9 +721,10 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
         destination: booking.destination,     
         origin: booking.origin,               
         extension: true,
-        extendedAmount: extendedAmount != null ? extendedAmount.toString() : undefined,
-        totalPrice: totalPrice != null ? totalPrice.toString() : undefined,
-        txnTotalPrice: txnTotalPrice != null ? txnTotalPrice.toString() : undefined,
+        // Pricing fields
+        extendedAmount: extendedAmount.toString(),
+        totalPrice: totalPrice.toString(),
+        txnTotalPrice: txnTotalPrice.toString(),
       };
 
       // Add time-based or date-based extension fields
@@ -1014,10 +1042,48 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
                         </div>
                       </>
                     )}
-                    <div className="flex justify-between font-medium pt-2 border-t border-green-300">
-                      <span>Additional cost:</span>
-                      <span>{formatCurrency(extension.cost)}</span>
-                    </div>
+                    
+                    {/* Price Breakdown */}
+                    {extension.priceBreakdown && (
+                      <div className="pt-2 border-t border-green-300 space-y-2">
+                        <div className="font-semibold text-green-800 mb-2">Pricing Breakdown:</div>
+                        {booking.timeBased ? (
+                          <div className="space-y-1 text-xs">
+                            <div className="flex justify-between text-green-700">
+                              <span>Original room price:</span>
+                              <span>{formatCurrency(extension.priceBreakdown.roomPrice)}</span>
+                            </div>
+                            <div className="flex justify-between text-green-700">
+                              <span>Price per hour:</span>
+                              <span>{formatCurrency(extension.priceBreakdown.pricePerHour)}</span>
+                            </div>
+                            <div className="flex justify-between text-green-700">
+                              <span>Extension ({extension.hours} hour{extension.hours !== 1 ? 's' : ''}):</span>
+                              <span>{formatCurrency(extension.priceBreakdown.extendedAmount)}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-1 text-xs">
+                            <div className="flex justify-between text-green-700">
+                              <span>Original room price:</span>
+                              <span>{formatCurrency(extension.priceBreakdown.roomPrice)}</span>
+                            </div>
+                            <div className="flex justify-between text-green-700">
+                              <span>Extension ({extension.nights} night{extension.nights !== 1 ? 's' : ''}):</span>
+                              <span>{formatCurrency(extension.priceBreakdown.extendedAmount)}</span>
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-green-700">
+                          <span>Service tax (3%):</span>
+                          <span>{formatCurrency(Math.ceil(extension.priceBreakdown.serviceTax))}</span>
+                        </div>
+                        <div className="flex justify-between font-bold text-green-800 pt-1 border-t border-green-300">
+                          <span>Total amount:</span>
+                          <span>{formatCurrency(Math.ceil(extension.priceBreakdown.totalAmount))}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1092,7 +1158,7 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
                   Extending...
                 </span>
               ) : (
-                `Extend ${booking.timeBased ? 'Time' : 'Stay'} (${formatCurrency(extension.cost)})`
+                `Extend ${booking.timeBased ? 'Time' : 'Stay'} (${formatCurrency(extension.priceBreakdown?.totalAmount || extension.cost)})`
               )}
             </button>
           </div>
