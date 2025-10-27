@@ -5,7 +5,7 @@ import { formatTimeTo12Hour } from '../utils/utils';
  * Custom hook for hourly booking functionality
  * Provides state management, validation, and calculation utilities
  */
-export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
+export const useTimeBasedBooking = (room, timeBasedBookings = [], bookedDates = [], hotelCheckoutTime = "12:00") => {
   const [bookingDetails, setBookingDetails] = useState({
     checkInDate: "",
     checkInTime: "",
@@ -21,9 +21,24 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
   
   const [errors, setErrors] = useState({});
 
+  // Helper function to check if previous day is booked (indicating checkout on selected date)
+  const hasCheckoutOnSelectedDate = useCallback((date) => {
+    if (!date || bookedDates.length === 0) return false;
+    
+    const selectedDate = new Date(date);
+    const previousDate = new Date(selectedDate);
+    previousDate.setDate(previousDate.getDate() - 1);
+    
+    const previousDateString = previousDate.getFullYear() + '-' + 
+      String(previousDate.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(previousDate.getDate()).padStart(2, '0');
+    
+    return bookedDates.includes(previousDateString);
+  }, [bookedDates]);
+
   // Helper function to check for time conflicts in hourly bookings
   const hasTimeConflict = useCallback((date, checkInTime, bookHours) => {
-    if (!date || !checkInTime || !bookHours || timeBasedBookings.length === 0) {
+    if (!date || !checkInTime || !bookHours) {
       return false;
     }
 
@@ -36,9 +51,28 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     const [selectedHours, selectedMinutes] = checkInTime.split(':').map(Number);
     const selectedStartMinutes = selectedHours * 60 + selectedMinutes;
     const selectedEndMinutes = selectedStartMinutes + (bookHours * 60);
+    
+    // Check if there's a checkout on this date (previous day is booked)
+    if (hasCheckoutOnSelectedDate(date)) {
+      // Parse hotel checkout time
+      let checkoutTimeStr = hotelCheckoutTime;
+      if (checkoutTimeStr.includes(':') && checkoutTimeStr.split(':').length === 3) {
+        checkoutTimeStr = checkoutTimeStr.substring(0, 5);
+      }
+      
+      const [checkoutHours, checkoutMinutes] = checkoutTimeStr.split(':').map(Number);
+      const checkoutTotalMinutes = checkoutHours * 60 + checkoutMinutes;
+      
+      // If the selected time starts before checkout time, it's a conflict
+      if (selectedStartMinutes < checkoutTotalMinutes) {
+        return { conflict: true, isCheckoutConflict: true, checkoutTime: checkoutTimeStr };
+      }
+    }
+    
+    // If no checkout conflict, check hourly bookings
 
     // Check against existing hourly bookings for the same date
-    return timeBasedBookings.some(booking => {
+    const conflictsWithHourly = timeBasedBookings.some(booking => {
       if (booking.date !== selectedDateString) {
         return false;
       }
@@ -68,7 +102,13 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
       // Check for overlap with buffer - two time ranges overlap if one starts before the other ends (with buffer)
       return (selectedStartMinutes < existingEndWithBuffer && selectedEndMinutes > existingStartTotalMinutes);
     });
-  }, [timeBasedBookings]);
+    
+    if (conflictsWithHourly) {
+      return { conflict: true, isCheckoutConflict: false };
+    }
+    
+    return { conflict: false, isCheckoutConflict: false };
+  }, [timeBasedBookings, bookedDates, hotelCheckoutTime, hasCheckoutOnSelectedDate]);
 
   // Calculate checkout time based on check-in time and duration
   const calculateCheckOutTime = useCallback(() => {
@@ -91,24 +131,30 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     return formatTimeTo12Hour(bookingDetails.checkInTime);
   }, [bookingDetails.checkInTime]);
 
-  // Calculate total price for hourly booking - now includes 3% service tax
+  // Calculate total price for hourly booking (base price without tax)
   const calculateTotalPrice = useCallback(() => {
     if (!room?.price) return 0;
+    return Math.ceil(room.price * bookingDetails.numberOfRooms); // Base price, rounded up
+  }, [room?.price, bookingDetails.numberOfRooms]);
+
+  // Calculate transaction total price (with 3% service tax)
+  const calculateTxnTotalPrice = useCallback(() => {
+    if (!room?.price) return 0;
     const basePrice = room.price * bookingDetails.numberOfRooms;
-    return Math.ceil(basePrice * 1.03); // Base price + 3% service tax, rounded up to zero decimals
+    return Math.ceil(basePrice * 1.03); // Base price + 3% service tax, rounded up
   }, [room?.price, bookingDetails.numberOfRooms]);
 
   // Calculate service tax amount
   const calculateServiceTax = useCallback(() => {
     if (!room?.price) return 0;
     const basePrice = room.price * bookingDetails.numberOfRooms;
-    return Math.ceil(basePrice * 0.03); // 3% service tax, rounded up to zero decimals
+    return Math.ceil(basePrice * 0.03); // 3% service tax, rounded up
   }, [room?.price, bookingDetails.numberOfRooms]);
 
-  // Calculate base price (before service tax)
+  // Calculate base price (before service tax) - alias for totalPrice
   const calculateBasePrice = useCallback(() => {
     if (!room?.price) return 0;
-    return Math.ceil(room.price * bookingDetails.numberOfRooms); // Base price, rounded up to zero decimals
+    return Math.ceil(room.price * bookingDetails.numberOfRooms); // Base price, rounded up
   }, [room?.price, bookingDetails.numberOfRooms]);
 
   // Validate phone number (Bhutanese format)
@@ -244,10 +290,20 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
       newErrors.bookHours = "Maximum booking duration is 4 hours";
     }
 
-    // Check for time conflicts with existing hourly bookings
+    // Check for time conflicts with existing hourly bookings or checkout times
     if (bookingDetails.checkInDate && bookingDetails.checkInTime && bookingDetails.bookHours) {
-      if (hasTimeConflict(bookingDetails.checkInDate, bookingDetails.checkInTime, bookingDetails.bookHours)) {
-        newErrors.checkInTime = "This time slot conflicts with an existing hourly booking";
+      const conflict = hasTimeConflict(bookingDetails.checkInDate, bookingDetails.checkInTime, bookingDetails.bookHours);
+      if (conflict.conflict) {
+        if (conflict.isCheckoutConflict && conflict.checkoutTime) {
+          // Format checkout time for error message
+          const [hours, mins] = conflict.checkoutTime.split(':').map(Number);
+          const hour12 = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+          const ampm = hours >= 12 ? 'PM' : 'AM';
+          const formattedTime = `${hour12}:${mins.toString().padStart(2, '0')} ${ampm}`;
+          newErrors.checkInTime = `You cannot book before checkout time (${formattedTime}) on this date`;
+        } else {
+          newErrors.checkInTime = "This time slot conflicts with an existing hourly booking";
+        }
       }
     }
 
@@ -261,7 +317,7 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     }
     
     return newErrors;
-  }, [bookingDetails, room?.maxGuests, hasTimeConflict, validateCID, validateDestination, validateOrigin, validateBhutanesePhone]);
+  }, [bookingDetails, room?.maxGuests, hasTimeConflict, validateCID, validateDestination, validateOrigin, validateBhutanesePhone, hotelCheckoutTime]);
 
   // Handle input changes
   const handleInputChange = useCallback((e) => {
@@ -449,7 +505,8 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
 
   // Check if a specific time slot is available
   const isTimeSlotAvailable = useCallback((date, checkInTime, bookHours) => {
-    return !hasTimeConflict(date, checkInTime, bookHours);
+    const conflict = hasTimeConflict(date, checkInTime, bookHours);
+    return !conflict.conflict;
   }, [hasTimeConflict]);
 
   return {
@@ -472,6 +529,7 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     calculateCheckOutTime,
     getFormattedCheckInTime,
     calculateTotalPrice,
+    calculateTxnTotalPrice,
     calculateServiceTax,
     calculateBasePrice,
     validateForm,
@@ -479,6 +537,7 @@ export const useTimeBasedBooking = (room, timeBasedBookings = []) => {
     getExistingBookingsForDate,
     getBlockedTimeSlots,
     isTimeSlotAvailable,
+    hasCheckoutOnSelectedDate,
     
     // Validation helpers
     validateBhutanesePhone,

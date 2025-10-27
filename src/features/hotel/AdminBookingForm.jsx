@@ -76,7 +76,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
     getExistingBookingsForDate,
     getBlockedTimeSlots,
     isTimeSlotAvailable,
-  } = useTimeBasedBooking(selectedRoomForHook, timeBasedBookings);
+  } = useTimeBasedBooking(selectedRoomForHook, timeBasedBookings, bookedDates, "12:00");
 
   useEffect(() => {
     if (hotelId) {
@@ -670,8 +670,11 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
         };
       } else {
         // Regular booking payload
+        // Destructure bookingDetails to exclude fields not used in standard booking
+        const { checkInTime, bookHour, ...standardBookingDetails } = bookingDetails;
+        
         payload = {
-          ...bookingDetails,
+          ...standardBookingDetails,
           roomId: selectedRoom.id,
           hotelId: hotelId,
           totalPrice: calculateTotalPrice(),
@@ -788,9 +791,8 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
 
               {/* Booking Type Toggle */}
               <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm font-medium">Regular Booking</span>
+                <div className={`transition-colors ${!isTimeBasedBooking ? 'text-gray-900 font-semibold' : 'text-gray-400'}`}>
+                  <span className="text-sm">Regular Booking</span>
                 </div>
                 <Switch
                   checked={isTimeBasedBooking}
@@ -801,9 +803,8 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
                     setTimeBasedErrors({});
                   }}
                 />
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm font-medium">Hourly Booking</span>
+                <div className={`transition-colors ${isTimeBasedBooking ? 'text-gray-900 font-semibold' : 'text-gray-400'}`}>
+                  <span className="text-sm">Hourly Booking</span>
                 </div>
               </div>
               <div className="grid gap-2" data-field="roomNumber">

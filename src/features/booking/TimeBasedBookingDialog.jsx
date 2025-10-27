@@ -59,13 +59,15 @@ export default function TimeBasedBookingDialog({
     calculateCheckOutTime,
     getFormattedCheckInTime,
     calculateTotalPrice,
+    calculateTxnTotalPrice,
     calculateServiceTax,
     calculateBasePrice,
     validateForm,
     getExistingBookingsForDate,
     getBlockedTimeSlots,
     isTimeSlotAvailable,
-  } = useTimeBasedBooking(room, timeBasedBookings);
+    hasCheckoutOnSelectedDate,
+  } = useTimeBasedBooking(room, timeBasedBookings, bookedDates, hotel?.checkoutTime || "12:00");
 
   // Fetch booked dates for the room
   const fetchBookedDates = async () => {
@@ -176,7 +178,8 @@ export default function TimeBasedBookingDialog({
         bookHour: bookingDetails.bookHours,
         guests: bookingDetails.guests,
         numberOfRooms: 1,
-        totalPrice: calculateTotalPrice(),
+        totalPrice: calculateTotalPrice(), // Price WITHOUT tax
+        txnTotalPrice: calculateTxnTotalPrice(), // Price WITH 3% tax
         phone: bookingDetails.phone,
         cid: bookingDetails.cid,
         destination: bookingDetails.destination,
@@ -382,6 +385,35 @@ export default function TimeBasedBookingDialog({
                       <p className="text-sm text-destructive">{errors.bookHours}</p>
                     )}
                   </div>
+
+                  {/* Show checkout time reminder if previous day is booked */}
+                  {bookingDetails.checkInDate && hasCheckoutOnSelectedDate(bookingDetails.checkInDate) && (() => {
+                    let checkoutTimeStr = hotel?.checkoutTime || "12:00";
+                    if (checkoutTimeStr.includes(':') && checkoutTimeStr.split(':').length === 3) {
+                      checkoutTimeStr = checkoutTimeStr.substring(0, 5);
+                    }
+                    
+                    const [checkoutHours, checkoutMins] = checkoutTimeStr.split(':').map(Number);
+                    const checkoutHour12 = checkoutHours > 12 ? checkoutHours - 12 : (checkoutHours === 0 ? 12 : checkoutHours);
+                    const ampm = checkoutHours >= 12 ? 'PM' : 'AM';
+                    const formattedCheckoutTime = `${checkoutHour12}:${checkoutMins.toString().padStart(2, '0')} ${ampm}`;
+                    
+                    return (
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-start gap-2">
+                          <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <div className="text-sm">
+                            <p className="font-medium text-blue-800">Checkout Reminder</p>
+                            <p className="text-blue-700 mt-1">
+                              A guest is checking out on this date. Please select a time <strong>after {formattedCheckoutTime}</strong> when the room becomes available.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Existing hourly bookings for selected date */}
                   {bookingDetails.checkInDate && (() => {
@@ -624,7 +656,7 @@ export default function TimeBasedBookingDialog({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Room Price</span>
                   <span className="font-medium">
-                    Nu {calculateBasePrice().toFixed(2)}
+                    Nu {calculateTotalPrice().toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -636,7 +668,11 @@ export default function TimeBasedBookingDialog({
                 <Separator className="my-2" />
                 <div className="flex justify-between font-bold text-base">
                   <span>Total Price</span>
-                  <span>Nu {totalPrice.toFixed(2)}</span>
+                  <span>Nu {calculateTotalPrice().toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-bold text-base text-blue-600">
+                  <span>Transaction Total (with tax)</span>
+                  <span>Nu {calculateTxnTotalPrice().toFixed(2)}</span>
                 </div>
                 {(!bookingDetails.checkInDate || !bookingDetails.checkInTime || !bookingDetails.bookHours) && (
                   <p className="text-sm text-amber-600">
