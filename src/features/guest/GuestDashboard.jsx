@@ -399,6 +399,7 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
   const [isExtending, setIsExtending] = useState(false);
   const [error, setError] = useState("");
   const [availabilityChecked, setAvailabilityChecked] = useState(false);
+  const [isAutoFilledDate, setIsAutoFilledDate] = useState(false);
 
   // Reset state when modal opens/closes
   useEffect(() => {
@@ -410,6 +411,7 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
       setTimeBasedBookings([]);
       setError("");
       setAvailabilityChecked(false);
+      setIsAutoFilledDate(false);
       if (booking) {
         fetchBookedDates();
       }
@@ -427,18 +429,36 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
         setBookedDates(response.data.bookedDates || []);
         setTimeBasedBookings(response.data.timeBasedBookings || []);
         
-        // Check if extension is possible (tomorrow is available)
-        const currentCheckOut = new Date(booking.checkOutDate);
-        const tomorrow = new Date(currentCheckOut);
-        tomorrow.setDate(tomorrow.getDate() + 1);
+        // Check if extension is possible
+        // Note: bookedDates contains check-in dates (when bookings start)
+        // Checkout dates are EXCLUSIVE - meaning if you checkout on date X, the room is available starting from date X
+        // So having a check-in on date Y doesn't prevent checkout on date Y
+        // We can extend to any date that doesn't have a check-in BETWEEN current checkout and new checkout
+        // Example: Checkout 4 -> Checkout 5 is allowed even if there's a check-in on 5
+        // Example: Checkout 4 -> Checkout 5 is NOT allowed if there's a check-in on 4 (overlap)
         
-        const tomorrowBlocked = response.data.bookedDates?.some(blockedDate => {
-          const blocked = new Date(blockedDate);
-          return blocked.toDateString() === tomorrow.toDateString();
+        // Auto-fill checkout date if there's a check-in the day after current checkout
+        const currentCheckOut = new Date(booking.checkOutDate);
+        currentCheckOut.setHours(0, 0, 0, 0);
+        
+        // Check if there's a check-in on the day after current checkout
+        const nextDay = new Date(currentCheckOut);
+        nextDay.setDate(nextDay.getDate() + 1);
+        
+        const hasCheckInNextDay = response.data.bookedDates?.some(blockedDate => {
+          const checkInDate = new Date(blockedDate);
+          checkInDate.setHours(0, 0, 0, 0);
+          return checkInDate.toDateString() === nextDay.toDateString();
         });
         
-        if (tomorrowBlocked) {
-          setError("Unfortunately, your room is not available for extension as it's already booked from tomorrow onwards. We recommend making a new booking for your desired dates using our hotel search feature.");
+        if (hasCheckInNextDay) {
+          // Automatically set new checkout to the day after current checkout
+          const year = nextDay.getFullYear();
+          const month = String(nextDay.getMonth() + 1).padStart(2, '0');
+          const day = String(nextDay.getDate()).padStart(2, '0');
+          const dateValue = `${year}-${month}-${day}`;
+          setNewCheckOutDate(dateValue);
+          setIsAutoFilledDate(true);
         }
         
         setAvailabilityChecked(true);
@@ -456,10 +476,34 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
   };
 
   // Get minimum date for new checkout (day after current checkout)
+  // Since checkout dates are EXCLUSIVE, we can allow same-day extensions
+  // (checkout today means leaving today, so room available starting today)
   const getMinCheckOutDate = () => {
     if (!booking?.checkOutDate) return new Date();
     const currentCheckOut = new Date(booking.checkOutDate);
-    // Require at least one day extension - cannot select the same checkout date
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Check if checkout is today
+    currentCheckOut.setHours(0, 0, 0, 0);
+    const isCheckoutToday = currentCheckOut.getTime() === today.getTime();
+    
+    if (isCheckoutToday) {
+      // Allow same-day extension (checkout today -> checkout today = extending to tomorrow)
+      // Check if there are any check-ins TODAY (which would conflict)
+      const checkInToday = bookedDates.some(blockedDate => {
+        const blocked = new Date(blockedDate);
+        blocked.setHours(0, 0, 0, 0);
+        return blocked.toDateString() === today.toDateString();
+      });
+      
+      // If no check-in today, allow same-day extension
+      if (!checkInToday) {
+        return new Date(currentCheckOut);
+      }
+    }
+    
+    // Otherwise, require at least one day extension
     const minDate = new Date(currentCheckOut);
     minDate.setDate(minDate.getDate() + 1);
     return minDate;
@@ -504,7 +548,19 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
       const currentCheckOut = new Date(booking.checkOutDate);
       const newCheckOut = new Date(newCheckOutDate);
       const diffTime = newCheckOut.getTime() - currentCheckOut.getTime();
-      const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      let nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      // If same-day extension (selecting today when checkout is today), it extends to tomorrow (1 night)
+      if (nights === 0) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        currentCheckOut.setHours(0, 0, 0, 0);
+        const isCheckoutToday = currentCheckOut.getTime() === today.getTime();
+        
+        if (isCheckoutToday) {
+          nights = 1; // Same-day extension means extending to tomorrow
+        }
+      }
       
       // roomPrice is the price PER NIGHT
       const pricePerNight = booking.roomPrice;
@@ -565,15 +621,39 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
     // Check if selected date is the same as current checkout date
     const currentCheckOut = new Date(booking.checkOutDate);
     const selectedDate = new Date(date);
+    const today = new Date();
     
     // Reset time to compare only dates
     currentCheckOut.setHours(0, 0, 0, 0);
     selectedDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
     
-    if (selectedDate.getTime() === currentCheckOut.getTime()) {
-      setError("You cannot select the same checkout date. Please select a date after your current checkout date.");
-      setNewCheckOutDate("");
-      return;
+    const isCheckoutToday = currentCheckOut.getTime() === today.getTime();
+    const isSameDate = selectedDate.getTime() === currentCheckOut.getTime();
+    
+    // Allow same-day extension only if:
+    // 1. Today is checkout day  
+    // 2. No check-in TODAY (which would create overlap)
+    if (isSameDate) {
+      if (isCheckoutToday) {
+        // Check if there's a check-in TODAY (which would create overlap)
+        const checkInToday = bookedDates.some(blockedDate => {
+          const blocked = new Date(blockedDate);
+          blocked.setHours(0, 0, 0, 0);
+          return blocked.toDateString() === today.toDateString();
+        });
+        
+        if (checkInToday) {
+          setError("You cannot extend your stay today as another guest is already checking in today. Please make a new booking for your desired dates.");
+          setNewCheckOutDate("");
+          return;
+        }
+        // If no check-in today, allow same-day extension
+      } else {
+        setError("You cannot select the same checkout date. Please select a date after your current checkout date.");
+        setNewCheckOutDate("");
+        return;
+      }
     }
 
     // Format date to YYYY-MM-DD (this becomes the new checkout date)
@@ -583,36 +663,39 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
     const dateValue = `${year}-${month}-${day}`;
     
     setNewCheckOutDate(dateValue);
+    setIsAutoFilledDate(false); // Clear auto-fill flag when user manually selects a date
     setError("");
 
-    // Check if there are any booked dates between current checkout and new checkout
-    // Note: Checkout dates are exclusive - the room is available starting from checkout date
+    // If same-day extension, we need to check conflicts up to tomorrow (the actual checkout date)
+    let endDateForConflictCheck = selectedDate;
+    if (isCheckoutToday && isSameDate) {
+      const tomorrow = new Date(selectedDate);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      endDateForConflictCheck = tomorrow;
+    }
+
+    // Check if there are any check-ins BETWEEN current checkout and new checkout
+    // CRITICAL: Checkout dates are EXCLUSIVE - checkout on date X means room available starting FROM date X
+    // So having a check-in on date Y doesn't prevent checkout on date Y (they can coexist)
+    // We only block if there's a check-in STRICTLY AFTER current checkout and STRICTLY BEFORE new checkout
     const conflictingDates = [];
     const hasConflict = bookedDates.some(blockedDate => {
-      const blocked = new Date(blockedDate);
-      // Only check dates AFTER current checkout and BEFORE new checkout
-      // The new checkout date itself should be available (exclusive checkout)
-      if (blocked > currentCheckOut && blocked < selectedDate) {
-        conflictingDates.push(blocked.toLocaleDateString());
-        return true;
+      const checkInDate = new Date(blockedDate);
+      checkInDate.setHours(0, 0, 0, 0);
+      endDateForConflictCheck.setHours(0, 0, 0, 0);
+      
+      // Only check if check-in is STRICTLY BETWEEN checkout dates
+      // Example: Checkout 4 -> Checkout 5 allows check-in on 5, but blocks check-in on 4
+      // block if: checkIn > currentCheckOut && checkIn < endDateForConflictCheck
+      const isBetween = checkInDate > currentCheckOut && checkInDate < endDateForConflictCheck;
+      if (isBetween) {
+        conflictingDates.push(checkInDate.toLocaleDateString());
       }
-      return false;
+      return isBetween;
     });
 
     if (hasConflict) {
-      // Check if tomorrow (first day after checkout) is blocked
-      const tomorrow = new Date(currentCheckOut);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowBlocked = bookedDates.some(blockedDate => {
-        const blocked = new Date(blockedDate);
-        return blocked.toDateString() === tomorrow.toDateString();
-      });
-
-      if (tomorrowBlocked) {
-        setError("You cannot select dates");
-      } else {
-        setError(`The selected extension period conflicts with existing bookings on: ${conflictingDates.join(', ')}. Please select a shorter extension period or make a new booking for your desired dates.`);
-      }
+      setError(`The selected extension period conflicts with existing bookings on: ${conflictingDates.join(', ')}. Please select a shorter extension period or make a new booking for your desired dates.`);
     }
   };
 
@@ -690,9 +773,9 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
       if (!newCheckOutDate || error) return;
       
       const extension = calculateExtension();
-      // Require at least one night extension
+      // Require at least one night extension (or same-day extension if tomorrow is free)
       if (extension.nights <= 0) {
-        setError("Please select a valid extension date (at least one day after your current checkout date).");
+        setError("Please select a valid extension date.");
         return;
       }
     }
@@ -730,7 +813,29 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
         payload.timeBased = true;
         payload.bookHour = extension.hours;
       } else {
-        payload.newCheckOutDate = newCheckOutDate;
+        // If same-day extension (selecting today when checkout is today), send tomorrow's date
+        const currentCheckOut = new Date(booking.checkOutDate);
+        const selected = new Date(newCheckOutDate);
+        const today = new Date();
+        
+        currentCheckOut.setHours(0, 0, 0, 0);
+        selected.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+        
+        const isCheckoutToday = currentCheckOut.getTime() === today.getTime();
+        const isSameDate = selected.getTime() === currentCheckOut.getTime();
+        
+        if (isCheckoutToday && isSameDate) {
+          // Same-day extension means extending to tomorrow
+          const tomorrow = new Date(currentCheckOut);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const year = tomorrow.getFullYear();
+          const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+          const day = String(tomorrow.getDate()).padStart(2, '0');
+          payload.newCheckOutDate = `${year}-${month}-${day}`;
+        } else {
+          payload.newCheckOutDate = newCheckOutDate;
+        }
       }
 
       const response = await api.put(`/bookings/${booking.id}/extend`, payload);
@@ -744,9 +849,29 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
           handleExtensionPaymentRedirect(extensionResponse);
         } else {
           // Direct extension without payment (fallback)
+          // Calculate the actual checkout date for the message
+          let actualCheckoutDate = newCheckOutDate;
+          const currentCheckOut = new Date(booking.checkOutDate);
+          const selected = new Date(newCheckOutDate);
+          const today = new Date();
+          
+          currentCheckOut.setHours(0, 0, 0, 0);
+          selected.setHours(0, 0, 0, 0);
+          today.setHours(0, 0, 0, 0);
+          
+          const isCheckoutToday = currentCheckOut.getTime() === today.getTime();
+          const isSameDate = selected.getTime() === currentCheckOut.getTime();
+          
+          if (isCheckoutToday && isSameDate) {
+            // Same-day extension means extending to tomorrow
+            const tomorrow = new Date(currentCheckOut);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            actualCheckoutDate = tomorrow.toISOString().split('T')[0];
+          }
+          
           const extensionDescription = booking.timeBased 
             ? `Your hourly booking has been extended by ${extension.hours} hour${extension.hours !== 1 ? 's' : ''} until ${calculateNewCheckOutTime()}.`
-            : `Your stay has been extended until ${new Date(newCheckOutDate).toLocaleDateString()}.`;
+            : `Your stay has been extended until ${new Date(actualCheckoutDate).toLocaleDateString()}.`;
             
           toast.success("Booking extended successfully!", {
             description: extensionDescription,
@@ -959,6 +1084,13 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
                     disabled={isLoadingBookedDates}
                     className="w-full"
                   />
+                  {isAutoFilledDate && newCheckOutDate && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                      <p className="text-sm text-blue-800">
+                        <span className="font-medium"></span> Checkout extended to {new Date(newCheckOutDate).toLocaleDateString()} because another guest is checking in that day.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
