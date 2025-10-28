@@ -13,7 +13,6 @@ import { GuestDashboard } from "../features/guest";
 import { PrivacyPolicy, TermsAndConditions } from "../features/landing";
 import { SubscriptionPage } from "../features/subscription";
 import { SubscriptionManagement } from "../shared/components";
-import RatingScaleTestPage from "../components/RatingScaleTestPage";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -172,11 +171,6 @@ const AppRouting = () => {
         }
       />
 
-      {/* Test Routes */}
-      <Route
-        path="/rating-test"
-        element={<RatingScaleTestPage />}
-      />
 
       {/* Catch all route */}
       <Route path="*" element={<Navigate to="/" replace />} />

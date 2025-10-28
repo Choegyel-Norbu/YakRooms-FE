@@ -33,7 +33,6 @@ import { useAuth } from "../authentication";
 import { handlePaymentRedirect } from "../../shared/utils/paymentRedirect";
 import { toast } from "sonner";
 import { CustomDatePicker } from "../../shared/components";
-import AuthTest from "../../components/AuthTest";
 import {
   AlertDialog,
   AlertDialogAction,
