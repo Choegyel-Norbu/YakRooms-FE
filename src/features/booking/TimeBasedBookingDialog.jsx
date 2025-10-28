@@ -334,21 +334,117 @@ export default function TimeBasedBookingDialog({
                     <Label htmlFor="checkInTime" className="text-sm">
                       Check-in Time <span className="text-destructive">*</span>
                     </Label>
-                    <Input
-                      id="checkInTime"
-                      name="checkInTime"
-                      type="time"
-                      value={bookingDetails.checkInTime}
-                      onChange={handleInputChange}
-                      className={`text-sm ${
-                        errors.checkInTime 
-                          ? "border-destructive" 
-                          : bookingDetails.checkInDate && bookingDetails.checkInTime && bookingDetails.bookHours && 
-                            !isTimeSlotAvailable(bookingDetails.checkInDate, bookingDetails.checkInTime, bookingDetails.bookHours)
-                          ? "border-red-500 bg-red-50"
-                          : ""
-                      }`}
-                    />
+                    <div className="flex gap-2">
+                      {/* Hours Select (12-hour) */}
+                      <Select
+                        name="checkInTimeHours"
+                        value={(function(){
+                          const hh = bookingDetails.checkInTime ? parseInt(bookingDetails.checkInTime.split(':')[0], 10) : NaN;
+                          if (isNaN(hh)) return '';
+                          const h12 = hh % 12 === 0 ? 12 : hh % 12;
+                          return h12.toString().padStart(2, '0');
+                        })()}
+                        onValueChange={(value) => {
+                          const current = bookingDetails.checkInTime || '00:00';
+                          const [hhStr, mmStr] = current.split(':');
+                          const hh = parseInt(hhStr, 10);
+                          const ampm = hh >= 12 ? 'PM' : 'AM';
+                          let h12 = parseInt(value, 10);
+                          let h24 = h12 % 12;
+                          if (ampm === 'PM') h24 = h24 + 12;
+                          const newH = h24.toString().padStart(2, '0');
+                          handleInputChange({ target: { name: 'checkInTime', value: `${newH}:${mmStr || '00'}` } });
+                        }}
+                      >
+                        <SelectTrigger className={`text-sm ${
+                          errors.checkInTime 
+                            ? "border-destructive" 
+                            : bookingDetails.checkInDate && bookingDetails.checkInTime && bookingDetails.bookHours && 
+                              !isTimeSlotAvailable(bookingDetails.checkInDate, bookingDetails.checkInTime, bookingDetails.bookHours)
+                            ? "border-red-500 bg-red-50"
+                            : ""
+                        }`}>
+                          <SelectValue placeholder="Hour" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 12 }, (_, i) => {
+                            const hour = (i + 1).toString().padStart(2, '0');
+                            return (
+                              <SelectItem key={hour} value={hour}>
+                                {hour}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                      
+                      {/* Minutes Select */}
+                      <Select
+                        name="checkInTimeMinutes"
+                        value={bookingDetails.checkInTime ? bookingDetails.checkInTime.split(':')[1] : ''}
+                        onValueChange={(value) => {
+                          const current = bookingDetails.checkInTime || '00:00';
+                          const [hhStr] = current.split(':');
+                          handleInputChange({ target: { name: 'checkInTime', value: `${hhStr}:${value}` } });
+                        }}
+                      >
+                        <SelectTrigger className={`text-sm ${
+                          errors.checkInTime 
+                            ? "border-destructive" 
+                            : bookingDetails.checkInDate && bookingDetails.checkInTime && bookingDetails.bookHours && 
+                              !isTimeSlotAvailable(bookingDetails.checkInDate, bookingDetails.checkInTime, bookingDetails.bookHours)
+                            ? "border-red-500 bg-red-50"
+                            : ""
+                        }`}>
+                          <SelectValue placeholder="Min" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['00', '15', '30', '45'].map((minute) => (
+                            <SelectItem key={minute} value={minute}>
+                              {minute}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {/* AM/PM Select */}
+                      <Select
+                        name="checkInTimeAmPm"
+                        value={(function(){
+                          const hh = bookingDetails.checkInTime ? parseInt(bookingDetails.checkInTime.split(':')[0], 10) : NaN;
+                          if (isNaN(hh)) return '';
+                          return hh >= 12 ? 'PM' : 'AM';
+                        })()}
+                        onValueChange={(ampmVal) => {
+                          const current = bookingDetails.checkInTime || '00:00';
+                          const [hhStr, mmStr] = current.split(':');
+                          let hh = parseInt(hhStr, 10);
+                          const isPM = ampmVal === 'PM';
+                          hh = hh % 12; // normalize to 0-11
+                          if (isPM) hh = hh + 12; // convert to 12-23
+                          const newH = hh.toString().padStart(2, '0');
+                          handleInputChange({ target: { name: 'checkInTime', value: `${newH}:${mmStr || '00'}` } });
+                        }}
+                      >
+                        <SelectTrigger className={`text-sm ${
+                          errors.checkInTime 
+                            ? "border-destructive" 
+                            : bookingDetails.checkInDate && bookingDetails.checkInTime && bookingDetails.bookHours && 
+                              !isTimeSlotAvailable(bookingDetails.checkInDate, bookingDetails.checkInTime, bookingDetails.bookHours)
+                            ? "border-red-500 bg-red-50"
+                            : ""
+                        }`}>
+                          <SelectValue placeholder="AM/PM" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['AM','PM'].map((ap) => (
+                            <SelectItem key={ap} value={ap}>
+                              {ap}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     {errors.checkInTime && (
                       <p className="text-sm text-destructive">{errors.checkInTime}</p>
                     )}

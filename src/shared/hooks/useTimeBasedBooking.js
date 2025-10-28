@@ -21,20 +21,29 @@ export const useTimeBasedBooking = (room, timeBasedBookings = [], bookedDates = 
   
   const [errors, setErrors] = useState({});
 
-  // Helper function to check if previous day is booked (indicating checkout on selected date)
+  // Helper: block morning of selected date only when previous day has no time-based bookings
+  // If previous date had any time-based booking, allow morning bookings on selected date
   const hasCheckoutOnSelectedDate = useCallback((date) => {
     if (!date || bookedDates.length === 0) return false;
-    
+
     const selectedDate = new Date(date);
     const previousDate = new Date(selectedDate);
     previousDate.setDate(previousDate.getDate() - 1);
-    
-    const previousDateString = previousDate.getFullYear() + '-' + 
-      String(previousDate.getMonth() + 1).padStart(2, '0') + '-' + 
+
+    const previousDateString = previousDate.getFullYear() + '-' +
+      String(previousDate.getMonth() + 1).padStart(2, '0') + '-' +
       String(previousDate.getDate()).padStart(2, '0');
-    
-    return bookedDates.includes(previousDateString);
-  }, [bookedDates]);
+
+    // If previous day isn't fully booked, no checkout block
+    if (!bookedDates.includes(previousDateString)) return false;
+
+    // If previous day has any time-based bookings, allow morning on selected date
+    const prevDayHourly = timeBasedBookings.filter(booking => booking.date === previousDateString);
+    if (prevDayHourly && prevDayHourly.length > 0) return false;
+
+    // Otherwise, block morning as usual (assume overnight checkout)
+    return true;
+  }, [bookedDates, timeBasedBookings]);
 
   // Helper function to check for time conflicts in hourly bookings
   const hasTimeConflict = useCallback((date, checkInTime, bookHours) => {
