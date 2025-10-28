@@ -121,6 +121,7 @@ const HotelAdminDashboard = () => {
     subscriptionNextBillingDate,
     subscriptionExpirationNotification,
     fetchUserHotels,
+    fetchSubscriptionData,
     userHotels,
     setSelectedHotelId,
     getSelectedHotel,
