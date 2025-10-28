@@ -100,10 +100,18 @@ export default function TimeBasedBookingDialog({
     }
   };
 
-  // Get blocked dates for hourly booking (only block dates that have regular bookings)
+  // Get blocked dates for hourly booking
+  // Block dates based on these rules:
+  // 1. Block dates with ONLY regular bookings (no time-based bookings)
+  // 2. Block dates with BOTH regular AND time-based bookings
+  // 3. Allow dates with ONLY time-based bookings (no regular bookings)
   const getBlockedDates = () => {
-    const hourlyDates = timeBasedBookings.map(booking => booking.date);
-    return bookedDates.filter(date => !hourlyDates.includes(date));
+    // Get dates that have time-based bookings
+    const timeBasedDates = timeBasedBookings.map(booking => booking.date);
+    
+    // Block dates that have regular bookings (regardless of time-based bookings)
+    // This covers both "regular only" and "both regular + time-based" scenarios
+    return bookedDates;
   };
 
   // Helper function to scroll to and focus the first error field

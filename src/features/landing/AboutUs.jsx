@@ -222,10 +222,7 @@ const AboutUs = () => {
                 </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground italic mt-5">
-                  "I believe that every traveler deserves to discover the hidden gems of Bhutan 
-                  and every local accommodation deserves to be found. My passion lies in 
-                  creating opportunities for authentic cultural exchanges between visitors 
-                  and our beautiful communities."
+                  "I believe that even the smallest improvements contribute significantly to long-term success. My focus lies in ensuring precision, consistency, and continual enhancement across all aspects of our service. I hold a firm conviction that genuine progress begins with the intention to benefit others, and I strive to uphold this mindset in every task I undertake  regardless of how visible the impact may be."
                 </p>
               </CardContent>
             </div>

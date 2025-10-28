@@ -320,8 +320,9 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
   const getBlockedDates = () => {
     // For standard booking, block dates that have:
     // 1. Regular booked dates (EXCEPT those that only have morning time-based bookings)
-    // 2. Dates with afternoon time-based bookings (12 noon and after)
+    // 2. Dates with ONLY afternoon time-based bookings (12 noon and after, no regular booking)
     // 3. Dates where tomorrow has a time-based booking starting before checkout time
+    // 4. Dates that have BOTH a regular booking AND any time-based bookings
     // 
     // This allows standard booking on dates that only have morning time-based bookings (before 12 noon)
     // because morning bookings don't conflict with overnight standard bookings
@@ -334,16 +335,17 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
     // Get dates that have any time-based bookings (morning or afternoon)
     const allTimeBasedDates = timeBasedBookings.map(booking => booking.date);
     
-    // Filter regular booked dates to exclude those that only have morning time-based bookings
-    const regularBookedDatesToBlock = bookedDates.filter(date => {
-      // If this date has time-based bookings, check if any are afternoon
-      if (allTimeBasedDates.includes(date)) {
-        // Only block if there are afternoon time-based bookings on this date
-        return afternoonTimeBasedDates.includes(date);
-      }
-      // If no time-based bookings on this date, block it (it's a regular booking)
-      return true;
-    });
+    // Get dates that have BOTH a regular booking AND time-based bookings
+    // These should always be blocked as they're fully occupied
+    const datesWithBothBookings = bookedDates.filter(date => allTimeBasedDates.includes(date));
+    
+    // Get dates that have regular bookings WITHOUT time-based bookings
+    // Block regular booked dates that don't have time-based bookings
+    const regularBookedDatesToBlock = bookedDates.filter(date => !allTimeBasedDates.includes(date));
+    
+    // Get dates that have ONLY afternoon time-based bookings (no regular booking)
+    // These should be blocked for standard bookings as they conflict with overnight stays
+    const afternoonOnlyDates = afternoonTimeBasedDates.filter(date => !bookedDates.includes(date));
     
     // Get dates that have time-based booking conflicts on the next day
     // If tomorrow has a time-based booking that starts before checkout time,
@@ -393,9 +395,10 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       });
     }
     
-    // Combine filtered regular booked dates with dates that have afternoon time-based bookings
+    // Combine filtered regular booked dates with dates that have only afternoon time-based bookings,
+    // dates that have both regular and time-based bookings,
     // and dates where tomorrow has time-based bookings before checkout
-    const allBlockedDates = [...regularBookedDatesToBlock, ...afternoonTimeBasedDates, ...datesWithNextDayConflict];
+    const allBlockedDates = [...regularBookedDatesToBlock, ...afternoonOnlyDates, ...datesWithBothBookings, ...datesWithNextDayConflict];
     return [...new Set(allBlockedDates)]; // Remove duplicates
   };
 

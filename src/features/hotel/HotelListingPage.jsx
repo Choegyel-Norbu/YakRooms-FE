@@ -106,11 +106,11 @@ const HotelCard = React.memo(({ hotel }) => (
         <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
           <div className="flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5 flex-shrink-0" />
-            <span>Check-in: 12:00 AM</span>
+            <span>Check-in: {hotel.checkinTime}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5 flex-shrink-0" />
-            <span>Check-out: 2:00 PM</span>
+            <span>Check-out: {hotel.checkoutTime}</span>
           </div>
         </div>
 
@@ -470,6 +470,16 @@ const HotelListingPage = () => {
     return parts.join(' - ') || "Search Results";
   }, [isSearchActive, searchState.district, searchState.locality, searchState.hotelType]);
 
+  // Utility function to format time from "HH:MM:SS" to "H:MM AM/PM"
+  const formatTime = useCallback((timeString) => {
+    if (!timeString) return "N/A";
+    const [hours, minutes] = timeString.split(":");
+    const hour = parseInt(hours, 10);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minutes} ${ampm}`;
+  }, []);
+
   const transformedHotels = useMemo(() => {
     return appState.hotels.map((hotel) => ({
       id: hotel.id,
@@ -485,8 +495,10 @@ const HotelListingPage = () => {
       address: hotel.address,
       averageRating: hotel.averageRating || 0,
       verified: hotel.verified || hotel.isVerified || false,
+      checkinTime: formatTime(hotel.checkinTime || "12:00:00"),
+      checkoutTime: formatTime(hotel.checkoutTime || "14:00:00"),
     }));
-  }, [appState.hotels]);
+  }, [appState.hotels, formatTime]);
 
   // Memoized pagination component
   const renderPagination = useMemo(() => {

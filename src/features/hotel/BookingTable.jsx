@@ -146,6 +146,9 @@ const BookingTable = ({ hotelId }) => {
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [lastSearchedQuery, setLastSearchedQuery] = useState("");
+  
+  // Refresh trigger state
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const pageSize = 10; // Number of bookings per page
 
@@ -220,7 +223,7 @@ const BookingTable = ({ hotelId }) => {
         fetchBookings(currentPage);
       }
     }
-  }, [currentPage, hotelId, isSearchMode, lastSearchedQuery]);
+  }, [currentPage, hotelId, isSearchMode, lastSearchedQuery, refreshTrigger]);
 
   // --- Update Booking Status ---
   const updateBookingStatus = async (id, newStatus) => {
@@ -258,6 +261,9 @@ const BookingTable = ({ hotelId }) => {
       } else {
         fetchBookings(currentPage);
       }
+      
+      // Trigger refresh for any external components
+      setRefreshTrigger(prev => prev + 1);
     } catch (err) {
       toast.error(
         <div className="flex items-center gap-2">
@@ -288,6 +294,16 @@ const BookingTable = ({ hotelId }) => {
           duration: 6000
         }
       );
+      
+      // Re-fetch to get updated data
+      if (isSearchMode && lastSearchedQuery) {
+        searchBookingsByRoom(lastSearchedQuery, currentPage);
+      } else {
+        fetchBookings(currentPage);
+      }
+      
+      // Trigger refresh
+      setRefreshTrigger(prev => prev + 1);
     } catch (err) {
       toast.error(
         <div className="flex items-center gap-2">
@@ -324,6 +340,9 @@ const BookingTable = ({ hotelId }) => {
       } else {
         fetchBookings(currentPage);
       }
+      
+      // Trigger refresh
+      setRefreshTrigger(prev => prev + 1);
     } catch (err) {
       toast.error(
         <div className="flex items-center gap-2">

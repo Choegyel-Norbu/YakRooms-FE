@@ -38,6 +38,7 @@ import { uploadFile } from "../../shared/services/uploadService";
 import { toast } from "sonner";
 import { useAuth } from "../authentication";
 import api from "../../shared/services/Api";
+import RoomDeletionDialog from "../../shared/components/RoomDeletionDialog";
 
 // ShadCN UI Components
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/card";
@@ -71,17 +72,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/shared/components/alert-dialog";
 
 const RoomManager = ({ hotelId }) => {
   const [showForm, setShowForm] = useState(false);
@@ -91,6 +81,8 @@ const RoomManager = ({ hotelId }) => {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(null);
+  const [deletionDialogOpen, setDeletionDialogOpen] = useState(false);
+  const [roomToDelete, setRoomToDelete] = useState(null);
   const formRef = useRef(null);
 
   // Form state
@@ -496,23 +488,22 @@ const RoomManager = ({ hotelId }) => {
     }
   };
 
-  // Delete handler
-  const handleDelete = async (roomId) => {
-    setIsDeleting(roomId);
-    try {
-      await api.delete(`/rooms/${roomId}`);
-      setRooms((prev) => prev.filter((room) => room.id !== roomId));
-      toast.success("Room deleted successfully!", {
-        duration: 6000
-      });
-    } catch (error) {
-      console.error("Error deleting room:", error);
-      toast.error("Failed to delete room. Please try again.", {
-        duration: 6000
-      });
-    } finally {
-      setIsDeleting(null);
-    }
+  // Delete handler - opens the deletion dialog
+  const handleDeleteClick = (room) => {
+    setRoomToDelete(room);
+    setDeletionDialogOpen(true);
+  };
+
+  // Handle successful deletion from dialog
+  const handleDeleteSuccess = (roomId) => {
+    setRooms((prev) => prev.filter((room) => room.id !== roomId));
+    setRoomToDelete(null);
+  };
+
+  // Handle deletion dialog close
+  const handleDeletionDialogClose = () => {
+    setDeletionDialogOpen(false);
+    setRoomToDelete(null);
   };
 
   if (loading) {
@@ -842,38 +833,15 @@ const RoomManager = ({ hotelId }) => {
                       
                       <TooltipProvider>
                         <Tooltip>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  disabled={isDeleting === room.id}
-                                >
-                                  {isDeleting === room.id ? (
-                                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
-                                  ) : (
-                                    <Trash2 className="h-3 w-3" />
-                                  )}
-                                </Button>
-                              </TooltipTrigger>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This action cannot be undone. This will permanently delete the room
-                                  and remove all associated data.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(room.id)}>
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteClick(room)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </TooltipTrigger>
                           <TooltipContent side="top" className="text-xs">
                             Delete room
                           </TooltipContent>
@@ -888,6 +856,14 @@ const RoomManager = ({ hotelId }) => {
           </div>
         </CardContent>
       {/* </Card> */}
+
+      {/* Room Deletion Dialog */}
+      <RoomDeletionDialog
+        isOpen={deletionDialogOpen}
+        onClose={handleDeletionDialogClose}
+        room={roomToDelete}
+        onDeleteSuccess={handleDeleteSuccess}
+      />
     </div>
   );
 };
