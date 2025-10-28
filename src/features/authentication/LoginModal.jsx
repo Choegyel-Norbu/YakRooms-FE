@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import useOutsideClick from "../../shared/hooks/useOutsideClick";
 import GoogleSignInButton from "./GoogleSignInButton";
 import { useAuth } from "./AuthProvider";
@@ -16,7 +17,7 @@ import logoER from "@/assets/images/logoER.png";
 
 const LoginModal = ({ onClose, flag }) => {
   const modalRef = useRef(null);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -36,7 +37,7 @@ const LoginModal = ({ onClose, flag }) => {
   const handleLoginSuccess = async (authData) => {
     try {
       await login(authData);
-      setMessage("Login successful! Redirecting...");
+      setMessage("Login successful!");
     } catch (error) {
       setError("Login failed. Please try again.");
       console.error("Login error:", error);
@@ -49,7 +50,6 @@ const LoginModal = ({ onClose, flag }) => {
         ref={modalRef}
         className="sm:max-w-md w-full p-0 gap-0"
       >
-        {/* Custom close button to match original design */}
         <Button
           onClick={onClose}
           disabled={isLoggingIn}
@@ -89,30 +89,32 @@ const LoginModal = ({ onClose, flag }) => {
             )}
 
             {message && (
-              <Alert className="border-emerald-200 bg-emerald-50">
-                <AlertDescription className="text-sm text-emerald-600">
-                  {message}
-                </AlertDescription>
-              </Alert>
+              <Alert className="border-emerald-200 block text-center">
+              <AlertDescription className="block text-sm text-emerald-600 text-center w-full col-start-1 col-span-2">
+                {message}
+              </AlertDescription>
+            </Alert>
             )}
 
-            <GoogleSignInButton 
-              onClose={onClose} 
-              onLoginSuccess={handleLoginSuccess}
-              onLoginStart={handleLoginStart}
-              onLoginComplete={handleLoginComplete}
-              flag={flag}
-            />
+            {!isAuthenticated && (
+              <GoogleSignInButton 
+                onClose={onClose} 
+                onLoginSuccess={handleLoginSuccess}
+                onLoginStart={handleLoginStart}
+                onLoginComplete={handleLoginComplete}
+                flag={flag}
+              />
+            )}
 
             <p className="text-xs text-center text-muted-foreground">
               By signing up or signing in, you agree to our{" "}
-              <a href="#" className="text-primary hover:underline">
-                Terms
-              </a>{" "}
+              <Link to="/terms-and-conditions" className="text-primary hover:underline">
+                Terms & Conditions
+              </Link>{" "}
               and{" "}
-              <a href="#" className="text-primary hover:underline">
+              <Link to="/privacy-policy" className="text-primary hover:underline">
                 Privacy Policy
-              </a>
+              </Link>
               .
             </p>
           </div>

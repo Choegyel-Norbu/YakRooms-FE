@@ -177,7 +177,7 @@ const SubscriptionPage = () => {
         
         // Redirect to dashboard after 1 second
         setTimeout(() => {
-          navigate('/hotelAdmin');
+          navigate('/hotelAdmin?refreshSubscription=1', { replace: true });
         }, 1000);
       } else {
         throw new Error('Unexpected response status');
@@ -346,7 +346,7 @@ const SubscriptionPage = () => {
           <div className="mb-8">
             <Button
               variant="ghost"
-              onClick={() => navigate('/hotelAdmin')}
+              onClick={() => navigate('/hotelAdmin?refreshSubscription=1')}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 p-0"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -547,7 +547,7 @@ const SubscriptionPage = () => {
 
               <CardFooter className="pt-0">
                 <Button
-                  onClick={() => navigate('/hotelAdmin')}
+                  onClick={() => navigate('/hotelAdmin?refreshSubscription=1')}
                   variant="outline"
                   size="lg"
                   className="w-full border-blue-500 text-blue-500 hover:bg-blue-50"
@@ -680,7 +680,7 @@ const SubscriptionPage = () => {
                 <Button
                   onClick={() => {
                     if (plan.isActive) {
-                      navigate('/hotelAdmin');
+                      navigate('/hotelAdmin?refreshSubscription=1');
                     } else if (plan.isProActive && plan.isSubscription) {
                       // Handle pro subscription management
                       navigate('/subscription-management');

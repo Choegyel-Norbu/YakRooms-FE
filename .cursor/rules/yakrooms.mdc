@@ -22,6 +22,7 @@ Guide me to think like a professional engineer, not just patch code.
   If it does, **enhance and extend** the existing code instead of duplicating functionality.  
   This ensures consistency, avoids fragmentation, and reduces long-term maintenance overhead.
   - **Ask clarifying questions whenever in doubt — never assume or estimate requirements before proceeding**  
+  - When I type "push", commit our chat changes and push them to origin/main.
 
 
 ## Never

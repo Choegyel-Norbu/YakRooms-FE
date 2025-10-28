@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   Home,
   Calendar,
@@ -25,6 +26,7 @@ import {
   Upload,
   Camera,
   Loader2,
+  Check,
 } from "lucide-react";
 import {
   Card,
@@ -103,6 +105,7 @@ import { uploadFile } from "../../shared/services/uploadService";
 
 const HotelAdminDashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     userId,
     userName,
@@ -246,6 +249,36 @@ const HotelAdminDashboard = () => {
       fetchUserHotels(userId);
     }
   }, [userId, fetchUserHotels]);
+
+  // Ensure subscription status is fresh after returning from subscription flow
+  useEffect(() => {
+    const shouldRefreshByUrl = () => {
+      try {
+        const params = new URLSearchParams(location.search || "");
+        return (
+          params.get("refreshSubscription") === "1" ||
+          params.get("subscribed") === "1" ||
+          params.get("subscription") === "active"
+        );
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const isAdminRole = roles?.includes("HOTEL_ADMIN") || roles?.includes("MANAGER");
+    const needsRefresh = subscriptionIsActive == null || shouldRefreshByUrl();
+
+    if (userId && isAdminRole && needsRefresh && typeof fetchSubscriptionData === "function") {
+      // Force refresh to get latest subscription status
+      fetchSubscriptionData(userId, true, selectedHotelId).finally(() => {
+        // Clean URL query params after using them
+        if (shouldRefreshByUrl()) {
+          const cleanUrl = window.location.pathname + window.location.hash;
+          navigate(cleanUrl, { replace: true });
+        }
+      });
+    }
+  }, [userId, roles, subscriptionIsActive, selectedHotelId, location.search, fetchSubscriptionData, navigate]);
 
 
   // Fetch all notifications from backend when component mounts or hotel changes
@@ -600,6 +633,20 @@ const HotelAdminDashboard = () => {
     );
   };
 
+  // Small reusable verified badge for inline use next to names
+  const VerifiedBadge = ({ size = "md" }) => {
+    const iconSize = size === "sm" ? "h-3 w-3" : "h-3.5 w-3.5";
+    const padding = "p-0.5";
+    return (
+      <span
+        className={`inline-flex items-center justify-center bg-blue-500 rounded-full ${padding} flex-shrink-0`}
+        aria-label="Verified account"
+      >
+        <Check className={`${iconSize} text-white`} strokeWidth={3} />
+      </span>
+    );
+  };
+
   return (
     <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
@@ -920,23 +967,13 @@ const HotelAdminDashboard = () => {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium leading-none truncate">
+                        <p className="text-sm font-medium leading-none truncate flex items-center gap-1.5">
                           {userName}
+                          {hotel && hotel.isVerified && <VerifiedBadge size="sm" />}
                         </p>
                         <p className="text-xs leading-none text-muted-foreground mt-1">
                           Hotel Administrator
                         </p>
-                        {/* Verification Status in Mobile */}
-                        {hotel && (
-                          <div className="mt-2">
-                            <Badge
-                              variant={hotel.isVerified ? "default" : hotel.verificationDenialReason ? "destructive" : "secondary"}
-                              className="text-xs font-medium px-2 py-0.5"
-                            >
-                              {hotel.isVerified ? "✓ Verified" : hotel.verificationDenialReason ? "✗ Denied" : "⏳ Pending"}
-                            </Badge>
-                          </div>
-                        )}
                       </div>
                     </div>
 
@@ -1295,47 +1332,38 @@ const HotelAdminDashboard = () => {
                           />
                         </svg>
                       </div>
-                      <div>
-                        <h3 className="text-lg sm:text-lg font-semibold text-foreground mb-1 truncate">
-                          Welcome, {userName}!
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {hotel && !hotel.isVerified && hotel.verificationDenialReason 
-                            ? "Your hotel verification has been denied. Please review the denial reason and resubmit your documentation."
-                            : hotel && !hotel.isVerified && hotel.hotelResubmit
-                            ? "Please resubmit your verification documents to continue using the platform."
-                            : hotel && !hotel.isVerified && !hotel.verificationDenialReason
-                            ? "Your hotel is currently pending verification."
-                            : "Here's what's happening with your hotel today."}
-                        </p>
-                      </div>
+                    <div>
+                      <h3 className="text-lg sm:text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
+                        <span className="truncate">Welcome, {userName}!</span>
+                        {hotel && hotel.isVerified && <VerifiedBadge size="md" />}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {hotel && !hotel.isVerified && hotel.verificationDenialReason 
+                          ? "Your hotel verification has been denied. Please review the denial reason and resubmit your documentation."
+                          : hotel && !hotel.isVerified && hotel.hotelResubmit
+                          ? "Please resubmit your verification documents to continue using the platform."
+                          : hotel && !hotel.isVerified && !hotel.verificationDenialReason
+                          ? "Your hotel is currently pending verification."
+                          : "Here's what's happening with your hotel today."}
+                      </p>
+                    </div>
                     </div>
                   </div>
 
                   {/* Right Content */}
                   <div className="hidden md:block flex-shrink-0 flex flex-col items-end gap-8">
                     <div className="flex flex-col items-end gap-2">
-                      <Badge
-                        variant="secondary"
-                        className="bg-primary/10 text-primary border-primary/20 text-xs font-medium px-3 py-1"
-                      >
-                        {roles?.includes("SUPER_ADMIN") ? "Super Admin" :
-                         roles?.includes("HOTEL_ADMIN") ? "Admin" :
-                         roles?.includes("MANAGER") ? "Manager" :
-                         roles?.includes("FRONTDESK") ? "Front Desk" :
-                         roles?.includes("STAFF") ? "Staff" :
-                         "Admin"}
-                      </Badge>
-
-                      {/* Verification Status Badge */}
-                      {hotel && (
-                        <Badge
-                          variant={hotel.isVerified ? "default" : hotel.verificationDenialReason ? "destructive" : "secondary"}
-                          className="text-xs font-medium px-3 py-1"
-                        >
-                          {hotel.isVerified ? "✓ Verified" : hotel.verificationDenialReason ? "✗ Denied" : "⏳ Pending"}
-                        </Badge>
-                      )}
+                    <Badge
+                      variant="secondary"
+                      className="bg-primary/10 text-primary border-primary/20 text-xs font-medium px-3 py-1"
+                    >
+                      {roles?.includes("SUPER_ADMIN") ? "Super Admin" :
+                       roles?.includes("HOTEL_ADMIN") ? "Admin" :
+                       roles?.includes("MANAGER") ? "Manager" :
+                       roles?.includes("FRONTDESK") ? "Front Desk" :
+                       roles?.includes("STAFF") ? "Staff" :
+                       "Admin"}
+                    </Badge>
                     </div>
 
                     <div className="text-left">
