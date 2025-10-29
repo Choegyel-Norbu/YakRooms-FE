@@ -244,7 +244,20 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
 
     const currentActiveRole = getCurrentActiveRole();
     const roleDisplayInfo = getRoleDisplayInfo(currentActiveRole, true); // Mark as active for bright colors
-    const availableRoles = roles.filter(role => role !== currentActiveRole);
+    const availableRoles = roles.filter(role => {
+      // Don't show the current active role
+      if (role === currentActiveRole) return false;
+      
+      // For HOTEL_ADMIN role, only show it if user has valid hotel data
+      if (role === 'HOTEL_ADMIN') {
+        // Check if hotel ID is valid and user has hotels
+        const hasValidHotelId = selectedHotelId && selectedHotelId !== '';
+        const hasUserHotels = userHotels && Array.isArray(userHotels) && userHotels.length > 0;
+        return hasValidHotelId || hasUserHotels;
+      }
+      
+      return true;
+    });
 
     return (
       <DropdownMenu modal={false}>
@@ -456,7 +469,20 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
 
     const currentActiveRole = getCurrentActiveRole();
     const roleDisplayInfo = getRoleDisplayInfo(currentActiveRole, true); // Mark as active for bright colors
-    const availableRoles = roles.filter(role => role !== currentActiveRole);
+    const availableRoles = roles.filter(role => {
+      // Don't show the current active role
+      if (role === currentActiveRole) return false;
+      
+      // For HOTEL_ADMIN role, only show it if user has valid hotel data
+      if (role === 'HOTEL_ADMIN') {
+        // Check if hotel ID is valid and user has hotels
+        const hasValidHotelId = selectedHotelId && selectedHotelId !== '';
+        const hasUserHotels = userHotels && Array.isArray(userHotels) && userHotels.length > 0;
+        return hasValidHotelId || hasUserHotels;
+      }
+      
+      return true;
+    });
 
     return (
       // Reduced vertical spacing

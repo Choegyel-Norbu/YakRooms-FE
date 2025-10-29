@@ -11,6 +11,7 @@ import { useAuth } from "../authentication";
 import api from "@/shared/services/Api";
 import { toast } from "sonner";
 import { EzeeRoomLogo } from "@/shared/components";
+import { getStorageItem, setStorageItem, removeStorageItem } from "@/shared/utils/safariLocalStorage";
 
 const AccountDeletionPage = () => {
   const navigate = useNavigate();
@@ -70,12 +71,16 @@ const AccountDeletionPage = () => {
 
   const handleSubmitDeletionRequest = async () => {
     if (!selectedReason) {
-      toast.error("Please select a reason for account deletion");
+      toast.error("Please select a reason for account deletion", {
+        duration: 6000
+      });
       return;
     }
 
     if (selectedReason === "other" && !customReason.trim()) {
-      toast.error("Please provide a reason for account deletion");
+      toast.error("Please provide a reason for account deletion", {
+        duration: 6000
+      });
       return;
     }
 
@@ -84,7 +89,7 @@ const AccountDeletionPage = () => {
     try {
       // Use selectedHotelId if available, otherwise fall back to hotelId
       const currentHotelId = selectedHotelId || hotelId;
-      
+
       const deletionData = {
         hotelId: parseInt(currentHotelId),
         deletionReason: selectedReason === "other" ? customReason.trim() : deletionReasons.find(r => r.id === selectedReason)?.description || selectedReason
@@ -93,10 +98,133 @@ const AccountDeletionPage = () => {
       // Submit deletion request to admin
       const response = await api.post("/hotels/request-deletion", deletionData);
 
+      // Remove hotel-related and subscription-related data for the deleted hotel from localStorage
+      try {
+        const deletedHotelId = currentHotelId?.toString();
+
+        if (!deletedHotelId) {
+          return;
+        }
+
+        // Get current hotel data from localStorage
+        const storedHotelIds = getStorageItem('hotelIds');
+        const storedSelectedHotelId = getStorageItem('selectedHotelId');
+        const storedHotelId = getStorageItem('hotelId');
+        const userHotels = getStorageItem('userHotels') || []; // getStorageItem auto-parses JSON
+        const storedRoles = getStorageItem('roles');
+
+        // Parse hotelIds array (getStorageItem already auto-parses JSON)
+        let hotelIdsArray = [];
+        if (storedHotelIds) {
+          if (Array.isArray(storedHotelIds)) {
+            hotelIdsArray = storedHotelIds;
+          } else if (typeof storedHotelIds === 'string' && storedHotelIds.trim() !== '') {
+            // If it's a string (shouldn't happen with auto-parse), try to parse it
+            try {
+              hotelIdsArray = JSON.parse(storedHotelIds);
+              if (!Array.isArray(hotelIdsArray)) {
+                hotelIdsArray = [storedHotelIds];
+              }
+            } catch (e) {
+              hotelIdsArray = [storedHotelIds];
+            }
+          } else if (typeof storedHotelIds === 'number' || typeof storedHotelIds === 'string') {
+            // Single hotel ID
+            hotelIdsArray = [storedHotelIds.toString()];
+          }
+        }
+
+        // Remove the deleted hotel from hotelIds array
+        const updatedHotelIds = hotelIdsArray.filter(id => id?.toString() !== deletedHotelId);
+
+        // Remove from userHotels array
+        const updatedUserHotels = userHotels.filter(hotel => hotel.id?.toString() !== deletedHotelId);
+
+        // Check if there are any remaining hotels
+        const hasRemainingHotels = updatedHotelIds.length > 0 || updatedUserHotels.length > 0;
+
+        if (hasRemainingHotels) {
+          // User has other hotels - update arrays but keep selectedHotelId/hotelId if different
+          if (updatedHotelIds.length > 0) {
+            setStorageItem('hotelIds', JSON.stringify(updatedHotelIds));
+            // Set hotelId to first remaining hotel if current hotelId matches deleted one
+            if (storedHotelId?.toString() === deletedHotelId) {
+              setStorageItem('hotelId', updatedHotelIds[0].toString());
+            }
+          } else {
+            // If hotelIds is empty but userHotels has data, clear hotelIds
+            removeStorageItem('hotelIds');
+          }
+
+          // Update userHotels
+          if (updatedUserHotels.length > 0) {
+            setStorageItem('userHotels', JSON.stringify(updatedUserHotels));
+          } else {
+            removeStorageItem('userHotels');
+          }
+
+          // Clear selectedHotelId only if it matches the deleted hotel
+          if (storedSelectedHotelId?.toString() === deletedHotelId) {
+            // If deleted hotel was selected, select the first remaining hotel
+            if (updatedHotelIds.length > 0) {
+              setStorageItem('selectedHotelId', updatedHotelIds[0].toString());
+            } else if (updatedUserHotels.length > 0) {
+              setStorageItem('selectedHotelId', updatedUserHotels[0].id?.toString());
+            } else {
+              removeStorageItem('selectedHotelId');
+            }
+          }
+          // If hotelId matches deleted hotel but not selected, update it
+          else if (storedHotelId?.toString() === deletedHotelId && storedHotelId !== storedSelectedHotelId) {
+            if (updatedHotelIds.length > 0) {
+              setStorageItem('hotelId', updatedHotelIds[0].toString());
+            }
+          }
+        } else {
+          // No remaining hotels - remove all hotel-related data
+          removeStorageItem('selectedHotelId');
+          removeStorageItem('hotelId');
+          removeStorageItem('hotelIds');
+          removeStorageItem('userHotels');
+
+          // Remove HOTEL_ADMIN role when all hotels are deleted
+          if (storedRoles) {
+            try {
+              const rolesArray = JSON.parse(storedRoles);
+              const updatedRoles = rolesArray.filter(role => role !== 'HOTEL_ADMIN');
+
+              if (updatedRoles.length > 0) {
+                setStorageItem('roles', JSON.stringify(updatedRoles));
+              } else {
+                removeStorageItem('roles');
+              }
+            } catch (error) {
+              // If parsing fails, remove roles entirely to be safe
+              removeStorageItem('roles');
+            }
+          }
+        }
+
+        // Always remove subscription-related data (subscriptions are hotel-specific)
+        // This is safe because subscription data is tied to the specific hotel
+        removeStorageItem('subscriptionId');
+        removeStorageItem('subscriptionPaymentStatus');
+        removeStorageItem('subscriptionPlan');
+        removeStorageItem('subscriptionIsActive');
+        removeStorageItem('subscriptionNextBillingDate');
+        removeStorageItem('subscriptionExpirationNotification');
+        removeStorageItem('subscriptionFetchedSession');
+
+      } catch (cleanupError) {
+        console.error("❌ Error cleaning up localStorage:", cleanupError);
+        // Don't fail the deletion request if cleanup fails
+      }
+
       setIsSubmitted(true);
       
       toast.success("Deletion request submitted successfully", {
-        description: `Your request has been sent to our admin team. ${response.data.emailSent ? 'Confirmation email sent.' : ''} ${response.data.adminsNotified ? `${response.data.adminsNotified} admins notified.` : ''}`
+        description: `Your request has been sent to our admin team. ${response.data.emailSent ? 'Confirmation email sent.' : ''} ${response.data.adminsNotified ? `${response.data.adminsNotified} admins notified.` : ''}`,
+        duration: 6000
       });
 
       // Redirect to home page after 3 seconds
@@ -107,7 +235,8 @@ const AccountDeletionPage = () => {
     } catch (error) {
       console.error("Error submitting deletion request:", error);
       toast.error("Failed to submit deletion request", {
-        description: "Please try again or contact support if the issue persists."
+        description: "Please try again or contact support if the issue persists.",
+        duration: 6000
       });
     } finally {
       setIsSubmitting(false);

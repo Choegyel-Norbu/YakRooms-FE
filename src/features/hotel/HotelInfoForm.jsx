@@ -34,7 +34,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { getCategorizedAmenities } from "../../shared/utils/amenitiesHelper";
-import { districts, getLocalitiesForDistrict, BankType, getBankOptions } from "../../shared/constants";
+import { districts, getLocalitiesForDistrict, BankType, getBankOptions, getMaxAccountNumberLength, validateBankAccountNumber } from "../../shared/constants";
 
 // Custom TikTok icon component
 const TikTokIcon = ({ className = "h-4 w-4" }) => (
@@ -395,6 +395,35 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
     setIsLoading(true);
 
     try {
+      // Bank validations (only if any bank field is provided)
+      if (values.bankType || values.accountNumber || values.accountHolderName) {
+        if (!values.bankType) {
+          form.setError("bankType", { message: "Bank type is required" });
+          throw new Error("validation");
+        }
+        if (!values.accountHolderName) {
+          form.setError("accountHolderName", { message: "Account holder name is required" });
+          throw new Error("validation");
+        }
+        if (values.accountHolderName && values.accountHolderName.trim().length < 2) {
+          form.setError("accountHolderName", { message: "Account holder name must be at least 2 characters" });
+          throw new Error("validation");
+        }
+        if (values.accountHolderName && !/^[a-zA-Z\s\-'\.]+$/.test(values.accountHolderName.trim())) {
+          form.setError("accountHolderName", { message: "Account holder name can only contain letters, spaces, hyphens, apostrophes, and periods" });
+          throw new Error("validation");
+        }
+        if (!values.accountNumber) {
+          form.setError("accountNumber", { message: "Account number is required" });
+          throw new Error("validation");
+        }
+        const bankValidation = validateBankAccountNumber(String(values.accountNumber).trim(), values.bankType);
+        if (!bankValidation.isValid) {
+          form.setError("accountNumber", { message: bankValidation.error || "Invalid account number" });
+          throw new Error("validation");
+        }
+      }
+
       const updateData = {
         ...values,
         contact: values.phone,
@@ -1092,7 +1121,16 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                               Bank Type
                             </FormLabel>
                             <Select
-                              onValueChange={field.onChange}
+                              onValueChange={(value) => {
+                                // Trim current account number to new bank's max length
+                                const maxLen = getMaxAccountNumberLength(value) || 20;
+                                const currentAcc = form.getValues("accountNumber") || "";
+                                const trimmed = String(currentAcc).replace(/\D/g, "").slice(0, maxLen);
+                                form.setValue("accountNumber", trimmed);
+                                field.onChange(value);
+                                // Clear errors on change
+                                form.clearErrors(["bankType", "accountNumber"]);
+                              }}
                               defaultValue={field.value}
                             >
                               <FormControl>
@@ -1147,6 +1185,18 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                             <FormControl>
                               <Input
                                 {...field}
+                                inputMode="numeric"
+                                maxLength={getMaxAccountNumberLength(form.watch("bankType")) || 20}
+                                onChange={(e) => {
+                                  const bankCode = form.watch("bankType");
+                                  const maxLen = getMaxAccountNumberLength(bankCode) || 20;
+                                  const digitsOnly = (e.target.value || "").replace(/\D/g, "").slice(0, maxLen);
+                                  field.onChange(digitsOnly);
+                                  // Clear error when typing
+                                  if (form.getFieldState("accountNumber").error) {
+                                    form.clearErrors("accountNumber");
+                                  }
+                                }}
                                 placeholder="Enter account number"
                                 className="pl-3"
                               />

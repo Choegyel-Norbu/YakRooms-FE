@@ -40,17 +40,17 @@ import {
 } from "@/shared/components/select";
 import { useAuth } from "../authentication";
 import { getAmenitiesForType, getCategorizedAmenities } from "../../shared/utils/amenitiesHelper";
-import { districts, getLocalitiesForDistrict, getBankOptions } from "../../shared/constants";
+import { districts, getLocalitiesForDistrict, getBankOptions, validateBankAccountNumber, getMaxAccountNumberLength } from "../../shared/constants";
+import { setStorageItem } from "../../shared/utils/safariLocalStorage";
 
 const AddListingPage = () => {
   const [step, setStep] = useState(1);
-  const { 
-    email, 
-    userId, 
-    setHotelId, 
-    setRoles, 
-    subscriptionIsActive, 
-    subscriptionPlan 
+  const {
+    email,
+    userId,
+    setHotelId,
+    setSelectedHotelId,
+    setRoles,
   } = useAuth();
   const [listingType, setListingType] = useState("");
   const [formData, setFormData] = useState({
@@ -451,10 +451,21 @@ const AddListingPage = () => {
           : prev.amenities.filter((item) => item !== name),
       }));
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+      // Special handling for accountNumber to enforce digits-only and max length per bank
+      if (name === "accountNumber") {
+        const bankCode = formData.bankType;
+        const maxLen = getMaxAccountNumberLength(bankCode) || 20;
+        const digitsOnly = (value || "").replace(/\D/g, "").slice(0, maxLen);
+        setFormData((prev) => ({
+          ...prev,
+          accountNumber: digitsOnly,
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+        }));
+      }
     }
   };
 
@@ -475,7 +486,7 @@ const AddListingPage = () => {
     }
   };
 
-  const validateStep = () => {
+  const getValidationErrors = () => {
     const newErrors = {};
 
     if (step === 1 && !listingType) {
@@ -503,6 +514,28 @@ const AddListingPage = () => {
             : "Please write your cancellation policy";
         }
       }
+      
+      // Bank Information Validations (bank-specific)
+      if (!formData.bankType) {
+        newErrors.bankType = "Bank type is required";
+      }
+      if (!formData.accountHolderName) {
+        newErrors.accountHolderName = "Account holder name is required";
+      } else if (formData.accountHolderName.trim().length < 2) {
+        newErrors.accountHolderName = "Account holder name must be at least 2 characters";
+      } else if (!/^[a-zA-Z\s\-'\.]+$/.test(formData.accountHolderName.trim())) {
+        newErrors.accountHolderName = "Account holder name can only contain letters, spaces, hyphens, apostrophes, and periods";
+      }
+      if (!formData.accountNumber) {
+        newErrors.accountNumber = "Account number is required";
+      } else if (!/^\d+$/.test(formData.accountNumber.trim())) {
+        newErrors.accountNumber = "Account number must contain only numbers";
+      } else if (formData.bankType) {
+        const result = validateBankAccountNumber(formData.accountNumber.trim(), formData.bankType);
+        if (!result.isValid) {
+          newErrors.accountNumber = result.error;
+        }
+      }
     }
 
     if (step === 3) {
@@ -510,21 +543,129 @@ const AddListingPage = () => {
       if (!formData.idProof) newErrors.idProof = "ID proof is required";
     }
 
+    return newErrors;
+  };
+
+  const validateStep = () => {
+    const newErrors = getValidationErrors();
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const nextStep = () => {
-    if (!validateStep()) return;
+    const validationErrors = getValidationErrors();
+    setErrors(validationErrors);
+    
+    if (Object.keys(validationErrors).length > 0) {
+      // Wait a bit for state to update and DOM to render error messages before scrolling
+      setTimeout(() => {
+        scrollToFirstError(validationErrors);
+      }, 150);
+      return;
+    }
+    
     setStep((prev) => prev + 1);
   };
 
   const prevStep = () => setStep((prev) => prev - 1);
 
+  const scrollToFirstError = (errorFields) => {
+    // Find the first field with an error
+    if (!errorFields || Object.keys(errorFields).length === 0) return;
+
+    const firstErrorField = Object.keys(errorFields)[0];
+    let elementToScroll = null;
+
+    // Try to find the input element by ID or name first
+    elementToScroll = document.getElementById(firstErrorField) || 
+                     document.querySelector(`[name="${firstErrorField}"]`) ||
+                     document.querySelector(`input[id="${firstErrorField}"]`) ||
+                     document.querySelector(`select[id="${firstErrorField}"]`);
+
+    // For Select components or wrapped inputs, try to find by label
+    if (!elementToScroll) {
+      const labelElement = document.querySelector(`label[for="${firstErrorField}"]`);
+      if (labelElement) {
+        // Find the parent container that holds the input/select
+        const parentContainer = labelElement.closest('.space-y-2');
+        if (parentContainer) {
+          // Try to find any input, select, textarea, or button (for Select triggers)
+          elementToScroll = parentContainer.querySelector('input, select, textarea, button[role="combobox"]');
+          
+          // If still not found, look for SelectTrigger button specifically
+          if (!elementToScroll) {
+            const selectContent = parentContainer.querySelector('[data-radix-collection-item]')?.closest('div');
+            if (selectContent) {
+              const selectTrigger = selectContent.parentElement?.querySelector('button');
+              if (selectTrigger) elementToScroll = selectTrigger;
+            }
+          }
+        }
+      }
+    }
+
+    // If found, scroll to it
+    if (elementToScroll) {
+      elementToScroll.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center',
+        inline: 'nearest'
+      });
+      
+      // Focus the element after scrolling
+      setTimeout(() => {
+        if (elementToScroll.tagName === 'BUTTON') {
+          // For Select components, focus/click to show the validation state
+          elementToScroll.focus();
+          // Small delay to ensure the error styling is visible
+          setTimeout(() => {
+            if (elementToScroll.getAttribute('aria-expanded') === 'false') {
+              // Optionally open the select to show the error state (but this might be annoying)
+              // elementToScroll.click();
+            }
+          }, 100);
+        } else {
+          elementToScroll.focus();
+          // Try to focus the actual input if it's inside a wrapper
+          if (elementToScroll.tagName !== 'INPUT' && elementToScroll.tagName !== 'SELECT' && elementToScroll.tagName !== 'TEXTAREA') {
+            const innerInput = elementToScroll.querySelector('input, select, textarea');
+            if (innerInput) {
+              innerInput.focus();
+            }
+          }
+        }
+      }, 300);
+    } else {
+      // Fallback: scroll to the label's container if input not found
+      const labelElement = document.querySelector(`label[for="${firstErrorField}"]`);
+      if (labelElement) {
+        const container = labelElement.closest('.space-y-2') || labelElement.parentElement;
+        if (container) {
+          container.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+        }
+      }
+    }
+  };
+
   const submitFinalListing = async (e) => {
     e.preventDefault();
 
-    if (!validateStep()) return;
+    // Get validation errors
+    const validationErrors = getValidationErrors();
+    
+    // Set errors and scroll if validation failed
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      // Wait a bit for state to update and DOM to render error messages before scrolling
+      setTimeout(() => {
+        scrollToFirstError(validationErrors);
+      }, 150);
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -563,8 +704,19 @@ const AddListingPage = () => {
       const res = await api.post(`/hotels/${userId}`, updatedFormData);
 
       if (res.status === 200) {
-        setHotelId(res.data.id);
+        const newHotelId = res.data.id;
+        setHotelId(newHotelId);
+        setSelectedHotelId(newHotelId); // Also set as selected hotel
         setRoles(['GUEST', 'HOTEL_ADMIN']);
+
+        // Set hotelIds array for the new hotel (first hotel for this user)
+        setStorageItem('hotelIds', JSON.stringify([newHotelId]));
+
+        // Store the new hotel ID for subscription page
+        sessionStorage.setItem('newHotelId', newHotelId.toString());
+
+        console.log('🏨 New hotel created and set as selected:', newHotelId);
+        console.log('📋 hotelIds array set to:', [newHotelId]);
       }
       setIsSubmitted(true);
     } catch (error) {
@@ -579,22 +731,15 @@ const AddListingPage = () => {
     if (isSubmitted) {
       const timeout = setTimeout(() => {
         setIsSubmitted(false);
-        
-        // Check if user already has an active subscription
-        const hasActiveSubscription = subscriptionIsActive === true && (subscriptionPlan === 'TRIAL' || subscriptionPlan === 'PRO');
-        
-        if (hasActiveSubscription) {
-          // Redirect to hotel admin dashboard if subscription exists
-          navigate("/hotelAdmin");
-        } else {
-          // Redirect to subscription page if no active subscription
-          navigate("/subscription");
-        }
+
+        // Always redirect to subscription page for new hotel listings
+        // This ensures users set up their subscription before accessing the dashboard
+        navigate("/subscription");
       }, 3000);
 
       return () => clearTimeout(timeout);
     }
-  }, [isSubmitted, navigate, subscriptionIsActive, subscriptionPlan]);
+  }, [isSubmitted, navigate]);
 
   if (isSubmitted) {
     return (
@@ -1474,20 +1619,34 @@ const AddListingPage = () => {
                       Financial Information
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      Bank account details for payment processing (Optional)
+                      Bank account details for payment processing
                     </p>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="bankType">Bank Type</Label>
+                        <Label htmlFor="bankType">
+                          Bank Type <span className="text-destructive">*</span>
+                        </Label>
                         <Select
                           value={formData.bankType}
                           onValueChange={(value) => {
-                            setFormData(prev => ({ ...prev, bankType: value }));
+                            const maxLen = getMaxAccountNumberLength(value) || 20;
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              bankType: value,
+                              accountNumber: (prev.accountNumber || "").slice(0, maxLen)
+                            }));
+                            if (errors.bankType) {
+                              setErrors(prev => {
+                                const newErrors = { ...prev };
+                                delete newErrors.bankType;
+                                return newErrors;
+                              });
+                            }
                           }}
                         >
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger className={`w-full ${errors.bankType ? "border-destructive" : ""}`}>
                             <SelectValue placeholder="Select Bank" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1501,30 +1660,46 @@ const AddListingPage = () => {
                             ))}
                           </SelectContent>
                         </Select>
+                        {errors.bankType && (
+                          <p className="text-destructive text-sm">{errors.bankType}</p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="accountHolderName">Account Holder Name</Label>
+                        <Label htmlFor="accountHolderName">
+                          Account Holder Name <span className="text-destructive">*</span>
+                        </Label>
                         <Input
                           id="accountHolderName"
                           name="accountHolderName"
                           value={formData.accountHolderName}
                           onChange={handleChange}
                           placeholder="Enter account holder name"
-                          className="w-full"
+                          className={`w-full ${errors.accountHolderName ? "border-destructive" : ""}`}
                         />
+                        {errors.accountHolderName && (
+                          <p className="text-destructive text-sm">{errors.accountHolderName}</p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="accountNumber">Account Number</Label>
+                        <Label htmlFor="accountNumber">
+                          Account Number <span className="text-destructive">*</span>
+                        </Label>
                         <Input
                           id="accountNumber"
                           name="accountNumber"
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={getMaxAccountNumberLength(formData.bankType) || 20}
                           value={formData.accountNumber}
                           onChange={handleChange}
                           placeholder="Enter account number"
-                          className="w-full"
+                          className={`w-full ${errors.accountNumber ? "border-destructive" : ""}`}
                         />
+                        {errors.accountNumber && (
+                          <p className="text-destructive text-sm">{errors.accountNumber}</p>
+                        )}
                       </div>
                     </div>
 

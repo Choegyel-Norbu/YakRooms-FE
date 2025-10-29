@@ -8,6 +8,7 @@ import { useAuth } from '@/features/authentication/AuthProvider';
 import { toast } from 'sonner';
 import { calculateDaysUntil, formatDate } from '@/shared/utils/subscriptionUtils';
 import { handlePaymentRedirect } from '@/shared/utils/paymentRedirect';
+import { getStorageItem } from '@/shared/utils/safariLocalStorage';
 
 const SubscriptionPage = () => {
   const { 
@@ -25,15 +26,103 @@ const SubscriptionPage = () => {
   const navigate = useNavigate();
   const [isSubscribing, setIsSubscribing] = useState(false);
 
+  // Helper function to get hotelId from localStorage (not from cache)
+  // Prioritizes newHotelId from sessionStorage (for newly created hotels),
+  // then selectedHotelId if multiple hotels exist
+  const getHotelIdFromStorage = () => {
+    try {
+      console.log('🔍 getHotelIdFromStorage called');
+      console.log('  Context values - selectedHotelId:', selectedHotelId, 'hotelId:', hotelId);
+
+      // Priority 1: Check for newly created hotel ID in sessionStorage
+      const newHotelId = sessionStorage.getItem('newHotelId');
+      console.log('  sessionStorage newHotelId:', newHotelId);
+      if (newHotelId) {
+        console.log('✅ Using new hotel ID from sessionStorage:', newHotelId);
+        const parsedId = parseInt(newHotelId);
+        if (!isNaN(parsedId)) {
+          // Clear it after use so it doesn't interfere with future operations
+          sessionStorage.removeItem('newHotelId');
+          return parsedId;
+        }
+      }
+
+      // Priority 2: Read directly from localStorage
+      const storedSelectedHotelId = getStorageItem('selectedHotelId');
+      const storedHotelIds = getStorageItem('hotelIds');
+      const storedHotelId = getStorageItem('hotelId');
+      console.log('  localStorage values - selectedHotelId:', storedSelectedHotelId, 'hotelIds:', storedHotelIds, 'hotelId:', storedHotelId);
+
+      // Parse hotelIds array to check if multiple hotels exist
+      let hotelIdsArray = [];
+      if (storedHotelIds) {
+        if (Array.isArray(storedHotelIds)) {
+          hotelIdsArray = storedHotelIds;
+        } else if (typeof storedHotelIds === 'string' && storedHotelIds.trim() !== '') {
+          try {
+            hotelIdsArray = JSON.parse(storedHotelIds);
+            if (!Array.isArray(hotelIdsArray)) {
+              hotelIdsArray = [storedHotelIds];
+            }
+          } catch (e) {
+            hotelIdsArray = [storedHotelIds];
+          }
+        } else if (typeof storedHotelIds === 'number' || typeof storedHotelIds === 'string') {
+          hotelIdsArray = [storedHotelIds.toString()];
+        }
+      }
+      console.log('  Parsed hotelIdsArray:', hotelIdsArray);
+
+      // If multiple hotels exist, always use selectedHotelId (required)
+      if (hotelIdsArray.length > 1) {
+        console.log('  Multiple hotels detected, using selectedHotelId');
+        if (storedSelectedHotelId) {
+          const result = parseInt(storedSelectedHotelId);
+          console.log('✅ Returning selectedHotelId:', result);
+          return result;
+        }
+        // If multiple hotels but no selectedHotelId, this is an error state
+        console.warn('Multiple hotels found but no selectedHotelId in localStorage');
+      }
+
+      // Otherwise, use selectedHotelId if available, then fallback to hotelId
+      if (storedSelectedHotelId) {
+        const result = parseInt(storedSelectedHotelId);
+        console.log('✅ Returning stored selectedHotelId:', result);
+        return result;
+      }
+
+      if (storedHotelId) {
+        const result = parseInt(storedHotelId);
+        console.log('✅ Returning stored hotelId:', result);
+        return result;
+      }
+
+      // Fallback to context values as last resort (shouldn't normally happen)
+      const result = parseInt(selectedHotelId || hotelId);
+      console.log('⚠️ Falling back to context values:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Error getting hotelId from storage:', error);
+      // Fallback to context values
+      const result = parseInt(selectedHotelId || hotelId);
+      console.log('⚠️ Error fallback to context values:', result);
+      return result;
+    }
+  };
+
   // Refresh subscription data when component mounts or selectedHotelId changes
   useEffect(() => {
     const refreshSubscriptionData = async () => {
-      if (userId && selectedHotelId && fetchSubscriptionData) {
-        console.log("🔄 Refreshing subscription data for hotel:", selectedHotelId);
-        try {
-          await fetchSubscriptionData(userId, true, selectedHotelId);
-        } catch (error) {
-          console.error("Failed to refresh subscription data:", error);
+      if (userId && fetchSubscriptionData) {
+        const hotelIdToUse = getHotelIdFromStorage();
+        if (hotelIdToUse) {
+          console.log("🔄 Refreshing subscription data for hotel:", hotelIdToUse);
+          try {
+            await fetchSubscriptionData(userId, true, hotelIdToUse);
+          } catch (error) {
+            console.error("Failed to refresh subscription data:", error);
+          }
         }
       }
     };
@@ -140,9 +229,18 @@ const SubscriptionPage = () => {
       // Determine subscription plan based on planId
       const subscriptionPlan = planId === 'free' ? 'TRIAL' : 'PRO';
       
+      // Get hotelId from localStorage (not from cache)
+      const hotelIdFromStorage = getHotelIdFromStorage();
+      
+      if (!hotelIdFromStorage) {
+        toast.error('Hotel ID not found. Please ensure you have selected a hotel.');
+        setIsSubscribing(false);
+        return;
+      }
+
       const subscriptionData = {
         userId: parseInt(userId),
-        hotelId: parseInt(selectedHotelId || hotelId),
+        hotelId: hotelIdFromStorage,
         subscriptionPlan: subscriptionPlan,
         paymentStatus: "PENDING",
         trialStartDate: trialStartDate.toISOString(),
@@ -213,11 +311,20 @@ const SubscriptionPage = () => {
       const nextBillingDate = new Date();
       nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
       
+      // Get hotelId from localStorage (not from cache)
+      const hotelIdFromStorage = getHotelIdFromStorage();
+      
+      if (!hotelIdFromStorage) {
+        toast.error('Hotel ID not found. Please ensure you have selected a hotel.');
+        setIsSubscribing(false);
+        return;
+      }
+
       const subscriptionData = {
         subscriptionPlan: 'PRO',
         amount: 1000.0,
         userId: userId,
-        hotelId: parseInt(selectedHotelId || hotelId)
+        hotelId: hotelIdFromStorage
       };
 
       console.log('Initiating subscription payment with data:', subscriptionData);
@@ -295,8 +402,17 @@ const SubscriptionPage = () => {
       const nextBillingDate = new Date(currentExpirationDate);
       nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
       
+      // Get hotelId from localStorage (not from cache)
+      const hotelIdFromStorage = getHotelIdFromStorage();
+      
+      if (!hotelIdFromStorage) {
+        toast.error('Hotel ID not found. Please ensure you have selected a hotel.');
+        setIsSubscribing(false);
+        return;
+      }
+
       const subscriptionData = {
-        hotelId: parseInt(selectedHotelId || hotelId),
+        hotelId: hotelIdFromStorage,
         subscriptionPlan: 'PRO',
         paymentStatus: 'PAID',
         nextBillingDate: nextBillingDate.toISOString(),

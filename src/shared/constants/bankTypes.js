@@ -9,22 +9,22 @@ export const BankType = {
     code: "BOB",
     name: "Bank of Bhutan",
     shortName: "BOB",
-    accountNumberLength: { min: 10, max: 16 },
-    accountNumberPattern: /^\d{10,16}$/
+    accountNumberLength: { min: 9, max: 9 },
+    accountNumberPattern: /^\d{9}$/
   },
   BNB: {
     code: "BNB", 
     name: "Bhutan National Bank",
     shortName: "BNB",
-    accountNumberLength: { min: 10, max: 16 },
-    accountNumberPattern: /^\d{10,16}$/
+    accountNumberLength: { min: 9, max: 9 },
+    accountNumberPattern: /^\d{9}$/
   },
   DPNB: {
     code: "DPNB",
     name: "Druk PNB Bank", 
     shortName: "DPNB",
-    accountNumberLength: { min: 10, max: 16 },
-    accountNumberPattern: /^\d{10,16}$/
+    accountNumberLength: { min: 12, max: 12 },
+    accountNumberPattern: /^\d{12}$/
   },
   
   // Development Finance Institutions
@@ -32,8 +32,8 @@ export const BankType = {
     code: "BDB",
     name: "Bhutan Development Bank",
     shortName: "BDB",
-    accountNumberLength: { min: 8, max: 14 },
-    accountNumberPattern: /^\d{8,14}$/
+    accountNumberLength: { min: 12, max: 12 },
+    accountNumberPattern: /^\d{12}$/
   },
   
   // Mobile Financial Services
@@ -41,15 +41,15 @@ export const BankType = {
     code: "TBANK",
     name: "T-Bank",
     shortName: "T-Bank",
-    accountNumberLength: { min: 8, max: 12 },
-    accountNumberPattern: /^\d{8,12}$/
+    accountNumberLength: { min: 9, max: 9 },
+    accountNumberPattern: /^\d{9}$/
   },
   DKBANK: {
     code: "DKBANK",
     name: "Digital Kidu Bank",
     shortName: "DK Bank",
-    accountNumberLength: { min: 8, max: 12 },
-    accountNumberPattern: /^\d{8,12}$/
+    accountNumberLength: { min: 12, max: 12 },
+    accountNumberPattern: /^\d{12}$/
   }
 };
 
