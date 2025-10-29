@@ -115,7 +115,6 @@ const HotelAdminDashboard = () => {
     roles,
     isTopHotel,
     topHotelIds,
-    subscriptionPaymentStatus,
     subscriptionPlan,
     subscriptionIsActive,
     subscriptionNextBillingDate,

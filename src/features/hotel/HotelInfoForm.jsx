@@ -189,8 +189,8 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       photoUrls: hotel.photoUrls || [],
       license: hotel.license || "",
       amenities: hotel.amenities || [],
-      latitude: hotel.latitude || undefined,
-      longitude: hotel.longitude || undefined,
+      latitude: hotel.latitude ? parseFloat(hotel.latitude) : undefined,
+      longitude: hotel.longitude ? parseFloat(hotel.longitude) : undefined,
       cancellationPolicy: hotel.cancellationPolicy || "",
       hasTimeBased: hotel.hasTimeBased || false,
       checkInTime: hotel.checkinTime || "01:00:00",
@@ -221,8 +221,8 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       photoUrls: hotel.photoUrls || [],
       license: hotel.license || "",
       amenities: hotel.amenities || [],
-      latitude: hotel.latitude || undefined,
-      longitude: hotel.longitude || undefined,
+      latitude: hotel.latitude ? parseFloat(hotel.latitude) : undefined,
+      longitude: hotel.longitude ? parseFloat(hotel.longitude) : undefined,
       cancellationPolicy: hotel.cancellationPolicy || "",
       hasTimeBased: hotel.hasTimeBased || false,
       checkInTime: hotel.checkinTime || "01:00:00",
@@ -465,8 +465,8 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row justify-between items-center">
+    <Card className="pt-0">
+      <CardHeader className="flex flex-row justify-between pt-5 pb-5 items-center sticky top-20 md:top-28 lg:top-27 z-10 bg-card border-b shadow-sm">
         <CardTitle>Hotel Information</CardTitle>
         {!isEditing ? (
           <Button onClick={() => setIsEditing(true)} className="text-sm">
@@ -489,8 +489,8 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                   photoUrls: hotel.photoUrls || [],
                   license: hotel.license || "",
                   amenities: hotel.amenities || [],
-                  latitude: hotel.latitude || undefined,
-                  longitude: hotel.longitude || undefined,
+                  latitude: hotel.latitude ? parseFloat(hotel.latitude) : undefined,
+                  longitude: hotel.longitude ? parseFloat(hotel.longitude) : undefined,
                   cancellationPolicy: hotel.cancellationPolicy || "",
                   hasTimeBased: hotel.hasTimeBased || false,
                   checkInTime: hotel.checkinTime || "14:00",
@@ -569,85 +569,91 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="district"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>District</FormLabel>
-                    <Select
-                      onValueChange={handleDistrictChange}
-                      defaultValue={field.value}
-                      disabled={!isEditing}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select District" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {districts.map((district) => (
-                          <SelectItem key={district} value={district}>
-                            {district}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="locality"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Locality</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      disabled={!isEditing}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select Locality" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {getLocalitiesForDistrict(form.watch("district")).map((locality) => (
-                          <SelectItem key={locality} value={locality}>
-                            {locality}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Input {...field} disabled={!isEditing} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               {/* Location Section */}
               <div className="md:col-span-2 border-t pt-4 mt-2">
                 <h4 className="text-base font-semibold mb-3 flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-primary" />
-                  Location Coordinates
+                  Location Information
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                {/* Address */}
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem className="mb-4">
+                      <FormLabel>Address</FormLabel>
+                      <FormControl>
+                        <Input {...field} disabled={!isEditing} placeholder="Enter full address" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* District and Locality */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <FormField
+                    control={form.control}
+                    name="district"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>District</FormLabel>
+                        <Select
+                          onValueChange={handleDistrictChange}
+                          defaultValue={field.value}
+                          disabled={!isEditing}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select District" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {districts.map((district) => (
+                              <SelectItem key={district} value={district}>
+                                {district}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="locality"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Locality</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          disabled={!isEditing}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select Locality" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {getLocalitiesForDistrict(form.watch("district")).map((locality) => (
+                              <SelectItem key={locality} value={locality}>
+                                {locality}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Location Coordinates */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <FormField
                     control={form.control}
                     name="latitude"
