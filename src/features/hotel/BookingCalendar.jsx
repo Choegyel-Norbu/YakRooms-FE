@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Calendar, Users, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Users, Clock, Filter } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/card";
 import { Button } from "@/shared/components/button";
 import { Badge } from "@/shared/components/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/select";
 import api from "../../shared/services/Api";
 import { toast } from "sonner";
 
@@ -11,6 +12,9 @@ const BookingCalendar = ({ hotelId }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [rooms, setRooms] = useState([]);
+  const [selectedRoomId, setSelectedRoomId] = useState("all");
+  const [loadingRooms, setLoadingRooms] = useState(true);
 
   // Get current month and year
   const currentMonth = currentDate.getMonth();
@@ -31,26 +35,56 @@ const BookingCalendar = ({ hotelId }) => {
   // Day names
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+  // Fetch rooms for the hotel
+  useEffect(() => {
+    const fetchRooms = async () => {
+      if (!hotelId) return;
+
+      setLoadingRooms(true);
+      try {
+        const response = await api.get(`/rooms/hotel/${hotelId}`);
+        const roomsData = response.data || [];
+        setRooms(roomsData);
+      } catch (error) {
+        console.error("Error fetching rooms:", error);
+        toast.error("Failed to load rooms", { duration: 4000 });
+      } finally {
+        setLoadingRooms(false);
+      }
+    };
+
+    fetchRooms();
+  }, [hotelId]);
+
   // Fetch bookings for the current month
   useEffect(() => {
     const fetchMonthlyBookings = async () => {
       if (!hotelId) return;
 
-      console.log(`📅 Calendar: Fetching bookings for ${monthNames[currentMonth]} ${currentYear}, hotelId: ${hotelId}`);
-      console.log(`🔧 Component is working! Current date state:`, currentDate);
+      console.log(`📅 Calendar: Fetching bookings for ${monthNames[currentMonth]} ${currentYear}, hotelId: ${hotelId}, roomId: ${selectedRoomId}`);
       setLoading(true);
       try {
-        // Try the monthly search endpoint first, fall back to regular endpoint if it doesn't exist
+        // Use the monthly search endpoint with optional room filtering
         const monthParam = currentMonth + 1; // API expects 1-12, not 0-11
-        let response;
+        let apiUrl = `/bookings/search/month?year=${currentYear}&month=${monthParam}&hotelId=${hotelId}&size=1000`;
         
+        // Add room filter if a specific room is selected
+        if (selectedRoomId !== "all") {
+          apiUrl += `&roomId=${selectedRoomId}`;
+        }
+        
+        let response;
         try {
           // Try monthly endpoint first
-          response = await api.get(`/bookings/search/month?year=${currentYear}&month=${monthParam}&hotelId=${hotelId}&size=1000`);
+          response = await api.get(apiUrl);
         } catch (monthlyError) {
           console.log("Monthly endpoint not available, using regular endpoint:", monthlyError.message);
           // Fall back to regular endpoint and filter on frontend
-          response = await api.get(`/bookings/?hotelId=${hotelId}&size=1000`);
+          let fallbackUrl = `/bookings/?hotelId=${hotelId}&size=1000`;
+          if (selectedRoomId !== "all") {
+            fallbackUrl += `&roomId=${selectedRoomId}`;
+          }
+          response = await api.get(fallbackUrl);
         }
         
         let allBookings = [];
@@ -113,7 +147,7 @@ const BookingCalendar = ({ hotelId }) => {
     };
 
     fetchMonthlyBookings();
-  }, [hotelId, currentMonth, currentYear, daysInMonth]);
+  }, [hotelId, currentMonth, currentYear, daysInMonth, selectedRoomId]);
 
   // Navigate to previous month
   const goToPreviousMonth = () => {
@@ -291,7 +325,6 @@ const BookingCalendar = ({ hotelId }) => {
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Calendar className="h-5 w-5 text-primary" />
               Booking Calendar
             </CardTitle>
             <div className="flex items-center gap-2">
@@ -315,6 +348,38 @@ const BookingCalendar = ({ hotelId }) => {
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
+          </div>
+          
+          {/* Room Filter */}
+          <div className="flex items-center gap-2 mt-3">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select
+              value={selectedRoomId}
+              onValueChange={setSelectedRoomId}
+              disabled={loadingRooms}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by room" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Rooms</SelectItem>
+                {rooms.map((room) => (
+                  <SelectItem key={room.id} value={room.id.toString()}>
+                    Room {room.roomNumber} - {room.roomType}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedRoomId !== "all" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedRoomId("all")}
+                className="h-8 px-2 text-xs"
+              >
+                Clear Filter
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
