@@ -137,6 +137,14 @@ const SuperAdmin = () => {
     totalElements: 0,
   });
 
+  // Booking filters and search states
+  const [bookingFilters, setBookingFilters] = useState({
+    searchQuery: "",
+  });
+  const [selectedBookingForDetails, setSelectedBookingForDetails] = useState(null);
+  const [showBookingDetails, setShowBookingDetails] = useState(false);
+  const [updatingBookingStatus, setUpdatingBookingStatus] = useState(null);
+
   const [pagination, setPagination] = useState({
     pageNumber: 0,
     pageSize: 10,
@@ -354,21 +362,43 @@ const SuperAdmin = () => {
     const fetchBookings = async () => {
       try {
         setLoadingBookings(true);
-        const params = {
-          page: bookingsPagination.pageNumber,
-          size: bookingsPagination.pageSize,
-        };
+        
+        // Use hotel name search endpoint if search query is provided
+        if (bookingFilters.searchQuery && bookingFilters.searchQuery.trim()) {
+          const params = {
+            hotelName: bookingFilters.searchQuery.trim(),
+            page: bookingsPagination.pageNumber,
+            size: bookingsPagination.pageSize,
+          };
 
-        const response = await api.get("/bookings/all-with-details", { params });
-        
-        console.log("[DEBUG] Bookings API response:", response.data);
-        
-        setBookings(response.data.content || []);
-        setBookingsPagination((prev) => ({
-          ...prev,
-          totalPages: response.data.totalPages || 1,
-          totalElements: response.data.totalElements || 0,
-        }));
+          const response = await api.get("/bookings/search/hotel-name", { params });
+          
+          console.log("[DEBUG] Hotel name search API response:", response.data);
+          
+          setBookings(response.data.content || []);
+          setBookingsPagination((prev) => ({
+            ...prev,
+            totalPages: response.data.totalPages || 1,
+            totalElements: response.data.totalElements || 0,
+          }));
+        } else {
+          // Use regular bookings endpoint when no search query
+          const params = {
+            page: bookingsPagination.pageNumber,
+            size: bookingsPagination.pageSize,
+          };
+
+          const response = await api.get("/bookings/all-with-details", { params });
+          
+          console.log("[DEBUG] Bookings API response:", response.data);
+          
+          setBookings(response.data.content || []);
+          setBookingsPagination((prev) => ({
+            ...prev,
+            totalPages: response.data.totalPages || 1,
+            totalElements: response.data.totalElements || 0,
+          }));
+        }
       } catch (err) {
         console.error("Error fetching bookings:", err);
         toast.error("Failed to fetch bookings");
@@ -378,7 +408,7 @@ const SuperAdmin = () => {
     };
 
     fetchBookings();
-  }, [bookingsPagination.pageNumber]);
+  }, [bookingsPagination.pageNumber, bookingFilters]);
 
   useEffect(() => {
     const fetchHotels = async () => {
@@ -616,6 +646,60 @@ const SuperAdmin = () => {
   const handleBookingsPageChange = (newPage) => {
     setBookingsPagination((prev) => ({ ...prev, pageNumber: newPage }));
   };
+
+  // Booking filter handlers
+  const handleBookingFilterChange = (newFilters) => {
+    setBookingFilters(newFilters);
+    setBookingsPagination((prev) => ({ ...prev, pageNumber: 0 }));
+  };
+
+  const handleBookingStatusUpdate = async (bookingId, newStatus) => {
+    setUpdatingBookingStatus(bookingId);
+    try {
+      const response = await api.put(`/bookings/${bookingId}/status`, { status: newStatus });
+      
+      if (response.status === 200) {
+        toast.success("Booking Status Updated", {
+          description: `Booking status has been updated to ${newStatus}.`,
+          icon: <CheckCircle className="text-green-600" />,
+          duration: 6000,
+        });
+
+        // Refresh bookings data using the same logic as fetchBookings
+        let refreshResponse;
+        if (bookingFilters.searchQuery && bookingFilters.searchQuery.trim()) {
+          const params = {
+            hotelName: bookingFilters.searchQuery.trim(),
+            page: bookingsPagination.pageNumber,
+            size: bookingsPagination.pageSize,
+          };
+          refreshResponse = await api.get("/bookings/search/hotel-name", { params });
+        } else {
+          const params = {
+            page: bookingsPagination.pageNumber,
+            size: bookingsPagination.pageSize,
+          };
+          refreshResponse = await api.get("/bookings/all-with-details", { params });
+        }
+        setBookings(refreshResponse.data.content || []);
+      }
+    } catch (err) {
+      console.error("Error updating booking status:", err);
+      toast.error("Status Update Failed", {
+        description: "There was an error updating the booking status. Please try again.",
+        icon: <XCircle className="text-red-600" />,
+        duration: 6000,
+      });
+    } finally {
+      setUpdatingBookingStatus(null);
+    }
+  };
+
+  const handleViewBookingDetails = (booking) => {
+    setSelectedBookingForDetails(booking);
+    setShowBookingDetails(true);
+  };
+
 
   // Handle clearing all read notifications
   const handleClearReadNotifications = async () => {
@@ -984,6 +1068,360 @@ const SuperAdmin = () => {
     } finally {
       setIsTransferring(false);
     }
+  };
+
+  // Booking Details Modal Component
+  const BookingDetailsModal = () => {
+    if (!selectedBookingForDetails) return null;
+
+    const booking = selectedBookingForDetails;
+
+    const formatPrice = (price) => {
+      if (!price) return "N/A";
+      return `Nu. ${Number(price).toLocaleString()}`;
+    };
+
+    const getStatusColor = (status) => {
+      switch (status) {
+        case "CONFIRMED":
+          return "bg-green-100 text-green-800 border-green-200";
+        case "PENDING":
+          return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        case "CANCELLED":
+          return "bg-red-100 text-red-800 border-red-200";
+        case "COMPLETED":
+          return "bg-blue-100 text-blue-800 border-blue-200";
+        default:
+          return "bg-gray-100 text-gray-800 border-gray-200";
+      }
+    };
+
+    return (
+      <Dialog open={showBookingDetails} onOpenChange={setShowBookingDetails}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-blue-500" />
+              Booking Details - #{booking.id}
+            </DialogTitle>
+            <DialogDescription>
+              Complete booking information and transaction details
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Booking Status and Key Info */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Booking Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Badge variant="outline" className={`${getStatusColor(booking.status)} mb-2`}>
+                    {booking.status || "UNKNOWN"}
+                  </Badge>
+                  <div className="text-xs text-muted-foreground">
+                    Created: {format(new Date(booking.createdAt), "dd MMM yyyy, HH:mm")}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Financial Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Booking Amount:</span>
+                    <span className="font-medium">{formatPrice(booking.txnTotalPrice || booking.bookingAmount)}</span>
+                  </div>
+                  {booking.extension && booking.extendedAmount && (
+                    <div className="flex justify-between text-sm">
+                      <span>Extension Amount:</span>
+                      <span className="font-medium text-green-600">{formatPrice(booking.extendedAmount)}</span>
+                    </div>
+                  )}
+                  {booking.totalPrice && (
+                    <div className="flex justify-between text-sm border-t pt-2">
+                      <span>Transferable Amount:</span>
+                      <span className="font-bold text-blue-600">{formatPrice(booking.totalPrice)}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Transfer Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Badge 
+                    variant="outline" 
+                    className={`mb-2 ${
+                      booking.transferStatus === "COMPLETED" 
+                        ? "bg-green-100 text-green-800 border-green-200"
+                        : booking.transferStatus === "PENDING"
+                        ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                        : "bg-gray-100 text-gray-800 border-gray-200"
+                    }`}
+                  >
+                    {booking.transferStatus || "N/A"}
+                  </Badge>
+                  {booking.journalNumber && (
+                    <div className="text-xs text-muted-foreground">
+                      Journal: {booking.journalNumber}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Guest Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Guest Information</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium">Guest Name</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.guestName || booking.name || "Unknown Guest"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Email</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.email || "Not provided"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Phone</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.phone || "Not provided"}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium">CID</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.cid && booking.cid !== "N/A" ? booking.cid : "Not provided"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Number of Guests</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.guests} guest{booking.guests !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  {booking.origin && booking.destination && (
+                    <div>
+                      <p className="text-sm font-medium">Travel Route</p>
+                      <p className="text-sm text-muted-foreground">
+                        From: {booking.origin} → To: {booking.destination}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Hotel Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Hotel Information</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium">Hotel Name</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.hotelName || "Unknown Hotel"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Location</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.hotelDistrict || "Unknown Location"}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium">Room Number</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.roomNumber || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Hotel Phone</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.hotelPhone || "Not provided"}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Booking Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Booking Details</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium">Check-in Date</p>
+                    <p className="text-sm text-muted-foreground">
+                      {format(new Date(booking.checkInDate), "dd MMM yyyy")}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Check-out Date</p>
+                    <p className="text-sm text-muted-foreground">
+                      {format(new Date(booking.checkOutDate), "dd MMM yyyy")}
+                    </p>
+                  </div>
+                  {booking.extension && (
+                    <div>
+                      <p className="text-sm font-medium">Extension Status</p>
+                      <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
+                        Extended
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium">Transaction ID</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.transactionId || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Order Number</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.orderNumber || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Transaction Status</p>
+                    <Badge 
+                      variant="outline" 
+                      className={`${
+                        booking.transactionStatus === "PAID" 
+                          ? "bg-green-100 text-green-800 border-green-200"
+                          : booking.transactionStatus === "PENDING"
+                          ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                          : booking.transactionStatus === "FAILED"
+                          ? "bg-red-100 text-red-800 border-red-200"
+                          : "bg-gray-100 text-gray-800 border-gray-200"
+                      }`}
+                    >
+                      {booking.transactionStatus || "N/A"}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Bank Details */}
+            {(booking.bankType || booking.accountNumber || booking.accountHolderName) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Bank Details</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Bank Type</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.bankType || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Account Number</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.accountNumber || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Account Holder</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.accountHolderName || "N/A"}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setShowBookingDetails(false);
+                      handleTransferSelect(booking);
+                    }}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Transfer
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setShowBookingDetails(false);
+                      handleExtensionSelect(booking);
+                      setExtensionDialog(true);
+                    }}
+                  >
+                    <Clock className="h-4 w-4 mr-2" />
+                    Extend Booking
+                  </Button>
+                  {booking.paymentUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                    >
+                      <a 
+                        href={booking.paymentUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        <Globe className="h-4 w-4 mr-2" />
+                        View Payment
+                      </a>
+                    </Button>
+                  )}
+                  {booking.status !== "CANCELLED" && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        handleBookingStatusUpdate(booking.id, "CANCELLED");
+                        setShowBookingDetails(false);
+                      }}
+                      disabled={updatingBookingStatus === booking.id}
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Cancel Booking
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
   };
 
   // Hotel Details Modal Component
@@ -1435,6 +1873,70 @@ const SuperAdmin = () => {
               <Button type="button" variant="outline" onClick={handleReset}>
                 Reset
               </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const BookingFilters = () => {
+    const [localFilters, setLocalFilters] = useState(bookingFilters);
+
+    const handleInputChange = (e) => {
+      const { name, value } = e.target;
+      setLocalFilters((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSelectChange = (name, value) => {
+      setLocalFilters((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      handleBookingFilterChange(localFilters);
+    };
+
+    const handleReset = () => {
+      const resetFilters = {
+        searchQuery: "",
+      };
+      setLocalFilters(resetFilters);
+      handleBookingFilterChange(resetFilters);
+    };
+
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-base">Search Bookings</CardTitle>
+          <CardDescription>
+            Search bookings by hotel name
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <Label htmlFor="bookingSearchQuery" className="text-sm font-medium">
+                  Hotel Name
+                </Label>
+                <Input
+                  type="text"
+                  name="searchQuery"
+                  id="bookingSearchQuery"
+                  placeholder="Enter hotel name to search..."
+                  value={localFilters.searchQuery}
+                  onChange={handleInputChange}
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <SearchButton type="submit">Search</SearchButton>
+                <Button type="button" variant="outline" onClick={handleReset}>
+                  Clear
+                </Button>
+              </div>
             </div>
           </form>
         </CardContent>
@@ -2643,27 +3145,31 @@ const SuperAdmin = () => {
     };
 
     return (
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                Booking Management
-              </CardTitle>
-              <CardDescription>
-                Complete overview of all hotel bookings with guest and hotel details
-              </CardDescription>
+      <>
+        <BookingFilters />
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  Booking Management
+                </CardTitle>
+                <CardDescription>
+                  Complete overview of all hotel bookings with guest and hotel details
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={exportBookingsToExcel}
+                  disabled={loadingBookings}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Export Excel
+                </Button>
+              </div>
             </div>
-            <Button
-              onClick={exportBookingsToExcel}
-              disabled={loadingBookings}
-              className="flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Export Excel
-            </Button>
-          </div>
-        </CardHeader>
+          </CardHeader>
         <CardContent>
           {loadingBookings ? (
             <div className="flex justify-center items-center py-8">
@@ -2892,9 +3398,17 @@ const SuperAdmin = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewBookingDetails(booking)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleTransferSelect(booking)}>
                             <MessageSquare className="mr-2 h-4 w-4" />
                             Transfer
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleExtensionSelect(booking)}>
+                            <Clock className="mr-2 h-4 w-4" />
+                            Extend Booking
                           </DropdownMenuItem>
                           {booking.paymentUrl && (
                             <DropdownMenuItem asChild>
@@ -2909,6 +3423,26 @@ const SuperAdmin = () => {
                               </a>
                             </DropdownMenuItem>
                           )}
+                          {booking.status !== "CANCELLED" && (
+                            <DropdownMenuItem 
+                              onClick={() => handleBookingStatusUpdate(booking.id, "CANCELLED")}
+                              disabled={updatingBookingStatus === booking.id}
+                              className="text-red-600 focus:text-red-600"
+                            >
+                              <XCircle className="mr-2 h-4 w-4" />
+                              {updatingBookingStatus === booking.id ? "Cancelling..." : "Cancel Booking"}
+                            </DropdownMenuItem>
+                          )}
+                          {booking.status !== "CONFIRMED" && booking.status !== "COMPLETED" && (
+                            <DropdownMenuItem 
+                              onClick={() => handleBookingStatusUpdate(booking.id, "CONFIRMED")}
+                              disabled={updatingBookingStatus === booking.id}
+                              className="text-green-600 focus:text-green-600"
+                            >
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              {updatingBookingStatus === booking.id ? "Confirming..." : "Confirm Booking"}
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -2920,6 +3454,7 @@ const SuperAdmin = () => {
         </CardContent>
         {bookings.length > 0 && <BookingsPaginationControls />}
       </Card>
+      </>
     );
   };
 
@@ -3221,6 +3756,9 @@ const SuperAdmin = () => {
 
         {/* Hotel Details Modal */}
         <HotelDetailsModal />
+
+        {/* Booking Details Modal */}
+        <BookingDetailsModal />
 
         {/* Extension Dialog */}
         <Dialog open={extensionDialog} onOpenChange={setExtensionDialog}>

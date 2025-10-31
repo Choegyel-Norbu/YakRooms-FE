@@ -224,7 +224,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
           </div>
 
           {/* Bottom Features */}
-          <div className="mt-16 text-center space-y-6">
+          {/* <div className="mt-16 text-center space-y-6">
             <Separator />
             <div className="space-y-4">
               <p className="text-muted-foreground">
@@ -232,9 +232,10 @@ const ListYourPropertySection = ({ onLoginClick }) => {
               </p>
               <div className="flex flex-wrap justify-center gap-2">
                 {[
-                  "Free trial for first month",
-                  "Easy property management",
-                  "Real-time analytics dashboard"
+                  "Free trial for first two month",
+                  "Easy hotel management",
+                  "Real-time analytics dashboard",
+                  "Secure online payments"
                 ].map((feature, index) => (
                   <Badge key={index} variant="outline">
                     {feature}
@@ -242,7 +243,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                 ))}
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </section>

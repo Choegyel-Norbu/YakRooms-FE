@@ -252,7 +252,7 @@ const AboutUs = () => {
                 <p className="text-sm">
                   <strong>Email:</strong>{' '}
                   <a href="mailto:info@ezeeroom.com" className="text-primary hover:underline">
-                    info@ezeeroom.com
+                    choegyell@gmail.com, zepadorji123@gmail.com
                   </a>
                 </p>
                 <p className="text-sm">

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   Calendar,
   MapPin,
-  Eye,
   X,
   Phone,
   ChevronLeft,
@@ -77,55 +76,55 @@ const statusConfig = {
     label: "Confirmed",
     color: "bg-green-50 text-green-700 border border-green-200",
     icon: CheckCircle,
-    actions: ["view", "directions", "extend", "cancel"],
+    actions: ["directions", "extend", "cancel"],
   },
   CANCELLATION_REQUESTED: {
     label: "Cancellation Requested",
     color: "bg-amber-50 text-amber-700 border border-amber-200",
     icon: AlertCircle,
-    actions: ["view", "directions"],
+    actions: ["directions"],
   },
   CANCELLATION_REJECTED: {
     label: "Cancellation Rejected",
     color: "bg-orange-50 text-orange-700 border border-orange-200",
     icon: CheckCircle,
-    actions: ["view", "directions", "extend"],
+    actions: ["directions", "extend"],
   },
   BOOKING_CANCELLATION_APPROVED: {
     label: "Cancellation Approved",
     color: "bg-green-50 text-green-700 border border-green-200",
     icon: CheckCircle,
-    actions: ["view", "directions"],
+    actions: ["directions"],
   },
   PENDING: {
     label: "Pending",
     color: "bg-yellow-50 text-yellow-700 border border-yellow-200",
     icon: Clock,
-    actions: ["view", "directions"],
+    actions: ["directions"],
   },
   CANCELLED: {
     label: "Cancelled",
     color: "bg-red-50 text-red-700 border border-red-200",
     icon: XCircle,
-    actions: ["view", "directions"],
+    actions: ["directions"],
   },
   COMPLETED: {
     label: "Completed",
     color: "bg-blue-50 text-blue-700 border border-blue-200",
     icon: CheckCircle,
-    actions: ["view", "directions"],
+    actions: ["directions"],
   },
   CHECKED_IN: {
     label: "Checked In",
     color: "bg-purple-50 text-purple-700 border border-purple-200",
     icon: CheckCircle,
-    actions: ["view", "directions", "extend", "review"],
+    actions: ["directions", "extend", "review"],
   },
   CHECKED_OUT: {
     label: "Checked Out",
     color: "bg-gray-50 text-gray-700 border border-gray-200",
     icon: CheckCircle,
-    actions: ["view", "directions", "review"],
+    actions: ["directions", "review"],
   },
 };
 
@@ -215,7 +214,6 @@ const StatusBadge = ({ status }) => {
 // Action button component
 const ActionButton = ({ action, onClick, disabled = false }) => {
   const buttonConfig = {
-    view: { label: "View", icon: Eye, variant: "outline" },
     directions: { label: "Directions", icon: Navigation, variant: "outline" },
     cancel: { label: "Cancel", icon: X, variant: "outline" },
     contact: { label: "Contact", icon: Phone, variant: "outline" },
@@ -1298,7 +1296,6 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
 
 const BookingCard = ({
   booking,
-  onViewDetails,
   onCancel,
   onContact,
   onDirections,
@@ -1376,9 +1373,6 @@ const BookingCard = ({
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
         <div className="flex-1">
           <div className="flex items-start gap-3">
-            <div className="bg-primary/10 text-primary p-2 rounded-lg flex-shrink-0">
-              <Hotel size={18} className="sm:w-5 sm:h-5" />
-            </div>
             <div className="flex-1 min-w-0">
               <h3
                 className={`text-base sm:text-lg font-semibold ${
@@ -1654,8 +1648,7 @@ const BookingCard = ({
             action={action}
             disabled={isDisabled}
             onClick={() => {
-              if (action === "view") onViewDetails(booking);
-              else if (action === "directions") onDirections(booking);
+              if (action === "directions") onDirections(booking);
               else if (action === "contact") onContact(booking);
               else if (action === "extend") onExtend(booking);
               else if (action === "cancel") onCancel(booking);
@@ -1757,7 +1750,6 @@ const CancellationConfirmationDialog = ({
         {/* Booking Information */}
         <div className="bg-muted/50 rounded-md p-4 space-y-3">
           <div className="flex items-start gap-3">
-            <Hotel className="text-primary mt-1" size={20} />
             <div className="flex-1">
               <h3 className="font-semibold text-foreground">
                 {booking.hotelName}
@@ -1786,41 +1778,6 @@ const CancellationConfirmationDialog = ({
                 <p className="text-sm text-amber-700 leading-relaxed">
                   {booking.cancellationPolicy}
                 </p>
-              </div>
-
-              {/* Refund Breakdown */}
-              {policyInfo && policyInfo.refunds.length > 0 && (
-                <div className="bg-white/60 border border-amber-300 rounded-md p-3">
-                  <h5 className="text-sm font-semibold text-amber-800 mb-2">Refund Breakdown:</h5>
-                  <div className="space-y-1">
-                    {policyInfo.refunds.map((refund, index) => (
-                      <div key={index} className="flex justify-between items-center text-sm">
-                        <span className="text-amber-700">{refund.timeframe}</span>
-                        <span className="font-medium text-amber-800">{refund.percentage}% refund</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Current Situation */}
-              <div className="bg-white/60 border border-amber-300 rounded-md p-3">
-                <h5 className="text-sm font-semibold text-amber-800 mb-2">Your Situation:</h5>
-                <div className="space-y-1 text-sm text-amber-700">
-                  <div className="flex justify-between">
-                    <span>Days until check-in:</span>
-                    <span className="font-medium">{daysUntilCheckIn} day{daysUntilCheckIn !== 1 ? "s" : ""}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Expected refund:</span>
-                    <span className="font-medium">
-                      {daysUntilCheckIn > 7 ? "100%" :
-                       daysUntilCheckIn >= 3 ? "75%" :
-                       daysUntilCheckIn >= 1 ? "50%" :
-                       daysUntilCheckIn === 0 ? "25%" : "0%"}
-                    </span>
-                  </div>
-                </div>
               </div>
 
               {/* Important Note */}
@@ -1871,256 +1828,6 @@ const CancellationConfirmationDialog = ({
   );
 };
 
-// Booking details modal
-const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
-  if (!isOpen || !booking) return null;
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const formatDateTime = (dateString) => {
-    return new Date(dateString).toLocaleString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const formatTime = (timeString) => {
-    if (!timeString) return '';
-    const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    return `${displayHour}:${minutes} ${ampm}`;
-  };
-
-  const calculateNights = (checkIn, checkOut) => {
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
-    const diffTime = checkOutDate - checkInDate;
-    const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return nights;
-  };
-
-  const numberOfNights = calculateNights(
-    booking.checkInDate,
-    booking.checkOutDate
-  );
-  const pricePerNight = (booking.txnTotalPrice || booking.totalPrice) / numberOfNights;
-
-  return (
-    <div className="fixed inset-0 bg-black/50 animate-in fade-in-0 flex items-center justify-center p-4 z-50">
-      <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border animate-in zoom-in-95 duration-200">
-        {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b">
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">
-              Booking Details
-            </h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-accent rounded-md transition-colors cursor-pointer"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-4 space-y-4">
-          {/* Room Info */}
-          <div className="bg-muted/50 rounded-md p-4">
-            <div className="flex items-start gap-3">
-              <div className="bg-primary/10 text-primary p-2 rounded-full flex-shrink-0">
-                <Hotel className="text-primary" size={20} />
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-semibold text-foreground text-sm">
-                  {booking.hotelName || "Hotel"}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {booking.hotelDistrict && `${booking.hotelDistrict} District`}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Room No: {booking.roomNumber}
-                </p>
-                <div>
-                  <StatusBadge status={booking.status} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Stay Information */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-foreground border-b pb-2">
-              Stay Information
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary p-2 rounded-full flex-shrink-0">
-                    <Calendar className="text-primary" size={16} />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Check-in Date
-                    </label>
-                    <p className="text-sm text-foreground">
-                      {formatDate(booking.checkInDate)}
-                      {booking.timeBased && booking.checkInTime && (
-                        <span className="ml-2 text-xs text-blue-600">
-                          at {formatTime(booking.checkInTime)}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary p-2 rounded-full flex-shrink-0">
-                    <Calendar className="text-primary" size={16} />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Check-out Date
-                    </label>
-                    <p className="text-sm text-foreground">
-                      {formatDate(booking.checkOutDate)}
-                      {booking.timeBased && booking.checkOutTime && (
-                        <span className="ml-2 text-xs text-blue-600">
-                          at {formatTime(booking.checkOutTime)}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-                {booking.passcode && (
-                  <div className="flex items-center gap-3">
-                    <div className="bg-primary/10 text-primary p-2 rounded-full flex-shrink-0">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Room Passcode
-                      </label>
-                      <p className="text-sm text-foreground font-mono font-bold tracking-wider text-primary">
-                        {booking.passcode}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Use this code to access your room
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary p-2 rounded-full flex-shrink-0">
-                    <Clock className="text-primary" size={16} />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Duration
-                    </label>
-                    <p className="text-sm text-foreground">
-                      {booking.timeBased && booking.bookHour ? (
-                        `${booking.bookHour} hour${booking.bookHour !== 1 ? "s" : ""}`
-                      ) : (
-                        `${numberOfNights} night${numberOfNights !== 1 ? "s" : ""}`
-                      )}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 text-primary p-2 rounded-full flex-shrink-0">
-                    <User className="text-primary" size={16} />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Guest Count
-                    </label>
-                    <p className="text-sm text-foreground">
-                      {booking.guests} Guest{booking.guests !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Booking Information */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-foreground border-b pb-2">
-              Booking Information
-            </h4>
-            <div className="flex items-center gap-3">
-              <div className="bg-primary/10 text-primary p-2 rounded-full flex-shrink-0">
-                <Calendar className="text-primary" size={16} />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">
-                  Booking Date
-                </label>
-                <p className="text-sm text-foreground">
-                  {formatDateTime(booking.createdAt)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Pricing Breakdown */}
-          <div className="bg-muted/50 border rounded-md p-4 space-y-3">
-            <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
-              <CreditCard className="text-primary" size={18} />
-              Pricing Details
-            </h4>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  {booking.timeBased ? "Room Price" : "Price per night"}
-                </span>
-                <span className="text-sm font-medium">
-                  {formatCurrency(pricePerNight)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  {booking.timeBased ? (
-                    `Time-based booking (${booking.bookHour} hour${booking.bookHour !== 1 ? "s" : ""})`
-                  ) : (
-                    `${numberOfNights} night${numberOfNights !== 1 ? "s" : ""}`
-                  )}
-                </span>
-                <span className="text-sm font-medium">
-                  {formatCurrency(booking.txnTotalPrice || booking.totalPrice)}
-                </span>
-              </div>
-              <div className="border-t pt-2 flex justify-between items-center">
-                <span className="text-sm font-medium text-foreground">
-                  Total Amount
-                </span>
-                <span className="text-sm font-bold text-foreground">
-                  {formatCurrency(booking.txnTotalPrice || booking.totalPrice)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // Empty state component
 const EmptyState = ({ onRetry }) => (
@@ -2266,8 +1973,6 @@ const GuestDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedBooking, setSelectedBooking] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDirectionsModalOpen, setIsDirectionsModalOpen] = useState(false);
   const [selectedBookingForDirections, setSelectedBookingForDirections] =
     useState(null);
@@ -2466,11 +2171,6 @@ const GuestDashboard = () => {
   // Retry function
   const handleRetry = () => {
     fetchBookings(currentPage);
-  };
-
-  const handleViewDetails = (booking) => {
-    setSelectedBooking(booking);
-    setIsModalOpen(true);
   };
 
   const handleCancel = (booking) => {
@@ -2810,7 +2510,6 @@ const GuestDashboard = () => {
                 <div key={booking.id}>
                   <BookingCard
                     booking={booking}
-                    onViewDetails={handleViewDetails}
                     onCancel={handleCancel}
                     onContact={handleContact}
                     onDirections={handleDirections}
@@ -2843,13 +2542,6 @@ const GuestDashboard = () => {
           </>
         )}
       </div>
-
-      {/* Booking Details Modal */}
-      <BookingDetailsModal
-        booking={selectedBooking}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
 
       {/* Google Maps Directions Modal */}
       <GoogleMapsModal

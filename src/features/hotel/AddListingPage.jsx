@@ -771,7 +771,7 @@ const AddListingPage = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-left mb-8">
-          <h1 className="text-2xl font-semibold text-foreground mb-2 font-sans">
+          <h1 className="text-xl font-semibold text-foreground mb-2 font-sans">
             Add Your Listing
           </h1>
           <p className="text-muted-foreground text-sm font-sans">
@@ -908,7 +908,7 @@ const AddListingPage = () => {
               <div className="space-y-8">
                 {/* Section Header */}
                 <div className="text-center">
-                  <h2 className="text-2xl font-semibold text-foreground mb-2 font-sans">
+                  <h2 className="text-xl font-semibold text-foreground mb-2 font-sans">
                     Business Information
                   </h2>
                   <p className="text-muted-foreground text-sm font-sans">
@@ -1311,6 +1311,7 @@ const AddListingPage = () => {
                           <div className="flex items-center space-x-3">
                             <Checkbox
                               id="hasTimeBased"
+                              className="h-5 w-5 border border-muted-foreground/50 dark:border-muted-foreground/70 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                               checked={formData.hasTimeBased}
                               onCheckedChange={(checked) => {
                                 setFormData(prev => ({ ...prev, hasTimeBased: checked }));

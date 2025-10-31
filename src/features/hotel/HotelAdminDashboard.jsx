@@ -93,6 +93,7 @@ import AdminBookingForm from "./AdminBookingForm";
 import CIDVerification from "./CIDVerification";
 import BookingsInventoryTable from "./BookingsInventoryTable";
 import LeaveManagement from "./LeaveManagement";
+import BookingCalendar from "./BookingCalendar";
 import { useAuth } from "../authentication";
 import { getStorageItem, clearStorage } from "@/shared/utils/safariLocalStorage";
 import api from "../../shared/services/Api";
@@ -1435,6 +1436,11 @@ const HotelAdminDashboard = () => {
                 <div className="mb-10">
                   <RoomStatusTable hotelId={currentHotelId} />
                 </div>
+
+              {/* Booking Calendar */}
+              <div className="mb-10">
+                <BookingCalendar hotelId={currentHotelId} />
+              </div>
 
               {/* Toggle for StaffCardGrid (visible on all screens) */}
               <div className="mb-2">
