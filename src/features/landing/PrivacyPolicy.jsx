@@ -29,7 +29,7 @@ const Breadcrumb = ({ items }) => {
 };
 
 const PrivacyPolicy = () => {
-  const lastUpdated = "October 25, 2025";
+  const lastUpdated = "November 1, 2025";
   const [showScrollToTop, setShowScrollToTop] = useState(false);
 
   // Ensure page scrolls to top when component mounts

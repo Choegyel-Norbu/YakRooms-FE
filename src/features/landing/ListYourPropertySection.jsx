@@ -61,6 +61,11 @@ const ListYourPropertySection = ({ onLoginClick }) => {
       icon: Settings,
       title: "Easy Property Management",
       description: "Manage bookings, pricing, and availability from one dashboard",
+    },
+    {
+      icon: CreditCard,
+      title: "Secure Payment",
+      description: "Receive payments safely and securely through our trusted payment system",
     }
   ];
 

@@ -57,13 +57,13 @@ const FeatureSection = () => {
                 <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-border/30 max-w-6xl mx-auto">
                   <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
                     {/* Step 1 */}
-                    <div className="text-center space-y-2 group">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                    <Link to="/hotels" className="text-center space-y-2 group cursor-pointer">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 group-hover:shadow-lg">
                         <Search className="w-6 h-6 text-white" />
                       </div>
-                      <h3 className="text-sm font-semibold text-foreground">Browse Hotels</h3>
-                      <p className="text-xs text-muted-foreground max-w-24">Discover verified accommodations</p>
-                    </div>
+                      <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">Browse Hotels</h3>
+                      <p className="text-xs text-muted-foreground max-w-24 group-hover:text-foreground transition-colors">Discover verified accommodations</p>
+                    </Link>
                     
                     {/* Arrow 1 */}
                     <div className="hidden md:flex">
@@ -114,7 +114,7 @@ const FeatureSection = () => {
                     <span className="text-sm font-medium text-muted-foreground">Secure Booking</span>
                   </div>
                   <div className="flex items-center space-x-2 group">
-                    <Star className="w-5 h-5 text-yellow-500 group-hover:animate-spin" />
+                    <CheckCircle className="w-5 h-5 text-green-500 group-hover:scale-110 transition-transform" />
                     <span className="text-sm font-medium text-muted-foreground">Verified Properties</span>
                   </div>
                   <div className="flex items-center space-x-2 group">

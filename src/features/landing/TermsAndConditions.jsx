@@ -155,7 +155,7 @@ const TermsAndConditions = () => {
           </p>
           <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
-              <span>Last Updated: 27 September 2025</span>
+              <span>Last Updated: November 1, 2025</span>
             </div>
             <div className="flex items-center gap-2">
               <span>Version 1.0</span>
@@ -717,10 +717,10 @@ const TermsAndConditions = () => {
             <Separator className="mb-4" />
             <p className="text-xs text-muted-foreground">
               These Terms and Conditions are governed by the laws of Bhutan. 
-              Any disputes will be resolved in the courts of Thimphu, Bhutan.
+              Any disputes will be resolved as per the laws of Bhutan.
             </p>
             <p className="text-xs text-muted-foreground mt-2">
-              © 2025 EzeeRoom. All rights reserved. | Last Updated: January 2025
+              © 2025 EzeeRoom. All rights reserved. | Last Updated: November 1, 2025
             </p>
           </div>
         </div>

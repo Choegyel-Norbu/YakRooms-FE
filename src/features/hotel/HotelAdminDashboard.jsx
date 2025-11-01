@@ -27,6 +27,7 @@ import {
   Camera,
   Loader2,
   Check,
+  HelpCircle,
 } from "lucide-react";
 import {
   Card,
@@ -765,7 +766,18 @@ const HotelAdminDashboard = () => {
 
               {/* Right side actions */}
               <div className="flex flex-col items-end space-y-2 flex-shrink-0">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+              {/* Help Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs sm:text-sm font-medium"
+                onClick={() => navigate("/help")}
+              >
+                <HelpCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Help</span>
+              </Button>
+              
               {/* Notification Bell */}
               <div className="relative" ref={notificationRef}>
                 <Button

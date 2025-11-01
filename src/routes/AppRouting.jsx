@@ -7,7 +7,7 @@ import { FAQs } from "../features/landing";
 import { HotelListingPage } from "../features/hotel";
 import { HotelDetailsPage } from "../features/hotel";
 import { AddListingPage } from "../features/hotel";
-import { HotelAdminDashboard, AccountDeletionPage } from "../features/hotel";
+import { HotelAdminDashboard, AccountDeletionPage, UserManual } from "../features/hotel";
 import { SuperAdmin } from "../features/admin";
 import { GuestDashboard } from "../features/guest";
 import { PrivacyPolicy, TermsAndConditions } from "../features/landing";
@@ -171,6 +171,14 @@ const AppRouting = () => {
         }
       />
 
+      <Route
+        path="/help"
+        element={
+          <ProtectedRoute allowedRoles={["HOTEL_ADMIN", "STAFF", "MANAGER", "FRONTDESK"]}>
+            <UserManual />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Catch all route */}
       <Route path="*" element={<Navigate to="/" replace />} />

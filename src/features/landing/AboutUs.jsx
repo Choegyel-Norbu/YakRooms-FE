@@ -79,7 +79,6 @@ const AboutUs = () => {
                   <EzeeRoomLogo size="large" />
                   <div className="mt-2">
                     <Badge variant="outline" className="text-xs">
-                      <Mountain className="w-3 h-3 mr-1" />
                       About Us
                     </Badge>
                   </div>
@@ -252,13 +251,13 @@ const AboutUs = () => {
                 <p className="text-sm">
                   <strong>Email:</strong>{' '}
                   <a href="mailto:info@ezeeroom.com" className="text-primary hover:underline">
-                    choegyell@gmail.com, zepadorji123@gmail.com
+                    choegyell@gmail.com, zepadorji222@gmail.com
                   </a>
                 </p>
                 <p className="text-sm">
                   <strong>Phone:</strong>{' '}
                   <a href="tel:+97577965452" className="text-primary hover:underline">
-                    +97577965452
+                    +97577965452, +97577236000
                   </a>
                 </p>
                 <p className="text-sm">
