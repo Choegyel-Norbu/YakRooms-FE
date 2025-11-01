@@ -2787,6 +2787,7 @@ const SuperAdmin = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Review</TableHead>
+                  <TableHead>Comment</TableHead>
                   <TableHead>Hotel</TableHead>
                   <TableHead>Rating</TableHead>
                   <TableHead>Date</TableHead>
@@ -2801,20 +2802,21 @@ const SuperAdmin = () => {
                         <div className="text-sm font-medium mb-1">
                           {review.title || "No title"}
                         </div>
-                        <div className="text-sm text-muted-foreground line-clamp-3">
-                          {review.comment || "No comment"}
-                        </div>
                         <div className="text-xs text-muted-foreground mt-1">
                           by {review.guestName || "Anonymous"}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
+                      <div className="max-w-md">
+                        <div className="text-sm font-bold line-clamp-3">
+                          {review.comment || "No comment"}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <div className="text-sm font-medium">
                         {review.hotelName || "Unknown Hotel"}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {review.hotelDistrict || "Unknown Location"}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -2831,7 +2833,7 @@ const SuperAdmin = () => {
                           {format(new Date(review.createdAt), "dd MMM yyyy")}
                         </p>
                         <p className="text-muted-foreground">
-                          {format(new Date(review.createdAt), "HH:mm")}
+                          {format(new Date(review.createdAt), "h:mm a")}
                         </p>
                       </div>
                     </TableCell>

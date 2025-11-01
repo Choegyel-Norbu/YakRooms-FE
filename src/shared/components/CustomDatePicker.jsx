@@ -16,6 +16,7 @@ const CustomDatePicker = ({
   selectedDate, 
   onDateSelect, 
   blockedDates = [], 
+  timeBasedBookings = [],
   minDate = null,
   maxDate = null,
   placeholder = "Select a date",
@@ -80,6 +81,23 @@ const CustomDatePicker = ({
     const checkDate = new Date(date);
     checkDate.setHours(12, 0, 0, 0);
     return checkDate > max;
+  };
+
+  const hasTimeBasedBookingOnDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
+    
+    return timeBasedBookings.some(booking => booking.date === dateString);
+  };
+
+  const isDateAfterTimeBasedBooking = (date) => {
+    const previousDay = new Date(date);
+    previousDay.setDate(previousDay.getDate() - 1);
+    const previousDayString = `${previousDay.getFullYear()}-${String(previousDay.getMonth() + 1).padStart(2, '0')}-${String(previousDay.getDate()).padStart(2, '0')}`;
+    
+    return timeBasedBookings.some(booking => booking.date === previousDayString);
   };
 
   const isDateSelectable = (date) => {
@@ -406,6 +424,13 @@ CustomDatePicker.propTypes = {
     PropTypes.string,
     PropTypes.instanceOf(Date)
   ])),
+  timeBasedBookings: PropTypes.arrayOf(PropTypes.shape({
+    date: PropTypes.string.isRequired,
+    checkInTime: PropTypes.string,
+    checkOutTime: PropTypes.string,
+    bookHour: PropTypes.number,
+    status: PropTypes.string
+  })),
   minDate: PropTypes.oneOfType([
     PropTypes.string,
     PropTypes.instanceOf(Date)

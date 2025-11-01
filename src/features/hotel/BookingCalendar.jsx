@@ -4,14 +4,38 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ca
 import { Button } from "@/shared/components/button";
 import { Badge } from "@/shared/components/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/dialog";
 import api from "../../shared/services/Api";
 import { toast } from "sonner";
+
+// Format time to 12-hour format
+const formatTime = (timeString) => {
+  if (!timeString) return "";
+  
+  try {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const formattedMinutes = minutes.toString().padStart(2, '0');
+    
+    return `${hour12}:${formattedMinutes} ${ampm}`;
+  } catch (error) {
+    console.error('Error formatting time:', error);
+    return "";
+  }
+};
 
 const BookingCalendar = ({ hotelId }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [clickedPosition, setClickedPosition] = useState({ x: 0, y: 0 });
   const [rooms, setRooms] = useState([]);
   const [selectedRoomId, setSelectedRoomId] = useState("all");
   const [loadingRooms, setLoadingRooms] = useState(true);
@@ -274,8 +298,20 @@ const BookingCalendar = ({ hotelId }) => {
   };
 
   // Handle date click
-  const handleDateClick = (day) => {
+  const handleDateClick = (day, event) => {
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    
+    // Get the click position relative to the viewport
+    if (event && event.target) {
+      const rect = event.target.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      setClickedPosition({ x, y });
+    } else {
+      // Fallback to center if we can't get the position
+      setClickedPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+    }
+    
     setSelectedDate(dateStr);
   };
 
@@ -305,7 +341,7 @@ const BookingCalendar = ({ hotelId }) => {
         <div key={day} className="aspect-square p-1">
           <div
             className={getStatusStyling(status, isToday)}
-            onClick={() => handleDateClick(day)}
+            onClick={(e) => handleDateClick(day, e)}
           >
             <span className="relative z-10">{day}</span>
             {dayBookings.length > 0 && (
@@ -320,8 +356,52 @@ const BookingCalendar = ({ hotelId }) => {
   };
 
   return (
-    <div className="space-y-4">
-      <Card className="shadow-sm border-border/50">
+    <>
+      {/* Custom animation styles for dialog expanding from clicked position */}
+      <style>{`
+        @keyframes dialog-expand {
+          0% {
+            transform: translate(-50%, -50%) scale(0) translate(calc(var(--click-x) - 50vw), calc(var(--click-y) - 50vh));
+            opacity: 0;
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(1) translate(0, 0);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes dialog-shrink {
+          0% {
+            transform: translate(-50%, -50%) scale(1) translate(0, 0);
+            opacity: 1;
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(0) translate(calc(var(--click-x) - 50vw), calc(var(--click-y) - 50vh));
+            opacity: 0;
+          }
+        }
+        
+        .dialog-animate-in {
+          animation: dialog-expand 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .dialog-animate-out {
+          animation: dialog-shrink 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+        
+        /* Remove border from dialog close button */
+        [data-slot="dialog-close"] {
+          border: none !important;
+          outline: none !important;
+        }
+        
+        [data-slot="dialog-close"]:focus {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+      `}</style>
+      <div className="space-y-4">
+        <Card className="shadow-sm border-border/50">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -423,82 +503,108 @@ const BookingCalendar = ({ hotelId }) => {
         </CardContent>
       </Card>
 
-      {/* Selected Date Details */}
-      {selectedDate && selectedDateBookings.length > 0 && (
-        <Card className="shadow-sm border-border/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Calendar className="h-4 w-4 text-primary" />
-              Bookings for {new Date(selectedDate).toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+      {/* Booking Details Dialog - Appears when date is clicked */}
+      <Dialog open={!!selectedDate} onOpenChange={(open) => {
+        if (!open) setSelectedDate(null);
+      }}>
+        <DialogContent 
+          className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto !animate-none"
+          style={{
+            '--click-x': `${clickedPosition.x}px`,
+            '--click-y': `${clickedPosition.y}px`,
+            animation: selectedDate ? 'dialog-expand 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards' : 'none',
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedDate && new Date(selectedDate).toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
               })}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {selectedDateBookings.map((booking, index) => {
-              // Determine the activity type for this date
-              const isCheckInDate = booking.checkInDate === selectedDate;
-              const isCheckOutDate = booking.checkOutDate === selectedDate;
-              const isOngoingStay = selectedDate > booking.checkInDate && selectedDate < booking.checkOutDate;
-              
-              let activityType = '';
-              let activityIcon = null;
-              if (isCheckInDate && isCheckOutDate) {
-                activityType = 'Check-in & Check-out';
-                activityIcon = <Calendar className="h-3 w-3" />;
-              } else if (isCheckInDate) {
-                activityType = 'Check-in';
-                activityIcon = <Calendar className="h-3 w-3 text-green-600" />;
-              } else if (isCheckOutDate) {
-                activityType = 'Check-out';
-                activityIcon = <Calendar className="h-3 w-3 text-red-600" />;
-              } else if (isOngoingStay) {
-                activityType = 'Ongoing stay';
-                activityIcon = <Clock className="h-3 w-3 text-blue-600" />;
-              }
+              {selectedDateBookings.length > 0 && (
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {selectedDateBookings.length} {selectedDateBookings.length === 1 ? 'booking' : 'bookings'}
+                </Badge>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="mt-4">
+            {selectedDateBookings.length > 0 ? (
+              <div className="space-y-2.5">
+                {selectedDateBookings.map((booking, index) => {
+                  // Normalize dates by extracting just the date part (YYYY-MM-DD)
+                  const checkInDateOnly = booking.checkInDate ? booking.checkInDate.split('T')[0] : '';
+                  const checkOutDateOnly = booking.checkOutDate ? booking.checkOutDate.split('T')[0] : '';
+                  
+                  // Determine the activity type for this date
+                  const isCheckInDate = checkInDateOnly === selectedDate;
+                  const isCheckOutDate = checkOutDateOnly === selectedDate;
+                  const isOngoingStay = selectedDate > checkInDateOnly && selectedDate < checkOutDateOnly;
+                  
+                  let activityType = '';
 
-              return (
-                <div key={booking.id || index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="flex flex-col">
-                      <span className="font-medium text-sm">{booking.guestName || 'Guest'}</span>
-                      <span className="text-xs text-muted-foreground">Room {booking.roomNumber}</span>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                        {activityIcon}
-                        <span className="font-medium">{activityType}</span>
+                  return (
+                    <div 
+                      key={booking.id || index} 
+                      className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className="font-medium text-sm truncate">
+                            {booking.guestName || 'Guest'}
+                          </span>
+                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                            <span className="text-xs text-muted-foreground">
+                              Room {booking.roomNumber}
+                            </span>
+                            {activityType && (
+                              <span className="text-xs text-muted-foreground">• {activityType}</span>
+                            )}
+                            {/* Show times for hourly bookings */}
+                            {booking.timeBased && booking.checkInTime && booking.checkOutTime && (
+                              <span className="text-xs text-primary font-medium">
+                                • {formatTime(booking.checkInTime)} - {formatTime(booking.checkOutTime)}
+                              </span>
+                            )}
+                            {/* Booking type for larger screens */}
+                            <div className="hidden lg:inline">
+                              <Badge 
+                                variant={booking.timeBased ? 'secondary' : 'outline'}
+                                className="text-xs font-medium ml-1"
+                              >
+                                {booking.timeBased ? 'hourly' : 'standard'}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
                       </div>
+                      <Badge 
+                        variant={
+                          booking.status === 'CHECKED_IN' ? 'default' :
+                          booking.status === 'CONFIRMED' ? 'secondary' :
+                          booking.status === 'PENDING' ? 'outline' : 'destructive'
+                        }
+                        className="text-xs ml-2 flex-shrink-0"
+                      >
+                        {booking.status?.replace('_', ' ') || 'Unknown'}
+                      </Badge>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Users className="h-3 w-3" />
-                      {booking.guests} guest{booking.guests !== 1 ? 's' : ''}
-                    </div>
-                    {booking.timeBased && (
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        {booking.bookHour}h
-                      </div>
-                    )}
-                  </div>
-                  <Badge 
-                    variant={
-                      booking.status === 'CHECKED_IN' ? 'default' :
-                      booking.status === 'CONFIRMED' ? 'secondary' :
-                      booking.status === 'PENDING' ? 'outline' : 'destructive'
-                    }
-                    className="text-xs"
-                  >
-                    {booking.status?.replace('_', ' ') || 'Unknown'}
-                  </Badge>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      )}
-    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-sm text-muted-foreground">
+                No bookings for this date
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+      </div>
+    </>
   );
 };
 

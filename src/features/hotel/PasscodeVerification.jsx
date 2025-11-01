@@ -267,9 +267,6 @@ const PasscodeVerification = () => {
                     )}
                   </div>
                 </div>
-                <CardDescription className="text-sm">
-                  Booking ID: #{bookingData.bookingId}
-                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Guest Information */}

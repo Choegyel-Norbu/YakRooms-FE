@@ -441,6 +441,17 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
         // Check if there's a check-in on the day after current checkout
         const nextDay = new Date(currentCheckOut);
         nextDay.setDate(nextDay.getDate() + 1);
+        const nextDayString = `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, '0')}-${String(nextDay.getDate()).padStart(2, '0')}`;
+        
+        // Check if the immediate next day has time-based bookings
+        const hasTimeBasedBookingNextDay = response.data.timeBasedBookings?.some(booking => booking.date === nextDayString);
+        
+        if (hasTimeBasedBookingNextDay) {
+          // If the very next day has time-based bookings, extension is not possible
+          setError("Extension for this booking is not available as the next day has existing time-based bookings.");
+          setAvailabilityChecked(true);
+          return;
+        }
         
         const hasCheckInNextDay = response.data.bookedDates?.some(blockedDate => {
           const checkInDate = new Date(blockedDate);
@@ -659,9 +670,8 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
     const day = String(date.getDate()).padStart(2, '0');
     const dateValue = `${year}-${month}-${day}`;
     
-    setNewCheckOutDate(dateValue);
-    setIsAutoFilledDate(false); // Clear auto-fill flag when user manually selects a date
-    setError("");
+    // Note: Time-based booking conflicts are now handled at the booking level
+    // If we reach this point, the extension is already determined to be possible
 
     // If same-day extension, we need to check conflicts up to tomorrow (the actual checkout date)
     let endDateForConflictCheck = selectedDate;
@@ -693,7 +703,14 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
 
     if (hasConflict) {
       setError(`The selected extension period conflicts with existing bookings on: ${conflictingDates.join(', ')}. Please select a shorter extension period or make a new booking for your desired dates.`);
+      setNewCheckOutDate("");
+      return;
     }
+    
+    // If we reach here, the date is valid
+    setNewCheckOutDate(dateValue);
+    setIsAutoFilledDate(false); // Clear auto-fill flag when user manually selects a date
+    setError("");
   };
 
   // Handle extension hours change for time-based bookings
@@ -1074,6 +1091,7 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
                     selectedDate={newCheckOutDate ? new Date(newCheckOutDate + 'T12:00:00') : null}
                     onDateSelect={handleDateSelect}
                     blockedDates={bookedDates}
+                    timeBasedBookings={timeBasedBookings}
                     minDate={minDate}
                     placeholder="Select new checkout date"
                     label="New Check-out Date *"
@@ -1432,6 +1450,11 @@ const BookingCard = ({
                     at {formatTime(booking.checkInTime)}
                   </span>
                 )}
+                {!booking.timeBased && booking.hotelCheckinTime && (
+                  <span className="ml-1 text-xs text-muted-foreground">
+                    (Hotel check-in: {formatTime(booking.hotelCheckinTime)})
+                  </span>
+                )}
               </p>
             </div>
           </div>
@@ -1448,6 +1471,11 @@ const BookingCard = ({
                 {booking.timeBased && booking.checkOutTime && (
                   <span className="ml-1 text-xs text-blue-600">
                     at {formatTime(booking.checkOutTime)}
+                  </span>
+                )}
+                {!booking.timeBased && booking.hotelCheckoutTime && (
+                  <span className="ml-1 text-xs text-muted-foreground">
+                    (Hotel check-out: {formatTime(booking.hotelCheckoutTime)})
                   </span>
                 )}
               </p>
@@ -2249,7 +2277,7 @@ const GuestDashboard = () => {
       
       // Create WhatsApp URL with a default message
       const message = encodeURIComponent(
-        `Hi! I have a booking at ${booking.hotelName} (Booking ID: ${booking.id}, Room: ${booking.roomNumber}, Check-in: ${new Date(booking.checkInDate).toLocaleDateString()}). I would like to get in touch regarding my reservation.`
+        `Hi! I have a booking at ${booking.hotelName} (Room: ${booking.roomNumber}, Check-in: ${new Date(booking.checkInDate).toLocaleDateString()}). I would like to get in touch regarding my reservation.`
       );
       
       const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;

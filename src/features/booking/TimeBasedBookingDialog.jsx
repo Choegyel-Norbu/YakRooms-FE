@@ -775,7 +775,7 @@ export default function TimeBasedBookingDialog({
                   <span>Nu {calculateTotalPrice().toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-base text-blue-600">
-                  <span>Transaction Total (with tax)</span>
+                  <span>Transaction Total</span>
                   <span>Nu {calculateTxnTotalPrice().toFixed(2)}</span>
                 </div>
                 {(!bookingDetails.checkInDate || !bookingDetails.checkInTime || !bookingDetails.bookHours) && (

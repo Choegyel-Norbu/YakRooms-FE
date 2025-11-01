@@ -354,7 +354,7 @@ const RoomImageCarousel = ({ images, roomNumber, roomType, isActive }) => {
 };
 
 const HotelDetailsPage = () => {
-  const { userId, isAuthenticated, roles, hasRole, hotelId } = useAuth();
+  const { userId, isAuthenticated, roles, hasRole, hotelId, hotelIds, selectedHotelId } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   
@@ -422,9 +422,16 @@ const HotelDetailsPage = () => {
       return false;
     }
     
-    // Check if the current user's hotelId matches the hotel being viewed
-    return hotelId && id && hotelId.toString() === id.toString();
-  }, [hasRole, hotelId, id]);
+    // Check if the hotel being viewed is in the user's hotelIds array
+    if (!id || !hotelIds || !Array.isArray(hotelIds) || hotelIds.length === 0) {
+      return false;
+    }
+    
+    // Check if any of the user's hotel IDs match the hotel being viewed
+    return hotelIds.some(userHotelId => 
+      userHotelId && userHotelId.toString() === id.toString()
+    );
+  }, [hasRole, hotelIds, id]);
 
 
   // Optimized data fetching with single API call for initial load
@@ -658,19 +665,22 @@ const HotelDetailsPage = () => {
   }, []);
 
   const handleShare = useCallback(async () => {
+    // Clean URL by removing any query parameters that might contain hotel ID
+    const cleanUrl = window.location.origin + window.location.pathname;
+    
     if (navigator.share) {
       try {
         await navigator.share({
           title: appState.hotel.name,
           text: `Check out ${appState.hotel.name} in ${appState.hotel.locality && `${appState.hotel.locality}, `}${appState.hotel.district}, Bhutan`,
-          url: window.location.href,
+          url: cleanUrl,
         });
       } catch (err) {
         console.log("Error sharing:", err);
       }
     } else {
       // Fallback to clipboard
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(cleanUrl);
     }
   }, [appState.hotel?.name, appState.hotel?.district]);
 
@@ -1206,9 +1216,9 @@ const HotelDetailsPage = () => {
                                       >
                                         <Trash2 className="mr-2 h-4 w-4" />
                                         {testimonial.deleted 
-                                          ? 'Review Deleted' 
+                                          ? 'Review requested for deletion' 
                                           : testimonial.deletionRequested 
-                                            ? 'Request for deletion' 
+                                            ? 'Requested for deletion' 
                                             : 'Request Delete'
                                         }
                                       </DropdownMenuItem>
