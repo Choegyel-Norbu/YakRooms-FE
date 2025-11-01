@@ -826,62 +826,94 @@ const HotelDetailsPage = () => {
       <main className="container mx-auto px-0 sm:px-6 py-0 lg:py-8 space-y-6 sm:space-y-8">
         {/* Enhanced Hero Section */}
         <Card className="overflow-hidden pt-0 rounded-none" style={{ borderRadius: 0 }}>
-          <div className="relative h-48 sm:h-64 md:h-96 lg:h-[500px]">
-            <img
-              src={transformedHotel.images[uiState.currentImageIndex]}
-              alt={transformedHotel.name}
-              className="h-full w-full object-cover cursor-pointer"
-              onClick={() => setUiState(prev => ({ ...prev, showImageModal: true }))}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          <div className="relative h-48 sm:h-64 md:h-96 lg:h-[500px] flex gap-1">
+            {/* Main Image Section - 80% width when thumbnails exist, full width when single image */}
+            <div className={`relative h-full overflow-hidden group ${
+              transformedHotel.images.length > 1 ? 'w-[80%]' : 'w-full'
+            }`}>
+              <img
+                src={transformedHotel.images[uiState.currentImageIndex]}
+                alt={transformedHotel.name}
+                className="h-full w-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105"
+                onClick={() => setUiState(prev => ({ ...prev, showImageModal: true }))}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
-            {/* Image Navigation */}
+              {/* Image Navigation */}
+              {transformedHotel.images.length > 1 && (
+                <>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    onClick={prevImage}
+                    className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 rounded-full bg-background/60 hover:bg-background/80 h-8 w-8 sm:h-10 sm:w-10 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    onClick={nextImage}
+                    className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 rounded-full bg-background/60 hover:bg-background/80 h-8 w-8 sm:h-10 sm:w-10 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
+                  </Button>
+                </>
+              )}
+
+              {/* Image Indicators */}
+              <div className="absolute bottom-3 sm:bottom-4 left-0 right-0 flex justify-center gap-1.5 sm:gap-2">
+                {transformedHotel.images.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setUiState(prev => ({ ...prev, currentImageIndex: index }))}
+                    className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full transition-all ${
+                      uiState.currentImageIndex === index
+                        ? "bg-white scale-125"
+                        : "bg-white/50 hover:bg-white/75"
+                    }`}
+                    aria-label={`Go to image ${index + 1}`}
+                  />
+                ))}
+              </div>
+
+              {/* Hotel Type Badge */}
+              <div className="absolute top-3 sm:top-4 left-3 sm:left-4 bg-white text-black px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium shadow-lg border border-gray-200">
+                {(transformedHotel.hotelType || "Hotel").replace(/_/g, " ")}
+              </div>
+
+              {/* Image Counter */}
+              <div className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-black/50 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
+                {uiState.currentImageIndex + 1} / {transformedHotel.images.length}
+              </div>
+            </div>
+
+            {/* Thumbnail Grid Section - 20% width */}
             {transformedHotel.images.length > 1 && (
-              <>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  onClick={prevImage}
-                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 rounded-full bg-background/60 hover:bg-background/80 h-8 w-8 sm:h-10 sm:w-10"
-                >
-                  <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  onClick={nextImage}
-                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 rounded-full bg-background/60 hover:bg-background/80 h-8 w-8 sm:h-10 sm:w-10"
-                >
-                  <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
-                </Button>
-              </>
+              <div className="relative w-[20%] h-full flex flex-col gap-1">
+                {Array.from({ length: Math.min(4, transformedHotel.images.length - 1) }).map((_, idx) => {
+                  const thumbIndex = (uiState.currentImageIndex + idx + 1) % transformedHotel.images.length;
+                  return (
+                    <div
+                      key={thumbIndex}
+                      className={`relative flex-1 overflow-hidden cursor-pointer group transition-all ${
+                        idx === 0 ? 'opacity-100' : 'opacity-60'
+                      }`}
+                      onClick={() => setUiState(prev => ({ ...prev, currentImageIndex: thumbIndex }))}
+                    >
+                      <img
+                        src={transformedHotel.images[thumbIndex]}
+                        alt={`${transformedHotel.name} - Image ${thumbIndex + 1}`}
+                        className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-110"
+                      />
+                      {idx === 0 && (
+                        <div className="absolute inset-0 border-2 border-blue-400 shadow-lg" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
-
-            {/* Image Indicators */}
-            <div className="absolute bottom-3 sm:bottom-4 left-0 right-0 flex justify-center gap-1.5 sm:gap-2">
-              {transformedHotel.images.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setUiState(prev => ({ ...prev, currentImageIndex: index }))}
-                  className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full transition-all ${
-                    uiState.currentImageIndex === index
-                      ? "bg-white scale-125"
-                      : "bg-white/50 hover:bg-white/75"
-                  }`}
-                  aria-label={`Go to image ${index + 1}`}
-                />
-              ))}
-            </div>
-
-            {/* Hotel Type Badge */}
-            <div className="absolute top-3 sm:top-4 left-3 sm:left-4 bg-white text-black px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium shadow-lg border border-gray-200">
-              {(transformedHotel.hotelType || "Hotel").replace(/_/g, " ")}
-            </div>
-
-            {/* Image Counter */}
-            <div className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-black/50 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
-              {uiState.currentImageIndex + 1} / {transformedHotel.images.length}
-            </div>
           </div>
 
           <CardContent className="px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pt-8 bg-gradient-to-br from-white to-slate-50/50">
