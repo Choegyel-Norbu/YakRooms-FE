@@ -1027,20 +1027,14 @@ const HotelDetailsPage = () => {
 
               {/* Check-in/Check-out Times - Mobile & Desktop Visible */}
               <div className="mt-6 pt-4 border-t border-slate-200">
-                <div className="flex flex-col sm:flex-row sm:items-center  gap-4">
-                  <div className="flex items-center gap-3">
-                    
-                    <div>
-                      <h4 className="text-sm font-medium text-slate-800">Check-in Time</h4>
-                      <p className="text-xs text-blue-600 border border-blue-300 rounded px-2 py-1 bg-blue-50">- {formatTimeWithDescription(appState.hotel?.checkinTime)}</p>
-                    </div>
+                <div className="flex flex-row items-start gap-6">
+                  <div className="flex-1">
+                    <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Check-in Time</h4>
+                    <p className="text-sm font-semibold text-blue-700">{formatTime(appState.hotel?.checkinTime)}</p>
                   </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <h4 className="text-sm font-medium text-slate-800">Check-out Time</h4>
-                      <p className="text-xs text-blue-600 border border-blue-300 rounded px-2 py-1 bg-blue-50">- {formatTimeWithDescription(appState.hotel?.checkoutTime)}</p>
-                    </div>
+                  <div className="flex-1">
+                    <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Check-out Time</h4>
+                    <p className="text-sm font-semibold text-blue-700">{formatTime(appState.hotel?.checkoutTime)}</p>
                   </div>
                 </div>
               </div>

@@ -95,7 +95,27 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         // For immediate booking, check:
         // 1. Regular booked dates
         // 2. Time-based booking conflict on tomorrow (tomorrow has time-based booking before checkout)
+        // 3. Time-based booking on today in the afternoon (12 noon and after)
         const isTodayBooked = (bookedResponse.data.bookedDates || []).includes(todayString);
+        
+        // Check if today has a time-based booking in the afternoon (12 noon and after)
+        const todayTimeBasedBookings = (bookedResponse.data.timeBasedBookings || []).filter(booking => booking.date === todayString);
+        let hasTodayAfternoonBooking = false;
+        
+        if (todayTimeBasedBookings.length > 0) {
+          hasTodayAfternoonBooking = todayTimeBasedBookings.some(booking => {
+            if (!booking.checkInTime) return false;
+            
+            // Handle different time formats (HH:MM:SS or HH:MM)
+            let checkInTime = booking.checkInTime;
+            if (checkInTime.includes(':') && checkInTime.split(':').length === 3) {
+              checkInTime = checkInTime.substring(0, 5);
+            }
+            
+            const [hours] = checkInTime.split(':').map(Number);
+            return hours >= 12; // 12 noon and after is considered afternoon
+          });
+        }
         
         // Check if tomorrow has a time-based booking that starts before checkout time
         const tomorrow = new Date(today);
@@ -131,8 +151,8 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
           });
         }
         
-        // Today is only available if it's not booked and there's no tomorrow conflict
-        setIsTodayAvailable(!isTodayBooked && !hasTomorrowConflict);
+        // Today is only available if it's not booked, has no afternoon time-based booking, and there's no tomorrow conflict
+        setIsTodayAvailable(!isTodayBooked && !hasTodayAfternoonBooking && !hasTomorrowConflict);
         setHasCheckedBookings(true);
       }
     } catch (error) {
@@ -1167,7 +1187,6 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
           isBhutanese: true,
         });
         setImmediateBookingErrors({});
-        
         
         // Show toast notification
         toast.success("Booking Successful!", {
