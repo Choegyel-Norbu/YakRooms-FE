@@ -336,6 +336,20 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
     return hours >= 12; // 12 noon and after
   };
 
+  // Helper function to check if a time-based booking is in the morning (before 12 noon)
+  const isMorningTimeBasedBooking = (booking) => {
+    if (!booking.checkInTime) return false;
+    
+    // Handle different time formats (HH:MM:SS or HH:MM)
+    let checkInTime = booking.checkInTime;
+    if (checkInTime.includes(':') && checkInTime.split(':').length === 3) {
+      checkInTime = checkInTime.substring(0, 5);
+    }
+    
+    const [hours] = checkInTime.split(':').map(Number);
+    return hours < 12; // Before 12 noon
+  };
+
   // Get blocked dates based on booking type
   const getBlockedDates = () => {
     // For standard booking, block dates that have:
@@ -343,6 +357,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
     // 2. Dates with ONLY afternoon time-based bookings (12 noon and after, no regular booking)
     // 3. Dates where tomorrow has a time-based booking starting before checkout time
     // 4. Dates that have BOTH a regular booking AND any time-based bookings
+    // 5. Previous dates where there's a morning time-based booking (NEW RULE)
     // 
     // This allows standard booking on dates that only have morning time-based bookings (before 12 noon)
     // because morning bookings don't conflict with overnight standard bookings
@@ -350,6 +365,11 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
     // Get dates that have afternoon time-based bookings
     const afternoonTimeBasedDates = timeBasedBookings
       .filter(isAfternoonTimeBasedBooking)
+      .map(booking => booking.date);
+    
+    // Get dates that have morning time-based bookings
+    const morningTimeBasedDates = timeBasedBookings
+      .filter(isMorningTimeBasedBooking)
       .map(booking => booking.date);
     
     // Get dates that have any time-based bookings (morning or afternoon)
@@ -415,10 +435,47 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       });
     }
     
-    // Combine filtered regular booked dates with dates that have only afternoon time-based bookings,
-    // dates that have both regular and time-based bookings,
-    // and dates where tomorrow has time-based bookings before checkout
-    const allBlockedDates = [...regularBookedDatesToBlock, ...afternoonOnlyDates, ...datesWithBothBookings, ...datesWithNextDayConflict];
+    // NEW: Get previous dates that should be blocked due to morning time-based bookings
+    // If there's a morning time-based booking, block the previous date for standard booking
+    // because checkout would conflict with the morning time-based booking
+    const datesWithMorningConflict = [];
+    if (timeBasedBookings.length > 0) {
+      const processedDates = new Set();
+      
+      timeBasedBookings.forEach(booking => {
+        if (!booking.date || !booking.checkInTime) return;
+        
+        // Check if this is a morning time-based booking
+        if (isMorningTimeBasedBooking(booking)) {
+          const bookingDate = new Date(booking.date);
+          const previousDate = new Date(bookingDate);
+          previousDate.setDate(previousDate.getDate() - 1);
+          
+          const previousDateString = previousDate.getFullYear() + '-' + 
+            String(previousDate.getMonth() + 1).padStart(2, '0') + '-' + 
+            String(previousDate.getDate()).padStart(2, '0');
+          
+          if (!processedDates.has(previousDateString)) {
+            datesWithMorningConflict.push(previousDateString);
+            processedDates.add(previousDateString);
+          }
+        }
+      });
+    }
+    
+    // Combine all blocked dates:
+    // - Regular booked dates without time-based bookings
+    // - Dates with only afternoon time-based bookings
+    // - Dates with both regular and time-based bookings
+    // - Dates where tomorrow has time-based bookings before checkout
+    // - Previous dates where there's a morning time-based booking
+    const allBlockedDates = [
+      ...regularBookedDatesToBlock, 
+      ...afternoonOnlyDates, 
+      ...datesWithBothBookings, 
+      ...datesWithNextDayConflict,
+      ...datesWithMorningConflict
+    ];
     return [...new Set(allBlockedDates)]; // Remove duplicates
   };
 

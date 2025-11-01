@@ -219,6 +219,50 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
     });
   };
 
+  // Helper function to check if tomorrow has a time-based booking that starts before checkout time
+  const hasNextDayTimeBasedBookingConflict = (checkInDateString, checkoutTime = "12:00") => {
+    if (!checkInDateString || !timeBasedBookings.length || !checkoutTime) return false;
+    
+    const checkInDate = new Date(checkInDateString);
+    const tomorrow = new Date(checkInDate);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const tomorrowString = tomorrow.getFullYear() + '-' + 
+      String(tomorrow.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(tomorrow.getDate()).padStart(2, '0');
+    
+    // Check if tomorrow has a time-based booking
+    const tomorrowBookings = timeBasedBookings.filter(booking => booking.date === tomorrowString);
+    
+    if (tomorrowBookings.length === 0) return false;
+    
+    // Get hotel checkout time and normalize it
+    let checkoutTimeStr = checkoutTime;
+    if (checkoutTimeStr.includes(':') && checkoutTimeStr.split(':').length === 3) {
+      checkoutTimeStr = checkoutTimeStr.substring(0, 5);
+    }
+    
+    const [checkoutHours, checkoutMinutes] = checkoutTimeStr.split(':').map(Number);
+    const checkoutTotalMinutes = checkoutHours * 60 + checkoutMinutes;
+    
+    // Check if any time-based booking on tomorrow starts before checkout time
+    return tomorrowBookings.some(booking => {
+      if (!booking.checkInTime) return false;
+      
+      // Normalize checkInTime format
+      let checkInTimeStr = booking.checkInTime;
+      if (checkInTimeStr.includes(':') && checkInTimeStr.split(':').length === 3) {
+        checkInTimeStr = checkInTimeStr.substring(0, 5);
+      }
+      
+      const [bookingHours, bookingMinutes] = checkInTimeStr.split(':').map(Number);
+      const bookingTotalMinutes = bookingHours * 60 + bookingMinutes;
+      
+      // Return true if the booking starts before or at checkout time
+      return bookingTotalMinutes <= checkoutTotalMinutes;
+    });
+  };
+
   // Helper function to check if a time-based booking is in the afternoon (12 noon and after)
   // This is used to determine which dates should be blocked for standard booking
   const isAfternoonTimeBasedBooking = (booking) => {
@@ -234,11 +278,28 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
     return hours >= 12; // 12 noon and after
   };
 
+  // Helper function to check if a time-based booking is in the morning (before 12 noon)
+  const isMorningTimeBasedBooking = (booking) => {
+    if (!booking.checkInTime) return false;
+    
+    // Handle different time formats (HH:MM:SS or HH:MM)
+    let checkInTime = booking.checkInTime;
+    if (checkInTime.includes(':') && checkInTime.split(':').length === 3) {
+      checkInTime = checkInTime.substring(0, 5);
+    }
+    
+    const [hours] = checkInTime.split(':').map(Number);
+    return hours < 12; // Before 12 noon
+  };
+
   // Get blocked dates for regular booking based on booking type
   const getBlockedDates = () => {
     // For standard booking, block dates that have:
     // 1. Regular booked dates (EXCEPT those that only have morning time-based bookings)
-    // 2. Dates with afternoon time-based bookings (12 noon and after)
+    // 2. Dates with ONLY afternoon time-based bookings (12 noon and after, no regular booking)
+    // 3. Dates where tomorrow has a time-based booking starting before checkout time
+    // 4. Dates that have BOTH a regular booking AND any time-based bookings
+    // 5. Previous dates where there's a morning time-based booking (NEW RULE)
     // 
     // This allows standard booking on dates that only have morning time-based bookings (before 12 noon)
     // because morning bookings don't conflict with overnight standard bookings
@@ -248,29 +309,131 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
       .filter(isAfternoonTimeBasedBooking)
       .map(booking => booking.date);
     
+    // Get dates that have morning time-based bookings
+    const morningTimeBasedDates = timeBasedBookings
+      .filter(isMorningTimeBasedBooking)
+      .map(booking => booking.date);
+    
     // Get dates that have any time-based bookings (morning or afternoon)
     const allTimeBasedDates = timeBasedBookings.map(booking => booking.date);
     
-    // Filter regular booked dates to exclude those that only have morning time-based bookings
-    const regularBookedDatesToBlock = bookedDates.filter(date => {
-      // If this date has time-based bookings, check if any are afternoon
-      if (allTimeBasedDates.includes(date)) {
-        // Only block if there are afternoon time-based bookings on this date
-        return afternoonTimeBasedDates.includes(date);
-      }
-      // If no time-based bookings on this date, block it (it's a regular booking)
-      return true;
-    });
+    // Get dates that have BOTH a regular booking AND time-based bookings
+    // These should always be blocked as they're fully occupied
+    const datesWithBothBookings = bookedDates.filter(date => allTimeBasedDates.includes(date));
     
-    // Combine filtered regular booked dates with dates that have afternoon time-based bookings
-    const allBlockedDates = [...regularBookedDatesToBlock, ...afternoonTimeBasedDates];
+    // Get dates that have regular bookings WITHOUT time-based bookings
+    // Block regular booked dates that don't have time-based bookings
+    const regularBookedDatesToBlock = bookedDates.filter(date => !allTimeBasedDates.includes(date));
+    
+    // Get dates that have ONLY afternoon time-based bookings (no regular booking)
+    // These should be blocked for standard bookings as they conflict with overnight stays
+    const afternoonOnlyDates = afternoonTimeBasedDates.filter(date => !bookedDates.includes(date));
+    
+    // Get dates that have time-based booking conflicts on the next day
+    // If tomorrow has a time-based booking that starts before checkout time,
+    // then today should be blocked for standard bookings
+    const datesWithNextDayConflict = [];
+    const checkoutTime = "12:00"; // Default checkout time for admin bookings
+    if (timeBasedBookings.length > 0) {
+      // For each time-based booking, check if it starts before checkout time
+      // If so, block the previous day (the check-in day)
+      const processedDates = new Set();
+      
+      timeBasedBookings.forEach(booking => {
+        if (!booking.date || !booking.checkInTime) return;
+        
+        // Normalize checkInTime
+        let checkInTimeStr = booking.checkInTime;
+        if (checkInTimeStr.includes(':') && checkInTimeStr.split(':').length === 3) {
+          checkInTimeStr = checkInTimeStr.substring(0, 5);
+        }
+        
+        // Normalize checkoutTime
+        let checkoutTimeStr = checkoutTime;
+        if (checkoutTimeStr.includes(':') && checkoutTimeStr.split(':').length === 3) {
+          checkoutTimeStr = checkoutTimeStr.substring(0, 5);
+        }
+        
+        const [bookingHours, bookingMinutes] = checkInTimeStr.split(':').map(Number);
+        const [checkoutHours, checkoutMinutes] = checkoutTimeStr.split(':').map(Number);
+        
+        const bookingTotalMinutes = bookingHours * 60 + bookingMinutes;
+        const checkoutTotalMinutes = checkoutHours * 60 + checkoutMinutes;
+        
+        // If booking starts before or at checkout time, block the previous day
+        if (bookingTotalMinutes <= checkoutTotalMinutes) {
+          const bookingDate = new Date(booking.date);
+          const previousDate = new Date(bookingDate);
+          previousDate.setDate(previousDate.getDate() - 1);
+          
+          const previousDateString = previousDate.getFullYear() + '-' + 
+            String(previousDate.getMonth() + 1).padStart(2, '0') + '-' + 
+            String(previousDate.getDate()).padStart(2, '0');
+          
+          if (!processedDates.has(previousDateString)) {
+            datesWithNextDayConflict.push(previousDateString);
+            processedDates.add(previousDateString);
+          }
+        }
+      });
+    }
+    
+    // NEW: Get previous dates that should be blocked due to morning time-based bookings
+    // If there's a morning time-based booking, block the previous date for standard booking
+    // because checkout would conflict with the morning time-based booking
+    const datesWithMorningConflict = [];
+    if (timeBasedBookings.length > 0) {
+      const processedDates = new Set();
+      
+      timeBasedBookings.forEach(booking => {
+        if (!booking.date || !booking.checkInTime) return;
+        
+        // Check if this is a morning time-based booking
+        if (isMorningTimeBasedBooking(booking)) {
+          const bookingDate = new Date(booking.date);
+          const previousDate = new Date(bookingDate);
+          previousDate.setDate(previousDate.getDate() - 1);
+          
+          const previousDateString = previousDate.getFullYear() + '-' + 
+            String(previousDate.getMonth() + 1).padStart(2, '0') + '-' + 
+            String(previousDate.getDate()).padStart(2, '0');
+          
+          if (!processedDates.has(previousDateString)) {
+            datesWithMorningConflict.push(previousDateString);
+            processedDates.add(previousDateString);
+          }
+        }
+      });
+    }
+    
+    // Combine all blocked dates:
+    // - Regular booked dates without time-based bookings
+    // - Dates with only afternoon time-based bookings
+    // - Dates with both regular and time-based bookings
+    // - Dates where tomorrow has time-based bookings before checkout
+    // - Previous dates where there's a morning time-based booking
+    const allBlockedDates = [
+      ...regularBookedDatesToBlock, 
+      ...afternoonOnlyDates, 
+      ...datesWithBothBookings, 
+      ...datesWithNextDayConflict,
+      ...datesWithMorningConflict
+    ];
     return [...new Set(allBlockedDates)]; // Remove duplicates
   };
 
-  // Get blocked dates for hourly booking (only block dates that have regular bookings)
+  // Get blocked dates for hourly booking
+  // Block dates based on these rules:
+  // 1. Block dates with ONLY regular bookings (no time-based bookings)
+  // 2. Block dates with BOTH regular AND time-based bookings
+  // 3. Allow dates with ONLY time-based bookings (no regular bookings)
   const getBlockedDatesForHourlyBooking = () => {
-    const hourlyDates = timeBasedBookings.map(booking => booking.date);
-    return bookedDates.filter(date => !hourlyDates.includes(date));
+    // Get dates that have time-based bookings
+    const timeBasedDates = timeBasedBookings.map(booking => booking.date);
+    
+    // Block dates that have regular bookings (regardless of time-based bookings)
+    // This covers both "regular only" and "both regular + time-based" scenarios
+    return bookedDates;
   };
 
   const calculateDays = () => {
@@ -400,16 +563,32 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
     // Removed userId validation - now optional for third-party bookings
     if (!bookingDetails.guestName) newErrors.guestName = "Guest name is required";
     
-    // Validate check-in date
+    // Comprehensive check-in date validation
     if (!bookingDetails.checkInDate) {
       newErrors.checkInDate = "Check-in date is required";
     } else {
       const checkInDate = new Date(bookingDetails.checkInDate);
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0); // Set to start of day for proper comparison
       
+      // Check if check-in date is in the past
       if (checkInDate < today) {
         newErrors.checkInDate = "Check-in date cannot be in the past";
+      }
+      // Check for time-based booking conflict on the next day
+      else if (hasNextDayTimeBasedBookingConflict(bookingDetails.checkInDate)) {
+        const tomorrow = new Date(checkInDate);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowDisplay = tomorrow.toLocaleDateString();
+        newErrors.checkInDate = `Cannot book this date. The next day (${tomorrowDisplay}) has a time-based booking that starts before checkout time.`;
+      }
+      // Check if it's too far in the future (optional business rule - 1 year max)
+      else {
+        const oneYearFromNow = new Date();
+        oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+        if (checkInDate > oneYearFromNow) {
+          newErrors.checkInDate = "Check-in date cannot be more than 1 year in advance";
+        }
       }
     }
     
@@ -514,7 +693,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
   };
 
   // Handle date selection from CustomDatePicker
-  const handleDateSelect = (name, date) => {
+  const handleDateSelect = async (name, date) => {
     let dateValue = '';
     if (date) {
       // Create a new date normalized to avoid timezone issues
@@ -527,6 +706,24 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
       dateValue = `${year}-${month}-${day}`;
     }
     
+    // Check for time-based booking conflict on the next day
+    if (name === "checkInDate" && dateValue && hasNextDayTimeBasedBookingConflict(dateValue)) {
+      const tomorrow = new Date(dateValue);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowDisplay = tomorrow.toLocaleDateString();
+      
+      toast.error("Cannot book this date", {
+        description: `The next day (${tomorrowDisplay}) has a time-based booking that starts before checkout time. This date cannot be booked.`,
+        duration: 6000
+      });
+      
+      setErrors((prev) => ({
+        ...prev,
+        checkInDate: "Cannot book this date due to a time-based booking conflict on the next day"
+      }));
+      
+      return; // Don't update the date selection
+    }
     
     setBookingDetails((prev) => {
       const newDetails = {
