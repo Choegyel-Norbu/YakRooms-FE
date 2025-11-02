@@ -7,7 +7,8 @@ import {
   Star, 
   MessageSquare, 
   Bell,
-  Users
+  Users,
+  CreditCard
 } from "lucide-react";
 
 function SuperAdminTabs({ 
@@ -16,7 +17,8 @@ function SuperAdminTabs({
   ReviewsTable, 
   FeedbacksTable, 
   HotelTable, 
-  AllNotificationsTable 
+  AllNotificationsTable,
+  SubscriptionsTable
 }) {
   return (
     <Tabs defaultValue="hotels" className="w-full">
@@ -94,6 +96,18 @@ function SuperAdminTabs({
             />
             Notifications
           </TabsTrigger>
+          <TabsTrigger
+            value="subscriptions"
+            className="relative overflow-hidden rounded-none border border-border py-3 px-4 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e data-[state=active]:bg-muted data-[state=active]:after:bg-primary"
+          >
+            <CreditCard
+              className="-ms-0.5 me-2 opacity-60"
+              size={16}
+              strokeWidth={2}
+              aria-hidden="true"
+            />
+            Subscriptions
+          </TabsTrigger>
         </TabsList>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
@@ -120,6 +134,10 @@ function SuperAdminTabs({
       
       <TabsContent value="notifications" className="mt-0">
         <AllNotificationsTable />
+      </TabsContent>
+      
+      <TabsContent value="subscriptions" className="mt-0">
+        <SubscriptionsTable />
       </TabsContent>
     </Tabs>
   );

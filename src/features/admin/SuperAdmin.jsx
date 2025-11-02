@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import api from "../../shared/services/Api";
-import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft, Eye, X, MapPin, Phone, Mail, Globe, Calendar, Star, Bell, Trash2, Download, MessageSquare, Monitor, User, MoreHorizontal, Clock, XOctagon, Upload } from "lucide-react";
+import { CheckCircle, XCircle, ChevronLeft, ChevronRight, Home, ArrowLeft, Eye, X, MapPin, Phone, Mail, Globe, Calendar, Star, Bell, Trash2, Download, MessageSquare, Monitor, User, MoreHorizontal, Clock, XOctagon, Upload, CreditCard } from "lucide-react";
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
 import { Textarea } from "@/shared/components/textarea";
@@ -133,6 +133,16 @@ const SuperAdmin = () => {
   const [bookingsPagination, setBookingsPagination] = useState({
     pageNumber: 0,
     pageSize: 10,
+    totalPages: 1,
+    totalElements: 0,
+  });
+
+  // Subscriptions management states
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [loadingSubscriptions, setLoadingSubscriptions] = useState(false);
+  const [subscriptionsPagination, setSubscriptionsPagination] = useState({
+    pageNumber: 0,
+    pageSize: 20,
     totalPages: 1,
     totalElements: 0,
   });
@@ -410,6 +420,38 @@ const SuperAdmin = () => {
     fetchBookings();
   }, [bookingsPagination.pageNumber, bookingFilters]);
 
+  // Fetch subscriptions
+  useEffect(() => {
+    const fetchSubscriptions = async () => {
+      try {
+        setLoadingSubscriptions(true);
+        const params = {
+          page: subscriptionsPagination.pageNumber,
+          size: subscriptionsPagination.pageSize,
+          sort: "createdAt,desc",
+        };
+
+        const response = await api.get("/subscriptions", { params });
+        
+        console.log("[DEBUG] Subscriptions API response:", response.data);
+        
+        setSubscriptions(response.data.content || []);
+        setSubscriptionsPagination((prev) => ({
+          ...prev,
+          totalPages: response.data.totalPages || 1,
+          totalElements: response.data.totalElements || 0,
+        }));
+      } catch (err) {
+        console.error("Error fetching subscriptions:", err);
+        toast.error("Failed to fetch subscriptions");
+      } finally {
+        setLoadingSubscriptions(false);
+      }
+    };
+
+    fetchSubscriptions();
+  }, [subscriptionsPagination.pageNumber]);
+
   useEffect(() => {
     const fetchHotels = async () => {
       try {
@@ -645,6 +687,11 @@ const SuperAdmin = () => {
   // Handle bookings pagination
   const handleBookingsPageChange = (newPage) => {
     setBookingsPagination((prev) => ({ ...prev, pageNumber: newPage }));
+  };
+
+  // Handle subscriptions pagination
+  const handleSubscriptionsPageChange = (newPage) => {
+    setSubscriptionsPagination((prev) => ({ ...prev, pageNumber: newPage }));
   };
 
   // Booking filter handlers
@@ -3043,6 +3090,256 @@ const SuperAdmin = () => {
     );
   };
 
+  const SubscriptionsPaginationControls = () => {
+    const handlePrevious = () => {
+      if (subscriptionsPagination.pageNumber > 0) {
+        handleSubscriptionsPageChange(subscriptionsPagination.pageNumber - 1);
+      }
+    };
+
+    const handleNext = () => {
+      if (subscriptionsPagination.pageNumber < subscriptionsPagination.totalPages - 1) {
+        handleSubscriptionsPageChange(subscriptionsPagination.pageNumber + 1);
+      }
+    };
+
+    return (
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex-1 flex justify-between md:hidden">
+          <Button
+            onClick={handlePrevious}
+            disabled={subscriptionsPagination.pageNumber === 0}
+            variant="outline"
+          >
+            Previous
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={subscriptionsPagination.pageNumber === subscriptionsPagination.totalPages - 1}
+            variant="outline"
+          >
+            Next
+          </Button>
+        </div>
+        <div className="hidden md:flex flex-1 items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Page{" "}
+              <span className="font-medium">{subscriptionsPagination.pageNumber + 1}</span>{" "}
+              of <span className="font-medium">{subscriptionsPagination.totalPages}</span>
+            </p>
+          </div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={handlePrevious}
+                disabled={subscriptionsPagination.pageNumber === 0}
+              >
+                <span className="sr-only">Go to previous page</span>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: subscriptionsPagination.totalPages }, (_, i) => (
+                <Button
+                  key={i}
+                  variant={subscriptionsPagination.pageNumber === i ? "default" : "outline"}
+                  className="h-8 w-8 p-0"
+                  onClick={() => handleSubscriptionsPageChange(i)}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={handleNext}
+                disabled={subscriptionsPagination.pageNumber === subscriptionsPagination.totalPages - 1}
+              >
+                <span className="sr-only">Go to next page</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const SubscriptionsTable = () => {
+    const getStatusBadge = (subscription) => {
+      if (subscription.isExpired || subscription.expired) {
+        return <Badge className="bg-gray-100 text-gray-800 border-gray-200">Expired</Badge>;
+      }
+      if (subscription.cancelDate) {
+        return <Badge className="bg-red-100 text-red-800 border-red-200">Cancelled</Badge>;
+      }
+      if (subscription.isInTrial || subscription.inTrial) {
+        return <Badge className="bg-blue-100 text-blue-800 border-blue-200">In Trial</Badge>;
+      }
+      if (subscription.paymentStatus === "PENDING") {
+        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Payment Pending</Badge>;
+      }
+      if (subscription.isActive || subscription.active) {
+        return <Badge className="bg-green-100 text-green-800 border-green-200">Active</Badge>;
+      }
+      return <Badge variant="outline">Unknown</Badge>;
+    };
+
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5 text-blue-500" />
+            Subscriptions
+          </CardTitle>
+          <CardDescription>
+            Hotel subscription management and monitoring
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingSubscriptions ? (
+            <div className="flex justify-center items-center py-8">
+              <SimpleSpinner size={24} text="Loading subscriptions..." />
+            </div>
+          ) : subscriptions.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No subscriptions found</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Hotel</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Plan</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Trial Period</TableHead>
+                  <TableHead>Next Billing</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Count</TableHead>
+                  <TableHead>Payment Status</TableHead>
+                  <TableHead>Created</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {subscriptions.map((subscription) => (
+                  <TableRow key={subscription.id}>
+                    <TableCell>
+                      <div className="font-medium">
+                        {subscription.hotelName || "N/A"}
+                      </div>
+                      {subscription.hotelEmail && (
+                        <div className="text-sm text-muted-foreground">
+                          {subscription.hotelEmail}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">
+                        {subscription.userName || "N/A"}
+                      </div>
+                      {subscription.userEmail && (
+                        <div className="text-sm text-muted-foreground">
+                          {subscription.userEmail}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">
+                        {subscription.subscriptionPlan || "N/A"}
+                      </div>
+                      {subscription.isInTrial && (
+                        <Badge variant="outline" className="mt-1 text-xs">
+                          Trial
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(subscription)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm space-y-1">
+                        {subscription.trialStartDate ? (
+                          <div>
+                            <span className="text-muted-foreground">Start: </span>
+                            {format(new Date(subscription.trialStartDate), "dd MMM yyyy")}
+                          </div>
+                        ) : null}
+                        {subscription.trialEndDate ? (
+                          <div>
+                            <span className="text-muted-foreground">End: </span>
+                            {format(new Date(subscription.trialEndDate), "dd MMM yyyy")}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">N/A</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {subscription.nextBillingDate ? (
+                          format(new Date(subscription.nextBillingDate), "dd MMM yyyy")
+                        ) : (
+                          <span className="text-muted-foreground">N/A</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">
+                        {subscription.amount
+                          ? `Nu. ${subscription.amount.toFixed(2)}`
+                          : "N/A"}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">
+                        {subscription.count !== undefined && subscription.count !== null
+                          ? subscription.count
+                          : "N/A"}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        className={
+                          subscription.paymentStatus === "PENDING"
+                            ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                            : subscription.paymentStatus === "PAID"
+                            ? "bg-green-100 text-green-800 border-green-200"
+                            : "bg-gray-100 text-gray-800 border-gray-200"
+                        }
+                      >
+                        {subscription.paymentStatus || "N/A"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {subscription.createdAt ? (
+                          <>
+                            <p className="font-medium">
+                              {format(new Date(subscription.createdAt), "dd MMM yyyy")}
+                            </p>
+                            <p className="text-muted-foreground">
+                              {format(new Date(subscription.createdAt), "HH:mm")}
+                            </p>
+                          </>
+                        ) : (
+                          "N/A"
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+        {subscriptions.length > 0 && <SubscriptionsPaginationControls />}
+      </Card>
+    );
+  };
+
   const BookingsTable = () => {
     const getStatusColor = (status) => {
       switch (status) {
@@ -3753,6 +4050,7 @@ const SuperAdmin = () => {
             FeedbacksTable={FeedbacksTable}
             HotelTable={HotelTableWithPagination}
             AllNotificationsTable={AllNotificationsTable}
+            SubscriptionsTable={SubscriptionsTable}
           />
         )}
 
