@@ -185,6 +185,19 @@ const LeaveManagement = ({ hotelId }) => {
     }
   }, [isHotelAdmin, enhancedLeaves.length]);
 
+  // Set default tab for managers (hide "My Leave Requests" tab)
+  useEffect(() => {
+    const isManager = roles?.includes("MANAGER");
+    if (isManager) {
+      // Default to enhanced tab if available, otherwise staff tab
+      if (enhancedLeaves.length > 0) {
+        setActiveTab("enhanced");
+      } else {
+        setActiveTab("staff");
+      }
+    }
+  }, [roles, enhancedLeaves.length]);
+
   const fetchLeaves = async () => {
     try {
       setLoading(true);
@@ -732,7 +745,7 @@ const LeaveManagement = ({ hotelId }) => {
       />
 
         {/* Leave Requests Tab */}
-        {canViewBasicLeaves && activeTab === "requests" && (
+        {canViewBasicLeaves && !roles?.includes("MANAGER") && activeTab === "requests" && (
           <div className="space-y-4">
           
           {/* Leave Requests - Desktop Table View */}
@@ -1816,7 +1829,7 @@ const LeaveManagement = ({ hotelId }) => {
                 </>
               ) : (
                 <>
-                  View Leave Summary
+                  My Leave Summary
                   <ChevronDown className="h-4 w-4" />
                 </>
               )}

@@ -90,6 +90,11 @@ api.interceptors.response.use(
         if (response.status === 200) {
           console.log('✅ Token refreshed successfully via cookies');
           
+          // Update both tracking keys to sync with AuthProvider
+          const timestamp = Date.now().toString();
+          setStorageItem('lastTokenRefresh', timestamp);
+          setStorageItem('lastAuthCheck', timestamp);
+          
           // Process queued requests
           processQueue(null, 'refreshed');
           
@@ -160,7 +165,8 @@ export const authService = {
   shouldRefreshProactively() {
     // Since we can't read HTTP-only cookies, we'll use a time-based approach
     // Refresh every 13 minutes (2 minutes before 15-minute expiry)
-    const lastRefresh = getStorageItem('lastTokenRefresh');
+    // Use the same key as AuthProvider to avoid duplicate refreshes
+    const lastRefresh = getStorageItem('lastAuthCheck') || getStorageItem('lastTokenRefresh');
     if (!lastRefresh) return true;
     
     const lastRefreshTime = parseInt(lastRefresh, 10);
@@ -168,12 +174,25 @@ export const authService = {
     const timeSinceRefresh = now - lastRefreshTime;
     
     // Refresh if more than 13 minutes (780 seconds) have passed
-    return timeSinceRefresh > (13 * 60 * 1000);
+    // Add 30 second buffer to prevent race conditions with periodic refresh
+    return timeSinceRefresh > (13 * 60 * 1000 + 30 * 1000);
   },
 
   // Manually refresh token
   async refreshToken() {
     try {
+      // Check if a refresh is already in progress (prevent duplicate calls)
+      const lastRefresh = getStorageItem('lastTokenRefresh');
+      const now = Date.now();
+      if (lastRefresh) {
+        const timeSinceRefresh = now - parseInt(lastRefresh, 10);
+        // If refreshed within last 30 seconds, skip to prevent duplicate calls
+        if (timeSinceRefresh < 30 * 1000) {
+          console.log('⏭️ Token refresh skipped - refreshed recently');
+          return true;
+        }
+      }
+      
       console.log('🔄 Manually refreshing token...');
       
       const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, {
@@ -184,8 +203,10 @@ export const authService = {
       });
       
       if (response.status === 200) {
-        // Update last refresh time
-        setStorageItem('lastTokenRefresh', Date.now().toString());
+        // Update both tracking keys to sync with AuthProvider
+        const timestamp = Date.now().toString();
+        setStorageItem('lastTokenRefresh', timestamp);
+        setStorageItem('lastAuthCheck', timestamp);
         console.log('✅ Manual token refresh successful');
         return true;
       } else {

@@ -1054,7 +1054,7 @@ const HotelAdminDashboard = () => {
                       <span>Return to Website</span>
                     </Link>
                   </DropdownMenuItem>
-                  {!roles?.includes("STAFF") && !roles?.includes("FRONTDESK") && (
+                  {!roles?.includes("STAFF") && !roles?.includes("FRONTDESK") && !roles?.includes("MANAGER") && (
                     <DropdownMenuItem asChild>
                       <Link to="/subscription" className="w-full">
                         <CreditCard className="mr-2 h-4 w-4" />
@@ -1067,26 +1067,28 @@ const HotelAdminDashboard = () => {
                 </div>
                 
                 {/* Subscription Status Message - Below both notification and avatar */}
-                <div className="flex justify-end">
-                  {subscriptionIsActive && subscriptionNextBillingDate ? (
-                    <p className="text-xs text-muted-foreground">
-                      {subscriptionPlan === 'TRIAL' 
-                        ? `Trial expires: ${new Date(subscriptionNextBillingDate).toLocaleDateString()}`
-                        : `Subscription expires: ${new Date(subscriptionNextBillingDate).toLocaleDateString()}`
-                      }
-                    </p>
-                  ) : !subscriptionIsActive ? (
-                    <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
-                      {hotel && !hotel.isVerified && subscriptionNextBillingDate ? 
-                        (subscriptionPlan === 'TRIAL' 
-                          ? `Trial expires: ${new Date(subscriptionNextBillingDate).toLocaleDateString()}.`
-                          : "Please start trial to start hotel verification process")
-                        : hotel && !hotel.isVerified
-                          ? "Please start trial to start hotel verification process"
-                          : "Please subscribe to continue"}
-                    </p>
-                  ) : null}
-                </div>
+                {roles?.includes("HOTEL_ADMIN") && (
+                  <div className="flex justify-end">
+                    {subscriptionIsActive && subscriptionNextBillingDate ? (
+                      <p className="text-xs text-muted-foreground">
+                        {subscriptionPlan === 'TRIAL' 
+                          ? `Trial expires: ${new Date(subscriptionNextBillingDate).toLocaleDateString()}`
+                          : `Subscription expires: ${new Date(subscriptionNextBillingDate).toLocaleDateString()}`
+                        }
+                      </p>
+                    ) : !subscriptionIsActive ? (
+                      <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                        {hotel && !hotel.isVerified && subscriptionNextBillingDate ? 
+                          (subscriptionPlan === 'TRIAL' 
+                            ? `Trial expires: ${new Date(subscriptionNextBillingDate).toLocaleDateString()}.`
+                            : "Please start trial to start hotel verification process")
+                          : hotel && !hotel.isVerified
+                            ? "Please start trial to start hotel verification process"
+                            : "Please subscribe to continue"}
+                      </p>
+                    ) : null}
+                  </div>
+                )}
               </div>
             </div>
           </div>

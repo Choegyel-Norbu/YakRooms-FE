@@ -15,14 +15,18 @@ function LeaveManagementTabs({
   enhancedLeaves,
   roles
 }) {
+  const isManager = roles?.includes("MANAGER");
+  // Hide "My Leave Requests" tab for managers
+  const showBasicLeavesTab = canViewBasicLeaves && !isManager;
+  
   return (
     <div className="mb-6">
       <ScrollArea>
         <div className="flex h-auto -space-x-px bg-background p-0 shadow-sm shadow-black/5 rtl:space-x-reverse rounded-lg">
-          {canViewBasicLeaves && (
+          {showBasicLeavesTab && (
             <button
               onClick={() => setActiveTab("requests")}
-              className={`relative overflow-hidden rounded-none border border-border py-3 px-4 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e transition-colors ${
+              className={`cursor-pointer relative overflow-hidden rounded-none border border-border py-3 px-4 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e transition-colors ${
                 activeTab === "requests"
                   ? "bg-muted after:bg-primary"
                   : "hover:bg-muted/50"
@@ -36,7 +40,7 @@ function LeaveManagementTabs({
                   aria-hidden="true"
                 />
                 <span className="text-sm font-medium whitespace-nowrap">
-                  {isStaffOrFrontdesk ? "My Leave Requests" : roles?.includes("MANAGER") ? "My Leave Requests" : "Leave Requests"}
+                  {isStaffOrFrontdesk ? "My Leave Requests" : "Leave Requests"}
                 </span>
               </div>
             </button>
@@ -44,7 +48,7 @@ function LeaveManagementTabs({
           {!isStaffOrFrontdesk && enhancedLeaves.length > 0 && (
             <button
               onClick={() => setActiveTab("enhanced")}
-              className={`relative overflow-hidden rounded-none border border-border py-3 px-4 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e transition-colors ${
+              className={`cursor-pointer relative overflow-hidden rounded-none border border-border py-3 px-4 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e transition-colors ${
                 activeTab === "enhanced"
                   ? "bg-muted after:bg-primary"
                   : "hover:bg-muted/50"
@@ -66,7 +70,7 @@ function LeaveManagementTabs({
           {!isStaffOrFrontdesk && (
             <button
               onClick={() => setActiveTab("staff")}
-              className={`relative overflow-hidden rounded-none border border-border py-3 px-4 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e transition-colors ${
+              className={`cursor-pointer relative overflow-hidden rounded-none border border-border py-3 px-4 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e transition-colors ${
                 activeTab === "staff"
                   ? "bg-muted after:bg-primary"
                   : "hover:bg-muted/50"
@@ -88,7 +92,7 @@ function LeaveManagementTabs({
           {canViewPolicies && (
             <button
               onClick={() => setActiveTab("policies")}
-              className={`relative overflow-hidden rounded-none border border-border py-3 px-4 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e transition-colors ${
+              className={`cursor-pointer relative overflow-hidden rounded-none border border-border py-3 px-4 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e transition-colors ${
                 activeTab === "policies"
                   ? "bg-muted after:bg-primary"
                   : "hover:bg-muted/50"

@@ -1093,9 +1093,6 @@ const HotelDetailsPage = () => {
                   <CheckCircle className="h-5 w-5 text-primary" />
                   Hotel Amenities
                 </CardTitle>
-                <CardDescription className="text-sm">
-                  Everything you need for a comfortable stay
-                </CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="flex flex-row flex-wrap">
@@ -1104,8 +1101,8 @@ const HotelDetailsPage = () => {
                       key={index}
                       className="flex items-center"
                     >
-                      <span className="text-sm font-normal px-2 py-1">
-                        - {amenity}
+                      <span className="text-sm text-gray-500 font-normal px-4 py-1">
+                         {amenity}
                       </span>
                     </div>
                   ))}

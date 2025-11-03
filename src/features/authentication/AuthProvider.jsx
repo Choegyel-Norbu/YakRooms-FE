@@ -765,6 +765,18 @@ export const AuthProvider = ({ children }) => {
     try {
       if (!authState.isAuthenticated) return;
       
+      // Check if a refresh is already in progress (prevent duplicate calls)
+      const lastRefresh = getStorageItem(AUTH_STORAGE_KEYS.LAST_AUTH_CHECK);
+      const now = Date.now();
+      if (lastRefresh) {
+        const timeSinceRefresh = now - parseInt(lastRefresh, 10);
+        // If refreshed within last 30 seconds, skip to prevent duplicate calls
+        if (timeSinceRefresh < 30 * 1000) {
+          console.log("⏭️ Periodic token refresh skipped - refreshed recently");
+          return;
+        }
+      }
+      
       console.log("🔄 Periodically refreshing token...");
       
       // Call refresh token endpoint
@@ -777,8 +789,10 @@ export const AuthProvider = ({ children }) => {
       
       if (response.status === 200) {
         console.log("✅ Periodic token refresh successful");
-        // Update last refresh time for tracking
-        setStorageItem(AUTH_STORAGE_KEYS.LAST_AUTH_CHECK, Date.now().toString());
+        // Update both tracking keys to sync with Api.jsx
+        const timestamp = Date.now().toString();
+        setStorageItem(AUTH_STORAGE_KEYS.LAST_AUTH_CHECK, timestamp);
+        setStorageItem('lastTokenRefresh', timestamp);
       } else {
         console.warn("⚠️ Periodic token refresh returned non-200 status:", response.status);
       }
