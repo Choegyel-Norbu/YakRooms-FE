@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import {
@@ -138,6 +138,11 @@ const HotelAdminDashboard = () => {
   const notificationRef = useRef(null);
   const [showStaffGrid, setShowStaffGrid] = useState(false);
   const [verificationTab, setVerificationTab] = useState("cid-verification"); // "cid-verification" or "passcode"
+  const [leaveNotificationCount, setLeaveNotificationCount] = useState(0);
+  const [leaveNotifications, setLeaveNotifications] = useState([]);
+  const [loadingLeaveNotifications, setLoadingLeaveNotifications] = useState(false);
+  const [showLeaveNotifications, setShowLeaveNotifications] = useState(false);
+  const fetchingLeaveNotificationsRef = useRef(false);
   
   // File upload states for denied verification
   const [tradeLicense, setTradeLicense] = useState(null);
@@ -356,6 +361,83 @@ const HotelAdminDashboard = () => {
 
   // Note: Real-time booking notifications were previously handled via WebSocket
   // For now, notifications will need to be fetched manually or via polling
+
+  // Fetch leave notifications function
+  const fetchLeaveNotifications = useCallback(async () => {
+    if (currentHotelId && !fetchingLeaveNotificationsRef.current) {
+      try {
+        fetchingLeaveNotificationsRef.current = true;
+        setLoadingLeaveNotifications(true);
+        const response = await api.get(`/leaves/notifications`);
+        
+        // API returns an array of notification objects with structure:
+        // { id, username, roomNumber, guestName, hotelName, hotelId, title, message, type, isRead, createdAt }
+        const notifications = response.data || [];
+        
+        // Sort notifications by createdAt (newest first)
+        const sortedNotifications = notifications.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        
+        // Filter for unread notifications (isRead === false)
+        const unreadNotifications = sortedNotifications.filter(n => n.isRead === false);
+        const unreadCount = unreadNotifications.length;
+        
+        setLeaveNotifications(sortedNotifications);
+        setLeaveNotificationCount(unreadCount);
+        
+        // Auto-expand notifications section if there are unread notifications and leave tab is active
+        if (unreadCount > 0 && activeTab === "leave") {
+          setShowLeaveNotifications(true);
+        }
+        
+        console.log("[API] Fetched leave notifications:", sortedNotifications);
+        console.log("[API] Unread leave notification count:", unreadCount);
+      } catch (error) {
+        console.error("[API] Error fetching leave notifications:", error);
+        // Don't show error toast as this is a background operation
+        setLeaveNotifications([]);
+        setLeaveNotificationCount(0);
+      } finally {
+        setLoadingLeaveNotifications(false);
+        fetchingLeaveNotificationsRef.current = false;
+      }
+    }
+  }, [currentHotelId, activeTab]);
+
+  // Fetch leave notifications on component mount
+  useEffect(() => {
+    fetchLeaveNotifications();
+  }, [fetchLeaveNotifications]);
+
+  // Refresh leave notifications when leave tab is clicked
+  useEffect(() => {
+    if (activeTab === "leave") {
+      fetchLeaveNotifications();
+    }
+  }, [activeTab, fetchLeaveNotifications]);
+
+  // Mark leave notification as read
+  const markLeaveNotificationAsRead = async (notificationId) => {
+    try {
+      await api.put(`/notifications/${notificationId}/read`);
+      
+      // Update local state
+      setLeaveNotifications((prev) =>
+        prev.map((notif) =>
+          notif.id === notificationId ? { ...notif, isRead: true } : notif
+        )
+      );
+      
+      // Update unread count
+      setLeaveNotificationCount((prev) => Math.max(0, prev - 1));
+      
+      console.log("[API] Successfully marked leave notification as read");
+    } catch (error) {
+      console.error("[API] Error marking leave notification as read:", error);
+      toast.error("Failed to mark notification as read");
+    }
+  };
 
   // Close notification dropdown when clicking outside
   useEffect(() => {
@@ -601,11 +683,12 @@ const HotelAdminDashboard = () => {
   const NavigationButton = ({ item, onClick, isActive }) => {
     const Icon = item.icon;
     const isLocked = item.locked && isSubscriptionExpired();
+    const showLeaveBadge = item.id === "leave" && leaveNotificationCount > 0;
     
     return (
       <Button
         variant={isActive ? "secondary" : "ghost"}
-        className={`w-full justify-start transition-colors py-2 px-3 text-sm ${
+        className={`w-full justify-start transition-colors py-2 px-3 text-sm relative ${
           isActive
             ? "bg-primary/10 text-primary hover:bg-primary/10"
             : isLocked
@@ -628,7 +711,12 @@ const HotelAdminDashboard = () => {
         {isLocked && (
           <Lock className="ml-auto h-3 w-3 text-muted-foreground" />
         )}
-        {isActive && !isLocked && (
+        {showLeaveBadge && (
+          <span className="ml-auto h-5 w-5 rounded-full bg-red-500 text-[10px] text-white flex items-center justify-center font-bold">
+            {leaveNotificationCount > 99 ? "99+" : leaveNotificationCount}
+          </span>
+        )}
+        {isActive && !isLocked && !showLeaveBadge && (
           <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
         )}
       </Button>
@@ -1621,7 +1709,108 @@ const HotelAdminDashboard = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <LeaveManagement hotelId={currentHotelId} />
+                <>
+                  {/* Leave Notifications Section */}
+                  {leaveNotificationCount > 0 && (
+                    <Card className="border-blue-200 dark:border-blue-800">
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="flex items-center gap-2 text-lg">
+                            <Bell className="h-5 w-5 text-primary" />
+                            Leave Notifications
+                            <Badge variant="destructive" className="ml-2">
+                              {leaveNotificationCount} New
+                            </Badge>
+                          </CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowLeaveNotifications(!showLeaveNotifications)}
+                          >
+                            {showLeaveNotifications ? "Hide" : "Show"} Details
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      {showLeaveNotifications && (
+                        <CardContent>
+                          <div className="space-y-3 max-h-96 overflow-y-auto">
+                            {loadingLeaveNotifications ? (
+                              <div className="p-4 text-center">
+                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
+                                <p className="text-sm text-muted-foreground">
+                                  Loading notifications...
+                                </p>
+                              </div>
+                            ) : (
+                              leaveNotifications
+                                .filter((notification) => !notification.isRead)
+                                .map((notification) => (
+                                <div
+                                  key={notification.id}
+                                  className="p-4 rounded-lg border transition-colors bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                                >
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="flex-1 min-w-0 space-y-2">
+                                      <div className="flex items-start gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-1.5"></div>
+                                        <div className="flex-1 min-w-0">
+                                          <h4 className="font-semibold text-sm text-foreground mb-1">
+                                            {notification.title}
+                                          </h4>
+                                          <p className="text-sm text-muted-foreground leading-relaxed">
+                                            {notification.message}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      
+                                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-2">
+                                        {notification.username && (
+                                          <div className="flex items-center gap-1">
+                                            <User className="h-3 w-3" />
+                                            <span>{notification.username}</span>
+                                          </div>
+                                        )}
+                                        {notification.hotelName && (
+                                          <div className="flex items-center gap-1">
+                                            <Hotel className="h-3 w-3" />
+                                            <span>{notification.hotelName}</span>
+                                          </div>
+                                        )}
+                                        <div className="flex items-center gap-1">
+                                          <Clock className="h-3 w-3" />
+                                          <span>
+                                            {new Date(notification.createdAt).toLocaleString(undefined, {
+                                              month: "short",
+                                              day: "numeric",
+                                              year: "numeric",
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            })}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="flex-shrink-0"
+                                      onClick={() => markLeaveNotificationAsRead(notification.id)}
+                                    >
+                                      <Check className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </CardContent>
+                      )}
+                    </Card>
+                  )}
+                  
+                  <LeaveManagement hotelId={currentHotelId} />
+                </>
               )}
             </div>
           )}
