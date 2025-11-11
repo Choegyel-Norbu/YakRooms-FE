@@ -804,10 +804,17 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
         return;
       }
       
-      // Calculate totals based on price breakdown
-      const extendedAmount = Math.ceil(breakdown.extendedAmount);  // Extension cost only (no service tax)
-      const totalPrice = Math.ceil(breakdown.extendedAmount);  // Total price for extension = extendedAmount
-      const txnTotalPrice = Math.ceil(breakdown.totalAmount);  // Total with 3% service tax
+      // 🔐 SECURITY FIX: Calculate prices for DISPLAY only
+      // These are NOT sent to backend - server recalculates from database
+      const displayExtendedAmount = Math.ceil(breakdown.extendedAmount);
+      const displayTotalPrice = Math.ceil(breakdown.extendedAmount);
+      const displayTxnTotalPrice = Math.ceil(breakdown.totalAmount);
+      
+      console.log('[Security] Extension display prices (NOT sent to server):', {
+        displayExtendedAmount,
+        displayTotalPrice,
+        displayTxnTotalPrice
+      });
       
       const payload = {
         guests: booking.guests,               
@@ -815,10 +822,12 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
         destination: booking.destination,     
         origin: booking.origin,               
         extension: true,
-        // Pricing fields
-        extendedAmount: extendedAmount.toString(),
-        totalPrice: totalPrice.toString(),
-        txnTotalPrice: txnTotalPrice.toString(),
+        // ❌ REMOVED: Pricing fields (extendedAmount, totalPrice, txnTotalPrice)
+        // Backend will recalculate these from database to prevent price manipulation
+        // Old code (vulnerable):
+        // extendedAmount: extendedAmount.toString(),
+        // totalPrice: totalPrice.toString(),
+        // txnTotalPrice: txnTotalPrice.toString(),
       };
 
       // Add time-based or date-based extension fields

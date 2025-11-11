@@ -852,6 +852,9 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
       let payload;
       
       if (isTimeBasedBooking) {
+        // 🔐 SECURITY NOTE: Admin bookings don't initiate payment, but for
+        // consistency and defense-in-depth, we should still let backend
+        // calculate final prices. For now keeping totalPrice for admin records.
         // Time-based booking payload
         payload = {
           ...timeBasedDetails,
@@ -859,6 +862,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
           roomId: selectedRoom.id,
           hotelId: hotelId,
           totalPrice: calculateTimeBasedBasePrice(), // Admin bookings don't include service tax
+          // TODO: Consider removing totalPrice once backend handles admin price calculation
           // Set userId to null for all third-party bookings
           userId: null,
           adminBooking: true,
@@ -870,11 +874,14 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
         // Destructure bookingDetails to exclude fields not used in standard booking
         const { checkInTime, bookHour, ...standardBookingDetails } = bookingDetails;
         
+        // 🔐 SECURITY NOTE: For admin bookings (no payment), keeping totalPrice
+        // for record-keeping. Backend should validate/recalculate if needed.
         payload = {
           ...standardBookingDetails,
           roomId: selectedRoom.id,
           hotelId: hotelId,
           totalPrice: calculateTotalPrice(),
+          // TODO: Consider removing totalPrice once backend handles admin price calculation
           days: calculateDays(),
           // Set userId to null for all third-party bookings
           userId: null,

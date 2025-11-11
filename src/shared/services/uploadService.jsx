@@ -93,78 +93,47 @@ export const deleteFileByUrl = async (fileUrl) => {
 };
 
 /**
- * Uploads a file (image or PDF) using UploadThing service.
+ * Uploads a file (image or PDF) using UploadThing service via backend proxy.
  * @param {File} file - The file to upload (image or PDF).
  * @param {string} field - A string used to determine callbackSlug (e.g. 'photos', 'license').
  * @returns {Promise<{field: string, url: string, fileKey: string}>} The uploaded file metadata.
  */
 export const uploadFile = async (file, field) => {
-  console.log("Inside UPLOADER............");
-  const uploadthingApiKey = import.meta.env.VITE_UPLOADTHING_SECRET;
+  console.log("Starting secure file upload via backend...");
+  
   try {
-    // Determine the route config based on file type
+    // Determine the file type for validation
     const isImage = file.type.startsWith("image/");
     const isPDF = file.type === "application/pdf";
 
-     // ✅ Use your actual Vercel URL
-     const callbackUrl = process.env.NODE_ENV === 'production' 
-     ? "https://yak-rooms-fe.vercel.app/api/uploadthing"  // Your actual domain
-     : `${window.location.origin}/api/uploadthing`;
-
-     console.log("Using callback URL:", callbackUrl); // Debug log
-
-
-    // Step 1: Prepare the upload
-    const configResponse = await axios.post(
-      "https://uploadthing.com/api/prepareUpload",
-      {
-        files: [
-          {
-            name: file.name,
-            size: file.size,
-            type: file.type || "application/octet-stream",
-          },
-        ],
-        callbackUrl,
-        callbackSlug: field === "photos" ? "listingPhotos" : "verificationDocs",
-        routeConfig: {
-          [isImage ? "image" : "pdf"]: {
-            maxFileSize: "4MB", // Larger size for PDFs
-            maxFileCount: 1,
-          },
-        },
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "X-Uploadthing-Api-Key": uploadthingApiKey,
-        },
-      }
-    );
-
-    const fileData = configResponse.data?.[0];
-    if (!fileData || !fileData.fields || !fileData.url) {
-      throw new Error("Invalid response from UploadThing API");
+    if (!isImage && !isPDF) {
+      throw new Error("Only images and PDFs are allowed");
     }
 
-    // Step 2: Upload to S3
+    // Create FormData to send to backend
     const formData = new FormData();
-    Object.entries(fileData.fields).forEach(([key, value]) => {
-      formData.append(key, value);
-    });
     formData.append("file", file);
+    formData.append("field", field);
+    formData.append("fileType", isImage ? "image" : "pdf");
 
-    await axios.post(fileData.url, formData, {
+    // Call backend endpoint which securely handles UploadThing API
+    const response = await api.post("/v1/uploadthing/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
 
-    // Return the field type and URL
+    if (!response.data || !response.data.url) {
+      throw new Error("Invalid response from upload service");
+    }
+
+    console.log("File uploaded successfully:", response.data);
+
+    // Return the standardized response
     return {
       field,
-      url: fileData.fileUrl,
-      fileKey: fileData.key || null, // Keep for backward compatibility
+      url: response.data.url,
+      fileKey: response.data.fileKey || response.data.key || null,
     };
   } catch (error) {
     console.error(`Upload failed for ${field}:`, error);

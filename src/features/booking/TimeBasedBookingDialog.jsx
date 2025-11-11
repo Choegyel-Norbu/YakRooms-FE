@@ -177,6 +177,10 @@ export default function TimeBasedBookingDialog({
 
     try {
       setIsBookingLoading(true);
+      
+      // 🔐 SECURITY FIX: Remove client-calculated prices
+      // Backend will recalculate prices from database to prevent price manipulation
+      // Client prices are for display only and should NEVER be trusted
       const payload = {
         userId: userId,
         hotelId: hotelId,
@@ -186,8 +190,11 @@ export default function TimeBasedBookingDialog({
         bookHour: bookingDetails.bookHours,
         guests: bookingDetails.guests,
         numberOfRooms: 1,
-        totalPrice: calculateTotalPrice(), // Price WITHOUT tax
-        txnTotalPrice: calculateTxnTotalPrice(), // Price WITH 3% tax
+        // ❌ REMOVED: totalPrice and txnTotalPrice
+        // These will be recalculated server-side from database
+        // Old code (vulnerable to tampering):
+        // totalPrice: calculateTotalPrice(),
+        // txnTotalPrice: calculateTxnTotalPrice(),
         phone: bookingDetails.phone,
         cid: bookingDetails.cid,
         destination: bookingDetails.destination,
@@ -256,7 +263,7 @@ export default function TimeBasedBookingDialog({
       handlePaymentRedirect(bookingResponse, {
         gatewayName: 'BFS-Secure',
         onSuccess: (paymentData) => {
-          toast.success("Redirecting to Payment Gateway", {
+          toast.success("Redirecting to Payment", {
             description: "You are being redirected to BFS-Secure for payment processing. Please complete the payment and you will be redirected back.",
             duration: 8000
           });

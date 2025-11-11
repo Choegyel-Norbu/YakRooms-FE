@@ -1085,12 +1085,17 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
 
     try {
       setIsBookingLoading(true);
+      
+      // 🔐 SECURITY FIX: Remove client-calculated prices
+      // Backend will recalculate prices from database to prevent price manipulation
       const payload = {
         ...bookingDetails,
         roomId: room.id,
         hotelId: hotelId,
-        totalPrice: calculateTotalPrice(),
-        txnTotalPrice: calculateTxnTotalPrice(),
+        // ❌ REMOVED: totalPrice and txnTotalPrice
+        // Old code (vulnerable to price tampering):
+        // totalPrice: calculateTotalPrice(),
+        // txnTotalPrice: calculateTxnTotalPrice(),
         userId,
         days: calculateDays(),
         adminBooking: false,
@@ -1177,9 +1182,16 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       const { checkInDate, checkOutDate } = getImmediateBookingDates();
       const daysDiff = 1; // Always 1 night for immediate booking
       
+      // 🔐 SECURITY FIX: Calculate prices for DISPLAY only
+      // These are NOT sent to backend - server recalculates from database
       const basePrice = daysDiff * room.price;
-      const totalPrice = Math.ceil(basePrice); // Just the base price without tax, rounded up to zero decimals
-      const txnTotalPrice = Math.ceil(basePrice * 1.03); // basePrice + 3%, rounded up to zero decimals
+      const displayTotalPrice = Math.ceil(basePrice);
+      const displayTxnTotalPrice = Math.ceil(basePrice * 1.03);
+      
+      console.log('[Security] Display prices calculated (NOT sent to server):', {
+        display: displayTotalPrice,
+        withTax: displayTxnTotalPrice
+      });
       
       const immediatePayload = {
         roomId: room.id,
@@ -1189,8 +1201,11 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         checkOutDate: checkOutDate,
         guests: immediateBookingDetails.guests,
         numberOfRooms: 1,
-        totalPrice: totalPrice,
-        txnTotalPrice: txnTotalPrice,
+        // ❌ REMOVED: totalPrice and txnTotalPrice
+        // Backend recalculates these from database to prevent price manipulation
+        // Old code (vulnerable):
+        // totalPrice: totalPrice,
+        // txnTotalPrice: txnTotalPrice,
         days: daysDiff,
         // Use user input values
         phone: immediateBookingDetails.phone,
@@ -1270,7 +1285,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       handlePaymentRedirect(bookingResponse, {
         gatewayName: 'BFS-Secure',
         onSuccess: (paymentData) => {
-          toast.success("Redirecting to Payment Gateway", {
+          toast.success("Redirecting to Payment", {
             description: "You are being redirected to BFS-Secure for payment processing. Please complete the payment and you will be redirected back.",
             duration: 8000
           });

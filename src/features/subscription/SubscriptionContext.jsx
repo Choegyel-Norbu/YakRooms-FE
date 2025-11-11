@@ -237,11 +237,17 @@ export const SubscriptionProvider = ({ children }) => {
         baseUrl
       });
       
+      // 🔐 SECURITY FIX: Remove client-provided amount
+      // Backend should determine subscription price based on plan type
+      // Sending plan type only, not the amount (prevents price manipulation)
       const paymentRequest = {
         hotelId: parseInt(hotelId),
         userId: parseInt(userId),
         subscriptionPlan: paymentData.subscriptionPlan || 'PRO',
-        amount: paymentData.amount || 1000.00,
+        // ❌ REMOVED: amount (vulnerable to price tampering)
+        // Backend will fetch the correct amount for the subscription plan
+        // Old code (vulnerable):
+        // amount: paymentData.amount || 1000.00,
         notes: paymentData.notes || "Subscription payment"
       };
 
