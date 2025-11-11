@@ -142,7 +142,7 @@ const FeatureSection = () => {
                     <div className="text-sm text-muted-foreground">Support Available</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">3</div>
+                    <div className="text-2xl font-bold text-primary">10</div>
                     <div className="text-sm text-muted-foreground">Dzongkhags Covered</div>
                   </div>
                 </div>
