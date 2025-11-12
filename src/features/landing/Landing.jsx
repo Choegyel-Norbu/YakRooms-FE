@@ -184,8 +184,8 @@ const Landing = () => {
           }
         />
 
-        <TopHighlightsSection />
         <FeatureSection />
+        <TopHighlightsSection />
         <ListYourPropertySection onLoginClick={toggleLogin} />
         
         <Footer ref={footerRef} />

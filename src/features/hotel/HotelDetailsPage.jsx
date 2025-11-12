@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import RoomBookingCard from "../../features/booking/RoomBookingCard";
 import Footer from "../../layouts/Footer";
@@ -67,6 +67,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/dropdown-menu";
 import { useAuth } from "../authentication";
+import { AvatarCircles } from "@/components/ui/avatar-circles";
 
 // Utility function to format time from 24-hour to 12-hour format with descriptive text
 const formatTimeWithDescription = (timeString) => {
@@ -398,6 +399,35 @@ const HotelDetailsPage = () => {
     currentPage: 0,
   });
 
+  // Extract unique reviewer avatars for AvatarCircles component
+  const reviewerAvatars = useMemo(() => {
+    if (!testimonialsState.testimonials || testimonialsState.testimonials.length === 0) {
+      return { avatarUrls: [], remainingCount: 0 };
+    }
+
+    // Get unique profile picture URLs (filter out null/undefined/empty strings)
+    const uniqueAvatars = [];
+    const seenUrls = new Set();
+    
+    testimonialsState.testimonials.forEach((testimonial) => {
+      const profilePic = testimonial.userProfilePicUrl;
+      if (profilePic && profilePic.trim() && !seenUrls.has(profilePic)) {
+        seenUrls.add(profilePic);
+        uniqueAvatars.push(profilePic);
+      }
+    });
+
+    // Limit to 4 visible avatars, show remaining count
+    const maxVisible = 4;
+    const visibleAvatars = uniqueAvatars.slice(0, maxVisible);
+    const remainingCount = uniqueAvatars.length > maxVisible ? uniqueAvatars.length - maxVisible : 0;
+
+    return {
+      avatarUrls: visibleAvatars,
+      remainingCount: remainingCount,
+    };
+  }, [testimonialsState.testimonials]);
+
   // Refs
   const roomsSectionRef = useRef(null);
   const isInitialLoad = useRef(true);
@@ -554,13 +584,21 @@ const HotelDetailsPage = () => {
       setTestimonialsState(prev => ({ ...prev, loading: true, error: null }));
       const response = await api.get(`/reviews/hotel/${id}/testimonials/paginated?page=${page}&size=3`);
       
-      setTestimonialsState(prev => ({
-        ...prev,
-        testimonials: response.data.content || [],
-        pagination: response.data,
-        currentPage: page,
-        loading: false,
-      }));
+      setTestimonialsState(prev => {
+        // If page is 0, replace testimonials (initial load)
+        // If page > 0, append new testimonials (load more)
+        const newTestimonials = page === 0 
+          ? (response.data.content || [])
+          : [...prev.testimonials, ...(response.data.content || [])];
+        
+        return {
+          ...prev,
+          testimonials: newTestimonials,
+          pagination: response.data,
+          currentPage: page,
+          loading: false,
+        };
+      });
     } catch (err) {
       console.error("Error fetching testimonials:", err);
       setTestimonialsState(prev => ({
@@ -1125,9 +1163,15 @@ const HotelDetailsPage = () => {
             {/* Testimonials Section */}
             <Card>
               <CardHeader className="pb-0">
-                <CardTitle className="flex items-center text-base font-semibold">
-                  
-                  Guest Reviews
+                <CardTitle className="flex items-center justify-between text-base font-semibold">
+                  <span>Guest Reviews</span>
+                  {reviewerAvatars.avatarUrls.length > 0 && (
+                    <AvatarCircles
+                      avatarUrls={reviewerAvatars.avatarUrls}
+                      numPeople={reviewerAvatars.remainingCount}
+                      className="ml-2"
+                    />
+                  )}
                 </CardTitle>
                 
               </CardHeader>
@@ -1235,24 +1279,42 @@ const HotelDetailsPage = () => {
                       </div>
                     ))}
                     
-                    {testimonialsState.pagination && testimonialsState.pagination.totalPages > 1 && (
-                      <div className="flex justify-center pt-6 pb-2">
-                        {testimonialsState.currentPage < testimonialsState.pagination.totalPages - 1 ? (
+                    {testimonialsState.pagination && (() => {
+                      const pageInfo = testimonialsState.pagination.page || {};
+                      const totalPages = pageInfo.totalPages || 0;
+                      const totalElements = pageInfo.totalElements || testimonialsState.testimonials.length;
+                      const isLast = pageInfo.last !== undefined ? pageInfo.last : (testimonialsState.currentPage >= totalPages - 1);
+                      
+                      return totalPages > 1 && !isLast && (
+                        <div className="flex justify-center pt-6 pb-2">
                           <Button
                             variant="outline"
                             onClick={() => setTestimonialsState(prev => ({ 
                               ...prev, 
                               currentPage: prev.currentPage + 1 
                             }))}
+                            disabled={testimonialsState.loading}
                             className="flex items-center gap-2 px-6 py-2"
                           >
-                            Load More...
+                            {testimonialsState.loading ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Loading...
+                              </>
+                            ) : (
+                              <>
+                                Load More Reviews
+                                {totalElements > 0 && (
+                                  <span className="text-xs text-muted-foreground ml-1">
+                                    ({testimonialsState.testimonials.length} of {totalElements} shown)
+                                  </span>
+                                )}
+                              </>
+                            )}
                           </Button>
-                        ) : (
-                          <p className="text-sm text-muted-foreground"></p>
-                        )}
-                      </div>
-                    )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 ) : (
                   <div className="text-center py-8">
