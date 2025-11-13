@@ -376,6 +376,7 @@ const HotelDetailsPage = () => {
     reviewSheetOpen: false,
     isDescriptionExpanded: false,
     mobileMenuOpen: false,
+    showHotelNameInNavbar: false,
   });
 
   // Separate state for room image modal to avoid conflicts
@@ -435,6 +436,7 @@ const HotelDetailsPage = () => {
   const isInitialLoad = useRef(true);
   const abortControllerRef = useRef(null);
   const hasInitialDataLoaded = useRef(false);
+  const hotelNameSectionRef = useRef(null);
 
   // Amenity icons mapping
   const amenityIcons = {
@@ -676,6 +678,34 @@ const HotelDetailsPage = () => {
   //   }
   // }, [roomsState.availableRooms]);
 
+  // Scroll detection for showing hotel name in navbar
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!hotelNameSectionRef.current) return;
+      
+      const rect = hotelNameSectionRef.current.getBoundingClientRect();
+      const scrollThreshold = 100; // Show hotel name when scrolled past 100px from top
+      
+      // Show hotel name in navbar when hotel name section is scrolled past
+      const shouldShow = rect.bottom < scrollThreshold;
+      
+      setUiState(prev => {
+        if (prev.showHotelNameInNavbar !== shouldShow) {
+          return { ...prev, showHotelNameInNavbar: shouldShow };
+        }
+        return prev;
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    // Check initial state
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [appState.hotel]);
+
   // Memoized UI handlers
   const nextImage = useCallback(() => {
     if (appState.hotel?.photoUrls?.length) {
@@ -823,10 +853,10 @@ const HotelDetailsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Optimized header for mobile */}
-      <header className="sticky top-0 z-20 border-b bg-background/95">
-        <div className="mx-auto flex h-14 sm:h-16 items-center justify-between pr-4 sm:px-4">
+      <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur-sm">
+        <div className="mx-auto flex h-14 sm:h-16 items-center justify-between pr-4 sm:px-4 relative">
           {/* Left side - Navigation */}
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <Button
               variant="ghost"
               onClick={() => navigate(-1)}
@@ -843,8 +873,26 @@ const HotelDetailsPage = () => {
             </Button>
           </div>
 
+          {/* Center - Hotel Name (appears on scroll) */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center w-full">
+            <h1 
+              className={`text-base sm:text-lg font-bold text-slate-900 truncate max-w-[200px] sm:max-w-[300px] transition-all duration-700 ${
+                uiState.showHotelNameInNavbar 
+                  ? 'opacity-100 translate-y-0 scale-100' 
+                  : 'opacity-0 translate-y-6 scale-95 pointer-events-none'
+              }`}
+              style={{
+                transitionTimingFunction: uiState.showHotelNameInNavbar 
+                  ? 'cubic-bezier(0.16, 1, 0.3, 1)' // Smooth ease-out for appearing
+                  : 'cubic-bezier(0.4, 0, 0.2, 1)', // Smooth ease-in for disappearing
+              }}
+            >
+              {appState.hotel?.name}
+            </h1>
+          </div>
+
           {/* Right side - Hamburger menu for mobile */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-shrink-0">
             {/* Mobile Hamburger Menu */}
             <Sheet open={uiState.mobileMenuOpen} onOpenChange={(open) => setUiState(prev => ({ ...prev, mobileMenuOpen: open }))}>
               <SheetTrigger asChild>
@@ -882,7 +930,7 @@ const HotelDetailsPage = () => {
       {/* Main content */}
       <main className="container mx-auto px-0 py-0 lg:py-8 space-y-6 sm:space-y-8">
         {/* Hotel Name and Rating Section - Outside Image Container */}
-        <div className="px-4 md:px-0 pt-4 sm:pt-6 pb-3 sm:pb-4">
+        <div ref={hotelNameSectionRef} className="px-4 md:px-0 pt-4 sm:pt-6 pb-3 sm:pb-4">
           <div className="flex items-center justify-between gap-4">
             {/* Hotel Name and Rating - Left Side */}
             <div className="flex flex-col gap-2 sm:gap-3 flex-1 items-start">
