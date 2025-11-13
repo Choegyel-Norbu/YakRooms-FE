@@ -11,7 +11,6 @@ import {
 import SimpleSpinner from "@/shared/components/SimpleSpinner";
 import StarRating from "@/shared/components/star-rating";
 import { SearchButton } from "@/shared/components";
-import EzeeRoomLogo from "@/shared/components/EzeeRoomLogo";
 
 import { Button } from "@/shared/components/button";
 import {
@@ -45,6 +44,7 @@ import {
 
 import api from "../../shared/services/Api";
 import Footer from "../../layouts/Footer";
+import { EzeeRoomLogo } from "@/shared/components";
 
 // Memoized HotelCard component to prevent unnecessary re-renders
 const HotelCard = React.memo(({ hotel }) => (
@@ -556,30 +556,13 @@ const HotelListingPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Simplified Header */}
+      {/* Header with Logo */}
       <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-20 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
-            {/* Left side - Brand and Navigation */}
-            <div className="flex items-center gap-4">
-              <Link to="/" className="flex items-center gap-2">
-                <EzeeRoomLogo size="default" variant="text-only" />
-              </Link>
-            </div>
-
-            {/* Center - Tagline (hidden on mobile) */}
-            {/* <div className="hidden md:block">
-              <p className="text-muted-foreground text-sm">
-                Discover authentic Bhutanese stays
-              </p>
-            </div> */}
-
-            {/* Right side - Results count */}
-            {/* <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground hidden lg:block">
-                {pagination.totalElements} results
-              </span>
-            </div> */}
+            <Link to="/" className="flex items-center">
+              <EzeeRoomLogo size="default" />
+            </Link>
           </div>
         </div>
       </header>

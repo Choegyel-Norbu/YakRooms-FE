@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { Hotel, ArrowRight, CheckCircle, Sparkles, MapPin, Star, Users, Shield, UserPlus, Search, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -18,22 +19,139 @@ import { cn } from "@/shared/utils";
 const FeatureSection = () => {
   const features = [];
 
-  return (
-    <section className="py-20 px-4">
-      <div className="max-w-6xl mx-auto">
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
 
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 40 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const scaleIn = {
+    hidden: { opacity: 0, scale: 0.8 },
+    show: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const floatAnimation = {
+    animate: {
+      y: [0, -10, 0],
+      transition: {
+        duration: 3,
+        repeat: Infinity,
+        ease: "easeInOut",
+      },
+    },
+  };
+
+  const pulseAnimation = {
+    animate: {
+      scale: [1, 1.1, 1],
+      opacity: [0.3, 0.5, 0.3],
+      transition: {
+        duration: 4,
+        repeat: Infinity,
+        ease: "easeInOut",
+      },
+    },
+  };
+
+  const trustIndicatorVariants = {
+    hidden: { opacity: 0, x: -20 },
+    show: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  const statVariants = {
+    hidden: { opacity: 0, scale: 0.5 },
+    show: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut",
+      },
+    },
+  };
+
+  return (
+    <section className="px-4">
+      <div className="max-w-6xl mx-auto">
         {/* Unified Hotel Booking Adventure Section */}
-        <div className="text-center pt-12">
+        <motion.div
+          className="text-center pt-12"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={containerVariants}
+        >
           <div className="max-w-6xl mx-auto">
-            <div className="p-8 md:p-12 border border-border/50 rounded-2xl relative overflow-hidden">
-              {/* Background Decorative Elements */}
-              <div className="absolute top-4 left-4 w-20 h-20 bg-primary/1 rounded-full blur-xl"></div>
-              <div className="absolute bottom-4 right-4 w-32 h-32 bg-yellow-500/5 rounded-full blur-xl"></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-primary/3 rounded-full blur-2xl"></div>
+            <motion.div
+              className="p-8 md:p-12 border border-border/50 rounded-2xl relative overflow-hidden"
+              variants={scaleIn}
+            >
+              {/* Background Decorative Elements with animations */}
+              <motion.div
+                className="absolute top-4 left-4 w-20 h-20 bg-primary/1 rounded-full blur-xl"
+                variants={pulseAnimation}
+                animate="animate"
+              ></motion.div>
+              <motion.div
+                className="absolute bottom-4 right-4 w-32 h-32 bg-yellow-500/5 rounded-full blur-xl"
+                variants={pulseAnimation}
+                animate="animate"
+                transition={{ delay: 1 }}
+              ></motion.div>
+              <motion.div
+                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-primary/3 rounded-full blur-2xl"
+                variants={pulseAnimation}
+                animate="animate"
+                transition={{ delay: 2 }}
+              ></motion.div>
               
               <div className="relative z-10 space-y-8">
                 {/* Adventure Header */}
-                <div className="space-y-4">
+                <motion.div className="space-y-4" variants={itemVariants}>
                   {/* <div className="flex items-center justify-center space-x-2">
                     <MapPin className="w-6 h-6 text-primary animate-bounce" />
                     <Badge variant="outline" className="px-4 py-2 text-sm font-medium">
@@ -41,43 +159,90 @@ const FeatureSection = () => {
                     </Badge>
                   </div> */}
                   
-                  <h2 className="text-3xl md:text-4xl lg:text-3xl font-bold text-foreground leading-tight">
+                  <motion.h2
+                    className="text-3xl md:text-4xl lg:text-3xl font-bold text-foreground leading-tight"
+                    variants={fadeInUp}
+                  >
                     Start Your Journey with
-                    <span className="block text-primary">Real-time Hotel Booking</span>
-                  </h2>
+                    <motion.span
+                      className="block text-primary"
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.3 }}
+                    >
+                      Real-time Hotel Booking
+                    </motion.span>
+                  </motion.h2>
                   
-                  <p className="text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                  <motion.p
+                    className="text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+                    variants={fadeInUp}
+                    transition={{ delay: 0.2 }}
+                  >
                     Discover the perfect accommodation wherever your journey takes you. 
                     EzeeRoom connects you with authentic stays and comfortable rooms in unfamiliar destinations, 
                     making every adventure feel like home.
-                  </p>
-                </div>
+                  </motion.p>
+                </motion.div>
 
                 {/* Interactive Booking Preview */}
-                <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-border/30 max-w-6xl mx-auto">
-                  <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
+                <motion.div
+                  className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-border/30 max-w-6xl mx-auto"
+                  variants={fadeInUp}
+                  transition={{ delay: 0.3 }}
+                >
+                  <motion.div
+                    className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6"
+                    variants={containerVariants}
+                  >
                     {/* Step 1 */}
-                    <Link to="/hotels" className="text-center space-y-2 group cursor-pointer">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 group-hover:shadow-lg">
-                        <Search className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">Browse Hotels</h3>
-                      <p className="text-xs text-muted-foreground max-w-24 group-hover:text-foreground transition-colors">Discover verified accommodations</p>
-                    </Link>
+                    <motion.div variants={scaleIn}>
+                      <Link to="/hotels" className="text-center space-y-2 group cursor-pointer">
+                        <motion.div
+                          className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 group-hover:shadow-lg"
+                          whileHover={{ scale: 1.15, rotate: 5 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Search className="w-6 h-6 text-white" />
+                        </motion.div>
+                        <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">Browse Hotels</h3>
+                        <p className="text-xs text-muted-foreground max-w-24 group-hover:text-foreground transition-colors">Discover verified accommodations</p>
+                      </Link>
+                    </motion.div>
                     
                     {/* Arrow 1 */}
-                    <div className="hidden md:flex">
-                      <ArrowRight className="w-6 h-6 text-primary animate-pulse" />
-                    </div>
+                    <motion.div
+                      className="hidden md:flex"
+                      variants={itemVariants}
+                      animate={{
+                        x: [0, 5, 0],
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    >
+                      <ArrowRight className="w-6 h-6 text-primary" />
+                    </motion.div>
                     
                     {/* Step 2 */}
-                    <div className="text-center space-y-2 group">
-                      <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                    <motion.div
+                      className="text-center space-y-2 group"
+                      variants={scaleIn}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <motion.div
+                        className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300"
+                        whileHover={{ scale: 1.15, rotate: -5 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
                         <CreditCard className="w-6 h-6 text-white" />
-                      </div>
+                      </motion.div>
                       <h3 className="text-sm font-semibold text-foreground">Book Instantly</h3>
                       <p className="text-xs text-muted-foreground max-w-24">Real-time availability</p>
-                    </div>
+                    </motion.div>
                     
                     {/* Arrow 2 */}
                     {/* <div className="hidden md:flex">
@@ -94,8 +259,8 @@ const FeatureSection = () => {
                         <p className="text-xs text-muted-foreground max-w-24">Start your adventure</p>
                       </Link>
                     </div> */}
-                  </div>
-                </div>
+                  </motion.div>
+                </motion.div>
 
                 {/* Become a Host Button */}
                 {/* <div className="flex justify-center">
@@ -108,48 +273,146 @@ const FeatureSection = () => {
                 </div> */}
 
                 {/* Trust Indicators with Animation */}
-                <div className="flex flex-wrap items-center justify-center gap-6 pt-6 border-t border-border/50">
-                  <div className="flex items-center space-x-2 group">
-                    <Shield className="w-5 h-5 text-green-500 group-hover:animate-pulse" />
+                <motion.div
+                  className="flex flex-wrap items-center justify-center gap-6 pt-6 border-t border-border/50"
+                  variants={containerVariants}
+                >
+                  <motion.div
+                    className="flex items-center space-x-2 group"
+                    variants={trustIndicatorVariants}
+                    whileHover={{ scale: 1.05, x: 5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <motion.div
+                      whileHover={{ rotate: [0, -10, 10, -10, 0] }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <Shield className="w-5 h-5 text-green-500" />
+                    </motion.div>
                     <span className="text-sm font-medium text-muted-foreground">Secure Booking</span>
-                  </div>
-                  <div className="flex items-center space-x-2 group">
-                    <CheckCircle className="w-5 h-5 text-green-500 group-hover:scale-110 transition-transform" />
+                  </motion.div>
+                  <motion.div
+                    className="flex items-center space-x-2 group"
+                    variants={trustIndicatorVariants}
+                    whileHover={{ scale: 1.05, x: 5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <motion.div
+                      whileHover={{ scale: 1.2, rotate: 360 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                    </motion.div>
                     <span className="text-sm font-medium text-muted-foreground">Verified Properties</span>
-                  </div>
-                  <div className="flex items-center space-x-2 group">
-                    <Users className="w-5 h-5 text-blue-500 group-hover:scale-110 transition-transform" />
+                  </motion.div>
+                  <motion.div
+                    className="flex items-center space-x-2 group"
+                    variants={trustIndicatorVariants}
+                    whileHover={{ scale: 1.05, x: 5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <motion.div
+                      whileHover={{ y: [0, -5, 0] }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <Users className="w-5 h-5 text-blue-500" />
+                    </motion.div>
                     <span className="text-sm font-medium text-muted-foreground">24/7 Support</span>
-                  </div>
-                  <div className="flex items-center space-x-2 group">
-                    <CreditCard className="w-5 h-5 text-emerald-500 group-hover:animate-bounce" />
+                  </motion.div>
+                  <motion.div
+                    className="flex items-center space-x-2 group"
+                    variants={trustIndicatorVariants}
+                    whileHover={{ scale: 1.05, x: 5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <motion.div
+                      whileHover={{ y: [0, -8, 0] }}
+                      transition={{ duration: 0.5, repeat: 1 }}
+                    >
+                      <CreditCard className="w-5 h-5 text-emerald-500" />
+                    </motion.div>
                     <span className="text-sm font-medium text-muted-foreground">Secure Payment</span>
-                  </div>
-                </div>
+                  </motion.div>
+                </motion.div>
 
                 {/* Fun Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">1K+</div>
+                <motion.div
+                  className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6"
+                  variants={containerVariants}
+                >
+                  <motion.div
+                    className="text-center"
+                    variants={statVariants}
+                    whileHover={{ scale: 1.1, y: -5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <motion.div
+                      className="text-2xl font-bold text-primary"
+                      initial={{ opacity: 0, scale: 0 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: 0.1 }}
+                    >
+                      1K+
+                    </motion.div>
                     <div className="text-sm text-muted-foreground">Happy Travelers</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">98%</div>
+                  </motion.div>
+                  <motion.div
+                    className="text-center"
+                    variants={statVariants}
+                    whileHover={{ scale: 1.1, y: -5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <motion.div
+                      className="text-2xl font-bold text-primary"
+                      initial={{ opacity: 0, scale: 0 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                    >
+                      98%
+                    </motion.div>
                     <div className="text-sm text-muted-foreground">Satisfaction Rate</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">24/7</div>
+                  </motion.div>
+                  <motion.div
+                    className="text-center"
+                    variants={statVariants}
+                    whileHover={{ scale: 1.1, y: -5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <motion.div
+                      className="text-2xl font-bold text-primary"
+                      initial={{ opacity: 0, scale: 0 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                    >
+                      24/7
+                    </motion.div>
                     <div className="text-sm text-muted-foreground">Support Available</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">8</div>
+                  </motion.div>
+                  <motion.div
+                    className="text-center"
+                    variants={statVariants}
+                    whileHover={{ scale: 1.1, y: -5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <motion.div
+                      className="text-2xl font-bold text-primary"
+                      initial={{ opacity: 0, scale: 0 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: 0.4 }}
+                    >
+                      8
+                    </motion.div>
                     <div className="text-sm text-muted-foreground">Dzongkhags Covered</div>
-                  </div>
-                </div>
+                  </motion.div>
+                </motion.div>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

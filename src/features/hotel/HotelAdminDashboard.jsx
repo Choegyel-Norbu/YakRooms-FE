@@ -1469,12 +1469,9 @@ const HotelAdminDashboard = () => {
                     </Badge>
                     </div>
 
-                    <div className="text-left">
-                      <p className="text-xs text-muted-foreground">
-                        Last login
-                      </p>
-                      <p className="text-xs font-medium text-foreground">
-                        {formatLoginTime(lastLogin)}
+                    <div className="text-left mt-2">
+                      <p className="text-xs font-bold text-foreground">
+                      Last login: {formatLoginTime(lastLogin)}
                       </p>
                     </div>
                   </div>
@@ -1535,13 +1532,13 @@ const HotelAdminDashboard = () => {
               </CardContent>
               {/* </Card> */}
 
-                <div className="mb-10">
-                  <RoomStatusTable hotelId={currentHotelId} />
-                </div>
-
-              {/* Booking Calendar */}
+                {/* Booking Calendar */}
               <div className="mb-10">
                 <BookingCalendar hotelId={currentHotelId} />
+              </div>
+
+              <div className="mb-10">
+                <RoomStatusTable hotelId={currentHotelId} />
               </div>
 
               {/* Toggle for StaffCardGrid (visible on all screens) */}

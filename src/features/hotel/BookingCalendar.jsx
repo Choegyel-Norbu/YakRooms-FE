@@ -404,7 +404,7 @@ const BookingCalendar = ({ hotelId }) => {
         <Card className="shadow-sm border-border/50">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-lg">
+            <CardTitle className="flex items-center gap-2 text-md">
               Booking Calendar
             </CardTitle>
             <div className="flex items-center gap-2">

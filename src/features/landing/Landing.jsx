@@ -10,8 +10,10 @@ import HeroLG from "./HeroLG";
 import { Link, useLocation } from "react-router-dom";
 import Navbar from "../../layouts/Navbar";
 import FeatureSection from "./FeatureSection";
+import PropertyTypeSection from "./PropertyTypeSection";
 import TopHighlightsSection from "./TopHighlightsSection";
 import ListYourPropertySection from "./ListYourPropertySection";
+import StickySocialIcons from "@/shared/components/StickySocialIcons";
 import { getStorageItem } from "@/shared/utils/safariLocalStorage";
 
 const Landing = () => {
@@ -177,13 +179,16 @@ const Landing = () => {
         {/* LoginModal */}
         {loginShow && <LoginModal onClose={closeLogin} />}
 
+        {/* Sticky Social Media Icons */}
+        <StickySocialIcons />
+
         <HeroLG
           ref={homeRef}
           onScroll={() =>
             contactMeRef.current?.scrollIntoView({ behavior: "smooth" })
           }
         />
-
+        <PropertyTypeSection />
         <FeatureSection />
         <TopHighlightsSection />
         <ListYourPropertySection onLoginClick={toggleLogin} />

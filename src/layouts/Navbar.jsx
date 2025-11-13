@@ -19,6 +19,7 @@ import {
   Info,
   FileText,
   Shield,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/shared/utils";
 import { Button } from "@/shared/components/button";
@@ -56,7 +57,7 @@ import HotelSelectionDialog from "@/shared/components/HotelSelectionDialog";
 
 const Navbar = ({ onLoginClick, onContactClick }) => {
   const navigate = useNavigate();
-  const { isAuthenticated, logout, userName, email, roles, pictureURL, hasRole, getPrimaryRole, getCurrentActiveRole, switchToRole, selectedHotelId, userHotels, userId, fetchUserHotels, setSelectedHotelId } = useAuth();
+  const { isAuthenticated, logout, userName, email, roles, pictureURL, hasRole, getPrimaryRole, getCurrentActiveRole, switchToRole, selectedHotelId, userHotels, userId, fetchUserHotels, setSelectedHotelId, subscriptionIsActive, subscriptionPlan } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [theme, setTheme] = useState("light");
@@ -114,6 +115,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
     { name: "Home", path: "/", icon: Home, description: "Back to homepage" },
     { name: "Hotels", path: "/hotels", icon: Hotel, description: "Find accommodations" },
     { name: "About", path: "/aboutus", icon: Info, description: "Learn about us" },
+    { name: "List Property", path: "#", icon: Sparkles, description: "List your property", isListProperty: true },
     { name: "Contact", path: "#contact", icon: Mail, description: "Get in touch", isContact: true },
   ];
 
@@ -220,6 +222,28 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
 
   const handleHotelSelected = (hotel) => {
     // Hotel selection handled silently
+  };
+
+  // Handle "Become a Host" click - same logic as ListYourPropertySection
+  const handleBecomeHostClick = (e) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      onLoginClick();
+      return;
+    }
+
+    // Check if user is hotel admin with expired subscription
+    const isHotelAdmin = roles && roles.includes('HOTEL_ADMIN');
+    const hasExpiredSubscription = isHotelAdmin && subscriptionIsActive === false && subscriptionPlan;
+
+    if (hasExpiredSubscription) {
+      e.preventDefault();
+      navigate('/subscription');
+      return;
+    }
+
+    // User is authenticated with active subscription or non-hotel admin
+    navigate('/addListing');
   };
 
   const UserNav = () => {
@@ -612,25 +636,34 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
 
           <nav className="hidden md:flex items-center gap-2">
             {navLinks.map((link) => (
-              <Button key={link.name} variant="ghost" asChild={!link.isContact}>
+              <Button 
+                key={link.name} 
+                variant="ghost" 
+                asChild={true}
+                className={cn(
+                  "hover:bg-transparent",
+                  "text-sm font-medium transition-all",
+                  link.isContact || link.isListProperty ? "text-primary" : undefined,
+                  "hover:border-b hover:border-b-primary/50 border-b border-b-transparent"
+                )}
+              >
                 {link.isContact ? (
                   <button
                     onClick={() => onContactClick && onContactClick()}
-                    className={cn(
-                      "text-sm font-medium transition-colors cursor-pointer",
-                      "hover:text-muted-foreground text-primary"
-                    )}
                   >
                     {link.name}
+                  </button>
+                ) : link.isListProperty ? (
+                  <button
+                    onClick={handleBecomeHostClick}
+                  >
+                  {link.name}
                   </button>
                 ) : (
                   <NavLink
                     to={link.path}
                     className={({ isActive }) =>
-                      cn(
-                        "text-sm font-medium transition-colors",
-                        isActive ? "text-primary" : "text-muted-foreground"
-                      )
+                      isActive ? "text-primary" : "text-muted-foreground"
                     }
                   >
                     {link.name}
@@ -679,16 +712,14 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                           </h3>
                         </div>
                         {navLinks.map((link) => (
-                          <SheetClose key={link.name} asChild>
-                            <Link
-                              to={link.path}
-                              onClick={() => {
-                                if (link.isContact) {
-                                  onContactClick && onContactClick();
-                                  setIsMobileMenuOpen(false);
-                                }
+                          link.isListProperty ? (
+                            <button
+                              key={link.name}
+                              onClick={(e) => {
+                                handleBecomeHostClick(e);
+                                setIsMobileMenuOpen(false);
                               }}
-                              className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group mx-6"
+                              className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group mx-6 w-full"
                             >
                               <div className="flex items-center">
                                 <div className="p-1.5 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
@@ -700,8 +731,32 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
                                 </div>
                               </div>
                               <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                            </Link>
-                          </SheetClose>
+                            </button>
+                          ) : (
+                            <SheetClose key={link.name} asChild>
+                              <Link
+                                to={link.path}
+                                onClick={() => {
+                                  if (link.isContact) {
+                                    onContactClick && onContactClick();
+                                    setIsMobileMenuOpen(false);
+                                  }
+                                }}
+                                className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group mx-6"
+                              >
+                                <div className="flex items-center">
+                                  <div className="p-1.5 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
+                                    <link.icon className="h-4 w-4 group-hover:text-primary transition-colors" />
+                                  </div>
+                                  <div>
+                                    <div className="font-medium">{link.name}</div>
+                                    <div className="text-xs text-muted-foreground">{link.description}</div>
+                                  </div>
+                                </div>
+                                <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                              </Link>
+                            </SheetClose>
+                          )
                         ))}
                         
                         {/* Legal Links */}

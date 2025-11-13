@@ -27,12 +27,11 @@ const Footer = React.forwardRef((props, ref) => {
             <div className="flex justify-center md:justify-start space-x-4">
               <Button
                 variant="ghost"
-                size="icon"
-                className="h-10 w-10 hover:bg-muted"
+                className="h-16 w-16 hover:bg-muted p-0 flex items-center justify-center"
                 aria-label="Facebook"
                 onClick={() => window.open("https://www.facebook.com/share/16FrEJNPGS/", "_blank")}
               >
-                <Facebook className="h-5 w-5" />
+                <Facebook className="h-10 w-10" style={{ minWidth: '2.5rem', minHeight: '2.5rem' }} />
               </Button>
               {/* <Button
                 variant="ghost"
@@ -45,12 +44,11 @@ const Footer = React.forwardRef((props, ref) => {
               </Button> */}
               <Button
                 variant="ghost"
-                size="icon"
-                className="h-10 w-10 hover:bg-muted"
+                className="h-16 w-16 hover:bg-muted p-0 flex items-center justify-center"
                 aria-label="TikTok"
                 onClick={() => window.open("https://www.tiktok.com/@ezeeroom?_t=ZS-90GXYrhhzYW&_r=1", "_blank")}
               >
-                <TikTokIcon className="h-5 w-5" />
+                <TikTokIcon className="h-10 w-10" style={{ minWidth: '2.5rem', minHeight: '2.5rem' }} />
               </Button>
             </div>
           </div>

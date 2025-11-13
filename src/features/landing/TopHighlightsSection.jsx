@@ -83,7 +83,7 @@ const TopHighlightsSection = () => {
         `}
       </style>
       {/* Adjusted for consistent section padding and width across sizes */}
-      <section className="py-5 lg:py-12 mt-10 px-6 sm:px-4 lg:px-8 lg:w-[70%] m-auto">
+      <section className="pb-20 lg:py-12 mt-10 px-6 sm:px-4 lg:px-8 lg:w-[70%] m-auto">
         <div className="container mx-auto">
           {/* Adjusted heading size for better hierarchy */}
           <h3 className="text-center text-2xl font-bold mb-8 text-gray-900">

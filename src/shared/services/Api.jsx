@@ -1,6 +1,7 @@
 import axios from "axios";
 import { getStorageItem, setStorageItem, removeStorageItem } from "@/shared/utils/safariLocalStorage";
 import { API_BASE_URL } from "./firebaseConfig";
+import { toast } from "sonner";
 
 // Cookie-based authentication - no client-side token management needed
 
@@ -31,7 +32,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 10000, // 10 second timeout
+  timeout: 120000, // 2 minute timeout (120000ms)
 });
 
 // Add response interceptor for automatic token refresh
@@ -56,6 +57,23 @@ api.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
+
+    // Handle timeout errors with user-friendly message
+    const isTimeoutError = error.code === 'ECONNABORTED' || 
+                          error.message?.includes('timeout') ||
+                          (error.code === undefined && !error.response && error.message?.includes('exceeded'));
+    
+    if (isTimeoutError) {
+      console.error('⏱️ Request timeout:', error);
+      
+      // Show user-friendly timeout error message
+      toast.error('Request Timeout', {
+        description: 'The request took too long to complete. Please check your internet connection and try again.',
+        duration: 8000,
+      });
+      
+      return Promise.reject(error);
+    }
 
     // Don't intercept refresh token endpoint to prevent infinite loops
     const isRefreshTokenEndpoint = originalRequest.url?.includes('/auth/refresh-token');
@@ -84,7 +102,8 @@ api.interceptors.response.use(
           withCredentials: true,
           headers: {
             'Content-Type': 'application/json'
-          }
+          },
+          timeout: 120000, // 2 minute timeout
         });
         
         if (response.status === 200) {
@@ -106,6 +125,15 @@ api.interceptors.response.use(
         
       } catch (refreshError) {
         console.error('❌ Token refresh failed:', refreshError);
+        
+        // Handle timeout errors during token refresh
+        if (refreshError.code === 'ECONNABORTED' || refreshError.message?.includes('timeout')) {
+          console.error('⏱️ Token refresh timeout during interceptor');
+          toast.error('Connection Timeout', {
+            description: 'Token refresh timed out. Please check your internet connection and try again.',
+            duration: 8000,
+          });
+        }
         
         // Process queued requests with error
         processQueue(refreshError, null);
@@ -199,7 +227,8 @@ export const authService = {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 900000, // 15 minute timeout
       });
       
       if (response.status === 200) {
@@ -214,6 +243,16 @@ export const authService = {
       }
     } catch (error) {
       console.error('❌ Manual token refresh failed:', error);
+      
+      // Handle timeout errors
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        console.error('⏱️ Token refresh timeout');
+        toast.error('Connection Timeout', {
+          description: 'Token refresh timed out. Please check your internet connection and try again.',
+          duration: 8000,
+        });
+        throw new Error('Token refresh timed out - please check your connection');
+      }
       
       // Handle specific error cases
       if (error.response?.status === 403) {

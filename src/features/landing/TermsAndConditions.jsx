@@ -34,16 +34,16 @@ const Breadcrumb = ({ items }) => {
 const TermsAndConditions = () => {
   const [expandedSections, setExpandedSections] = useState({
     acceptance: true,
-    services: true,
-    userTerms: true,
-    hotelOwnerTerms: true,
-    subscription: true,
-    cancellation: true,
-    payments: true,
-    liability: true,
-    privacy: true,
-    modifications: true,
-    contact: true
+    services: false,
+    userTerms: false,
+    hotelOwnerTerms: false,
+    subscription: false,
+    cancellation: false,
+    payments: false,
+    liability: false,
+    privacy: false,
+    modifications: false,
+    contact: false
   });
 
   const [showScrollToTop, setShowScrollToTop] = useState(false);
