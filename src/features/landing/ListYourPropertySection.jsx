@@ -146,7 +146,33 @@ const ListYourPropertySection = ({ onLoginClick }) => {
 
             {/* Right Side - CTA Card */}
             <div>
-              <div className="hover:shadow-lg transition-shadow duration-300 group p-2">
+              <div className="transition-shadow duration-300 group p-2">
+                {/* Property Image Section */}
+                <div className="relative mb-4 sm:mb-6 p-1 sm:p-2 md:p-3 lg:p-6">
+                  <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] md:aspect-[16/9] lg:aspect-[16/9] group rounded-md sm:rounded-lg md:rounded-xl overflow-hidden">
+                    {/* Image with gradient overlay */}
+                    <img
+                      src="/images/mainPreview.png"
+                      alt="EzeeRoom platform preview"
+                      className="w-full h-full object-cover transition-all duration-500 ease-in-out opacity-0 animate-[fadeIn_1s_ease-in-out_0.2s_forwards] group-hover:scale-110"
+                      onError={(e) => {
+                        // Fallback to a placeholder if image doesn't exist
+                        e.target.src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80";
+                      }}
+                    />
+                    <style>{`
+                      @keyframes fadeIn {
+                        from {
+                          opacity: 0;
+                        }
+                        to {
+                          opacity: 1;
+                        }
+                      }
+                    `}</style>
+                  </div>
+                </div>
+
                 <CardHeader className="text-center space-y-4">
                   {/* <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                     <Home className="h-8 w-8" />
@@ -224,41 +250,6 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                     </p>
                   </div>
                 </CardContent>
-
-                {/* Property Image Section */}
-                <div className="relative mt-6 rounded-lg overflow-hidden">
-                  <div className="relative h-64 md:h-80 w-full group">
-                    {/* Image with gradient overlay */}
-                    <img
-                      src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=1200&q=80"
-                      alt="Beautiful property ready for listing"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      onError={(e) => {
-                        // Fallback to a placeholder if image doesn't exist
-                        e.target.src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80";
-                      }}
-                    />
-                    {/* Gradient overlay for better text readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                    
-                    {/* Decorative elements */}
-                    <div className="absolute top-4 right-4">
-                      <div className="bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg">
-                        <Home className="w-5 h-5 text-primary" />
-                      </div>
-                    </div>
-                    
-                    {/* Bottom text overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <div className="flex items-center gap-2 text-white">
-                        <Sparkles className="w-5 h-5 text-yellow-400" />
-                        <p className="text-sm font-medium">
-                          Join hundreds of successful property owners
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

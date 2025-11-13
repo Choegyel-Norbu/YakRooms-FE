@@ -12,7 +12,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogClose,
+  DialogOverlay,
+  DialogPortal,
 } from "@/shared/components/dialog";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { cn } from "@/shared/utils";
 import { Input } from "@/shared/components/input";
 import { Label } from "@/shared/components/label";
 import {
@@ -38,6 +42,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
   const [openBookingSuccessModal, setOpenBookingSuccessModal] = useState(false);
   const [openImmediateBookingDialog, setOpenImmediateBookingDialog] = useState(false);
   const [openTimeBasedBookingDialog, setOpenTimeBasedBookingDialog] = useState(false);
+  const [openPaymentRedirectDialog, setOpenPaymentRedirectDialog] = useState(false);
   const [successBookingData, setSuccessBookingData] = useState(null);
   const [pendingBookingType, setPendingBookingType] = useState(null); // Track which booking type was requested
   const [isImmediateBookingLoading, setIsImmediateBookingLoading] = useState(false);
@@ -1281,23 +1286,24 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
   // Handle BFS-Secure payment redirect
   const handleBFSPaymentRedirect = (bookingResponse) => {
     try {
+      // Close any open booking dialogs
+      setOpenBookingDialog(false);
+      setOpenImmediateBookingDialog(false);
+      
+      // Show payment redirect dialog
+      setOpenPaymentRedirectDialog(true);
+      
       // Use the standardized payment redirect utility
       handlePaymentRedirect(bookingResponse, {
         gatewayName: 'BFS-Secure',
         onSuccess: (paymentData) => {
-          toast.success("Redirecting to Payment", {
-            description: "You are being redirected to BFS-Secure for payment processing. Please complete the payment and you will be redirected back.",
-            duration: 8000
-          });
-          
-          // Close any open dialogs
-          setOpenBookingDialog(false);
-          setOpenImmediateBookingDialog(false);
-          
           // Set up payment status checking
           checkPaymentStatus(bookingResponse.transactionId || bookingResponse.id);
+          // Dialog will remain open until redirect happens
         },
         onError: (error) => {
+          // Close redirect dialog on error
+          setOpenPaymentRedirectDialog(false);
           toast.error("Payment Redirect Failed", {
             description: "There was an error redirecting to the payment gateway. Please try again.",
             duration: 6000
@@ -1307,6 +1313,8 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       
     } catch (error) {
       console.error("BFS Payment redirect failed:", error);
+      // Close redirect dialog on error
+      setOpenPaymentRedirectDialog(false);
       toast.error("Payment Redirect Failed", {
         description: "There was an error redirecting to the payment gateway. Please try again.",
         duration: 6000
@@ -2326,6 +2334,49 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         onClose={() => setOpenBookingSuccessModal(false)}
         bookingData={successBookingData}
       />
+
+      {/* Payment Redirect Dialog */}
+      <Dialog open={openPaymentRedirectDialog} onOpenChange={() => {}}>
+        <DialogPortal>
+          <DialogOverlay className="bg-black/30" />
+          <DialogPrimitive.Content
+            className={cn(
+              "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-md"
+            )}
+          >
+            <div className="flex flex-col items-center justify-center py-8 px-6">
+              {/* Spinner */}
+              <div className="relative mb-6">
+                <div className="w-16 h-16 border-4 border-green-100 rounded-full"></div>
+                <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+              </div>
+              
+              {/* Title */}
+              <DialogTitle className="text-xl font-semibold text-center mb-2">
+                Redirecting to Payment
+              </DialogTitle>
+              
+              {/* Description */}
+              <DialogDescription className="text-center text-sm text-muted-foreground max-w-sm">
+                Please complete the payment and you will be redirected back to your booking.
+              </DialogDescription>
+              
+              {/* Additional Info */}
+              <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg w-full">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="text-xs text-green-800">
+                    <p className="font-medium mb-1">Please wait...</p>
+                    <p className="text-green-700">Do not close this window or refresh the page.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </DialogPrimitive.Content>
+        </DialogPortal>
+      </Dialog>
     </>
   );
 }
