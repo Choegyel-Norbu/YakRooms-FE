@@ -856,7 +856,7 @@ const HotelDetailsPage = () => {
       <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur-sm">
         <div className="mx-auto flex h-14 sm:h-16 items-center justify-between pr-4 sm:px-4 relative">
           {/* Left side - Navigation */}
-          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 relative z-10">
             <Button
               variant="ghost"
               onClick={() => navigate(-1)}
@@ -874,11 +874,11 @@ const HotelDetailsPage = () => {
           </div>
 
           {/* Center - Hotel Name (appears on scroll) */}
-          <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center w-full">
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center w-full pointer-events-none z-0">
             <h1 
               className={`text-base sm:text-lg font-bold text-slate-900 truncate max-w-[200px] sm:max-w-[300px] transition-all duration-700 ${
                 uiState.showHotelNameInNavbar 
-                  ? 'opacity-100 translate-y-0 scale-100' 
+                  ? 'opacity-100 translate-y-0 scale-100 pointer-events-none' 
                   : 'opacity-0 translate-y-6 scale-95 pointer-events-none'
               }`}
               style={{
@@ -892,7 +892,7 @@ const HotelDetailsPage = () => {
           </div>
 
           {/* Right side - Hamburger menu for mobile */}
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-1 flex-shrink-0 relative z-10">
             {/* Mobile Hamburger Menu */}
             <Sheet open={uiState.mobileMenuOpen} onOpenChange={(open) => setUiState(prev => ({ ...prev, mobileMenuOpen: open }))}>
               <SheetTrigger asChild>

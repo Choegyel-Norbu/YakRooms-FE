@@ -152,7 +152,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                   <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] md:aspect-[16/9] lg:aspect-[16/9] group rounded-md sm:rounded-lg md:rounded-xl overflow-hidden">
                     {/* Image with gradient overlay */}
                     <img
-                      src="/images/mainPreview.png"
+                      src="/images/previewLandingDash.png"
                       alt="EzeeRoom platform preview"
                       className="w-full h-full object-cover transition-all duration-500 ease-in-out opacity-0 animate-[fadeIn_1s_ease-in-out_0.2s_forwards] group-hover:scale-110"
                       onError={(e) => {
@@ -238,17 +238,6 @@ const ListYourPropertySection = ({ onLoginClick }) => {
 
                   <Separator />
 
-                  {/* Trust indicators */}
-                  <div className="text-center">
-                    <div className="flex items-center justify-center space-x-1 text-yellow-500 mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-current" />
-                      ))}
-                    </div>
-                    <p className="text-sm  text-yelllow-500">
-                      Listed 10+ partners
-                    </p>
-                  </div>
                 </CardContent>
               </div>
             </div>
