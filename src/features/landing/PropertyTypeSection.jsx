@@ -116,11 +116,11 @@ const PropertyTypeSection = () => {
   }, []);
 
   return (
-    <section className="py-12 px-4 bg-white dark:bg-slate-900">
+    <section className="pt-12 md:pb-12 px-4 bg-white dark:bg-slate-900">
       <div className="container mx-auto max-w-7xl">
         {/* Section Header */}
         <div className="flex flex-col items-center mb-6">
-          <h1 className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 font-sans">
             Browse by property type
           </h1>
           

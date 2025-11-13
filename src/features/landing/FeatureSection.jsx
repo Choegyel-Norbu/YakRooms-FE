@@ -160,7 +160,7 @@ const FeatureSection = () => {
                   </div> */}
                   
                   <motion.h2
-                    className="text-3xl md:text-4xl lg:text-3xl font-bold text-foreground leading-tight"
+                    className="text-2xl font-bold text-foreground leading-tight"
                     variants={fadeInUp}
                   >
                     Start Your Journey with

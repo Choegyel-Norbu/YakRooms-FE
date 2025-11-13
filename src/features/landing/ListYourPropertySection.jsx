@@ -85,7 +85,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
               <Sparkles className="w-4 h-4 mr-2" />
               Become a host
             </Badge>
-            <h2 className="text-3xl md:text-3xl font-bold tracking-tight">
+            <h2 className="text-2xl font-bold tracking-tight">
               Partner with{" "}
               <span className="text-primary">
                 EzeeRoom{" "}
@@ -152,7 +152,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                     <Home className="h-8 w-8" />
                   </div> */}
                   <div className="space-y-2 mt-4">
-                    <CardTitle className="text-2xl md:text-3xl">
+                    <CardTitle className="text-2xl">
                       Ready to Get Started?
                     </CardTitle>
                     <CardDescription className="text-sm">
