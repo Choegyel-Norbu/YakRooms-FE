@@ -664,17 +664,17 @@ const HotelDetailsPage = () => {
     }
   }, [testimonialsState.currentPage, fetchTestimonials, appState.criticalDataLoaded]);
 
-  // Scroll effect for rooms
-  useEffect(() => {
-    if (isInitialLoad.current) {
-      isInitialLoad.current = false;
-    } else if (roomsState.availableRooms.length > 0) {
-      roomsSectionRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
-  }, [roomsState.availableRooms]);
+  // Scroll effect for rooms - Disabled
+  // useEffect(() => {
+  //   if (isInitialLoad.current) {
+  //     isInitialLoad.current = false;
+  //   } else if (roomsState.availableRooms.length > 0) {
+  //     roomsSectionRef.current?.scrollIntoView({
+  //       behavior: "smooth",
+  //       block: "start",
+  //     });
+  //   }
+  // }, [roomsState.availableRooms]);
 
   // Memoized UI handlers
   const nextImage = useCallback(() => {
@@ -824,7 +824,7 @@ const HotelDetailsPage = () => {
     <div className="min-h-screen bg-background">
       {/* Optimized header for mobile */}
       <header className="sticky top-0 z-20 border-b bg-background/95">
-        <div className="mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
+        <div className="mx-auto flex h-14 sm:h-16 items-center justify-between pr-4 sm:px-4">
           {/* Left side - Navigation */}
           <div className="flex items-center gap-1 sm:gap-2">
             <Button
@@ -1031,7 +1031,7 @@ const HotelDetailsPage = () => {
                     {/* Hotel Description */}
                    {transformedHotel.description && (
                       <div className="w-full">
-                        <div className="mb-3">
+                        <div className="mb-0">
                           <p className="text-sm text-slate-700 leading-relaxed">
                             {transformedHotel.description}
                           </p>
@@ -1148,7 +1148,7 @@ const HotelDetailsPage = () => {
           <div className="col-span-1 lg:col-span-2 space-y-8">
             {/* Enhanced Amenities Section */}
             {/* <Card> */}
-              <CardHeader className="pb-2">
+              <CardHeader className="pb-2 mb-0">
                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
                   <CheckCircle className="h-5 w-5 text-primary" />
                   Hotel Amenities
@@ -1161,7 +1161,7 @@ const HotelDetailsPage = () => {
                       key={index}
                       className="flex items-center"
                     >
-                      <span className="text-sm text-gray-500 font-normal px-4 py-1">
+                      <span className="text-sm text-gray-500 font-normal pr-8 py-1">
                          {amenity}
                       </span>
                     </div>
@@ -1354,11 +1354,8 @@ const HotelDetailsPage = () => {
               <div className="flex items-center justify-between">
                 <div className="pl-4 sm:pl-0">
                   <h2 className="text-base font-semibold tracking-tight">
-                    Active Rooms
+                    Available Rooms
                   </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Choose from our selection of comfortable rooms
-                  </p>
                 </div>
                 {roomsState.loading && (
                   <SimpleSpinner 
