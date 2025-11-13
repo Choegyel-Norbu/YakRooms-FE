@@ -31,6 +31,7 @@ import {
   Trash2,
   Facebook,
   Instagram,
+  Menu,
 } from "lucide-react";
 
 import { Button } from "@/shared/components/button";
@@ -374,6 +375,7 @@ const HotelDetailsPage = () => {
     showImageModal: false,
     reviewSheetOpen: false,
     isDescriptionExpanded: false,
+    mobileMenuOpen: false,
   });
 
   // Separate state for room image modal to avoid conflicts
@@ -825,7 +827,6 @@ const HotelDetailsPage = () => {
         <div className="mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
           {/* Left side - Navigation */}
           <div className="flex items-center gap-1 sm:gap-2">
-            
             <Button
               variant="ghost"
               onClick={() => navigate(-1)}
@@ -834,44 +835,101 @@ const HotelDetailsPage = () => {
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline ml-2">Back</span>
             </Button>
-            <Button asChild variant="ghost" className="p-2">
+            {/* Home link - Hidden on mobile, visible on desktop */}
+            <Button asChild variant="ghost" className="hidden sm:flex p-2">
               <Link to="/">
-                {/* <Home className="h-5 w-5 " /> */}
                 Home
               </Link>
             </Button>
           </div>
 
-          {/* Center - Optimized title for mobile */}
-          <h1 className="text-base sm:text-lg font-bold truncate px-2">
-            {appState.hotel.name}
-          </h1>
-
-          {/* Right side - Actions */}
+          {/* Right side - Hamburger menu for mobile */}
           <div className="flex items-center gap-1">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
+            {/* Mobile Hamburger Menu */}
+            <Sheet open={uiState.mobileMenuOpen} onOpenChange={(open) => setUiState(prev => ({ ...prev, mobileMenuOpen: open }))}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="sm:hidden h-8 w-8"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[250px] sm:w-[300px]">
+                <SheetHeader>
+                  <SheetTitle>Menu</SheetTitle>
+                </SheetHeader>
+                <div className="mt-6 space-y-4">
                   <Button
+                    asChild
                     variant="ghost"
-                    size="icon"
-                    onClick={handleShare}
-                    className="h-8 w-8 sm:h-10 sm:w-10"
+                    className="w-full justify-start"
+                    onClick={() => setUiState(prev => ({ ...prev, mobileMenuOpen: false }))}
                   >
-                    <Share2 className="h-4 w-4" />
+                    <Link to="/">
+                      <Home className="mr-2 h-4 w-4" />
+                      Home
+                    </Link>
                   </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs">
-                  Share this hotel
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="container mx-auto px-0 sm:px-6 py-0 lg:py-8 space-y-6 sm:space-y-8">
+      <main className="container mx-auto px-0 py-0 lg:py-8 space-y-6 sm:space-y-8">
+        {/* Hotel Name and Rating Section - Outside Image Container */}
+        <div className="px-4 md:px-0 pt-4 sm:pt-6 pb-3 sm:pb-4">
+          <div className="flex items-center justify-between gap-4">
+            {/* Hotel Name and Rating - Left Side */}
+            <div className="flex flex-col gap-2 sm:gap-3 flex-1 items-start">
+              {appState.hotel?.averageRating > 0 && (
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <StarRating 
+                    rating={appState.hotel.averageRating} 
+                    size={16} 
+                    showRating={true}
+                    className="flex-shrink-0"
+                  />
+                </div>
+              )}
+              <h1 className="text-md font-bold text-slate-900 leading-tight">
+                {appState.hotel?.name}
+              </h1>
+              {/* Location - Below Hotel Name */}
+              {(appState.hotel?.locality || appState.hotel?.district) && (
+                <span className="text-sm text-slate-600 font-normal">
+                  {appState.hotel.locality && `${appState.hotel.locality}, `}{appState.hotel.district}, Bhutan
+                </span>
+              )}
+            </div>
+
+            {/* Share Icon - Right Side */}
+            <div className="flex-shrink-0">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleShare}
+                      className="h-8 w-8 sm:h-10 sm:w-10"
+                    >
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">
+                    Share this hotel
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
+        </div>
+
         {/* Enhanced Hero Section */}
         <Card className="overflow-hidden pt-0 rounded-none" style={{ borderRadius: 0 }}>
           <div className="relative h-48 sm:h-64 md:h-96 lg:h-[500px] flex gap-1">
@@ -970,27 +1028,9 @@ const HotelDetailsPage = () => {
               <div className="flex sm:flex-col">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                   <div className="space-y-4 sm:space-y-6 flex flex-col lg:flex-row lg:gap-6">
-                    {/* <h1 className="text-base sm:text-base md:text-sm font-semibold tracking-tight text-slate-800 leading-tight">
-                      {transformedHotel.name}
-                    </h1> */}
-
-                    {/* Location and Contact Section */}
-                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 lg:w-1/2">
-                      <div className="flex-1">
-                        <div className="flex items-start group">
-                          <div className="flex flex-col">
-                            <span className="text-xs font-bold text-black uppercase tracking-wide mb-1">Location</span>
-                            <span className="text-sm text-slate-600 font-normal group-hover:text-slate-700 transition-colors duration-200">
-                              {transformedHotel.locality && `${transformedHotel.locality}, `}{transformedHotel.district}, Bhutan
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Hotel Description */}
                    {transformedHotel.description && (
-                      <div className="lg:w-1/2">
+                      <div className="w-full">
                         <div className="mb-3">
                           <p className="text-sm text-slate-700 leading-relaxed">
                             {transformedHotel.description}
@@ -998,24 +1038,6 @@ const HotelDetailsPage = () => {
                         </div>
                       </div>
                     )}
-                  </div>
-
-                  <div className="flex items-start justify-start flex-col gap-3">
-
-                    {transformedHotel.averageRating > 0 && (
-                      <div className="flex items-center gap-2">
-                        <StarRating 
-                          rating={transformedHotel.averageRating} 
-                          size={16} 
-                          showRating={true}
-                          className="flex-shrink-0"
-                        />
-                        <span className="text-sm text-slate-600">
-                          Avg. Rating 
-                        </span>
-                      </div>
-                    )}
-
                   </div>
                 </div>
               </div>
