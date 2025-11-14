@@ -104,6 +104,7 @@ import { toast } from "sonner";
 import { EzeeRoomLogo } from "@/shared/components";
 import SubscriptionExpirationNotification from "@/shared/components/SubscriptionExpirationNotification";
 import { uploadFile } from "../../shared/services/uploadService";
+import { calculateDaysUntil } from "@/shared/utils/subscriptionUtils";
 
 const HotelAdminDashboard = () => {
   const navigate = useNavigate();
@@ -155,8 +156,18 @@ const HotelAdminDashboard = () => {
   const currentHotelId = selectedHotelId || hotelId;
 
   // Check if subscription is expired
+  // Subscription is expired if the expiration date has passed (daysUntilExpiration <= 0)
+  // The subscription is valid until the expiration date, regardless of the isActive flag
   const isSubscriptionExpired = () => {
-    return subscriptionIsActive === false;
+    if (!subscriptionNextBillingDate) {
+      // If no billing date, use isActive flag as fallback
+      return subscriptionIsActive === false;
+    }
+    
+    const daysUntilExpiration = calculateDaysUntil(subscriptionNextBillingDate);
+    // Subscription is expired if the date has passed (including today, as expiration date means expired)
+    // If daysUntilExpiration > 0, subscription is still valid until that date
+    return daysUntilExpiration <= 0;
   };
 
   // Define which tabs should be locked when subscription is expired
@@ -1187,10 +1198,12 @@ const HotelAdminDashboard = () => {
           {activeTab === "dashboard" && (
             <div className="space-y-4">
               {/* Subscription Expiration Notification */}
+              {/* Show renewal notification if expiration date is in the future (within 7 days) */}
               {subscriptionExpirationNotification && subscriptionNextBillingDate && (
                 <SubscriptionExpirationNotification 
                   nextBillingDate={subscriptionNextBillingDate}
                   subscriptionPlan={subscriptionPlan}
+                  subscriptionIsActive={subscriptionIsActive}
                 />
               )}
 

@@ -13,6 +13,7 @@ import { calculateDaysUntil, formatDate, getTimeUntilExpiration } from '@/shared
 const SubscriptionExpirationNotification = ({ 
   nextBillingDate, 
   subscriptionPlan,
+  subscriptionIsActive,
   className = "" 
 }) => {
   // Don't render if no billing date
@@ -22,41 +23,110 @@ const SubscriptionExpirationNotification = ({
   const timeUntilExpiration = getTimeUntilExpiration(nextBillingDate);
   const formattedDate = formatDate(nextBillingDate);
 
-  // Don't show notification if more than 7 days away or if already expired
-  if (daysUntilExpiration > 7 || daysUntilExpiration < 0) return null;
+  // Don't show notification if more than 7 days away, if already expired (daysUntilExpiration < 0), 
+  // or on the expiration date itself (daysUntilExpiration === 0) - subscription is expired on that date
+  // Note: We check the actual date, not just subscriptionIsActive, because a subscription is valid until the expiration date
+  if (daysUntilExpiration > 7 || daysUntilExpiration <= 0) return null;
 
   // Determine notification type and styling
-  const isExpiringSoon = daysUntilExpiration <= 7 && daysUntilExpiration > 0;
-  const isExpiringToday = daysUntilExpiration === 0;
+  const isTrial = subscriptionPlan === 'TRIAL';
+  const isPro = subscriptionPlan === 'PRO' || subscriptionPlan === 'PREMIUM' || subscriptionPlan === 'BASIC';
+  const isExpiringSoon = daysUntilExpiration === 1; // Expires tomorrow
 
   const getNotificationConfig = () => {
-    if (isExpiringToday) {
+    // Upcoming renewal/expiration - show notifications until expiration date (when daysUntilExpiration > 0)
+    if (isTrial) {
       return {
-        bgColor: "bg-orange-50 dark:bg-orange-950/20",
-        borderColor: "border-orange-200 dark:border-orange-800",
-        iconBg: "bg-orange-100 dark:bg-orange-900/30",
-        iconColor: "text-orange-600 dark:text-orange-400",
-        titleColor: "text-orange-800 dark:text-orange-200",
-        textColor: "text-orange-700 dark:text-orange-300",
-        buttonColor: "bg-orange-600 hover:bg-orange-700",
+        bgColor: isExpiringSoon 
+          ? "bg-orange-50 dark:bg-orange-950/20"
+          : "bg-blue-50 dark:bg-blue-950/20",
+        borderColor: isExpiringSoon
+          ? "border-orange-200 dark:border-orange-800"
+          : "border-blue-200 dark:border-blue-800",
+        iconBg: isExpiringSoon
+          ? "bg-orange-100 dark:bg-orange-900/30"
+          : "bg-blue-100 dark:bg-blue-900/30",
+        iconColor: isExpiringSoon
+          ? "text-orange-600 dark:text-orange-400"
+          : "text-blue-600 dark:text-blue-400",
+        titleColor: isExpiringSoon
+          ? "text-orange-800 dark:text-orange-200"
+          : "text-blue-800 dark:text-blue-200",
+        textColor: isExpiringSoon
+          ? "text-orange-700 dark:text-orange-300"
+          : "text-blue-700 dark:text-blue-300",
+        buttonColor: isExpiringSoon
+          ? "bg-orange-600 hover:bg-orange-700"
+          : "bg-blue-600 hover:bg-blue-700",
         icon: Clock,
-        title: "Subscription Expires Today",
-        message: `Your subscription expires today (${formattedDate}). Please renew to avoid service interruption.`,
-        showButton: true
+        title: isExpiringSoon ? "Trial Expires Tomorrow" : "Trial Expiring Soon",
+        message: isExpiringSoon
+          ? `Your trial period expires tomorrow (${formattedDate}). Subscribe now to continue enjoying all features and avoid service interruption.`
+          : `Your trial period will expire on ${formattedDate} (${timeUntilExpiration}).`,
+        showButton: isExpiringSoon
+      };
+    } else if (isPro) {
+      return {
+        bgColor: isExpiringSoon
+          ? "bg-orange-50 dark:bg-orange-950/20"
+          : "bg-blue-50 dark:bg-blue-950/20",
+        borderColor: isExpiringSoon
+          ? "border-orange-200 dark:border-orange-800"
+          : "border-blue-200 dark:border-blue-800",
+        iconBg: isExpiringSoon
+          ? "bg-orange-100 dark:bg-orange-900/30"
+          : "bg-blue-100 dark:bg-blue-900/30",
+        iconColor: isExpiringSoon
+          ? "text-orange-600 dark:text-orange-400"
+          : "text-blue-600 dark:text-blue-400",
+        titleColor: isExpiringSoon
+          ? "text-orange-800 dark:text-orange-200"
+          : "text-blue-800 dark:text-blue-200",
+        textColor: isExpiringSoon
+          ? "text-orange-700 dark:text-orange-300"
+          : "text-blue-700 dark:text-blue-300",
+        buttonColor: isExpiringSoon
+          ? "bg-orange-600 hover:bg-orange-700"
+          : "bg-blue-600 hover:bg-blue-700",
+        icon: Clock,
+        title: isExpiringSoon 
+          ? `Upcoming ${subscriptionPlan === 'PRO' ? '' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Pro'} Subscription Renewal`
+          : "Upcoming Subscription Renewal",
+        message: isExpiringSoon
+          ? `Your ${subscriptionPlan === 'PRO' ? '' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Pro'} subscription will expire tomorrow (${formattedDate}). Please renew your subscription to continue using all features without interruption.`
+          : `Your ${subscriptionPlan === 'PRO' ? '' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Pro'} subscription will renew on ${formattedDate} (${timeUntilExpiration}). Ensure your payment method is up to date.`,
+        showButton: isExpiringSoon
       };
     } else {
+      // Fallback for unknown plan types
       return {
-        bgColor: "bg-blue-50 dark:bg-blue-950/20",
-        borderColor: "border-blue-200 dark:border-blue-800",
-        iconBg: "bg-blue-100 dark:bg-blue-900/30",
-        iconColor: "text-blue-600 dark:text-blue-400",
-        titleColor: "text-blue-800 dark:text-blue-200",
-        textColor: "text-blue-700 dark:text-blue-300",
-        buttonColor: "bg-blue-600 hover:bg-blue-700",
+        bgColor: isExpiringSoon
+          ? "bg-orange-50 dark:bg-orange-950/20"
+          : "bg-blue-50 dark:bg-blue-950/20",
+        borderColor: isExpiringSoon
+          ? "border-orange-200 dark:border-orange-800"
+          : "border-blue-200 dark:border-blue-800",
+        iconBg: isExpiringSoon
+          ? "bg-orange-100 dark:bg-orange-900/30"
+          : "bg-blue-100 dark:bg-blue-900/30",
+        iconColor: isExpiringSoon
+          ? "text-orange-600 dark:text-orange-400"
+          : "text-blue-600 dark:text-blue-400",
+        titleColor: isExpiringSoon
+          ? "text-orange-800 dark:text-orange-200"
+          : "text-blue-800 dark:text-blue-200",
+        textColor: isExpiringSoon
+          ? "text-orange-700 dark:text-orange-300"
+          : "text-blue-700 dark:text-blue-300",
+        buttonColor: isExpiringSoon
+          ? "bg-orange-600 hover:bg-orange-700"
+          : "bg-blue-600 hover:bg-blue-700",
         icon: Clock,
-        title: "Upcoming Subscription Renewal",
-        message: `Your subscription will expire on ${formattedDate} (${timeUntilExpiration}).`,
-        showButton: false
+        title: isExpiringSoon ? "Subscription Expires Tomorrow" : "Upcoming Subscription Renewal",
+        message: isExpiringSoon
+          ? `Your subscription will renew tomorrow (${formattedDate}). Please ensure your payment method is up to date.`
+          : `Your subscription will renew on ${formattedDate} (${timeUntilExpiration}).`,
+        showButton: isExpiringSoon
       };
     }
   };
@@ -90,7 +160,10 @@ const SubscriptionExpirationNotification = ({
                   className={`${config.buttonColor} text-white`}
                 >
                   <CreditCard className="mr-2 h-4 w-4" />
-                  {isExpiringToday ? 'Renew Now' : 'Subscribe'}
+                  {isTrial 
+                    ? (isExpiringSoon ? 'Subscribe Now' : 'Subscribe to Continue')
+                    : (isExpiringSoon ? 'Renew Now' : 'Manage Subscription')
+                  }
                 </Button>
               </Link>
             )}

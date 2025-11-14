@@ -31,14 +31,10 @@ const SubscriptionPage = () => {
   // then selectedHotelId if multiple hotels exist
   const getHotelIdFromStorage = () => {
     try {
-      console.log('🔍 getHotelIdFromStorage called');
-      console.log('  Context values - selectedHotelId:', selectedHotelId, 'hotelId:', hotelId);
 
       // Priority 1: Check for newly created hotel ID in sessionStorage
       const newHotelId = sessionStorage.getItem('newHotelId');
-      console.log('  sessionStorage newHotelId:', newHotelId);
       if (newHotelId) {
-        console.log('✅ Using new hotel ID from sessionStorage:', newHotelId);
         const parsedId = parseInt(newHotelId);
         if (!isNaN(parsedId)) {
           // Clear it after use so it doesn't interfere with future operations
@@ -51,7 +47,6 @@ const SubscriptionPage = () => {
       const storedSelectedHotelId = getStorageItem('selectedHotelId');
       const storedHotelIds = getStorageItem('hotelIds');
       const storedHotelId = getStorageItem('hotelId');
-      console.log('  localStorage values - selectedHotelId:', storedSelectedHotelId, 'hotelIds:', storedHotelIds, 'hotelId:', storedHotelId);
 
       // Parse hotelIds array to check if multiple hotels exist
       let hotelIdsArray = [];
@@ -71,14 +66,11 @@ const SubscriptionPage = () => {
           hotelIdsArray = [storedHotelIds.toString()];
         }
       }
-      console.log('  Parsed hotelIdsArray:', hotelIdsArray);
 
       // If multiple hotels exist, always use selectedHotelId (required)
       if (hotelIdsArray.length > 1) {
-        console.log('  Multiple hotels detected, using selectedHotelId');
         if (storedSelectedHotelId) {
           const result = parseInt(storedSelectedHotelId);
-          console.log('✅ Returning selectedHotelId:', result);
           return result;
         }
         // If multiple hotels but no selectedHotelId, this is an error state
@@ -88,25 +80,20 @@ const SubscriptionPage = () => {
       // Otherwise, use selectedHotelId if available, then fallback to hotelId
       if (storedSelectedHotelId) {
         const result = parseInt(storedSelectedHotelId);
-        console.log('✅ Returning stored selectedHotelId:', result);
         return result;
       }
 
       if (storedHotelId) {
         const result = parseInt(storedHotelId);
-        console.log('✅ Returning stored hotelId:', result);
         return result;
       }
 
       // Fallback to context values as last resort (shouldn't normally happen)
       const result = parseInt(selectedHotelId || hotelId);
-      console.log('⚠️ Falling back to context values:', result);
       return result;
     } catch (error) {
-      console.error('❌ Error getting hotelId from storage:', error);
       // Fallback to context values
       const result = parseInt(selectedHotelId || hotelId);
-      console.log('⚠️ Error fallback to context values:', result);
       return result;
     }
   };
@@ -139,9 +126,10 @@ const SubscriptionPage = () => {
   // Check if user has ever had PRO subscription (active or expired)
   const hasEverHadPro = subscriptionPlan === 'PRO';
   
-  // Check if subscription expires today
+  // Check if subscription expires tomorrow (1 day remaining)
+  // On expiration date (daysUntilExpiration === 0), subscription is expired, so don't show renewal cards
   const daysUntilExpiration = calculateDaysUntil(subscriptionNextBillingDate);
-  const expiresToday = daysUntilExpiration === 0 && subscriptionExpirationNotification;
+  const expiresTomorrow = daysUntilExpiration === 1 && subscriptionExpirationNotification;
   const isActiveSubscription = subscriptionIsActive === true;
 
   const pricingPlans = [
@@ -184,7 +172,13 @@ const SubscriptionPage = () => {
     },
     {
       id: 'subscription',
-      name: isProActive ? 'Active Pro Subscription' : 'Paid subscription',
+      name: isProActive 
+        ? 'Pro Subscription' 
+        : subscriptionPlan === 'PREMIUM' 
+          ? 'Premium Subscription'
+          : subscriptionPlan === 'BASIC'
+            ? 'Basic Subscription'
+            : 'Pro Subscription',
       price: 'Nu. 1,000',
       period: 'per month',
       description: isProActive 
@@ -397,11 +391,6 @@ const SubscriptionPage = () => {
     setIsSubscribing(true);
     
     try {
-      // Calculate next billing date (1 month from current expiration date)
-      const currentExpirationDate = new Date(subscriptionNextBillingDate);
-      const nextBillingDate = new Date(currentExpirationDate);
-      nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
-      
       // Get hotelId from localStorage (not from cache)
       const hotelIdFromStorage = getHotelIdFromStorage();
       
@@ -411,34 +400,90 @@ const SubscriptionPage = () => {
         return;
       }
 
-      const subscriptionData = {
-        hotelId: hotelIdFromStorage,
-        subscriptionPlan: 'PRO',
-        paymentStatus: 'PAID',
-        nextBillingDate: nextBillingDate.toISOString(),
-        lastPaymentDate: new Date().toISOString(),
-        expirationNotification: false, // Reset notification flag
-        notes: `Subscription renewed on ${new Date().toLocaleDateString()} - Extended for 1 month from expiration date ${formatDate(subscriptionNextBillingDate)}`
-      };
+      // If it's a trial expiring tomorrow, initiate payment flow instead of renewal
+      if (subscriptionPlan === 'TRIAL' && expiresTomorrow) {
+        const subscriptionData = {
+          subscriptionPlan: 'PRO',
+          amount: 1000.0,
+          userId: userId,
+          hotelId: hotelIdFromStorage
+        };
 
-      console.log('Renewing subscription with data:', subscriptionData);
-      
-      const response = await enhancedApi.post('/subscriptions', subscriptionData);
-      
-      if (response.status === 200 || response.status === 201) {
-        toast.success('Subscription renewed successfully! Your hotel listing remains active.');
-        console.log('Subscription renewed successfully:', response.data);
+        console.log('Initiating subscription payment for expiring trial:', subscriptionData);
         
-        // Redirect to dashboard after 2 seconds
-        setTimeout(() => {
-          navigate('/hotelAdmin');
-        }, 2000);
+        const response = await enhancedApi.post('/subscriptions/payment/initiate', subscriptionData, {
+          params: {
+            baseUrl: window.location.origin
+          }
+        });
+
+        console.log('Subscription payment API response:', response);
+
+        if (response.status === 200 || response.status === 201) {
+          const responseData = response.data;
+          
+          if (responseData.success && responseData.payment?.paymentUrl) {
+            toast.success('Payment initiated successfully! Redirecting to RMA payment gateway...');
+            console.log('Payment initiated successfully:', responseData);
+            
+            // Use proper form handling for payment redirect
+            handlePaymentRedirect(responseData.payment, {
+              gatewayName: 'RMA',
+              onSuccess: (paymentData) => {
+                toast.success("Redirecting to Payment Gateway", {
+                  description: "You are being redirected to RMA payment gateway for processing. Please complete the payment and you will be redirected back.",
+                  duration: 8000
+                });
+              },
+              onError: (error) => {
+                toast.error("Payment Redirect Failed", {
+                  description: "There was an error redirecting to the payment gateway. Please try again.",
+                  duration: 6000
+                });
+              }
+            });
+          } else {
+            throw new Error('Invalid payment response: missing payment URL');
+          }
+        } else {
+          throw new Error('Unexpected response status');
+        }
       } else {
-        throw new Error('Unexpected response status');
+        // For Pro subscriptions, use renewal flow
+        // Calculate next billing date (1 month from current expiration date)
+        const currentExpirationDate = new Date(subscriptionNextBillingDate);
+        const nextBillingDate = new Date(currentExpirationDate);
+        nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+
+        const subscriptionData = {
+          hotelId: hotelIdFromStorage,
+          subscriptionPlan: 'PRO',
+          paymentStatus: 'PAID',
+          nextBillingDate: nextBillingDate.toISOString(),
+          lastPaymentDate: new Date().toISOString(),
+          expirationNotification: false, // Reset notification flag
+          notes: `Subscription renewed on ${new Date().toLocaleDateString()} - Extended for 1 month from expiration date ${formatDate(subscriptionNextBillingDate)}`
+        };
+
+        console.log('Renewing subscription with data:', subscriptionData);
+        
+        const response = await enhancedApi.post('/subscriptions', subscriptionData);
+        
+        if (response.status === 200 || response.status === 201) {
+          toast.success('Subscription renewed successfully! Your hotel listing remains active.');
+          console.log('Subscription renewed successfully:', response.data);
+          
+          // Redirect to dashboard after 2 seconds
+          setTimeout(() => {
+            navigate('/hotelAdmin');
+          }, 2000);
+        } else {
+          throw new Error('Unexpected response status');
+        }
       }
       
     } catch (error) {
-      console.error('Failed to renew subscription:', error);
+      console.error('Failed to process subscription:', error);
       
       if (error.response?.status === 404) {
         toast.error('Subscription not found. Please contact support.');
@@ -447,7 +492,11 @@ const SubscriptionPage = () => {
       } else if (error.response?.status === 401) {
         toast.error('Authentication required. Please log in again.');
       } else {
-        toast.error('Failed to renew subscription. Please try again later.');
+        if (subscriptionPlan === 'TRIAL' && expiresTomorrow) {
+          toast.error('Failed to initiate subscription payment. Please try again later.');
+        } else {
+          toast.error('Failed to renew subscription. Please try again later.');
+        }
       }
     } finally {
       setIsSubscribing(false);
@@ -473,9 +522,9 @@ const SubscriptionPage = () => {
         {/* Header Section */}
         <div className="text-center mb-16">
           <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-6">
-            {expiresToday ? (
+            {expiresTomorrow ? (
               <>
-                Subscription <span className="text-orange-500">Expires Today</span>
+                Subscription <span className="text-orange-500">Expires Tomorrow</span>
               </>
             ) : isTrialExpired ? (
               <>
@@ -487,7 +536,7 @@ const SubscriptionPage = () => {
               </>
             ) : isProActive ? (
               <>
-                Pro Subscription <span className="text-blue-600">Active</span>
+                {subscriptionPlan === 'PREMIUM' ? 'Premium' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Pro'} Subscription <span className="text-blue-600">Active</span>
               </>
             ) : hasEverHadPro ? (
               <>
@@ -500,14 +549,16 @@ const SubscriptionPage = () => {
             )}
           </h1>
           <p className="text-sm text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            {expiresToday 
-              ? `Your subscription expires today (${formatDate(subscriptionNextBillingDate)}). Renew now to keep your hotel listing active and avoid service interruption.`
+            {expiresTomorrow 
+              ? subscriptionPlan === 'TRIAL'
+                ? `Your trial period expires tomorrow (${formatDate(subscriptionNextBillingDate)}). Subscribe now to continue enjoying all features and avoid service interruption.`
+                : `Your ${subscriptionPlan === 'PREMIUM' ? 'Premium' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Pro'} subscription expires tomorrow (${formatDate(subscriptionNextBillingDate)}). Renew now to keep your hotel listing active and avoid service interruption.`
               : isTrialExpired 
                 ? 'Your free trial has ended. Subscribe now to continue managing your hotel business with EzeeRoom.'
                 : isTrialActive
                   ? 'You are currently in your free trial period. Make the most of all features before your trial ends.'
                   : isProActive
-                    ? 'Your hotel listing is active and discoverable to guests worldwide. Manage your subscription below.'
+                    ? `Your ${subscriptionPlan === 'PREMIUM' ? 'Premium' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Pro'} subscription is active and your hotel listing is discoverable to guests worldwide. Manage your subscription below.`
                     : hasEverHadPro
                       ? 'Your Pro subscription is currently inactive. Reactivate below to restore your hotel listing visibility.'
                       : 'Get 2 months completely free to grow your hotel business with full access to all platform features.'
@@ -517,26 +568,34 @@ const SubscriptionPage = () => {
 
         {/* Pricing Cards */}
         <div className={`grid gap-8 max-w-4xl mx-auto items-stretch ${
-          expiresToday ? 'grid-cols-1 lg:grid-cols-2' : 
+          expiresTomorrow ? 'grid-cols-1 lg:grid-cols-2' : 
           (isProActive || hasEverHadPro) ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'
         }`}>
-          {/* Renewal Card - Show when subscription expires today */}
-          {expiresToday && (
+          {/* Renewal Card - Show when subscription expires tomorrow */}
+          {expiresTomorrow && (
             <Card className="relative transition-all duration-300 hover:shadow-xl hover:-translate-y-2 h-full flex flex-col ring-2 ring-orange-500 shadow-lg scale-105">
-              {/* Expires Today Badge */}
+              {/* Expires Tomorrow Badge */}
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <div className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-medium">
                   <Clock className="w-3 h-3 mr-1 inline" />
-                  Expires Today
+                  Expires Tomorrow
                 </div>
               </div>
 
               <CardHeader className="text-center pb-4">
                 <CardTitle className="text-2xl font-extrabold text-gray-900">
-                  Renew Subscription
+                  {subscriptionPlan === 'TRIAL'
+                    ? 'Trial Expires Tomorrow - Subscribe Now'
+                    : subscriptionPlan === 'PREMIUM'
+                      ? 'Premium Subscription Renewal'
+                      : subscriptionPlan === 'BASIC'
+                        ? 'Basic Subscription Renewal'
+                        : 'Pro Subscription Renewal'}
                 </CardTitle>
                 <CardDescription className="text-gray-600 text-sm leading-relaxed">
-                  Your current subscription expires today. Renew now to keep your hotel listing active and avoid service interruption.
+                  {subscriptionPlan === 'TRIAL'
+                    ? 'Your trial period expires tomorrow. Subscribe now to continue enjoying all features and avoid service interruption.'
+                    : `Your ${subscriptionPlan === 'PREMIUM' ? 'Premium' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Pro'} subscription expires tomorrow. Renew now to keep your hotel listing active and avoid service interruption.`}
                 </CardDescription>
               </CardHeader>
 
@@ -590,12 +649,18 @@ const SubscriptionPage = () => {
                   {isSubscribing ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Renewing...
+                      {subscriptionPlan === 'TRIAL' ? 'Subscribing...' : 'Renewing...'}
                     </>
                   ) : (
                     <>
                       <CreditCard className="mr-2 h-4 w-4" />
-                      Renew Now
+                      {subscriptionPlan === 'TRIAL' 
+                        ? 'Subscribe Now' 
+                        : subscriptionPlan === 'PREMIUM'
+                          ? 'Renew Premium Subscription'
+                          : subscriptionPlan === 'BASIC'
+                            ? 'Renew Basic Subscription'
+                            : 'Renew Pro Subscription'}
                     </>
                   )}
                 </Button>
@@ -603,8 +668,8 @@ const SubscriptionPage = () => {
             </Card>
           )}
 
-          {/* Current Active Subscription Card - Show when subscription expires today */}
-          {expiresToday && (
+          {/* Current Active Subscription Card - Show when subscription expires tomorrow */}
+          {expiresTomorrow && (
             <Card className="relative transition-all duration-300 hover:shadow-xl hover:-translate-y-2 h-full flex flex-col ring-2 ring-blue-500 shadow-lg scale-105">
               {/* Current Subscription Badge */}
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -615,10 +680,18 @@ const SubscriptionPage = () => {
 
               <CardHeader className="text-center pb-4">
                 <CardTitle className="text-2xl font-extrabold text-gray-900">
-                  {subscriptionPlan === 'PRO' ? 'Pro Subscription' : 'Trial Subscription'}
+                  {subscriptionPlan === 'PRO' 
+                    ? 'Pro Subscription' 
+                    : subscriptionPlan === 'PREMIUM'
+                      ? 'Premium Subscription'
+                      : subscriptionPlan === 'BASIC'
+                        ? 'Basic Subscription'
+                        : subscriptionPlan === 'TRIAL'
+                          ? 'Trial Subscription'
+                          : 'Subscription'}
                 </CardTitle>
                 <CardDescription className="text-gray-600 text-sm leading-relaxed">
-                  Your current subscription is active until today. This is your existing subscription status.
+                  Your current subscription is active until tomorrow. This is your existing subscription status.
                 </CardDescription>
               </CardHeader>
 
@@ -626,10 +699,14 @@ const SubscriptionPage = () => {
                 <div className="mb-6">
                   <div className="flex items-baseline justify-center">
                     <span className="text-3xl font-extrabold text-blue-500">
-                      {subscriptionPlan === 'PRO' ? 'Nu. 1,000' : 'Free'}
+                      {subscriptionPlan === 'PRO' || subscriptionPlan === 'PREMIUM' || subscriptionPlan === 'BASIC' 
+                        ? 'Nu. 1,000' 
+                        : 'Free'}
                     </span>
                     <span className="text-gray-600 ml-2 text-sm font-medium">
-                      {subscriptionPlan === 'PRO' ? 'per month' : 'trial'}
+                      {subscriptionPlan === 'PRO' || subscriptionPlan === 'PREMIUM' || subscriptionPlan === 'BASIC'
+                        ? 'per month' 
+                        : 'trial'}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
@@ -674,7 +751,7 @@ const SubscriptionPage = () => {
             </Card>
           )}
 
-          {!expiresToday && pricingPlans.filter(plan => {
+          {!expiresTomorrow && pricingPlans.filter(plan => {
             // Hide free trial card if user has ever had Pro subscription
             if (plan.id === 'free' && hasEverHadPro) {
               return false;
