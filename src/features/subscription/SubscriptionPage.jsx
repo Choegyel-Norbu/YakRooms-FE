@@ -15,7 +15,6 @@ const SubscriptionPage = () => {
     userId,
     hotelId,
     selectedHotelId, 
-    subscriptionId, 
     subscriptionIsActive, 
     subscriptionPlan,
     subscriptionNextBillingDate,

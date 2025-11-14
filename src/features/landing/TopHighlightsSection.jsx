@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPinIcon } from "lucide-react"; // Using lucide-react for icons
+import { MapPinIcon, Star } from "lucide-react"; // Using lucide-react for icons
 import { Link } from "react-router-dom";
 // ShadCN UI Components
 import {
@@ -201,6 +201,15 @@ const ListingCard = ({ item }) => {
             alt={title}
             className="h-full w-full object-cover rounded-t-xl"
           />
+          {/* Featured Banner Badge - Top Listed Lodge Indicator */}
+          <div className="absolute top-9 -left-2 z-10 transform -rotate-45 origin-center">
+            <div className="bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500 shadow-lg px-4 py-1.5 flex items-center gap-1">
+              <span className="text-white text-xs font-bold uppercase tracking-wider drop-shadow-md whitespace-nowrap">
+                Featured
+              </span>
+              <Star className="w-3 h-3 text-white fill-yellow-500" />
+            </div>
+          </div>
           {item.tag && (
             // Adjusted positioning and padding of tag for consistency
             <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-md bg-yellow-500 text-slate-900 text-xs font-bold">
