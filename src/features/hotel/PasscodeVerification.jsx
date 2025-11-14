@@ -165,9 +165,6 @@ const PasscodeVerification = () => {
               <CardTitle className="text-lg text-center">
                 Passcode Verification
               </CardTitle>
-              <CardDescription className="text-center text-sm">
-                Enter the passcode you received with your booking confirmation
-              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
@@ -186,6 +183,7 @@ const PasscodeVerification = () => {
                     maxLength={10}
                     disabled={loading}
                   />
+                  <p className="text-xs text-muted-foreground text-center">6-character passcode</p>
                 </div>
 
                 <Button

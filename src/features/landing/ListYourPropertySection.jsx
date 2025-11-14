@@ -50,7 +50,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
     {
       icon: TrendingUp,
       title: "Increase Revenue",
-      description: "Boost your booking visibility by 40% on average",
+      description: "Boost your booking visibility with EzeeRoom",
     },
     {
       icon: Users,
@@ -65,7 +65,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
     {
       icon: CreditCard,
       title: "Secure Payment",
-      description: "Receive payments safely and securely through our trusted payment system",
+      description: "Secure payment processing with RMA payment gateway",
     }
   ];
 
@@ -93,9 +93,8 @@ const ListYourPropertySection = ({ onLoginClick }) => {
               & Grow Your Business
             </h2>
             <p className="text-sm text-muted-foreground max-w-3xl mx-auto">
-              Join our network of hotels and homestays. Reach more
-              travelers, manage your bookings with ease, and become part of
-              Bhutan's hospitality platform.
+              Transform your property into a thriving destination. Connect with thousands of travelers, 
+              streamline your operations effortlessly, and unlock new revenue opportunities with EzeeRoom.
             </p>
           </div>
 
@@ -126,7 +125,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                   <div key={index} className="hover:shadow-md transition-all duration-200 group">
                     <CardContent className="p-6">
                       <div className="flex items-start space-x-4">
-                        <div className="p-3 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                        <div className="p-3 rounded-lg text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                           <benefit.icon className="w-6 h-6" />
                         </div>
                         <div className="flex-1">

@@ -33,7 +33,7 @@ const PropertyTypeSection = () => {
     {
       id: "HOMESTAY",
       label: "Homestays",
-      image: `${CDN_BASE_URL}/images/zepa1.jpeg`, // Traditional Bhutanese home
+      image: `${CDN_BASE_URL}/images/trashigangtown.jpg`, // Traditional Bhutanese home
       description: "Authentic local experiences"
     },
     {
@@ -69,7 +69,7 @@ const PropertyTypeSection = () => {
     {
       id: "ONE_STAR",
       label: "One Star",
-      image: `${CDN_BASE_URL}/images/zepa1.jpeg`, // Basic Bhutanese accommodation
+      image: `${CDN_BASE_URL}/images/sj.jpg`, // Basic Bhutanese accommodation
       description: "Basic accommodations"
     },
   ];

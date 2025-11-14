@@ -266,9 +266,6 @@ const CIDVerification = () => {
               <CardTitle className="text-lg text-center">
                 CID Number Verification
               </CardTitle>
-              <CardDescription className="text-center text-sm">
-                Enter the guest's CID number to verify their booking
-              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">

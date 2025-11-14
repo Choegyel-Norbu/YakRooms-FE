@@ -249,19 +249,13 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
   const UserNav = () => {
     if (!isAuthenticated) {
       return (
-        <div className="hidden md:flex items-center gap-3">
-          <span 
-            className="text-sm font-bold mr-1 text-gray-600 hover:text-gray-900 cursor-pointer transition-colors underline-offset-4 hover:underline"
+        <div className="hidden md:flex items-center">
+          <Button
             onClick={onLoginClick}
+            className="bg-yellow-500 hover:bg-yellow-600 text-slate-700 font-semibold px-6 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
           >
-            Login 
-          </span>
-          <span
-            className="text-sm font-bold text-gray-600 hover:text-gray-900 cursor-pointer transition-colors underline-offset-4 hover:underline"
-            onClick={onLoginClick}
-          >
-            Register
-          </span>
+            Login/Register
+          </Button>
         </div>
       );
     }
@@ -467,24 +461,13 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           {/* Fixed uniform left padding */}
           <div className="space-y-1.5 px-6">
             <Button 
-              variant="ghost" 
-              className="w-full justify-start" 
-              onClick={() => {
-                onLoginClick();
-                setIsMobileMenuOpen(false);
-              }}
-            >
-              <User className="mr-3 h-4 w-4" />
-              Login
-            </Button>
-            <Button 
               className="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-900" 
               onClick={() => {
                 onLoginClick();
                 setIsMobileMenuOpen(false);
               }}
             >
-              Register
+              Login/Register
             </Button>
           </div>
         </div>

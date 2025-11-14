@@ -226,19 +226,22 @@ const ListingCard = ({ item }) => {
         </div>
 
         {/* Rating Section */}
-        {item.avgRating > 0 && (
-          <div className="flex items-center gap-2 mb-1">
-            <StarRating 
-              rating={item.avgRating} 
-              size={12} 
-              showRating={true}
-              className="flex-shrink-0"
-            />
-            <span className="text-xs text-gray-500">
-              ({item.avgRating.toFixed(1)} Avg. Rating)
+        <div className="flex items-center gap-2 mb-1">
+          {item.avgRating > 0 ? (
+            <>
+              <StarRating 
+                rating={item.avgRating} 
+                size={12} 
+                showRating={true}
+                className="flex-shrink-0"
+              />
+            </>
+          ) : (
+            <span className="text-xs text-gray-500 italic">
+              No reviews
             </span>
-          </div>
-        )}
+          )}
+        </div>
       </CardContent>
       {/* Adjusted footer padding for consistent spacing */}
       <CardFooter className="p-3 border-t bg-gray-50">
