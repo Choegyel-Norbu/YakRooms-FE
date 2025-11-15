@@ -1,20 +1,49 @@
 /**
- * iOS Safari Cross-Domain Authentication Detection
+ * iOS WebKit Cross-Domain Authentication Detection
  * Determines if we need to use localStorage tokens instead of cookies
+ * Applies to ALL iOS browsers (Safari, Chrome, Firefox, etc.) due to WebKit restrictions
  */
 
 import { API_BASE_URL } from '@/shared/services/firebaseConfig';
 
 /**
- * Detect if we're running on iOS Safari
+ * Detect if we're running on iOS (any browser)
+ * All iOS browsers use WebKit and have the same cookie restrictions
+ */
+export const isIOS = () => {
+  const userAgent = navigator.userAgent.toLowerCase();
+  return /ipad|iphone|ipod/.test(userAgent) || 
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+};
+
+/**
+ * Detect if we're running on iOS Safari specifically
  */
 export const isIOSSafari = () => {
   const userAgent = navigator.userAgent.toLowerCase();
-  const isIOS = /ipad|iphone|ipod/.test(userAgent) || 
-                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isIOSDevice = isIOS();
   const isSafari = /safari/.test(userAgent) && !/chrome|crios|fxios|edgios/.test(userAgent);
   
-  return isIOS && isSafari;
+  return isIOSDevice && isSafari;
+};
+
+/**
+ * Detect if we're running on iOS Chrome
+ */
+export const isIOSChrome = () => {
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isIOSDevice = isIOS();
+  const isChrome = /crios/.test(userAgent) || (/chrome/.test(userAgent) && isIOSDevice);
+  
+  return isIOSDevice && isChrome;
+};
+
+/**
+ * Detect if we're running on any iOS WebKit browser
+ * This includes Safari, Chrome, Firefox, Edge, etc. on iOS
+ */
+export const isIOSWebKit = () => {
+  return isIOS(); // All iOS browsers use WebKit and have cookie restrictions
 };
 
 /**
@@ -50,14 +79,22 @@ export const isCrossDomain = () => {
 
 /**
  * Determine if we should use cross-domain auth flow
+ * Now applies to ALL iOS browsers, not just Safari
  */
 export const shouldUseCrossDomainAuth = () => {
-  const iosCheck = isIOSSafari();
+  const iosWebKitCheck = isIOSWebKit();
   const crossDomainCheck = isCrossDomain();
-  const result = iosCheck && crossDomainCheck;
+  const result = iosWebKitCheck && crossDomainCheck;
+  
+  // Get specific browser info for logging
+  const iosSafari = isIOSSafari();
+  const iosChrome = isIOSChrome();
   
   console.log('🔍 Auth flow detection:', {
-    isIOSSafari: iosCheck,
+    isIOS: isIOS(),
+    isIOSSafari: iosSafari,
+    isIOSChrome: iosChrome,
+    isIOSWebKit: iosWebKitCheck,
     isCrossDomain: crossDomainCheck,
     shouldUseCrossDomainAuth: result,
     userAgent: navigator.userAgent,
@@ -80,7 +117,16 @@ export const getAuthEndpoint = () => {
  */
 export const getAuthMethodDescription = () => {
   if (shouldUseCrossDomainAuth()) {
-    return 'iOS Safari cross-domain: Using localStorage tokens with X-Access-Token headers';
+    const iosSafari = isIOSSafari();
+    const iosChrome = isIOSChrome();
+    
+    if (iosSafari) {
+      return 'iOS Safari cross-domain: Using localStorage tokens with X-Access-Token headers';
+    } else if (iosChrome) {
+      return 'iOS Chrome cross-domain: Using localStorage tokens with X-Access-Token headers';
+    } else {
+      return 'iOS WebKit cross-domain: Using localStorage tokens with X-Access-Token headers';
+    }
   }
   return 'Standard flow: Using HTTP-only cookies';
 };
