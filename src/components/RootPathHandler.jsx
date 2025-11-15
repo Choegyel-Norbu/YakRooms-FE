@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 /**
@@ -8,33 +8,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const RootPathHandler = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const hasProcessedRef = useRef(false);
 
   useEffect(() => {
     // Detect Safari
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     
-    // Handle Safari-specific routing issues
-    if (isSafari || isIOS) {
-      // Ensure proper navigation for Safari
-      if (location.pathname === '/' && location.search === '' && location.hash === '') {
-        // Force a re-render for Safari to properly load the landing page
-        setTimeout(() => {
-          if (window.location.pathname === '/') {
-            // Trigger a state change to ensure Safari loads the page properly
-            navigate('/', { replace: true });
-          }
-        }, 100);
-      }
-    }
-
-    // Handle any URL fragments or query parameters that might interfere
-    if (location.hash && location.hash.includes('#/')) {
-      // Handle old hash-based routing if present
-      const newPath = location.hash.replace('#/', '/');
-      navigate(newPath, { replace: true });
-    }
-
     // Log for debugging
     console.log('RootPathHandler - Current location:', {
       pathname: location.pathname,
@@ -43,7 +23,26 @@ const RootPathHandler = () => {
       isSafari,
       isIOS
     });
-  }, [location, navigate]);
+
+    // Handle any URL fragments or query parameters that might interfere
+    if (location.hash && location.hash.includes('#/')) {
+      // Handle old hash-based routing if present
+      const newPath = location.hash.replace('#/', '/');
+      navigate(newPath, { replace: true });
+      return;
+    }
+
+    // Only process Safari-specific fixes once to prevent infinite loops
+    if ((isSafari || isIOS) && !hasProcessedRef.current) {
+      hasProcessedRef.current = true;
+      
+      // Handle Safari-specific routing issues
+      if (location.pathname === '/' && location.search === '' && location.hash === '') {
+        // Just log that we're on Safari - no navigation needed
+        console.log('🍎 Safari/iOS detected on root path - no navigation fix needed');
+      }
+    }
+  }, [location.pathname, location.search, location.hash, navigate]); // Removed location object to prevent loops
 
   return null;
 };
