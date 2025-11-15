@@ -13,6 +13,8 @@ import api, { authService, enhancedApi } from "@/shared/services/Api";
 import axios from "axios";
 import { API_BASE_URL } from "@/shared/services/firebaseConfig";
 import subscriptionService from "@/shared/services/subscriptionService";
+import { shouldUseCrossDomainAuth } from "@/shared/utils/authDetection";
+import { hasValidTokens, clearTokens, isUsingLocalStorageTokens } from "@/shared/utils/tokenStorage";
 
 // === Constants ===
 const AUTH_STORAGE_KEYS = {
@@ -264,15 +266,19 @@ export const AuthProvider = ({ children }) => {
   console.log("🔧 AuthProvider rendering...");
   const navigate = useNavigate();
 
-  // Initialize auth state from localStorage with cookie-based authentication
+  // Initialize auth state from localStorage with dual authentication support
   const [authState, setAuthState] = useState(() => {
     try {
       // Check if we have basic user data stored (indicates previous authentication)
       const userId = getStorageItem(AUTH_STORAGE_KEYS.USER_ID);
       const email = getStorageItem(AUTH_STORAGE_KEYS.EMAIL);
       
-      // If we have user data, assume authenticated (server will validate via cookies)
-      const hasUserData = userId && email;
+      // For cross-domain auth, also check if we have valid tokens
+      const usingTokens = isUsingLocalStorageTokens();
+      const hasTokens = usingTokens ? hasValidTokens() : true; // Skip token check for cookie auth
+      
+      // If we have user data and valid auth method, assume authenticated
+      const hasUserData = userId && email && hasTokens;
 
       const authData = {
         isAuthenticated: hasUserData,
@@ -509,13 +515,26 @@ export const AuthProvider = ({ children }) => {
       console.log("🔍 Validating authentication status with server...");
       setAuthState(prev => ({ ...prev, isValidatingAuth: true }));
 
-      // Call backend to validate current authentication status via cookies
-      const response = await axios.get(`${API_BASE_URL}/auth/status`, {
-        withCredentials: true, // Important: include cookies for authentication
+      // Call backend to validate current authentication status
+      // Use appropriate auth method based on detection
+      const usingTokens = isUsingLocalStorageTokens();
+      let statusConfig = {
         headers: {
           'Content-Type': 'application/json'
         }
-      });
+      };
+      
+      if (usingTokens) {
+        // For cross-domain auth, don't send cookies but let request interceptor add X-Access-Token
+        statusConfig.withCredentials = false;
+        console.log('📱 Validating auth status using localStorage tokens');
+      } else {
+        // For cookie-based auth
+        statusConfig.withCredentials = true;
+        console.log('🍪 Validating auth status using cookies');
+      }
+      
+      const response = await axios.get(`${API_BASE_URL}/auth/status`, statusConfig);
 
       if (response.status === 200 && response.data.success && response.data.user) {
         console.log("✅ Authentication validated successfully");
@@ -597,6 +616,12 @@ export const AuthProvider = ({ children }) => {
         console.log("🚪 Authentication expired (401), clearing state");
         
         // Clear auth state for expired authentication
+        // Also clear localStorage tokens if using cross-domain auth
+        if (isUsingLocalStorageTokens()) {
+          clearTokens();
+          console.log('🧹 Cleared localStorage tokens due to 401');
+        }
+        
         setAuthState({
           ...defaultAuthState,
           topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
@@ -616,6 +641,12 @@ export const AuthProvider = ({ children }) => {
         console.log("🚪 Authentication forbidden (403), clearing state");
         
         // For 403, clear auth data more aggressively
+        // Also clear localStorage tokens if using cross-domain auth
+        if (isUsingLocalStorageTokens()) {
+          clearTokens();
+          console.log('🧹 Cleared localStorage tokens due to 403');
+        }
+        
         setAuthState({
           ...defaultAuthState,
           topHotelIds: parseTopHotelIdsFromStorage(getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS)),
@@ -662,17 +693,35 @@ export const AuthProvider = ({ children }) => {
       console.log("🔒 [LOGOUT] Preserving user hotels:", userHotels);
       console.log("🗑️ [LOGOUT] Removing selected hotel ID");
       
-      // Call backend logout endpoint to invalidate cookies
+      // Call backend logout endpoint to invalidate auth
       try {
-        await axios.post(`${API_BASE_URL}/auth/logout`, {}, {
-          withCredentials: true, // Important: include cookies for authentication
+        const usingTokens = isUsingLocalStorageTokens();
+        let logoutConfig = {
           headers: {
             'Content-Type': 'application/json'
           }
-        });
+        };
+        
+        if (usingTokens) {
+          // For cross-domain auth, don't send cookies but let request interceptor add X-Access-Token
+          logoutConfig.withCredentials = false;
+          console.log('📱 Logging out using localStorage tokens');
+        } else {
+          // For cookie-based auth
+          logoutConfig.withCredentials = true;
+          console.log('🍪 Logging out using cookies');
+        }
+        
+        await axios.post(`${API_BASE_URL}/auth/logout`, {}, logoutConfig);
         console.log("✅ Server-side logout successful");
       } catch (logoutError) {
         console.warn("⚠️ Server-side logout failed, continuing with client cleanup:", logoutError);
+      }
+      
+      // Clear localStorage tokens if using cross-domain auth
+      if (isUsingLocalStorageTokens()) {
+        clearTokens();
+        console.log('🧹 Cleared localStorage tokens during logout');
       }
       
       // Clear all auth data from localStorage except top hotel IDs, hotel IDs, and user hotels (removed selectedHotelId)
@@ -895,9 +944,10 @@ export const AuthProvider = ({ children }) => {
   // === LOGIN (memoized) ===
   const login = useCallback(async (authData) => {
     try {
-      console.log("🔑 Processing login with cookie-based authentication...");
+      const authMethod = authData.authMethod || 'cookie';
+      console.log(`🔑 Processing login with ${authMethod} authentication...`);
 
-      // Validate required fields for cookie-based auth (no token required)
+      // Validate required fields for both auth methods
       if (!authData.userid || !authData.email) {
         throw new Error("Missing required authentication data: userid and email are required");
       }
@@ -916,7 +966,7 @@ export const AuthProvider = ({ children }) => {
                                 roles.includes('GUEST') ? 'GUEST' :
                                 roles[0] || null);
 
-      // Store auth data using Safari-specific utilities (no token needed for cookie-based auth)
+      // Store auth data using Safari-specific utilities (works for both auth methods)
       setStorageItem(AUTH_STORAGE_KEYS.USER_ID, authData.userid);
       setStorageItem(AUTH_STORAGE_KEYS.EMAIL, authData.email);
       setStorageItem(AUTH_STORAGE_KEYS.ROLES, stringifyRolesForStorage(roles));
@@ -926,6 +976,13 @@ export const AuthProvider = ({ children }) => {
       setStorageItem(AUTH_STORAGE_KEYS.REGISTER_FLAG, Boolean(authData.flag).toString());
       setStorageItem(AUTH_STORAGE_KEYS.CLIENT_DETAIL_SET, Boolean(authData.detailSet).toString());
       setStorageItem(AUTH_STORAGE_KEYS.LAST_AUTH_CHECK, Date.now().toString());
+      
+      // Log the authentication method used
+      if (authMethod === 'localStorage') {
+        console.log('📱 User authenticated with localStorage tokens (iOS Safari cross-domain)');
+      } else {
+        console.log('🍪 User authenticated with HTTP-only cookies');
+      }
 
       // Handle hotelIds array from authData
       if (authData.hotelIds && Array.isArray(authData.hotelIds)) {

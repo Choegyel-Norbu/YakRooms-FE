@@ -2,6 +2,16 @@ import axios from "axios";
 import { getStorageItem, setStorageItem, removeStorageItem } from "@/shared/utils/safariLocalStorage";
 import { API_BASE_URL } from "./firebaseConfig";
 import { toast } from "sonner";
+import { shouldUseCrossDomainAuth } from "@/shared/utils/authDetection";
+import { 
+  getAccessToken, 
+  getRefreshToken, 
+  isUsingLocalStorageTokens, 
+  clearTokens,
+  updateTokensFromRefresh,
+  hasValidTokens,
+  shouldRefreshToken
+} from "@/shared/utils/tokenStorage";
 
 // Cookie-based authentication - no client-side token management needed
 
@@ -34,6 +44,30 @@ const api = axios.create({
   },
   timeout: 120000, // 2 minute timeout (120000ms)
 });
+
+// Add request interceptor to handle both auth methods
+api.interceptors.request.use(
+  (config) => {
+    // Check if we're using localStorage tokens (iOS Safari cross-domain)
+    if (isUsingLocalStorageTokens()) {
+      const accessToken = getAccessToken();
+      if (accessToken) {
+        config.headers['X-Access-Token'] = accessToken;
+        console.log('📱 Added X-Access-Token header for iOS Safari cross-domain auth');
+      }
+      // Don't send cookies for cross-domain requests
+      config.withCredentials = false;
+    } else {
+      // Standard cookie-based auth
+      config.withCredentials = true;
+    }
+    
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Add response interceptor for automatic token refresh
 let isRefreshing = false;
@@ -97,17 +131,50 @@ api.interceptors.response.use(
       try {
         console.log('🔄 Access token expired/invalid (401/403), attempting refresh...');
         
-        // Attempt to refresh the access token using cookie-based refresh
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, {
-          withCredentials: true,
+        // Determine refresh method based on auth type
+        const usingLocalStorageTokens = isUsingLocalStorageTokens();
+        let refreshConfig = {
           headers: {
             'Content-Type': 'application/json'
           },
           timeout: 120000, // 2 minute timeout
-        });
+        };
+        
+        if (usingLocalStorageTokens) {
+          // iOS Safari cross-domain: Send refresh token in header
+          const refreshToken = getRefreshToken();
+          if (!refreshToken) {
+            throw new Error('No refresh token available for cross-domain auth');
+          }
+          
+          refreshConfig.headers['X-Refresh-Token'] = refreshToken;
+          refreshConfig.withCredentials = false;
+          console.log('📱 Refreshing token using X-Refresh-Token header');
+        } else {
+          // Standard cookie-based refresh
+          refreshConfig.withCredentials = true;
+          console.log('🍪 Refreshing token using cookies');
+        }
+        
+        // Attempt to refresh the access token
+        const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, refreshConfig);
         
         if (response.status === 200) {
-          console.log('✅ Token refreshed successfully via cookies');
+          console.log('✅ Token refreshed successfully');
+          
+          // Handle localStorage token updates for cross-domain auth
+          if (usingLocalStorageTokens && response.data) {
+            const updated = updateTokensFromRefresh({
+              accessToken: response.data.accessToken,
+              refreshToken: response.data.refreshToken,
+              accessTokenExpiresIn: response.data.accessTokenExpiresIn,
+              refreshTokenExpiresIn: response.data.refreshTokenExpiresIn
+            });
+            
+            if (!updated) {
+              throw new Error('Failed to update tokens after refresh');
+            }
+          }
           
           // Update both tracking keys to sync with AuthProvider
           const timestamp = Date.now().toString();
@@ -117,7 +184,7 @@ api.interceptors.response.use(
           // Process queued requests
           processQueue(null, 'refreshed');
           
-          // Retry original request (cookies are automatically updated by server)
+          // Retry original request
           return api(originalRequest);
         } else {
           throw new Error('Token refresh failed');
@@ -191,7 +258,12 @@ api.interceptors.response.use(
 export const authService = {
   // Check if we should proactively refresh (within 2 minutes of potential expiry)
   shouldRefreshProactively() {
-    // Since we can't read HTTP-only cookies, we'll use a time-based approach
+    // For localStorage tokens, check actual token expiry
+    if (isUsingLocalStorageTokens()) {
+      return shouldRefreshToken();
+    }
+    
+    // For cookie-based auth, use time-based approach since we can't read HTTP-only cookies
     // Refresh every 13 minutes (2 minutes before 15-minute expiry)
     // Use the same key as AuthProvider to avoid duplicate refreshes
     const lastRefresh = getStorageItem('lastAuthCheck') || getStorageItem('lastTokenRefresh');
@@ -223,15 +295,48 @@ export const authService = {
       
       console.log('🔄 Manually refreshing token...');
       
-      const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, {
-        withCredentials: true,
+      // Determine refresh method based on auth type
+      const usingLocalStorageTokens = isUsingLocalStorageTokens();
+      let refreshConfig = {
         headers: {
           'Content-Type': 'application/json'
         },
         timeout: 900000, // 15 minute timeout
-      });
+      };
+      
+      if (usingLocalStorageTokens) {
+        // iOS Safari cross-domain: Send refresh token in header
+        const refreshToken = getRefreshToken();
+        if (!refreshToken) {
+          throw new Error('No refresh token available for manual refresh');
+        }
+        
+        refreshConfig.headers['X-Refresh-Token'] = refreshToken;
+        refreshConfig.withCredentials = false;
+        console.log('📱 Manual refresh using X-Refresh-Token header');
+      } else {
+        // Standard cookie-based refresh
+        refreshConfig.withCredentials = true;
+        console.log('🍪 Manual refresh using cookies');
+      }
+      
+      const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, refreshConfig);
       
       if (response.status === 200) {
+        // Handle localStorage token updates for cross-domain auth
+        if (usingLocalStorageTokens && response.data) {
+          const updated = updateTokensFromRefresh({
+            accessToken: response.data.accessToken,
+            refreshToken: response.data.refreshToken,
+            accessTokenExpiresIn: response.data.accessTokenExpiresIn,
+            refreshTokenExpiresIn: response.data.refreshTokenExpiresIn
+          });
+          
+          if (!updated) {
+            throw new Error('Failed to update tokens after manual refresh');
+          }
+        }
+        
         // Update both tracking keys to sync with AuthProvider
         const timestamp = Date.now().toString();
         setStorageItem('lastTokenRefresh', timestamp);
@@ -271,7 +376,13 @@ export const authService = {
   // Clear all authentication data
   clearAuthData() {
     try {
-      // Clear all browser cookies
+      // Clear localStorage tokens if using cross-domain auth
+      if (isUsingLocalStorageTokens()) {
+        clearTokens();
+        console.log('🧹 Cleared localStorage tokens for cross-domain auth');
+      }
+      
+      // Clear all browser cookies (for cookie-based auth)
       clearAllCookies();
       
       // Clear sessionStorage and refresh tracking
@@ -309,6 +420,9 @@ export const authService = {
 
   // Get authentication method (for compatibility)
   getAuthMethod() {
+    if (isUsingLocalStorageTokens()) {
+      return "LOCALSTORAGE_TOKENS_WITH_HEADERS";
+    }
     return "COOKIE_BASED_WITH_REFRESH";
   }
 };

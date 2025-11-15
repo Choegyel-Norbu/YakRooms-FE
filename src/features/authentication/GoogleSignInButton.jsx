@@ -3,28 +3,55 @@ import { signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../../shared/services/firebaseConfig";
 import axios from "axios";
 import { API_BASE_URL } from "../../shared/services/firebaseConfig";
+import { shouldUseCrossDomainAuth, getAuthEndpoint, getAuthMethodDescription } from "../../shared/utils/authDetection";
+import { storeTokens } from "../../shared/utils/tokenStorage";
 
 const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLoginComplete }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const processAuthentication = async (idToken, onLoginSuccess, onClose) => {
     try {
-      console.log('Processing authentication with token...');
+      const useCrossDomain = shouldUseCrossDomainAuth();
+      const authEndpoint = getAuthEndpoint();
+      
+      console.log('🔑 Processing authentication:', getAuthMethodDescription());
+      
       const res = await axios.post(
-        `${API_BASE_URL}/auth/firebase`,
+        `${API_BASE_URL}${authEndpoint}`,
         { idToken },
         {
           headers: {
             "Content-Type": "application/json",
           },
-          withCredentials: true,
+          withCredentials: !useCrossDomain, // Only send cookies for same-domain
           timeout: 15000,
         }
       );
 
       if (res.status === 200) {
-        console.log("Authentication successful:", res.data);
+        console.log("✅ Authentication successful:", res.data);
         
+        // Handle cross-domain auth response (with tokens)
+        if (useCrossDomain && res.data.accessToken && res.data.refreshToken) {
+          console.log('📱 iOS Safari cross-domain: Storing tokens in localStorage');
+          
+          const tokenStored = storeTokens({
+            accessToken: res.data.accessToken,
+            refreshToken: res.data.refreshToken,
+            accessTokenExpiresIn: res.data.accessTokenExpiresIn,
+            refreshTokenExpiresIn: res.data.refreshTokenExpiresIn
+          });
+          
+          if (!tokenStored) {
+            throw new Error('Failed to store authentication tokens');
+          }
+          
+          if (res.data.warning) {
+            console.warn('⚠️ Backend warning:', res.data.warning);
+          }
+        }
+        
+        // Pass user data to AuthProvider (same for both flows)
         await onLoginSuccess({
           email: res.data.user.email,
           userid: res.data.user.id,
@@ -34,6 +61,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
           flag: res.data.user.registerFlag || false,
           detailSet: res.data.user.detailSet || false,
           hotelIds: res.data.user.hotelIds || (res.data.user.hotelId ? [res.data.user.hotelId] : []),
+          authMethod: useCrossDomain ? 'localStorage' : 'cookie', // Add auth method info
         });
         
         // Close modal after successful login
@@ -42,7 +70,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
         }, 1000);
       }
     } catch (error) {
-      console.error('Authentication processing error:', error);
+      console.error('❌ Authentication processing error:', error);
       throw error;
     }
   };
