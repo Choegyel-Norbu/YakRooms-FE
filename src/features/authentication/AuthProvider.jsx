@@ -472,12 +472,7 @@ export const AuthProvider = ({ children }) => {
       if (!userId) return [];
       
       console.log("🔍 Fetching user hotels for user:", userId);
-      const response = await axios.get(`${API_BASE_URL}/api/hotels/user/${userId}/all`, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await api.get(`/hotels/user/${userId}/all`);
       
       if (response.status === 200 && response.data) {
         console.log("✅ User hotels fetched successfully");
