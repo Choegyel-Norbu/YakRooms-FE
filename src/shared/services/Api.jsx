@@ -45,22 +45,60 @@ const api = axios.create({
   timeout: 120000, // 2 minute timeout (120000ms)
 });
 
+// List of public endpoints that don't require authentication
+const PUBLIC_ENDPOINTS = [
+  '/hotels/top-highlights',
+  '/hotels/search',
+  '/hotels/public',
+  '/auth/firebase',
+  '/auth/firebase-cross-domain',
+  '/auth/status',
+  '/auth/refresh-token',
+  '/auth/logout'
+];
+
+// Check if endpoint is public (doesn't require authentication)
+const isPublicEndpoint = (url) => {
+  return PUBLIC_ENDPOINTS.some(endpoint => url.includes(endpoint));
+};
+
 // Add request interceptor to handle both auth methods
 api.interceptors.request.use(
   (config) => {
-    // Check if we're using localStorage tokens (iOS Safari cross-domain)
-    if (isUsingLocalStorageTokens()) {
+    const isPublic = isPublicEndpoint(config.url || '');
+    
+    // For public endpoints, use standard configuration
+    if (isPublic) {
+      config.withCredentials = true; // Standard for public endpoints
+      console.log(`🌍 Public API Request: ${config.method?.toUpperCase()} ${config.url}`);
+      return config;
+    }
+    
+    // For authenticated endpoints, check auth method
+    const usingLocalStorageTokens = isUsingLocalStorageTokens();
+    
+    if (usingLocalStorageTokens) {
       const accessToken = getAccessToken();
       if (accessToken) {
         config.headers['X-Access-Token'] = accessToken;
-        console.log('📱 Added X-Access-Token header for iOS Safari cross-domain auth');
+        console.log('📱 Added X-Access-Token header for iOS WebKit cross-domain auth');
+      } else {
+        console.log('⚠️ iOS WebKit detected but no access token available for authenticated endpoint');
       }
       // Don't send cookies for cross-domain requests
       config.withCredentials = false;
     } else {
       // Standard cookie-based auth
       config.withCredentials = true;
+      console.log('🍪 Using cookie-based authentication');
     }
+    
+    // Log request details for debugging
+    console.log(`🔐 Authenticated API Request: ${config.method?.toUpperCase()} ${config.url}`, {
+      usingTokens: usingLocalStorageTokens,
+      hasAccessToken: !!config.headers['X-Access-Token'],
+      withCredentials: config.withCredentials
+    });
     
     return config;
   },

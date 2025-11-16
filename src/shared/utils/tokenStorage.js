@@ -152,10 +152,56 @@ export const clearTokens = () => {
 
 /**
  * Check if we're using localStorage tokens (vs cookies)
+ * This checks both stored token type AND current platform detection
  */
 export const isUsingLocalStorageTokens = () => {
   const tokenType = getStorageItem(TOKEN_KEYS.TOKEN_TYPE);
-  return tokenType === 'localStorage';
+  
+  // If we have stored token type, use that (most reliable)
+  if (tokenType === 'localStorage') {
+    return true;
+  }
+  
+  // If we have actual tokens stored, we're using localStorage
+  const hasStoredTokens = getStorageItem(TOKEN_KEYS.ACCESS_TOKEN) || getStorageItem(TOKEN_KEYS.REFRESH_TOKEN);
+  if (hasStoredTokens) {
+    return true;
+  }
+  
+  // Only for authenticated requests when we don't have stored tokens yet,
+  // check current platform detection inline
+  try {
+    // Inline iOS WebKit detection to avoid circular imports
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isIOS = /ipad|iphone|ipod/.test(userAgent) || 
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    
+    // Only apply iOS detection if we're on iOS
+    if (!isIOS) {
+      return false;
+    }
+    
+    // Check if API is cross-domain
+    const currentDomain = window.location.hostname;
+    const apiDomain = 'ezeeroom-production.up.railway.app'; // Hardcoded to avoid circular import
+    
+    const getCurrentETLD = (domain) => {
+      const parts = domain.split('.');
+      if (parts.length >= 2) {
+        return parts.slice(-2).join('.');
+      }
+      return domain;
+    };
+    
+    const currentETLD = getCurrentETLD(currentDomain);
+    const apiETLD = getCurrentETLD(apiDomain);
+    const isCrossDomain = currentETLD !== apiETLD;
+    
+    return isCrossDomain;
+  } catch (error) {
+    console.warn('Failed to check platform detection for token storage:', error);
+    return false;
+  }
 };
 
 /**
