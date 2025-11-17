@@ -53,7 +53,6 @@ const generateSessionId = () => {
     }
     return sessionId;
   } catch (error) {
-    console.error("Failed to generate session ID", error);
     // Fallback to timestamp-based ID
     return `session_${Date.now()}`;
   }
@@ -66,7 +65,6 @@ const isSubscriptionFetchedInSession = (userId) => {
     const fetchedSession = getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_FETCHED_SESSION);
     return fetchedSession === `${userId}_${sessionId}`;
   } catch (error) {
-    console.error("Failed to check subscription fetch session", error);
     return false;
   }
 };
@@ -77,7 +75,6 @@ const markSubscriptionFetchedInSession = (userId) => {
     const sessionId = generateSessionId();
     setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_FETCHED_SESSION, `${userId}_${sessionId}`);
   } catch (error) {
-    console.error("Failed to mark subscription as fetched in session", error);
   }
 };
 
@@ -89,10 +86,9 @@ const shouldCheckAuthStatus = () => {
     
     const lastCheckTime = parseInt(lastCheck, 10);
     const now = Date.now();
-    // Check every 13 minutes to align with token refresh cycle
-    return (now - lastCheckTime) > (13 * 60 * 1000);
+    // Check every 12 minutes (3 minutes before 15-minute token expiry)
+    return (now - lastCheckTime) > (12 * 60 * 1000);
   } catch (error) {
-    console.error("Failed to check last auth validation time", error);
     return true; // fallback to checking
   }
 };
@@ -114,7 +110,6 @@ const parseRolesFromStorage = (rolesString) => {
     const parsed = JSON.parse(rolesString);
     return Array.isArray(parsed) ? parsed : [parsed];
   } catch (error) {
-    console.error("Failed to parse roles from storage", error);
     // If parsing fails, try to treat it as a single role string
     if (typeof rolesString === 'string') {
       return [rolesString];
@@ -129,7 +124,6 @@ const stringifyRolesForStorage = (roles) => {
     if (!Array.isArray(roles)) return '[]';
     return JSON.stringify(roles);
   } catch (error) {
-    console.error("Failed to stringify roles for storage", error);
     return '[]';
   }
 };
@@ -146,7 +140,6 @@ const parseUserHotelsFromStorage = (userHotelsString) => {
     const parsed = JSON.parse(userHotelsString);
     return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
-    console.error("Failed to parse user hotels from storage", error);
     return [];
   }
 };
@@ -157,7 +150,6 @@ const stringifyUserHotelsForStorage = (userHotels) => {
     if (!Array.isArray(userHotels)) return '[]';
     return JSON.stringify(userHotels);
   } catch (error) {
-    console.error("Failed to stringify user hotels for storage", error);
     return '[]';
   }
 };
@@ -179,7 +171,6 @@ const parseHotelIdsFromStorage = (hotelIdsString) => {
     const parsed = JSON.parse(hotelIdsString);
     return Array.isArray(parsed) ? parsed : [parsed];
   } catch (error) {
-    console.error("Failed to parse hotel IDs from storage", error);
     // If parsing fails, try to treat it as a single ID string
     if (typeof hotelIdsString === 'string') {
       return [hotelIdsString];
@@ -194,7 +185,6 @@ const stringifyHotelIdsForStorage = (hotelIds) => {
     if (!Array.isArray(hotelIds)) return '[]';
     return JSON.stringify(hotelIds);
   } catch (error) {
-    console.error("Failed to stringify hotel IDs for storage", error);
     return '[]';
   }
 };
@@ -216,7 +206,6 @@ const parseTopHotelIdsFromStorage = (topHotelIdsString) => {
     const parsed = JSON.parse(topHotelIdsString);
     return Array.isArray(parsed) ? parsed : [parsed];
   } catch (error) {
-    console.error("Failed to parse top hotel IDs from storage", error);
     // If parsing fails, try to treat it as a single ID string
     if (typeof topHotelIdsString === 'string') {
       return [topHotelIdsString];
@@ -231,7 +220,6 @@ const stringifyTopHotelIdsForStorage = (topHotelIds) => {
     if (!Array.isArray(topHotelIds)) return '[]';
     return JSON.stringify(topHotelIds);
   } catch (error) {
-    console.error("Failed to stringify top hotel IDs for storage", error);
     return '[]';
   }
 };
@@ -263,7 +251,6 @@ const defaultAuthState = {
 };
 
 export const AuthProvider = ({ children }) => {
-  console.log("🔧 AuthProvider rendering...");
   const navigate = useNavigate();
 
   // Initialize auth state from localStorage with dual authentication support
@@ -308,7 +295,6 @@ export const AuthProvider = ({ children }) => {
 
       return authData;
     } catch (error) {
-      console.error("Failed to initialize auth state", error);
       return defaultAuthState;
     }
   });
@@ -329,8 +315,6 @@ export const AuthProvider = ({ children }) => {
       const hasPermission = authState.roles.some(role => allowedRoles.includes(role));
       
       if (!hasPermission) {
-        console.log("🚫 User role does not have permission to access subscription data. Required roles: HOTEL_ADMIN or MANAGER");
-        console.log("👤 Current user roles:", authState.roles);
         return null;
       }
       
@@ -338,14 +322,11 @@ export const AuthProvider = ({ children }) => {
       const hotelIdToUse = selectedHotelId || authState.selectedHotelId;
       
       if (!hotelIdToUse) {
-        console.log("⚠️ No hotel ID available for subscription fetch");
         return null;
       }
       
       // Check if subscription data already exists in localStorage and not forcing refresh
       if (!forceRefresh && getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_ID)) {
-        console.log("🔄 Using cached subscription data from localStorage");
-        
         // Return cached data from localStorage
         const cachedData = {
           id: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_ID),
@@ -360,14 +341,11 @@ export const AuthProvider = ({ children }) => {
         return cachedData;
       }
       
-      console.log("🔍 Fetching subscription data for user:", userId, "hotel:", hotelIdToUse, "with roles:", authState.roles);
       
       // Use the new subscription service to get subscription for specific hotel
       const hotelSubscription = await subscriptionService.getSubscriptionForHotel(userId, hotelIdToUse);
       
       if (hotelSubscription) {
-        console.log("✅ Subscription data fetched successfully for hotel:", hotelIdToUse);
-        console.log("📋 Subscription data structure:", hotelSubscription);
         
         // Update localStorage with subscription data
         setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS, hotelSubscription.paymentStatus);
@@ -397,7 +375,6 @@ export const AuthProvider = ({ children }) => {
         
         return hotelSubscription;
       } else {
-        console.log("ℹ️ No subscription found for hotel:", hotelIdToUse);
         
         // Clear subscription data from localStorage and state
         removeStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_ID);
@@ -421,11 +398,9 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
     } catch (error) {
-      console.error("❌ Failed to fetch subscription data:", error);
-      
-      // Don't clear auth state for subscription errors, just log them
+      // Don't clear auth state for subscription errors, just handle silently
       if (error.response?.status === 404) {
-        console.log("ℹ️ No subscription found for this hotel");
+        // No subscription found for this hotel - this is normal
       }
       
       return null;
@@ -435,7 +410,6 @@ export const AuthProvider = ({ children }) => {
   // === UPDATE SUBSCRIPTION CACHE (for when user subscribes) ===
   const updateSubscriptionCache = useCallback((subscriptionData) => {
     try {
-      console.log("🔄 Updating subscription cache with new data:", subscriptionData);
       
       // Update localStorage with new subscription data
       setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS, subscriptionData.paymentStatus);
@@ -460,9 +434,7 @@ export const AuthProvider = ({ children }) => {
         subscriptionExpirationNotification: subscriptionData.expirationNotification,
       }));
       
-      console.log("✅ Subscription cache updated successfully");
     } catch (error) {
-      console.error("❌ Failed to update subscription cache:", error);
     }
   }, []);
 
@@ -471,11 +443,9 @@ export const AuthProvider = ({ children }) => {
     try {
       if (!userId) return [];
       
-      console.log("🔍 Fetching user hotels for user:", userId);
       const response = await api.get(`/hotels/user/${userId}/all`);
       
       if (response.status === 200 && response.data) {
-        console.log("✅ User hotels fetched successfully");
         
         const hotels = Array.isArray(response.data) ? response.data : [response.data];
         
@@ -493,11 +463,9 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Invalid user hotels response');
       }
     } catch (error) {
-      console.error("❌ Failed to fetch user hotels:", error);
-      
-      // Don't clear auth state for hotel fetch errors, just log them
+      // Don't clear auth state for hotel fetch errors, handle silently
       if (error.response?.status === 404) {
-        console.log("ℹ️ No hotels found for this user");
+        // No hotels found for this user - this is normal
       }
       
       return [];
@@ -507,7 +475,6 @@ export const AuthProvider = ({ children }) => {
   // === VALIDATE AUTH STATUS WITH SERVER (memoized) ===
   const validateAuthStatus = useCallback(async () => {
     try {
-      console.log("🔍 Validating authentication status with server...");
       setAuthState(prev => ({ ...prev, isValidatingAuth: true }));
 
       // Call backend to validate current authentication status
@@ -522,17 +489,14 @@ export const AuthProvider = ({ children }) => {
       if (usingTokens) {
         // For cross-domain auth, don't send cookies but let request interceptor add X-Access-Token
         statusConfig.withCredentials = false;
-        console.log('📱 Validating auth status using localStorage tokens');
       } else {
         // For cookie-based auth
         statusConfig.withCredentials = true;
-        console.log('🍪 Validating auth status using cookies');
       }
       
       const response = await axios.get(`${API_BASE_URL}/auth/status`, statusConfig);
 
       if (response.status === 200 && response.data.success && response.data.user) {
-        console.log("✅ Authentication validated successfully");
 
         const userData = response.data.user;
         const roles = userData.roles || [];
@@ -604,17 +568,14 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Invalid authentication response');
       }
     } catch (error) {
-      console.error("❌ Auth validation failed:", error);
       
       // Check if it's a 401/403 (authentication expired) or other error
       if (error.response?.status === 401) {
-        console.log("🚪 Authentication expired (401), clearing state");
         
         // Clear auth state for expired authentication
         // Also clear localStorage tokens if using cross-domain auth
         if (isUsingLocalStorageTokens()) {
           clearTokens();
-          console.log('🧹 Cleared localStorage tokens due to 401');
         }
         
         setAuthState({
@@ -633,13 +594,11 @@ export const AuthProvider = ({ children }) => {
           removeStorageItem(key);
         });
       } else if (error.response?.status === 403) {
-        console.log("🚪 Authentication forbidden (403), clearing state");
         
         // For 403, clear auth data more aggressively
         // Also clear localStorage tokens if using cross-domain auth
         if (isUsingLocalStorageTokens()) {
           clearTokens();
-          console.log('🧹 Cleared localStorage tokens due to 403');
         }
         
         setAuthState({
@@ -662,11 +621,9 @@ export const AuthProvider = ({ children }) => {
         try {
           authService.clearAuthData();
         } catch (clearError) {
-          console.warn('⚠️ Failed to clear auth data:', clearError);
         }
       } else {
         // For other errors (network issues, etc.), just clear validation flag
-        console.log("⚠️ Validation failed due to network/server error, maintaining auth state");
         setAuthState(prev => ({ ...prev, isValidatingAuth: false }));
       }
       
@@ -677,16 +634,11 @@ export const AuthProvider = ({ children }) => {
   // === LOGOUT (memoized) ===
   const logout = useCallback(async () => {
     try {
-      console.log("🚪 Logging out...");
       
       // Preserve top hotel IDs, hotel IDs, and user hotels during logout (removed selectedHotelId)
       const topHotelIds = getStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS);
       const hotelIds = getStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS);
       const userHotels = getStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS);
-      console.log("🔒 [LOGOUT] Preserving top hotel IDs:", topHotelIds);
-      console.log("🔒 [LOGOUT] Preserving hotel IDs:", hotelIds);
-      console.log("🔒 [LOGOUT] Preserving user hotels:", userHotels);
-      console.log("🗑️ [LOGOUT] Removing selected hotel ID");
       
       // Call backend logout endpoint to invalidate auth
       try {
@@ -700,23 +652,18 @@ export const AuthProvider = ({ children }) => {
         if (usingTokens) {
           // For cross-domain auth, don't send cookies but let request interceptor add X-Access-Token
           logoutConfig.withCredentials = false;
-          console.log('📱 Logging out using localStorage tokens');
         } else {
           // For cookie-based auth
           logoutConfig.withCredentials = true;
-          console.log('🍪 Logging out using cookies');
         }
         
         await axios.post(`${API_BASE_URL}/auth/logout`, {}, logoutConfig);
-        console.log("✅ Server-side logout successful");
       } catch (logoutError) {
-        console.warn("⚠️ Server-side logout failed, continuing with client cleanup:", logoutError);
       }
       
       // Clear localStorage tokens if using cross-domain auth
       if (isUsingLocalStorageTokens()) {
         clearTokens();
-        console.log('🧹 Cleared localStorage tokens during logout');
       }
       
       // Clear all auth data from localStorage except top hotel IDs, hotel IDs, and user hotels (removed selectedHotelId)
@@ -731,28 +678,23 @@ export const AuthProvider = ({ children }) => {
       try {
         sessionStorage.removeItem('yakrooms_session_id');
       } catch (sessionError) {
-        console.warn('⚠️ Failed to clear session ID:', sessionError);
       }
       
       // Clear all cookies (redundant but safer)
       try {
         authService.clearAuthData();
       } catch (clearError) {
-        console.warn("⚠️ Failed to clear auth data via authService:", clearError);
       }
       
       // Restore top hotel IDs, hotel IDs, and user hotels after clearing (removed selectedHotelId)
       if (topHotelIds) {
         setStorageItem(AUTH_STORAGE_KEYS.TOP_HOTEL_IDS, topHotelIds);
-        console.log("🔒 [LOGOUT] Restored top hotel IDs to localStorage");
       }
       if (hotelIds) {
         setStorageItem(AUTH_STORAGE_KEYS.HOTEL_IDS, hotelIds);
-        console.log("🔒 [LOGOUT] Restored hotel IDs to localStorage");
       }
       if (userHotels) {
         setStorageItem(AUTH_STORAGE_KEYS.USER_HOTELS, userHotels);
-        console.log("🔒 [LOGOUT] Restored user hotels to localStorage");
       }
       
       setAuthState({
@@ -765,9 +707,7 @@ export const AuthProvider = ({ children }) => {
       
       navigate("/");
       
-      console.log("✅ Logout completed successfully");
     } catch (error) {
-      console.error("❌ Failed to logout properly:", error);
       
       // Fallback cleanup if logout fails
       try {
@@ -788,7 +728,6 @@ export const AuthProvider = ({ children }) => {
         });
         navigate("/");
       } catch (fallbackError) {
-        console.error("❌ Fallback logout cleanup failed:", fallbackError);
         window.location.href = '/';
       }
     }
@@ -799,7 +738,6 @@ export const AuthProvider = ({ children }) => {
     window.authLogout = logout;
     return () => {
       window.authLogout = () => {
-        console.warn('Global logout function called but AuthProvider is unmounted');
       };
     };
   }, [logout]);
@@ -816,12 +754,9 @@ export const AuthProvider = ({ children }) => {
         const timeSinceRefresh = now - parseInt(lastRefresh, 10);
         // If refreshed within last 30 seconds, skip to prevent duplicate calls
         if (timeSinceRefresh < 30 * 1000) {
-          console.log("⏭️ Periodic token refresh skipped - refreshed recently");
           return;
         }
       }
-      
-      console.log("🔄 Periodically refreshing token...");
       
       // Call refresh token endpoint
       const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, {
@@ -832,22 +767,17 @@ export const AuthProvider = ({ children }) => {
       });
       
       if (response.status === 200) {
-        console.log("✅ Periodic token refresh successful");
         // Update both tracking keys to sync with Api.jsx
         const timestamp = Date.now().toString();
         setStorageItem(AUTH_STORAGE_KEYS.LAST_AUTH_CHECK, timestamp);
         setStorageItem('lastTokenRefresh', timestamp);
-      } else {
-        console.warn("⚠️ Periodic token refresh returned non-200 status:", response.status);
       }
     } catch (error) {
-      console.error("❌ Periodic token refresh failed:", error);
-      
-      // If refresh fails with 401/403, trigger logout
+      // Only logout on authentication errors, not network errors
       if (error.response?.status === 401 || error.response?.status === 403) {
-        console.log("🚪 Token refresh failed with auth error, logging out");
         logout();
       }
+      // For network/timeout errors and other server errors, silently retry on next cycle
     }
   }, [authState.isAuthenticated, logout]);
 
@@ -863,22 +793,20 @@ export const AuthProvider = ({ children }) => {
           return;
         }
         
-        console.log("🔍 Auto-validating authentication status...");
         await validateAuthStatus();
       } catch (error) {
-        console.error("❌ Auto-validation failed:", error);
       }
     };
     
     // Validate immediately if needed
     validateAuthentication();
     
-    // Set up periodic validation (every 13 minutes to align with token refresh)
+    // Set up periodic validation (every 12 minutes, 3 minutes before token expiry)
     const validationInterval = setInterval(() => {
       if (authState.isAuthenticated && shouldCheckAuthStatus()) {
         validateAuthentication();
       }
-    }, 13 * 60 * 1000); // 13 minutes
+    }, 12 * 60 * 1000); // 12 minutes
     
     return () => {
       clearInterval(validationInterval);
@@ -889,10 +817,10 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (!authState.isAuthenticated) return;
     
-    // Set up periodic token refresh every 13 minutes
+    // Set up periodic token refresh every 12 minutes (3 minutes before 15-minute expiry)
     const refreshInterval = setInterval(() => {
       refreshTokenPeriodically();
-    }, 13 * 60 * 1000); // 13 minutes
+    }, 12 * 60 * 1000); // 12 minutes
     
     return () => {
       clearInterval(refreshInterval);
@@ -940,7 +868,6 @@ export const AuthProvider = ({ children }) => {
   const login = useCallback(async (authData) => {
     try {
       const authMethod = authData.authMethod || 'cookie';
-      console.log(`🔑 Processing login with ${authMethod} authentication...`);
 
       // Validate required fields for both auth methods
       if (!authData.userid || !authData.email) {
@@ -974,9 +901,7 @@ export const AuthProvider = ({ children }) => {
       
       // Log the authentication method used
       if (authMethod === 'localStorage') {
-        console.log('📱 User authenticated with localStorage tokens (iOS Safari cross-domain)');
       } else {
-        console.log('🍪 User authenticated with HTTP-only cookies');
       }
 
       // Handle hotelIds array from authData
@@ -1030,7 +955,6 @@ export const AuthProvider = ({ children }) => {
         try {
           await fetchSubscriptionData(newAuthState.userId);
         } catch (subscriptionError) {
-          console.warn("⚠️ Failed to fetch subscription data during login:", subscriptionError);
           // Don't fail login if subscription fetch fails
         }
       }
@@ -1053,7 +977,6 @@ export const AuthProvider = ({ children }) => {
       setStorageItem("lastLogin", now.toISOString());
 
     } catch (error) {
-      console.error("Failed to login", error);
       throw error; // Re-throw to allow handling in the calling component
     }
   }, [navigate]);
@@ -1068,7 +991,6 @@ export const AuthProvider = ({ children }) => {
         hotelId: hotelIdString,
       }));
     } catch (error) {
-      console.error("Failed to set hotelId", error);
     }
   }, []);
 
@@ -1088,12 +1010,10 @@ export const AuthProvider = ({ children }) => {
         const hasPermission = authState.roles.some(role => allowedRoles.includes(role));
         
         if (hasPermission) {
-          console.log("🔄 Refreshing subscription data for new hotel:", hotelIdString);
           await fetchSubscriptionData(authState.userId, true, hotelIdString);
         }
       }
     } catch (error) {
-      console.error("Failed to set selected hotel ID", error);
     }
   }, [authState.userId, authState.roles, fetchSubscriptionData]);
 
@@ -1115,7 +1035,6 @@ export const AuthProvider = ({ children }) => {
         removeStorageItem(AUTH_STORAGE_KEYS.REDIRECT_URL);
       }
     } catch (error) {
-      console.error("Failed to set redirect URL", error);
     }
   }, []);
 
@@ -1129,7 +1048,6 @@ export const AuthProvider = ({ children }) => {
         roles: rolesArray,
       }));
     } catch (error) {
-      console.error("Failed to set roles", error);
     }
   }, []);
 
@@ -1145,7 +1063,6 @@ export const AuthProvider = ({ children }) => {
         return { ...prev, roles: newRoles };
       });
     } catch (error) {
-      console.error("Failed to add role", error);
     }
   }, []);
 
@@ -1158,7 +1075,6 @@ export const AuthProvider = ({ children }) => {
         return { ...prev, roles: newRoles };
       });
     } catch (error) {
-      console.error("Failed to remove role", error);
     }
   }, []);
 
@@ -1177,7 +1093,6 @@ export const AuthProvider = ({ children }) => {
     try {
       // Validate that the role exists in user's roles
       if (!authState.roles.includes(role)) {
-        console.error(`Role ${role} not found in user's roles:`, authState.roles);
         return;
       }
       
@@ -1187,7 +1102,6 @@ export const AuthProvider = ({ children }) => {
         activeRole: role,
       }));
     } catch (error) {
-      console.error("Failed to set active role", error);
     }
   }, [authState.roles]);
 
@@ -1237,7 +1151,6 @@ export const AuthProvider = ({ children }) => {
         ...updates
       }));
     } catch (error) {
-      console.error("Failed to update user profile", error);
     }
   }, []);
 
@@ -1251,7 +1164,6 @@ export const AuthProvider = ({ children }) => {
         topHotelIds: hotelIdsArray,
       }));
     } catch (error) {
-      console.error("Failed to set top hotel IDs", error);
     }
   }, []);
 
@@ -1271,7 +1183,6 @@ export const AuthProvider = ({ children }) => {
         return { ...prev, topHotelIds: newTopHotelIds };
       });
     } catch (error) {
-      console.error("Failed to add top hotel ID", error);
     }
   }, []);
 
@@ -1284,7 +1195,6 @@ export const AuthProvider = ({ children }) => {
         return { ...prev, topHotelIds: newTopHotelIds };
       });
     } catch (error) {
-      console.error("Failed to remove top hotel ID", error);
     }
   }, []);
 
@@ -1412,7 +1322,6 @@ export const AuthProvider = ({ children }) => {
     getPrimaryHotelId,
   ]);
 
-  console.log("🔧 AuthProvider context value created, rendering provider...");
 
   return (
     <AuthContext.Provider value={contextValue}>
@@ -1424,7 +1333,6 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    console.error("useAuth must be used within an AuthProvider. Make sure the component is wrapped in <AuthProvider>");
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;

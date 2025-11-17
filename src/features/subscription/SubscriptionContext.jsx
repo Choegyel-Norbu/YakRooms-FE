@@ -102,8 +102,7 @@ export const SubscriptionProvider = ({ children }) => {
     const hasPermission = roles.some(role => allowedRoles.includes(role));
     
     if (!hasPermission) {
-      console.log("🚫 User role does not have permission to access subscription data. Required roles: HOTEL_ADMIN or MANAGER");
-      console.log("👤 Current user roles:", roles);
+      // User role does not have permission to access subscription data
       
       setSubscriptionState(prev => ({
         ...prev,
@@ -128,7 +127,7 @@ export const SubscriptionProvider = ({ children }) => {
 
     // Only fetch from API if forcing refresh or no cached data exists
     if (forceRefresh || !subscriptionId) {
-      console.log("🔄 Fetching subscription data from API (force refresh or no cache)");
+      // Fetching subscription data from API
       const apiData = await fetchSubscriptionData(userId, forceRefresh);
       
       if (apiData) {
@@ -144,7 +143,6 @@ export const SubscriptionProvider = ({ children }) => {
     }
 
     // Use cached data
-    console.log("🔄 Using cached subscription data");
     setSubscriptionState(prev => ({
       ...prev,
       subscription: cachedSubscriptionData,
@@ -161,7 +159,7 @@ export const SubscriptionProvider = ({ children }) => {
     if (!userId || !isAuthenticated) return [];
 
     try {
-      console.log("📜 Fetching payment history for user:", userId);
+      // Fetching payment history
       const history = await subscriptionService.getSubscriptionHistory(userId);
       
       setSubscriptionState(prev => ({
@@ -186,7 +184,7 @@ export const SubscriptionProvider = ({ children }) => {
     setSubscriptionState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      console.log("📝 Creating new subscription:", subscriptionData);
+      // Creating new subscription
       
       const newSubscription = await subscriptionService.createSubscription({
         ...subscriptionData,
@@ -230,13 +228,6 @@ export const SubscriptionProvider = ({ children }) => {
     setSubscriptionState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      console.log("💳 Initiating payment with data:", {
-        userId,
-        hotelId,
-        paymentData,
-        baseUrl
-      });
-      
       // 🔐 SECURITY FIX: Remove client-provided amount
       // Backend should determine subscription price based on plan type
       // Sending plan type only, not the amount (prevents price manipulation)
@@ -251,15 +242,12 @@ export const SubscriptionProvider = ({ children }) => {
         notes: paymentData.notes || "Subscription payment"
       };
 
-      console.log("📤 Sending payment request:", paymentRequest);
       const paymentResponse = await subscriptionService.initiateSubscriptionPayment(paymentRequest, baseUrl);
-      console.log("📥 Received payment response:", paymentResponse);
 
       setSubscriptionState(prev => ({ ...prev, isLoading: false }));
 
       // Handle payment redirect - don't redirect automatically, return response for handling
       if (paymentResponse.success) {
-        console.log("✅ Payment initiation successful");
         
         // Update subscription data if provided in response
         if (paymentResponse.subscription) {
@@ -313,7 +301,7 @@ export const SubscriptionProvider = ({ children }) => {
     setSubscriptionState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      console.log("📝 Updating subscription:", subscriptionId, updateData);
+      // Updating subscription
       
       const updatedSubscription = await subscriptionService.updateSubscription(subscriptionId, updateData);
 
@@ -354,7 +342,7 @@ export const SubscriptionProvider = ({ children }) => {
     setSubscriptionState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      console.log("❌ Cancelling subscription:", subscriptionId, reason);
+      // Cancelling subscription
       
       const cancellationResult = await subscriptionService.cancelSubscription(subscriptionId, reason);
 
@@ -364,7 +352,7 @@ export const SubscriptionProvider = ({ children }) => {
       toast.success("Subscription cancelled successfully!");
       return cancellationResult;
     } catch (error) {
-      console.error("❌ Failed to cancel subscription:", error);
+      // Failed to cancel subscription
       
       setSubscriptionState(prev => ({
         ...prev,
@@ -387,7 +375,7 @@ export const SubscriptionProvider = ({ children }) => {
     setSubscriptionState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      console.log("🔄 Reactivating subscription:", subscriptionId);
+      // Reactivating subscription
       
       const reactivationResult = await subscriptionService.reactivateSubscription(subscriptionId);
 
@@ -418,11 +406,11 @@ export const SubscriptionProvider = ({ children }) => {
     }
 
     try {
-      console.log("🔍 Checking payment status for transaction:", transactionId);
+      // Checking payment status
       const paymentStatus = await subscriptionService.getPaymentStatus(transactionId);
       return paymentStatus;
     } catch (error) {
-      console.error("❌ Failed to get payment status:", error);
+      // Failed to get payment status
       throw error;
     }
   }, []);
@@ -474,10 +462,10 @@ export const SubscriptionProvider = ({ children }) => {
   // === AUTO-FETCH SUBSCRIPTION DATA (only if no cached data) ===
   useEffect(() => {
     if (userId && isAuthenticated && !subscriptionId && !subscriptionState.subscription) {
-      console.log("🔄 No cached subscription data found, fetching from API");
+      // No cached subscription data found, fetching from API
       fetchSubscriptionDetails();
     } else if (userId && isAuthenticated && subscriptionId && !subscriptionState.subscription) {
-      console.log("🔄 Using cached subscription data");
+      // Using cached subscription data
       fetchSubscriptionDetails();
     }
   }, [userId, isAuthenticated, subscriptionId, fetchSubscriptionDetails, subscriptionState.subscription]);

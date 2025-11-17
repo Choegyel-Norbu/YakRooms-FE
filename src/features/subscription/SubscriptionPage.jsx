@@ -73,7 +73,6 @@ const SubscriptionPage = () => {
           return result;
         }
         // If multiple hotels but no selectedHotelId, this is an error state
-        console.warn('Multiple hotels found but no selectedHotelId in localStorage');
       }
 
       // Otherwise, use selectedHotelId if available, then fallback to hotelId
@@ -103,11 +102,10 @@ const SubscriptionPage = () => {
       if (userId && fetchSubscriptionData) {
         const hotelIdToUse = getHotelIdFromStorage();
         if (hotelIdToUse) {
-          console.log("🔄 Refreshing subscription data for hotel:", hotelIdToUse);
           try {
             await fetchSubscriptionData(userId, true, hotelIdToUse);
           } catch (error) {
-            console.error("Failed to refresh subscription data:", error);
+            // Error handled silently
           }
         }
       }
@@ -245,13 +243,10 @@ const SubscriptionPage = () => {
         notes: "Initial subscription setup for new user"
       };
 
-      console.log('Creating subscription with data:', subscriptionData);
-      
       const response = await enhancedApi.post('/subscriptions', subscriptionData);
       
       if (response.status === 200 || response.status === 201) {
         toast.success('Free trial started successfully! Welcome to EzeeRoom.');
-        console.log('Subscription created successfully:', response.data);
         
         // Update subscription cache with new data
         const newSubscriptionData = {
@@ -275,8 +270,6 @@ const SubscriptionPage = () => {
       }
       
     } catch (error) {
-      console.error('Failed to create subscription:', error);
-      
       if (error.response?.status === 409) {
         toast.error('You already have an active subscription. Please check your account status.');
       } else if (error.response?.status === 400) {
@@ -320,7 +313,6 @@ const SubscriptionPage = () => {
         hotelId: hotelIdFromStorage
       };
 
-      console.log('Initiating subscription payment with data:', subscriptionData);
       
       const response = await enhancedApi.post('/subscriptions/payment/initiate', subscriptionData, {
         params: {
@@ -328,18 +320,11 @@ const SubscriptionPage = () => {
         }
       });
 
-      console.log('Subscription payment API response:', response);
-
-      
       if (response.status === 200 || response.status === 201) {
         const responseData = response.data;
         
         if (responseData.success && responseData.payment?.paymentUrl) {
           toast.success('Payment initiated successfully! Redirecting to RMA payment gateway...');
-          console.log('Payment initiated successfully:', responseData);
-          console.log('Transaction ID:', responseData.payment.transactionId);
-          console.log('Order Number:', responseData.payment.orderNumber);
-          console.log('Amount:', responseData.payment.amount, responseData.payment.currency);
           
           // Use proper form handling for payment redirect
           handlePaymentRedirect(responseData.payment, {
@@ -365,8 +350,6 @@ const SubscriptionPage = () => {
       }
       
     } catch (error) {
-      console.error('Failed to update subscription:', error);
-      
       if (error.response?.status === 404) {
         toast.error('Subscription not found. Please contact support.');
       } else if (error.response?.status === 400) {
@@ -423,7 +406,6 @@ const SubscriptionPage = () => {
           
           if (responseData.success && responseData.payment?.paymentUrl) {
             toast.success('Payment initiated successfully! Redirecting to RMA payment gateway...');
-            console.log('Payment initiated successfully:', responseData);
             
             // Use proper form handling for payment redirect
             handlePaymentRedirect(responseData.payment, {
@@ -464,13 +446,10 @@ const SubscriptionPage = () => {
           notes: `Subscription renewed on ${new Date().toLocaleDateString()} - Extended for 1 month from expiration date ${formatDate(subscriptionNextBillingDate)}`
         };
 
-        console.log('Renewing subscription with data:', subscriptionData);
-        
         const response = await enhancedApi.post('/subscriptions', subscriptionData);
         
         if (response.status === 200 || response.status === 201) {
           toast.success('Subscription renewed successfully! Your hotel listing remains active.');
-          console.log('Subscription renewed successfully:', response.data);
           
           // Redirect to dashboard after 2 seconds
           setTimeout(() => {
@@ -482,8 +461,6 @@ const SubscriptionPage = () => {
       }
       
     } catch (error) {
-      console.error('Failed to process subscription:', error);
-      
       if (error.response?.status === 404) {
         toast.error('Subscription not found. Please contact support.');
       } else if (error.response?.status === 400) {

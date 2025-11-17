@@ -67,11 +67,8 @@ export const isCrossDomain = () => {
     const currentETLD = getCurrentETLD(currentDomain);
     const apiETLD = getCurrentETLD(apiDomain);
     
-    console.log('🔍 Domain check:', { currentDomain, apiDomain, currentETLD, apiETLD });
-    
     return currentETLD !== apiETLD;
   } catch (error) {
-    console.error('Failed to detect cross-domain scenario:', error);
     // Default to cross-domain for safety
     return true;
   }
@@ -86,21 +83,9 @@ export const shouldUseCrossDomainAuth = () => {
   const crossDomainCheck = isCrossDomain();
   const result = iosWebKitCheck && crossDomainCheck;
   
-  // Get specific browser info for logging
+  // Get specific browser info
   const iosSafari = isIOSSafari();
   const iosChrome = isIOSChrome();
-  
-  console.log('🔍 Auth flow detection:', {
-    isIOS: isIOS(),
-    isIOSSafari: iosSafari,
-    isIOSChrome: iosChrome,
-    isIOSWebKit: iosWebKitCheck,
-    isCrossDomain: crossDomainCheck,
-    shouldUseCrossDomainAuth: result,
-    userAgent: navigator.userAgent,
-    currentDomain: window.location.hostname,
-    apiDomain: API_BASE_URL
-  });
   
   return result;
 };

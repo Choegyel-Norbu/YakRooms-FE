@@ -42,10 +42,8 @@ export const storeTokens = (tokenData) => {
     // Mark that we're using localStorage tokens
     setStorageItem(TOKEN_KEYS.TOKEN_TYPE, 'localStorage');
     
-    console.log('✅ Tokens stored in localStorage for iOS Safari cross-domain auth');
     return true;
   } catch (error) {
-    console.error('❌ Failed to store tokens:', error);
     return false;
   }
 };
@@ -68,13 +66,11 @@ export const getAccessToken = () => {
     const isExpired = now >= (expiryTime - 30000); // 30 second buffer
     
     if (isExpired) {
-      console.log('🔄 Access token expired, needs refresh');
       return null;
     }
     
     return token;
   } catch (error) {
-    console.error('❌ Failed to get access token:', error);
     return null;
   }
 };
@@ -97,14 +93,12 @@ export const getRefreshToken = () => {
     const isExpired = now >= expiryTime;
     
     if (isExpired) {
-      console.log('❌ Refresh token expired, need to re-login');
       clearTokens();
       return null;
     }
     
     return token;
   } catch (error) {
-    console.error('❌ Failed to get refresh token:', error);
     return null;
   }
 };
@@ -139,13 +133,10 @@ export const clearTokens = () => {
     removeStorageItem(TOKEN_KEYS.ACCESS_TOKEN);
     removeStorageItem(TOKEN_KEYS.REFRESH_TOKEN);
     removeStorageItem(TOKEN_KEYS.ACCESS_TOKEN_EXPIRY);
-    removeStorageItem(TOKEN_KEYS.REFRESH_TOKEN_EXPIRY);
     removeStorageItem(TOKEN_KEYS.TOKEN_TYPE);
     
-    console.log('🧹 Cleared all localStorage tokens');
     return true;
   } catch (error) {
-    console.error('❌ Failed to clear tokens:', error);
     return false;
   }
 };
@@ -199,7 +190,7 @@ export const isUsingLocalStorageTokens = () => {
     
     return isCrossDomain;
   } catch (error) {
-    console.warn('Failed to check platform detection for token storage:', error);
+    // Platform detection failed
     return false;
   }
 };
@@ -227,10 +218,8 @@ export const updateTokensFromRefresh = (refreshData) => {
       setStorageItem(TOKEN_KEYS.REFRESH_TOKEN_EXPIRY, refreshTokenExpiry.toString());
     }
     
-    console.log('✅ Tokens updated from refresh response');
     return true;
   } catch (error) {
-    console.error('❌ Failed to update tokens from refresh:', error);
     return false;
   }
 };
@@ -259,7 +248,7 @@ export const getTokenInfo = () => {
       isUsingLocalStorage: tokenType === 'localStorage'
     };
   } catch (error) {
-    console.error('❌ Failed to get token info:', error);
+    // Failed to get token info
     return null;
   }
 };

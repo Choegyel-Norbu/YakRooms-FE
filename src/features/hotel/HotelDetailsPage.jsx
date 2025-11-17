@@ -402,34 +402,67 @@ const HotelDetailsPage = () => {
     currentPage: 0,
   });
 
+  // Store initial avatars - only set once and don't update when more reviews load
+  const initialAvatarsRef = useRef(null);
+  const initialPaginationRef = useRef(null);
+
   // Extract unique reviewer avatars for AvatarCircles component
   const reviewerAvatars = useMemo(() => {
     if (!testimonialsState.testimonials || testimonialsState.testimonials.length === 0) {
-      return { avatarUrls: [], remainingCount: 0 };
+      return { avatarUrls: [], totalCount: 0, pageSize: 3, hasMore: false };
     }
 
-    // Get unique profile picture URLs (filter out null/undefined/empty strings)
-    const uniqueAvatars = [];
-    const seenUrls = new Set();
-    
-    testimonialsState.testimonials.forEach((testimonial) => {
-      const profilePic = testimonial.userProfilePicUrl;
-      if (profilePic && profilePic.trim() && !seenUrls.has(profilePic)) {
-        seenUrls.add(profilePic);
-        uniqueAvatars.push(profilePic);
-      }
-    });
+    // Only set initial avatars once - don't update when more reviews are loaded
+    if (!initialAvatarsRef.current && testimonialsState.pagination) {
+      const uniqueAvatars = [];
+      const seenUrls = new Set();
+      
+      testimonialsState.testimonials.forEach((testimonial) => {
+        const profilePic = testimonial.userProfilePicUrl;
+        if (profilePic && profilePic.trim() && !seenUrls.has(profilePic)) {
+          seenUrls.add(profilePic);
+          uniqueAvatars.push(profilePic);
+        }
+      });
 
-    // Limit to 4 visible avatars, show remaining count
-    const maxVisible = 4;
-    const visibleAvatars = uniqueAvatars.slice(0, maxVisible);
-    const remainingCount = uniqueAvatars.length > maxVisible ? uniqueAvatars.length - maxVisible : 0;
+      // Limit to 3 visible avatars
+      const maxVisible = 3;
+      const visibleAvatars = uniqueAvatars.slice(0, maxVisible);
+      
+      initialAvatarsRef.current = visibleAvatars;
+      initialPaginationRef.current = testimonialsState.pagination;
+    }
+
+    // Use stored initial avatars if available, otherwise calculate from current testimonials
+    const avatarUrls = initialAvatarsRef.current || (() => {
+      const uniqueAvatars = [];
+      const seenUrls = new Set();
+      
+      testimonialsState.testimonials.forEach((testimonial) => {
+        const profilePic = testimonial.userProfilePicUrl;
+        if (profilePic && profilePic.trim() && !seenUrls.has(profilePic)) {
+          seenUrls.add(profilePic);
+          uniqueAvatars.push(profilePic);
+        }
+      });
+      return uniqueAvatars.slice(0, 3);
+    })();
+
+    // Get pagination info (use initial if available, otherwise current)
+    const pagination = initialPaginationRef.current || testimonialsState.pagination;
+    const pageSize = pagination?.page?.size || 3;
+    const totalElements = pagination?.page?.totalElements || testimonialsState.testimonials.length;
+    
+    // Check if there are more reviews (totalElements > pageSize means there are more pages)
+    const hasMore = totalElements > pageSize;
 
     return {
-      avatarUrls: visibleAvatars,
-      remainingCount: remainingCount,
+      avatarUrls: avatarUrls,
+      totalCount: totalElements,
+      pageSize: pageSize,
+      hasMore: hasMore,
     };
-  }, [testimonialsState.testimonials]);
+  }, [testimonialsState.testimonials, testimonialsState.pagination]);
 
   // Refs
   const roomsSectionRef = useRef(null);
@@ -746,7 +779,7 @@ const HotelDetailsPage = () => {
           url: cleanUrl,
         });
       } catch (err) {
-        console.log("Error sharing:", err);
+        // Error sharing
       }
     } else {
       // Fallback to clipboard
@@ -795,9 +828,9 @@ const HotelDetailsPage = () => {
       }));
       
       // Show success message
-      console.log('Review deletion requested successfully');
+      // Review deletion requested successfully
     } catch (error) {
-      console.error('Error requesting review deletion:', error);
+      // Error requesting review deletion
     }
   }, []);
 
@@ -1238,7 +1271,7 @@ const HotelDetailsPage = () => {
                   {reviewerAvatars.avatarUrls.length > 0 && (
                     <AvatarCircles
                       avatarUrls={reviewerAvatars.avatarUrls}
-                      numPeople={reviewerAvatars.remainingCount}
+                      hasMore={reviewerAvatars.hasMore}
                       className="ml-2"
                     />
                   )}
@@ -1387,10 +1420,9 @@ const HotelDetailsPage = () => {
                     })()}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <Star className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                  <div className="text-center py-2">
                     <p className="text-sm text-muted-foreground">
-                      No reviews yet. Be the first to share your experience!
+                      No reviews yet.
                     </p>
                   </div>
                 )}

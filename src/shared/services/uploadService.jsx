@@ -9,8 +9,6 @@ import api from "./Api.jsx";
 export const extractFileKeyFromUrl = (url) => {
   if (!url) return null;
   
-  console.log("Extracting file key from URL:", url);
-  
   // Handle different UploadThing URL formats
   const patterns = [
     /\/f\/([^\/\?#]+)/, // Standard format: /f/filename (excluding query params and fragments)
@@ -20,12 +18,11 @@ export const extractFileKeyFromUrl = (url) => {
   for (const pattern of patterns) {
     const match = url.match(pattern);
     if (match && match[1]) {
-      console.log("Extracted file key:", match[1]);
       return match[1];
     }
   }
   
-  console.warn("Could not extract file key from URL:", url);
+  // Could not extract file key from URL
   return null;
 };
 
@@ -52,16 +49,12 @@ export const deleteFileByUrl = async (fileUrl) => {
   }
   
   try {
-    console.log("Deleting file with URL:", fileUrl);
-    console.log("Extracted file key:", fileKey);
-    
     // Call the backend API using the configured api instance with file key
     const response = await api.delete(`/v1/uploadthing/files/${fileKey}`);
     
     const result = response.data;
     
     if (response.status === 200 && result.success) {
-      console.log("File deleted successfully:", result);
       return {
         success: true,
         message: result.message || "File deleted successfully",
@@ -99,8 +92,6 @@ export const deleteFileByUrl = async (fileUrl) => {
  * @returns {Promise<{field: string, url: string, fileKey: string}>} The uploaded file metadata.
  */
 export const uploadFile = async (file, field) => {
-  console.log("Starting secure file upload via backend...");
-  
   try {
     // Determine the file type for validation
     const isImage = file.type.startsWith("image/");
@@ -126,8 +117,6 @@ export const uploadFile = async (file, field) => {
     if (!response.data || !response.data.url) {
       throw new Error("Invalid response from upload service");
     }
-
-    console.log("File uploaded successfully:", response.data);
 
     // Return the standardized response
     return {

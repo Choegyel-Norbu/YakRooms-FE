@@ -820,11 +820,7 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
       const displayTotalPrice = Math.ceil(breakdown.extendedAmount);
       const displayTxnTotalPrice = Math.ceil(breakdown.totalAmount);
       
-      console.log('[Security] Extension display prices (NOT sent to server):', {
-        displayExtendedAmount,
-        displayTotalPrice,
-        displayTxnTotalPrice
-      });
+      // Security: Display prices calculated (NOT sent to server)
       
       const payload = {
         guests: booking.guests,               
@@ -2175,10 +2171,8 @@ const GuestDashboard = () => {
         setNotifications(sortedNotifications);
         setUnreadCount(unreadNotifications.length);
 
-        console.log("[API] Fetched notifications:", sortedNotifications);
-        console.log("[API] Unread count:", unreadNotifications.length);
       } catch (error) {
-        console.error("[API] Error fetching notifications:", error);
+        // Error handled silently
       } finally {
         setLoadingNotifications(false);
       }
@@ -2213,9 +2207,9 @@ const GuestDashboard = () => {
       setNotifications([]);
       setUnreadCount(0);
 
-      console.log("[API] Successfully deleted all notifications");
+      // Notifications deleted
     } catch (error) {
-      console.error("[API] Error deleting notifications:", error);
+      // Error handled silently
     }
   };
 
@@ -2274,7 +2268,6 @@ const GuestDashboard = () => {
   const handleConfirmCancellation = async () => {
     if (!selectedBookingForCancel) return;
 
-    console.log("Starting cancellation for booking:", selectedBookingForCancel.id);
     setIsCancelling(true);
     try {
       const response = await api.post(`/bookings/${selectedBookingForCancel.id}/request-cancellation`, null, {
@@ -2282,8 +2275,6 @@ const GuestDashboard = () => {
           userId: userId
         }
       });
-      
-      console.log("Cancellation response:", response);
       
       // Check if the request was successful (status 200-299)
       if ((response.status >= 200 && response.status < 300) && (response.data?.success === true || !('success' in response.data))) {

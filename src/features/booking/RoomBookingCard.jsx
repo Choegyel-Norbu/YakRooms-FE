@@ -629,7 +629,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
   };
 
   const validateForm = () => {
-    console.log("Validating form with data:", bookingDetails);
+    // Validating form
     const newErrors = {};
     const validateBhutanesePhone = (phone) => {
       const cleanPhone = phone.replace(/[\s\-()]/g, "");
@@ -766,7 +766,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       newErrors.guests = "Maximum 6 guests allowed";
     }
     
-    console.log("Validation errors:", newErrors);
+    // Validation errors
     return newErrors;
   };
 
@@ -1077,11 +1077,8 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Standard booking form submitted, validating...");
     const formErrors = validateForm();
-    console.log("Form validation result:", formErrors);
     if (Object.keys(formErrors).length > 0) {
-      console.log("Setting errors:", formErrors);
       setErrors(formErrors);
       // Scroll to the first error field
       scrollToFirstError(formErrors);
@@ -1193,10 +1190,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       const displayTotalPrice = Math.ceil(basePrice);
       const displayTxnTotalPrice = Math.ceil(basePrice * 1.03);
       
-      console.log('[Security] Display prices calculated (NOT sent to server):', {
-        display: displayTotalPrice,
-        withTax: displayTxnTotalPrice
-      });
+      // Security: Display prices calculated (NOT sent to server)
       
       const immediatePayload = {
         roomId: room.id,

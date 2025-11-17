@@ -202,39 +202,6 @@ const HotelAdminDashboard = () => {
       ? window.matchMedia("(max-width: 640px)").matches
       : false;
 
-  useEffect(() => {
-    console.log("Hotel id :" + getStorageItem("hotelId"));
-  }, [userId]);
-
-  // Debug logging for top hotel functionality
-  useEffect(() => {
-    console.log("🏨 [TOP HOTEL DEBUG] Hotel Dashboard Values:");
-    console.log("  - currentHotelId:", currentHotelId);
-    console.log("  - selectedHotelId:", selectedHotelId);
-    console.log("  - hotelId:", hotelId);
-    console.log("  - topHotelIds:", topHotelIds);
-    console.log("  - topHotelIds length:", topHotelIds?.length);
-    console.log("  - isTopHotel function exists:", typeof isTopHotel);
-
-    if (currentHotelId) {
-      const isTop = isTopHotel(currentHotelId);
-      console.log("  - isTopHotel(" + currentHotelId + "):", isTop);
-      console.log("  - currentHotelId type:", typeof currentHotelId);
-      console.log(
-        "  - topHotelIds includes currentHotelId:",
-        topHotelIds?.includes(currentHotelId)
-      );
-
-      // Check if there's a type mismatch
-      if (topHotelIds?.length > 0) {
-        console.log("  - topHotelIds[0] type:", typeof topHotelIds[0]);
-        console.log("  - topHotelIds content:", JSON.stringify(topHotelIds));
-      }
-    } else {
-      console.log("  - No currentHotelId found!");
-    }
-    console.log("🏨 [END DEBUG]");
-  }, [currentHotelId, selectedHotelId, hotelId, topHotelIds, isTopHotel]);
 
   useEffect(() => {
     const fetchHotelData = async () => {
@@ -244,7 +211,7 @@ const HotelAdminDashboard = () => {
         const res = await api.get(`/hotels/${hotelIdToUse}`);
         setHotel(res.data);
       } catch (err) {
-        console.log(err);
+        // Error handled silently
       }
     };
 
@@ -325,11 +292,8 @@ const HotelAdminDashboard = () => {
 
         setNotifications(sortedNotifications);
         setUnreadCount(unreadNotifications.length);
-
-        console.log("[API] Fetched notifications:", sortedNotifications);
-        console.log("[API] Unread count:", unreadNotifications.length);
       } catch (error) {
-        console.error("[API] Error fetching notifications:", error);
+        // Error handled silently
       } finally {
         setLoadingNotifications(false);
       }
@@ -348,10 +312,8 @@ const HotelAdminDashboard = () => {
         prev.map((notif) => ({ ...notif, isRead: true }))
       );
       setUnreadCount(0);
-
-      console.log("[API] Successfully marked all notifications as read");
     } catch (error) {
-      console.error("[API] Error marking notifications as read:", error);
+      // Error handled silently
     }
   };
 
@@ -363,10 +325,8 @@ const HotelAdminDashboard = () => {
       // Update local state
       setNotifications([]);
       setUnreadCount(0);
-
-      console.log("[API] Successfully deleted all notifications");
     } catch (error) {
-      console.error("[API] Error deleting notifications:", error);
+      // Error handled silently
     }
   };
 
@@ -401,11 +361,8 @@ const HotelAdminDashboard = () => {
         if (unreadCount > 0 && activeTab === "leave") {
           setShowLeaveNotifications(true);
         }
-        
-        console.log("[API] Fetched leave notifications:", sortedNotifications);
-        console.log("[API] Unread leave notification count:", unreadCount);
       } catch (error) {
-        console.error("[API] Error fetching leave notifications:", error);
+        // Error handled silently
         // Don't show error toast as this is a background operation
         setLeaveNotifications([]);
         setLeaveNotificationCount(0);
@@ -442,10 +399,7 @@ const HotelAdminDashboard = () => {
       
       // Update unread count
       setLeaveNotificationCount((prev) => Math.max(0, prev - 1));
-      
-      console.log("[API] Successfully marked leave notification as read");
     } catch (error) {
-      console.error("[API] Error marking leave notification as read:", error);
       toast.error("Failed to mark notification as read");
     }
   };
@@ -511,9 +465,8 @@ const HotelAdminDashboard = () => {
       setUnreadCount(0);
       
       // Subscription data will be automatically refreshed by AuthProvider when setSelectedHotelId is called
-      console.log("🔄 Hotel switched to:", newHotelId, "- subscription data will be refreshed automatically");
     } catch (error) {
-      console.error("Failed to switch hotel:", error);
+      // Error handled silently
     }
   };
 
@@ -619,7 +572,6 @@ const HotelAdminDashboard = () => {
         setUploadErrors({});
       }
     } catch (error) {
-      console.error("Error uploading documents:", error);
       toast.error("Failed to upload documents", {
         description: error.response?.data?.message || "An error occurred while uploading documents.",
         duration: 6000

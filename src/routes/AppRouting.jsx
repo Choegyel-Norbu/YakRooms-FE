@@ -18,18 +18,7 @@ import { SubscriptionManagement } from "../shared/components";
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { isAuthenticated, hasRole, roles, userId, email } = useAuth();
 
-  // Debug logging
-  console.log("🔒 ProtectedRoute Debug:", {
-    isAuthenticated,
-    userId,
-    email,
-    roles,
-    allowedRoles,
-    hasAllowedRole: allowedRoles.some((role) => hasRole(role))
-  });
-
   if (!isAuthenticated) {
-    console.log("🚫 User not authenticated, redirecting to home");
     return <Navigate to="/" replace />;
   }
 
@@ -37,11 +26,9 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const hasAllowedRole = allowedRoles.some((role) => hasRole(role));
 
   if (!hasAllowedRole) {
-    console.log("🚫 User doesn't have required role, redirecting to unauthorized");
     return <Navigate to="/unauthorized" replace />;
   }
 
-  console.log("✅ User authorized, rendering protected content");
   return children;
 };
 

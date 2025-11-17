@@ -15,14 +15,6 @@ const RootPathHandler = () => {
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     
-    // Log for debugging
-    console.log('RootPathHandler - Current location:', {
-      pathname: location.pathname,
-      search: location.search,
-      hash: location.hash,
-      isSafari,
-      isIOS
-    });
 
     // Handle any URL fragments or query parameters that might interfere
     if (location.hash && location.hash.includes('#/')) {
@@ -39,7 +31,6 @@ const RootPathHandler = () => {
       // Handle Safari-specific routing issues
       if (location.pathname === '/' && location.search === '' && location.hash === '') {
         // Just log that we're on Safari - no navigation needed
-        console.log('🍎 Safari/iOS detected on root path - no navigation fix needed');
       }
     }
   }, [location.pathname, location.search, location.hash, navigate]); // Removed location object to prevent loops

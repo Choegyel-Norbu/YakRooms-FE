@@ -14,8 +14,6 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
       const useCrossDomain = shouldUseCrossDomainAuth();
       const authEndpoint = getAuthEndpoint();
       
-      console.log('🔑 Processing authentication:', getAuthMethodDescription());
-      
       const res = await axios.post(
         `${API_BASE_URL}${authEndpoint}`,
         { idToken },
@@ -29,12 +27,8 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
       );
 
       if (res.status === 200) {
-        console.log("✅ Authentication successful:", res.data);
-        
         // Handle cross-domain auth response (with tokens)
         if (useCrossDomain && res.data.accessToken && res.data.refreshToken) {
-          console.log('📱 iOS Safari cross-domain: Storing tokens in localStorage');
-          
           const tokenStored = storeTokens({
             accessToken: res.data.accessToken,
             refreshToken: res.data.refreshToken,
@@ -46,9 +40,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
             throw new Error('Failed to store authentication tokens');
           }
           
-          if (res.data.warning) {
-            console.warn('⚠️ Backend warning:', res.data.warning);
-          }
+          // Warning is handled by backend response
         }
         
         // Pass user data to AuthProvider (same for both flows)
@@ -70,7 +62,6 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
         }, 1000);
       }
     } catch (error) {
-      console.error('❌ Authentication processing error:', error);
       throw error;
     }
   };
@@ -80,32 +71,11 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
       setIsLoading(true);
       onLoginStart?.();
       
-      console.log('Starting Google popup authentication...');
-      
       const result = await signInWithPopup(auth, provider);
-      console.log('Google popup authentication successful');
-      
       const idToken = await result.user.getIdToken();
       await processAuthentication(idToken, onLoginSuccess, onClose);
       
     } catch (error) {
-      console.error('Google authentication error:', error);
-      
-      // Simple error handling
-      switch (error.code) {
-        case 'auth/popup-closed-by-user':
-          console.log('User closed popup');
-          break;
-        case 'auth/popup-blocked':
-          console.log('Popup blocked by browser');
-          break;
-        case 'auth/network-request-failed':
-          console.log('Network request failed');
-          break;
-        default:
-          console.log('Authentication error:', error.code);
-      }
-      
       throw error;
     } finally {
       setIsLoading(false);

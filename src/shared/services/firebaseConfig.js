@@ -79,51 +79,6 @@ provider.setCustomParameters(platformSettings);
 
 // Enhanced error handling for cross-platform compatibility
 const handleAuthError = (error) => {
-  console.error('Firebase Auth Error:', error);
-  
-  const platform = detectPlatform();
-  console.log(`Platform detected: ${platform}`);
-  
-  // Platform-specific error handling
-  switch (platform) {
-    case 'ie':
-      console.log('Internet Explorer detected - limited auth features');
-      if (error.code === 'auth/popup-closed-by-user') {
-        console.log('IE popup closed, redirect may be more reliable');
-      }
-      break;
-    case 'safari':
-      console.log('Safari detected - using Safari-specific handling');
-      if (error.code === 'auth/popup-blocked') {
-        console.log('Safari popup blocked, redirect required');
-      }
-      break;
-    case 'firefox':
-      console.log('Firefox detected - Firefox-specific handling');
-      if (error.code === 'auth/popup-closed-by-user') {
-        console.log('Firefox popup closed');
-      }
-      break;
-    case 'pwa':
-      console.log('PWA context detected - PWA-specific handling');
-      switch (error.code) {
-        case 'auth/popup-closed-by-user':
-          console.log('PWA popup closed, redirect recommended');
-          break;
-        case 'auth/popup-blocked':
-          console.log('PWA popup blocked, redirect required');
-          break;
-        case 'auth/network-request-failed':
-          console.log('PWA network request failed');
-          break;
-        default:
-          console.log('Other PWA auth error:', error.code);
-      }
-      break;
-    default:
-      console.log('Chrome/Chromium detected - standard handling');
-  }
-  
   return error;
 };
 
@@ -133,31 +88,18 @@ const configureAuthPersistence = () => {
   
   // Different persistence strategies per platform
   switch (platform) {
-    case 'ie':
-      // IE has limited persistence support
-      console.log('IE detected - using basic persistence');
-      break;
     case 'safari':
       // Safari needs special handling for private browsing
-      console.log('Safari detected - checking private browsing mode');
       try {
         localStorage.setItem('test', 'test');
         localStorage.removeItem('test');
-        console.log('Safari localStorage available');
       } catch (e) {
-        console.log('Safari private browsing detected');
+        // Private browsing mode detected
       }
       break;
-    case 'firefox':
-      // Firefox has good persistence support
-      console.log('Firefox detected - standard persistence');
-      break;
-    case 'pwa':
-      // PWA persistence varies by platform
-      console.log('PWA detected - enhanced persistence handling');
-      break;
     default:
-      console.log('Chrome detected - standard persistence');
+      // Standard persistence for other platforms
+      break;
   }
 };
 
@@ -182,11 +124,9 @@ const getApiBaseUrl = () => {
   
   // Force production URL for PWA installations and mobile contexts
   if (isPWA || !isDevelopment) {
-    console.log('🌐 Using production API URL for cross-platform compatibility');
     return productionUrl;
   }
   
-  console.log('🔧 Using development API URL');
   return developmentUrl;
 };
 
@@ -195,7 +135,6 @@ const API_BASE_URL = getApiBaseUrl();
 // Debug helper for PWA registration and mobile debugging
 if (typeof window !== 'undefined') {
   window.API_DEBUG_URL = API_BASE_URL;
-  console.log('🔗 API Base URL configured:', API_BASE_URL);
 }
 
 export { auth, provider, API_BASE_URL, handleAuthError, detectPlatform };

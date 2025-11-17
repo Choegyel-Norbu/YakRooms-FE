@@ -183,7 +183,6 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
       try {
         // Always fetch fresh hotel data when dashboard is clicked
         if (userId && fetchUserHotels) {
-          console.log("🔄 [DASHBOARD] Fetching fresh user hotels data...");
           const hotels = await fetchUserHotels(userId);
           
           if (hotels && hotels.length > 0) {
@@ -192,12 +191,10 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
             
             if (currentSelectedHotel) {
               // Current selected hotel is still valid, navigate directly
-              console.log("✅ [DASHBOARD] Using existing selected hotel:", currentSelectedHotel.name);
               navigate('/dashboard');
             } else {
               // Current selected hotel is no longer valid or not set, auto-select the first hotel
               const hotel = hotels[0];
-              console.log("🔄 [DASHBOARD] Auto-selecting first hotel:", hotel.name);
               setSelectedHotelId(hotel.id);
               navigate('/dashboard');
             }
