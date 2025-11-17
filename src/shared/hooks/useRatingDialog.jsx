@@ -36,7 +36,6 @@ export const useRatingDialog = () => {
       
       // If device exists in database, don't show the popup
       if (response.deviceExists) {
-        console.log("Device already gave feedback:", response.message);
         return false;
       }
       

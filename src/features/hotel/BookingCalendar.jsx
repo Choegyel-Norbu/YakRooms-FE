@@ -85,7 +85,6 @@ const BookingCalendar = ({ hotelId }) => {
     const fetchMonthlyBookings = async () => {
       if (!hotelId) return;
 
-      console.log(`📅 Calendar: Fetching bookings for ${monthNames[currentMonth]} ${currentYear}, hotelId: ${hotelId}, roomId: ${selectedRoomId}`);
       setLoading(true);
       try {
         // Use the monthly search endpoint with optional room filtering
@@ -102,7 +101,6 @@ const BookingCalendar = ({ hotelId }) => {
           // Try monthly endpoint first
           response = await api.get(apiUrl);
         } catch (monthlyError) {
-          console.log("Monthly endpoint not available, using regular endpoint:", monthlyError.message);
           // Fall back to regular endpoint and filter on frontend
           let fallbackUrl = `/bookings/?hotelId=${hotelId}&size=1000`;
           if (selectedRoomId !== "all") {
@@ -143,21 +141,6 @@ const BookingCalendar = ({ hotelId }) => {
             );
           });
         }
-
-        // Debug: Log API data
-        console.log("🚀 API response:", {
-          month: `${monthNames[currentMonth]} ${currentYear}`,
-          endpoint: response.config.url,
-          totalBookings: monthlyBookings.length,
-          usedFiltering: response.config.url.includes('/bookings/?')
-        });
-        console.log("🚀 Bookings affecting this month:", monthlyBookings.map(b => ({
-          id: b.id,
-          checkIn: b.checkInDate,
-          checkOut: b.checkOutDate,
-          guest: b.guestName,
-          status: b.status
-        })));
 
         setBookings(monthlyBookings);
       } catch (error) {
@@ -207,16 +190,6 @@ const BookingCalendar = ({ hotelId }) => {
   const getBookedBookingsForDate = (day) => {
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     
-    // Debug logging for date processing
-    if (dateStr.endsWith('-31')) {
-      console.log(`📋 All bookings available for ${dateStr}:`, bookings.map(b => ({
-        id: b.id,
-        checkIn: b.checkInDate,
-        checkOut: b.checkOutDate,
-        guest: b.guestName
-      })));
-    }
-    
     const filteredBookings = bookings.filter(booking => {
       const checkInDate = booking.checkInDate;
       const checkOutDate = booking.checkOutDate;
@@ -224,30 +197,12 @@ const BookingCalendar = ({ hotelId }) => {
       const isCheckInDate = dateStr === checkInDate;
       const isOngoingStay = dateStr > checkInDate && dateStr < checkOutDate;
       
-      // Debug logging for date processing
-      if (dateStr.endsWith('-31') || dateStr.endsWith('-01')) {
-        console.log(`🗓️ Checking date ${dateStr}:`, {
-          bookingId: booking.id,
-          booking: `${booking.guestName || 'Guest'} - Room ${booking.roomNumber}`,
-          checkInDate,
-          checkOutDate,
-          isCheckInDate,
-          isOngoingStay,
-          willBeMarkedBooked: isCheckInDate || isOngoingStay
-        });
-      }
-      
       // Mark as booked if:
       // 1. It's a check-in date (includes same-day check-in/check-out)
       // 2. It's an ongoing stay (guests are present)
       // Do NOT mark if it's ONLY a check-out date
       return isCheckInDate || isOngoingStay;
     });
-
-    // Debug logging for date processing
-    if (dateStr.endsWith('-31') || dateStr.endsWith('-01')) {
-      console.log(`🟢 Final result for ${dateStr}: ${filteredBookings.length} booked bookings found`);
-    }
 
     return filteredBookings;
   };

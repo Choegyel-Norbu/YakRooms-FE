@@ -105,22 +105,18 @@ export default function AvailabilityDatePicker({
           // Process the availability data to get unavailable dates
           const unavailable = processAvailabilityData(response.data, date);
           setUnavailableDates(unavailable);
-          console.log(`Loaded availability for ${yearMonth}:`, unavailable.length, "unavailable dates");
         }
       } catch (apiError) {
         // If the specific endpoint doesn't exist, try to get bookings data as fallback
         if (apiError.response?.status === 404) {
-          console.log("Availability endpoint not found, trying fallback...");
           try {
             // Fallback: try to get room bookings for the month
             const fallbackResponse = await api.get(`/rooms/${roomId}/bookings/month/${yearMonth}`);
             if (fallbackResponse.status === 200 && fallbackResponse.data) {
               const unavailable = processAvailabilityData(fallbackResponse.data, date);
               setUnavailableDates(unavailable);
-              console.log(`Loaded fallback data for ${yearMonth}:`, unavailable.length, "unavailable dates");
             }
           } catch (fallbackError) {
-            console.log("Fallback endpoint also not available, proceeding without availability data");
             setUnavailableDates([]);
           }
         } else {

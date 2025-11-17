@@ -168,8 +168,6 @@ const LeaveManagement = ({ hotelId }) => {
   };
 
   useEffect(() => {
-    console.log("LeaveManagement useEffect - hotelId:", hotelId);
-    console.log("isStaffOrFrontdesk:", isStaffOrFrontdesk);
     fetchLeaves();
     fetchStaff();
     fetchLeavePolicies();
@@ -264,12 +262,8 @@ const LeaveManagement = ({ hotelId }) => {
 
   const fetchAllStaff = async () => {
     try {
-      console.log("Fetching staff for hotelId:", hotelId);
-      console.log("API URL:", `/staff/hotel/${hotelId}`);
-      
       // Try the API call
       const response = await api.get(`/staff/hotel/${hotelId}`);
-      console.log("Staff response:", response.data);
       setAllStaff(response.data);
     } catch (error) {
       console.error("Error fetching all staff:", error);
@@ -279,10 +273,8 @@ const LeaveManagement = ({ hotelId }) => {
       
       // Try alternative endpoint if the first one fails
       if (error.response?.status === 404) {
-        console.log("Trying alternative endpoint...");
         try {
           const altResponse = await api.get(`/hotels/${hotelId}/staff`);
-          console.log("Alternative staff response:", altResponse.data);
           setAllStaff(altResponse.data);
           return;
         } catch (altError) {
@@ -297,10 +289,7 @@ const LeaveManagement = ({ hotelId }) => {
   const fetchStaffLeaves = async (userId) => {
     try {
       setStaffLeavesLoading(true);
-      console.log("Fetching leaves for userId:", userId);
-      console.log("API URL:", `/leaves/user/${userId}`);
       const response = await api.get(`/leaves/user/${userId}`);
-      console.log("Staff leaves response:", response.data);
       setStaffLeaves(response.data);
       
       // Scroll to leave history table after data is loaded
@@ -454,9 +443,6 @@ const LeaveManagement = ({ hotelId }) => {
         reason: leaveForm.reason
       };
 
-      console.log("Submitting leave data:", leaveData);
-      console.log("API endpoint:", editingLeave ? `PUT /leaves/${editingLeave.id}` : "POST /leaves");
-
       if (editingLeave) {
         await api.put(`/leaves/${editingLeave.id}`, leaveData);
         toast.success("Leave request updated successfully");
@@ -567,9 +553,6 @@ const LeaveManagement = ({ hotelId }) => {
         ...policyForm,
         maxDaysPerYear: maxDays
       };
-
-      console.log("Submitting policy data:", policyData);
-      console.log("API endpoint:", editingPolicy ? `PUT /leave-types/${editingPolicy.id}` : "POST /leave-types");
 
       if (editingPolicy) {
         await api.put(`/leave-types/${editingPolicy.id}`, policyData);

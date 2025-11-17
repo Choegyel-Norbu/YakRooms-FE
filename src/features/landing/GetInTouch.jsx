@@ -27,8 +27,6 @@ const GetInTouch = React.forwardRef((props, ref) => {
     setIsSubmitting(true);
     setSubmitStatus(null);
 
-    console.log("Form data " + formData.consent);
-
     try {
       const response = await api.post("/getIntouch", formData);
 

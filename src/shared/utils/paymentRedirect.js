@@ -27,8 +27,6 @@ export const handlePaymentRedirect = (paymentData, options = {}) => {
   } = options;
 
   try {
-    console.log("🔄 Processing payment redirect:", paymentData);
-    
     // Check if we have form HTML data (like BFS-Secure)
     if (paymentData.paymentFormHtml) {
       handleFormBasedRedirect(paymentData, gatewayName);
@@ -82,14 +80,6 @@ const handleFormBasedRedirect = (paymentData, gatewayName) => {
       throw new Error('Payment form not found in response');
     }
     
-    // Log payment form details for debugging
-    console.log("📋 Payment Form Details:", {
-      action: form.action,
-      method: form.method,
-      transactionId: paymentData.transactionId,
-      orderNumber: paymentData.orderNumber
-    });
-    
     // Create a temporary form element and append it to the body
     const paymentForm = document.createElement('form');
     paymentForm.method = form.method || 'POST';
@@ -110,8 +100,6 @@ const handleFormBasedRedirect = (paymentData, gatewayName) => {
     document.body.appendChild(paymentForm);
     paymentForm.submit();
     
-    console.log("✅ Form-based redirect initiated successfully");
-    
   } catch (error) {
     console.error("❌ Form-based redirect failed:", error);
     throw error;
@@ -125,8 +113,6 @@ const handleFormBasedRedirect = (paymentData, gatewayName) => {
  */
 const handleUrlBasedRedirect = (paymentData, gatewayName) => {
   try {
-    console.log("🔗 Redirecting to payment URL:", paymentData.paymentUrl);
-    
     // Create a temporary form for POST submission if needed
     if (paymentData.method === 'POST' && paymentData.formData) {
       const paymentForm = document.createElement('form');
@@ -150,8 +136,6 @@ const handleUrlBasedRedirect = (paymentData, gatewayName) => {
       window.location.href = paymentData.paymentUrl;
     }
     
-    console.log("✅ URL-based redirect initiated successfully");
-    
   } catch (error) {
     console.error("❌ URL-based redirect failed:", error);
     throw error;
@@ -165,8 +149,6 @@ const handleUrlBasedRedirect = (paymentData, gatewayName) => {
  */
 const handlePostFormRedirect = (paymentData, gatewayName) => {
   try {
-    console.log("📤 Submitting POST form data:", paymentData.formData);
-    
     const paymentForm = document.createElement('form');
     paymentForm.method = 'POST';
     paymentForm.action = paymentData.action || paymentData.paymentUrl;
@@ -183,8 +165,6 @@ const handlePostFormRedirect = (paymentData, gatewayName) => {
     
     document.body.appendChild(paymentForm);
     paymentForm.submit();
-    
-    console.log("✅ POST form redirect initiated successfully");
     
   } catch (error) {
     console.error("❌ POST form redirect failed:", error);

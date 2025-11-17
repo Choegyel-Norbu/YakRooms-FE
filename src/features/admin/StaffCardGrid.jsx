@@ -218,12 +218,9 @@ const StaffCardGrid = ({ hotelId, className = "" }) => {
   };
 
   useEffect(() => {
-    console.log('StaffCardGrid: hotelId =', hotelId);
     if (hotelId) {
-      console.log('StaffCardGrid: Fetching staff for hotelId =', hotelId);
       fetchStaff();
     } else {
-      console.log('StaffCardGrid: No hotelId provided, not fetching staff');
       setLoading(false);
     }
   }, [hotelId]);

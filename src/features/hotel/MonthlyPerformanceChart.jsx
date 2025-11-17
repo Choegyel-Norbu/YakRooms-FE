@@ -129,8 +129,6 @@ const MonthlyPerformanceChart = ({ hotelId }) => {
         `/booking-statistics/revenue/monthly/${hotelId}?startDate=${selectedDate}`
       );
 
-      console.log("Fetching performance data from:", res.config.url);
-
       const result = res.data;
 
       // Validate response structure
@@ -267,8 +265,6 @@ const MonthlyPerformanceChart = ({ hotelId }) => {
 
       // Save the file
       XLSX.writeFile(wb, filename);
-
-      console.log(`Excel file exported successfully: ${filename}`);
     } catch (error) {
       console.error("Error exporting to Excel:", error);
       alert("Failed to export data. Please try again.");

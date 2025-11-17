@@ -105,7 +105,6 @@ const StaffManager = ({ hotelId }) => {
 
       const { data } = await api.get(`/staff/hotel/${hotelId}`);
 
-      console.log("Staff data fetched:", data);
       setStaff(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching staff:", error);

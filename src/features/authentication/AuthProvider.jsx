@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   getStorageItem,
   setStorageItem,
@@ -252,6 +252,7 @@ const defaultAuthState = {
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Initialize auth state from localStorage with dual authentication support
   const [authState, setAuthState] = useState(() => {
@@ -966,7 +967,17 @@ export const AuthProvider = ({ children }) => {
         if (redirectUrl) {
           // Clear the redirect URL after using it
           removeStorageItem(AUTH_STORAGE_KEYS.REDIRECT_URL);
-          navigate(redirectUrl);
+          
+          // If user is on landing page and redirect URL is a hotel details page, don't navigate
+          const isOnLandingPage = location.pathname === "/";
+          const isHotelDetailsPage = redirectUrl.includes("/hotel/");
+          
+          if (isOnLandingPage && isHotelDetailsPage) {
+            // Stay on landing page, don't navigate to hotel details
+            // Redirect URL is already cleared above
+          } else {
+            navigate(redirectUrl);
+          }
         } else {
           navigate("/");
         }
@@ -979,7 +990,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       throw error; // Re-throw to allow handling in the calling component
     }
-  }, [navigate]);
+  }, [navigate, location]);
 
   // === SET HOTEL ID (memoized) ===
   const setHotelId = useCallback((hotelId) => {

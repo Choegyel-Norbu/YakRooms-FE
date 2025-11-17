@@ -87,8 +87,6 @@ const BookingsInventoryTable = ({ hotelId }) => {
         setTotalPages(Math.ceil(response.data.length / pageSize));
         setTotalElements(response.data.length);
       }
-      
-      console.log("Bookings fetched:", response.data);
     } catch (error) {
       console.error("Error fetching bookings:", error);
       toast.error("Failed to fetch bookings data");

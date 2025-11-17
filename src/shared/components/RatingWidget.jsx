@@ -13,12 +13,9 @@ const RatingWidget = ({ onClose }) => {
   const [summary, setSummary] = useState(null);
 
   useEffect(() => {
-    console.log("Inside average rating ......");
     const fetchAverageRating = async () => {
       try {
         const res = await api.get("/averageRating"); // 👈 Await here
-        console.log("Called rating average ......");
-        console.log(res.data); // If it's just an integer, res.data is the value
         setSummary(res.data);
       } catch (error) {
         console.error("Error fetching average rating:", error);
@@ -39,11 +36,6 @@ const RatingWidget = ({ onClose }) => {
       if (res.data) {
         setSubmitted(true);
         setStorageItem("hasRated", "true");
-
-        console.log(
-          "Fetching from storage, Rated? - ",
-          getStorageItem("hasRated")
-        );
 
         setTimeout(() => {
           onClose();

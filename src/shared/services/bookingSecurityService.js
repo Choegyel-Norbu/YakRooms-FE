@@ -76,12 +76,6 @@ export const createSecureBooking = async (bookingData, displayPricing = {}) => {
     });
     
     // Step 6: Make the API request
-    console.log('[Security] Creating secure booking:', {
-      transactionId,
-      hasClientPrice: false, // Prices removed
-      fingerprint: sanitizedPayload.clientFingerprint
-    });
-    
     const response = await api.post('/bookings', sanitizedPayload, {
       headers: securityHeaders
     });
@@ -106,8 +100,6 @@ export const createSecureBooking = async (bookingData, displayPricing = {}) => {
           
           // Don't fail - show warning to user
           console.warn('[Security] Price discrepancy:', validation.message);
-        } else {
-          console.log('[Security] Price validation passed ✓');
         }
       }
       
@@ -341,8 +333,6 @@ export const reportSecurityIssue = async (issueType, details) => {
       userAgent: navigator.userAgent,
       url: window.location.href
     });
-    
-    console.log('[Security] Issue reported:', issueType);
   } catch (error) {
     console.error('Failed to report security issue:', error);
   }

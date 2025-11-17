@@ -111,8 +111,6 @@ const BookingsTrendChart = ({ hotelId }) => {
 
       // Save the file
       XLSX.writeFile(wb, filename);
-
-      console.log(`Excel file exported successfully: ${filename}`);
     } catch (error) {
       console.error("Error exporting to Excel:", error);
       alert("Failed to export data. Please try again.");
@@ -133,8 +131,6 @@ const BookingsTrendChart = ({ hotelId }) => {
       const res = await api.get(
         `/booking-statistics/monthly/hotel/${hotelId}?startDate=${selectedDate}`
       );
-
-      console.log("Fetching from:", res.config.url);
 
       const result = res.data;
 

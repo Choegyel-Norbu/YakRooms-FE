@@ -186,7 +186,6 @@ const RoomManager = ({ hotelId }) => {
   useEffect(() => {
     if (!hotelId) return;
     
-    console.log("Hotel ID from RoomManager:", hotelId);
     const fetchRooms = async () => {
       try {
         setLoading(true);
@@ -209,7 +208,6 @@ const RoomManager = ({ hotelId }) => {
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === "hotelId") {
-        console.log("hotelId changed in localStorage:", e.newValue);
         // Optionally refetch rooms when hotelId changes
         // fetchRooms();
       }

@@ -89,8 +89,6 @@ export class StorageCompatibilityTester {
   }
 
   async runFullTestSuite() {
-    console.log('🧪 Starting comprehensive storage compatibility tests...');
-    
     try {
       // Get platform information
       await this.testPlatformDetection();
@@ -116,7 +114,6 @@ export class StorageCompatibilityTester {
       // Private browsing tests
       await this.testPrivateBrowsing();
       
-      console.log('✅ Storage compatibility tests completed');
       return this.results;
       
     } catch (error) {
@@ -137,7 +134,6 @@ export class StorageCompatibilityTester {
       };
       
       this.results.addResult('platform_detection', true, platformInfo);
-      console.log('✅ Platform detection successful:', platformInfo);
     } catch (error) {
       this.results.addResult('platform_detection', false, { error: error.message });
       this.results.addError(error);
@@ -145,8 +141,6 @@ export class StorageCompatibilityTester {
   }
 
   async testBasicOperations() {
-    console.log('🔍 Testing basic storage operations...');
-    
     // Test set operation
     try {
       const success = setStorageItem('test_basic', 'test_value');
@@ -178,8 +172,6 @@ export class StorageCompatibilityTester {
   }
 
   async testDataTypes() {
-    console.log('🔍 Testing data type handling...');
-    
     for (const [key, value] of Object.entries(TEST_DATA)) {
       try {
         // Store the value
@@ -214,8 +206,6 @@ export class StorageCompatibilityTester {
   }
 
   async testErrorHandling() {
-    console.log('🔍 Testing error handling...');
-    
     // Test invalid key handling
     try {
       const value = getStorageItem(null);
@@ -239,8 +229,6 @@ export class StorageCompatibilityTester {
   }
 
   async testPerformance() {
-    console.log('🔍 Testing storage performance...');
-    
     const performanceTests = {
       'small_write': () => setStorageItem('perf_small', 'x'.repeat(100)),
       'small_read': () => getStorageItem('perf_small'),
@@ -280,8 +268,6 @@ export class StorageCompatibilityTester {
   }
 
   async testStorageCapacity() {
-    console.log('🔍 Testing storage capacity...');
-    
     try {
       const storageInfo = await getStorageInfo();
       this.results.addResult('storage_info', true, storageInfo);
@@ -296,8 +282,6 @@ export class StorageCompatibilityTester {
   }
 
   async testCrossTabSync() {
-    console.log('🔍 Testing cross-tab synchronization...');
-    
     try {
       // This test is limited as we can't actually open new tabs in a test
       // But we can test the storage event setup
@@ -325,8 +309,6 @@ export class StorageCompatibilityTester {
   }
 
   async testPrivateBrowsing() {
-    console.log('🔍 Testing private browsing detection...');
-    
     try {
       const isPrivate = isPrivateBrowsing();
       const validationResult = testStorageCompatibility();
@@ -348,8 +330,6 @@ export class StorageCompatibilityTester {
 
   // Quick test for essential functionality
   static async quickTest() {
-    console.log('🚀 Running quick storage compatibility test...');
-    
     const tester = new StorageCompatibilityTester();
     
     try {
@@ -357,15 +337,6 @@ export class StorageCompatibilityTester {
       await tester.testBasicOperations();
       
       const summary = tester.results.getSummary();
-      console.log('📊 Quick test results:', summary);
-      
-      if (summary.score >= 80) {
-        console.log('✅ Storage compatibility: GOOD');
-      } else if (summary.score >= 60) {
-        console.log('⚠️ Storage compatibility: FAIR');
-      } else {
-        console.log('❌ Storage compatibility: POOR');
-      }
       
       return summary;
       
@@ -388,26 +359,18 @@ export const runQuickStorageTest = () => {
 
 // Utility function to log detailed storage information
 export const logStorageDebugInfo = async () => {
-  console.group('🔧 Storage Debug Information');
-  
   try {
     const platformInfo = getPlatformInfo();
-    console.log('Platform Info:', platformInfo);
-    
     const storageInfo = await getStorageInfo();
-    console.log('Storage Info:', storageInfo);
-    
     const validation = validateStorage();
-    console.log('Validation:', validation);
-    
     const isPrivate = isPrivateBrowsing();
-    console.log('Private Browsing:', isPrivate);
     
+    // Debug information available but not logged
+    return { platformInfo, storageInfo, validation, isPrivate };
   } catch (error) {
     console.error('Failed to get debug info:', error);
+    throw error;
   }
-  
-  console.groupEnd();
 };
 
 export default StorageCompatibilityTester;

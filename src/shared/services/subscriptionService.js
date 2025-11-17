@@ -22,9 +22,7 @@ class SubscriptionService {
    */
   async createSubscription(subscriptionData) {
     try {
-      console.log("📝 Creating subscription:", subscriptionData);
       const response = await enhancedApi.post("/subscriptions", subscriptionData);
-      console.log("✅ Subscription created successfully:", response.data);
       return response.data;
     } catch (error) {
       console.error("❌ Failed to create subscription:", error);
@@ -39,9 +37,7 @@ class SubscriptionService {
    */
   async getSubscriptionsByUserId(userId) {
     try {
-      console.log("🔍 Fetching subscriptions for user:", userId);
       const response = await enhancedApi.get(`/subscriptions/user/${userId}`);
-      console.log("✅ Subscriptions fetched successfully:", response.data);
       return response.data;
     } catch (error) {
       console.error("❌ Failed to fetch subscriptions:", error);
@@ -56,7 +52,6 @@ class SubscriptionService {
    */
   async getSubscriptionByUserId(userId) {
     try {
-      console.log("🔍 Fetching subscription for user (compatibility method):", userId);
       const subscriptions = await this.getSubscriptionsByUserId(userId);
       
       // Return the first active subscription or the first subscription if none are active
@@ -66,7 +61,6 @@ class SubscriptionService {
         throw new Error('No subscription found for user');
       }
       
-      console.log("✅ Subscription fetched successfully:", activeSubscription);
       return activeSubscription;
     } catch (error) {
       console.error("❌ Failed to fetch subscription:", error);
@@ -81,9 +75,7 @@ class SubscriptionService {
    */
   async getSubscriptionById(subscriptionId) {
     try {
-      console.log("🔍 Fetching subscription by ID:", subscriptionId);
       const response = await enhancedApi.get(`/subscriptions/${subscriptionId}`);
-      console.log("✅ Subscription fetched successfully:", response.data);
       return response.data;
     } catch (error) {
       console.error("❌ Failed to fetch subscription by ID:", error);
@@ -99,9 +91,7 @@ class SubscriptionService {
    */
   async updateSubscription(subscriptionId, updateData) {
     try {
-      console.log("📝 Updating subscription:", subscriptionId, updateData);
       const response = await enhancedApi.put(`/subscriptions/${subscriptionId}`, updateData);
-      console.log("✅ Subscription updated successfully:", response.data);
       return response.data;
     } catch (error) {
       console.error("❌ Failed to update subscription:", error);
@@ -122,8 +112,6 @@ class SubscriptionService {
    */
   async initiateSubscriptionPayment(paymentRequest, baseUrl = "https://www.ezeeroom.bt") {
     try {
-      console.log("💳 Initiating subscription payment:", paymentRequest);
-      
       const params = new URLSearchParams();
       if (baseUrl) {
         params.append('baseUrl', baseUrl);
@@ -132,7 +120,6 @@ class SubscriptionService {
       const url = `/payment/initiate${params.toString() ? `?${params.toString()}` : ''}`;
       const response = await enhancedApi.post(url, paymentRequest);
       
-      console.log("✅ Payment initiation successful:", response.data);
       return response.data;
     } catch (error) {
       console.error("❌ Failed to initiate payment:", error);
@@ -147,9 +134,7 @@ class SubscriptionService {
    */
   async handlePaymentCallback(callbackData) {
     try {
-      console.log("🔄 Processing payment callback:", callbackData);
       const response = await enhancedApi.post("/payment/callback", callbackData);
-      console.log("✅ Payment callback processed successfully:", response.data);
       return response.data;
     } catch (error) {
       console.error("❌ Failed to process payment callback:", error);
@@ -164,9 +149,7 @@ class SubscriptionService {
    */
   async getPaymentStatus(transactionId) {
     try {
-      console.log("🔍 Checking payment status for transaction:", transactionId);
       const response = await enhancedApi.get(`/payment/status/${transactionId}`);
-      console.log("✅ Payment status retrieved:", response.data);
       return response.data;
     } catch (error) {
       console.error("❌ Failed to get payment status:", error);
@@ -182,9 +165,7 @@ class SubscriptionService {
    */
   async cancelSubscription(subscriptionId, reason = "User requested cancellation") {
     try {
-      console.log("❌ Cancelling subscription:", subscriptionId, reason);
       const response = await enhancedApi.post(`/subscriptions/${subscriptionId}/cancel`, { reason });
-      console.log("✅ Subscription cancelled successfully:", response.data);
       return response.data;
     } catch (error) {
       console.error("❌ Failed to cancel subscription:", error);
@@ -199,9 +180,7 @@ class SubscriptionService {
    */
   async reactivateSubscription(subscriptionId) {
     try {
-      console.log("🔄 Reactivating subscription:", subscriptionId);
       const response = await enhancedApi.post(`/subscriptions/${subscriptionId}/reactivate`);
-      console.log("✅ Subscription reactivated successfully:", response.data);
       return response.data;
     } catch (error) {
       console.error("❌ Failed to reactivate subscription:", error);
@@ -217,9 +196,7 @@ class SubscriptionService {
   async getSubscriptionAnalytics(userId = null) {
     try {
       const url = userId ? `/subscriptions/analytics?userId=${userId}` : "/subscriptions/analytics";
-      console.log("📊 Fetching subscription analytics:", url);
       const response = await enhancedApi.get(url);
-      console.log("✅ Subscription analytics retrieved:", response.data);
       return response.data;
     } catch (error) {
       console.error("❌ Failed to get subscription analytics:", error);
@@ -234,9 +211,7 @@ class SubscriptionService {
    */
   async getSubscriptionHistory(userId) {
     try {
-      console.log("📜 Fetching subscription history for user:", userId);
       const response = await enhancedApi.get(`/subscriptions/user/${userId}`);
-      console.log("✅ Subscription history retrieved:", response.data);
       return response.data;
     } catch (error) {
       console.error("❌ Failed to get subscription history:", error);
@@ -252,7 +227,6 @@ class SubscriptionService {
    */
   async getSubscriptionForHotel(userId, hotelId) {
     try {
-      console.log("🔍 Fetching subscription for hotel:", hotelId, "user:", userId);
       const subscriptions = await this.getSubscriptionsByUserId(userId);
       
       // Find subscription for the specific hotel
@@ -261,10 +235,8 @@ class SubscriptionService {
       );
       
       if (hotelSubscription) {
-        console.log("✅ Subscription found for hotel:", hotelSubscription);
         return hotelSubscription;
       } else {
-        console.log("ℹ️ No subscription found for hotel:", hotelId);
         return null;
       }
     } catch (error) {
@@ -280,9 +252,7 @@ class SubscriptionService {
    */
   async validateSubscriptionStatus(subscriptionId) {
     try {
-      console.log("🔍 Validating subscription status:", subscriptionId);
       const response = await enhancedApi.get(`/subscriptions/${subscriptionId}/validate`);
-      console.log("✅ Subscription status validated:", response.data);
       return response.data;
     } catch (error) {
       console.error("❌ Failed to validate subscription status:", error);
@@ -297,9 +267,7 @@ class SubscriptionService {
    */
   async getUpcomingRenewals(days = 7) {
     try {
-      console.log("📅 Fetching upcoming renewals for next", days, "days");
       const response = await enhancedApi.get(`/subscriptions/renewals/upcoming?days=${days}`);
-      console.log("✅ Upcoming renewals retrieved:", response.data);
       return response.data;
     } catch (error) {
       console.error("❌ Failed to get upcoming renewals:", error);
@@ -315,11 +283,9 @@ class SubscriptionService {
    */
   async sendSubscriptionReminder(subscriptionId, reminderType = "EXPIRATION") {
     try {
-      console.log("📧 Sending subscription reminder:", subscriptionId, reminderType);
       const response = await enhancedApi.post(`/subscriptions/${subscriptionId}/reminder`, { 
         reminderType 
       });
-      console.log("✅ Subscription reminder sent:", response.data);
       return response.data;
     } catch (error) {
       console.error("❌ Failed to send subscription reminder:", error);

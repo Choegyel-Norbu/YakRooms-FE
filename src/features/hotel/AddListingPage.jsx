@@ -243,8 +243,6 @@ const AddListingPage = () => {
         (position) => {
           const { latitude, longitude, accuracy } = position.coords;
           
-          console.log(`Location found: ${latitude}, ${longitude} (accuracy: ${accuracy}m)`);
-          
           // Update form data with coordinates
           setFormData(prev => ({
             ...prev,
@@ -269,11 +267,8 @@ const AddListingPage = () => {
         },
         // Error callback
         (error) => {
-          console.log(`Geolocation error: ${error.code} - ${error.message}`);
-          
           // If high accuracy failed due to timeout, try with lower accuracy
           if (error.code === error.TIMEOUT && useHighAccuracy) {
-            console.log("High accuracy timed out, trying with lower accuracy...");
             setLocationState(prev => ({
               ...prev,
               locationError: "High accuracy location timed out, trying approximate location..."
@@ -700,7 +695,6 @@ const AddListingPage = () => {
         }
       });
 
-      console.log("User ID: " + userId);
       const res = await api.post(`/hotels/${userId}`, updatedFormData);
 
       if (res.status === 200) {
@@ -714,9 +708,6 @@ const AddListingPage = () => {
 
         // Store the new hotel ID for subscription page
         sessionStorage.setItem('newHotelId', newHotelId.toString());
-
-        console.log('🏨 New hotel created and set as selected:', newHotelId);
-        console.log('📋 hotelIds array set to:', [newHotelId]);
       }
       setIsSubmitted(true);
     } catch (error) {

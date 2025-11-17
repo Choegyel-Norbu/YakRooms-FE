@@ -203,7 +203,6 @@ class CrossBrowserStorage {
       try {
         const sessionValue = sessionStorage.getItem(key);
         if (sessionValue !== null) {
-          console.log(`Recovered value from sessionStorage for key: ${key}`);
           return this.parseValue(sessionValue, defaultValue);
         }
       } catch (sessionError) {
@@ -212,7 +211,6 @@ class CrossBrowserStorage {
       
       // Try memory storage as last resort
       if (this.memoryStorage.has(key)) {
-        console.log(`Recovered value from memory storage for key: ${key}`);
         return this.memoryStorage.get(key);
       }
       
@@ -276,14 +274,11 @@ class CrossBrowserStorage {
 
   // Handle storage errors with platform-specific recovery
   handleStorageError(key, defaultValue, strategy) {
-    console.log(`Attempting ${strategy.fallback} recovery for key: ${key}`);
-    
     // Try sessionStorage fallback
     if (strategy.fallback === 'sessionStorage') {
       try {
         const sessionValue = sessionStorage.getItem(key);
         if (sessionValue !== null) {
-          console.log(`Recovered value from sessionStorage for key: ${key}`);
           return this.parseValue(sessionValue, defaultValue);
         }
       } catch (sessionError) {
@@ -293,7 +288,6 @@ class CrossBrowserStorage {
     
     // Try memory storage as last resort
     if (strategy.backup === 'memory' && this.memoryStorage.has(key)) {
-      console.log(`Recovered value from memory storage for key: ${key}`);
       return this.memoryStorage.get(key);
     }
     
@@ -387,7 +381,6 @@ class CrossBrowserStorage {
     if (strategy.fallback === 'sessionStorage') {
       try {
         sessionStorage.setItem(key, stringValue);
-        console.log(`Successfully stored in sessionStorage as fallback`);
         return true;
       } catch (sessionError) {
         console.error('SessionStorage fallback failed:', sessionError);
@@ -398,7 +391,6 @@ class CrossBrowserStorage {
     if (strategy.backup === 'memory') {
       try {
         this.memoryStorage.set(key, this.parseValue(stringValue));
-        console.log(`Successfully stored in memory storage as fallback`);
         return true;
       } catch (memoryError) {
         console.error('Memory storage fallback failed:', memoryError);
@@ -662,7 +654,6 @@ class CrossBrowserStorage {
       try {
         const stringValue = this.stringifyValue(value);
         localStorage.setItem(key, stringValue);
-        console.log(`Successfully stored ${key} after cleanup`);
         return true;
       } catch (retryError) {
         console.error(`Retry failed for ${key}:`, retryError);

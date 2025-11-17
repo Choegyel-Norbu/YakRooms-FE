@@ -202,9 +202,6 @@ const SuperAdmin = () => {
 
         setNotifications(sortedNotifications);
         setUnreadCount(unreadNotifications.length);
-
-        console.log("[API] Fetched super admin notifications:", sortedNotifications);
-        console.log("[API] Unread count:", unreadNotifications.length);
       } catch (error) {
         console.error("[API] Error fetching notifications:", error);
       } finally {
@@ -228,8 +225,6 @@ const SuperAdmin = () => {
         };
 
         const response = await api.get("/notifications/admin/all", { params });
-        
-        console.log("[DEBUG] All notifications API response:", response.data);
         
         setAllNotifications(response.data.content || []);
         setAllNotificationsPagination((prev) => ({
@@ -260,32 +255,13 @@ const SuperAdmin = () => {
 
         const response = await api.get("/hotels/deletion-requests", { params });
         
-        console.log("[DEBUG] Raw API response:", response.data);
-        console.log("[DEBUG] Content array:", response.data.content);
-        
         // For debugging - show all hotels first, then filter
         const allHotels = response.data.content || [];
-        console.log("[DEBUG] All hotels:", allHotels);
-        console.log("[DEBUG] All hotels length:", allHotels.length);
-        
-        // Check each hotel's deletionRequested status
-        allHotels.forEach((hotel, index) => {
-          console.log(`[DEBUG] Hotel ${index}:`, {
-            id: hotel.id,
-            name: hotel.name,
-            deletionRequested: hotel.deletionRequested,
-            deletionReason: hotel.deletionReason,
-            deletionRequestedAt: hotel.deletionRequestedAt
-          });
-        });
         
         // Filter hotels that have deletion requests
         const hotelsWithDeletionRequests = allHotels.filter(
           hotel => hotel.deletionRequested === true
         );
-        
-        console.log("[DEBUG] Filtered hotels with deletion requests:", hotelsWithDeletionRequests);
-        console.log("[DEBUG] Number of hotels with deletion requests:", hotelsWithDeletionRequests.length);
         
         // TEMPORARY: Set all hotels for debugging
         setDeletionRequests(allHotels);
@@ -317,8 +293,6 @@ const SuperAdmin = () => {
 
         const response = await api.get("/reviews/deleted/paginated", { params });
         
-        console.log("[DEBUG] Reviews API response:", response.data);
-        
         setReviews(response.data.content || []);
         setReviewsPagination((prev) => ({
           ...prev,
@@ -347,8 +321,6 @@ const SuperAdmin = () => {
         };
 
         const response = await api.get("/feedbacks", { params });
-        
-        console.log("[DEBUG] Feedbacks API response:", response.data);
         
         setFeedbacks(response.data.content || []);
         setFeedbacksPagination((prev) => ({
@@ -383,8 +355,6 @@ const SuperAdmin = () => {
 
           const response = await api.get("/bookings/search/hotel-name", { params });
           
-          console.log("[DEBUG] Hotel name search API response:", response.data);
-          
           setBookings(response.data.content || []);
           setBookingsPagination((prev) => ({
             ...prev,
@@ -399,8 +369,6 @@ const SuperAdmin = () => {
           };
 
           const response = await api.get("/bookings/all-with-details", { params });
-          
-          console.log("[DEBUG] Bookings API response:", response.data);
           
           setBookings(response.data.content || []);
           setBookingsPagination((prev) => ({
@@ -432,8 +400,6 @@ const SuperAdmin = () => {
         };
 
         const response = await api.get("/subscriptions", { params });
-        
-        console.log("[DEBUG] Subscriptions API response:", response.data);
         
         setSubscriptions(response.data.content || []);
         setSubscriptionsPagination((prev) => ({
@@ -620,14 +586,11 @@ const SuperAdmin = () => {
       // Extract notification IDs
       const notificationIds = notifications.map(notif => notif.id);
       
-      console.log("[DEBUG] Deleting notifications with IDs:", notificationIds);
-      
       await api.delete("/notifications/bulk", {
         data: notificationIds
       });
       setNotifications([]);
       setUnreadCount(0);
-      console.log("[API] Successfully deleted all notifications");
     } catch (error) {
       console.error("[API] Error deleting notifications:", error);
     }
@@ -997,7 +960,6 @@ const SuperAdmin = () => {
 
   // Transfer form handlers
   const handleTransferSelect = (booking) => {
-    console.log('Selected booking for transfer:', booking);
     setSelectedBookingForTransfer(booking);
     setJournalNumber("");
   };
@@ -1010,7 +972,6 @@ const SuperAdmin = () => {
 
   // Extension handlers
   const handleExtensionSelect = (booking) => {
-    console.log('Selected booking for extension:', booking);
     setSelectedBookingForExtension(booking);
     setNewCheckOutDate("");
     setExtensionAmount("");
@@ -1043,7 +1004,6 @@ const SuperAdmin = () => {
       const response = await api.put(`/bookings/${selectedBookingForExtension.id}/extend`, payload);
       
       if (response.status === 200) {
-        console.log('Booking extended successfully:', response.data);
         // Refresh bookings data
         fetchBookings();
         handleExtensionCancel();
@@ -2631,10 +2591,6 @@ const SuperAdmin = () => {
   };
 
   const HotelDeletionRequestsTable = () => {
-    console.log("[DEBUG] HotelDeletionRequestsTable render - deletionRequests:", deletionRequests);
-    console.log("[DEBUG] HotelDeletionRequestsTable render - loadingDeletionRequests:", loadingDeletionRequests);
-    console.log("[DEBUG] HotelDeletionRequestsTable render - deletionRequests.length:", deletionRequests.length);
-    
     return (
       <Card className="mb-6">
         <CardHeader>
@@ -3372,8 +3328,6 @@ const SuperAdmin = () => {
         try {
           const response = await api.get("/bookings/all");
           allBookings = response.data || [];
-          
-          console.log(`[EXPORT] Fetched ${allBookings.length} bookings for export`);
         } catch (error) {
           console.error("Error fetching all bookings for export:", error);
           toast.dismiss(loadingToast);

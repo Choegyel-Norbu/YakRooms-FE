@@ -762,29 +762,29 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
 
                 {!isEditing ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                      <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center">
-                        <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                        <svg className="h-4 w-4 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-green-900 dark:text-green-100">Check-in Time</p>
-                        <p className="text-xs text-green-600 dark:text-green-400">
+                        <p className="text-sm font-medium text-foreground">Check-in Time</p>
+                        <p className="text-xs text-muted-foreground">
                           {hotel.checkinTime || "01:00:00"}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                      <div className="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center">
-                        <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                        <svg className="h-4 w-4 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-orange-900 dark:text-orange-100">Check-out Time</p>
-                        <p className="text-xs text-orange-600 dark:text-orange-400">
+                        <p className="text-sm font-medium text-foreground">Check-out Time</p>
+                        <p className="text-xs text-muted-foreground">
                           {hotel.checkoutTime || "01:00:00"}
                         </p>
                       </div>
@@ -1050,15 +1050,15 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                     {(hotel.accountNumber || hotel.accountHolderName || hotel.bankType) ? (
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {hotel.bankType && (
-                          <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                            <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center">
-                              <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                              <svg className="h-4 w-4 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                               </svg>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-green-900 dark:text-green-100">Bank</p>
-                              <p className="text-xs text-green-600 dark:text-green-400 truncate">
+                              <p className="text-sm font-medium text-foreground">Bank</p>
+                              <p className="text-xs text-muted-foreground truncate">
                                 {hotel.bankType}
                               </p>
                             </div>
@@ -1066,15 +1066,15 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                         )}
 
                         {hotel.accountHolderName && (
-                          <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-                              <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                              <svg className="h-4 w-4 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                               </svg>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Account Holder</p>
-                              <p className="text-xs text-blue-600 dark:text-blue-400 truncate">
+                              <p className="text-sm font-medium text-foreground">Account Holder</p>
+                              <p className="text-xs text-muted-foreground truncate">
                                 {hotel.accountHolderName}
                               </p>
                             </div>
@@ -1082,15 +1082,15 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                         )}
 
                         {hotel.accountNumber && (
-                          <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                            <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
-                              <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border">
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                              <svg className="h-4 w-4 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                               </svg>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-purple-900 dark:text-purple-100">Account Number</p>
-                              <p className="text-xs text-purple-600 dark:text-purple-400 truncate">
+                              <p className="text-sm font-medium text-foreground">Account Number</p>
+                              <p className="text-xs text-muted-foreground truncate">
                                 {hotel.accountNumber}
                               </p>
                             </div>
@@ -1100,8 +1100,8 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                     ) : (
                       <div className="text-center py-8 px-4 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20">
                         <div className="flex justify-center space-x-2 mb-3">
-                          <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                            <svg className="h-4 w-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                            <svg className="h-4 w-4 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                             </svg>
                           </div>

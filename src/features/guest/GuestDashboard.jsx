@@ -2191,8 +2191,6 @@ const GuestDashboard = () => {
         prev.map((notif) => ({ ...notif, isRead: true }))
       );
       setUnreadCount(0);
-
-      console.log("[API] Successfully marked all notifications as read");
     } catch (error) {
       console.error("[API] Error marking notifications as read:", error);
     }

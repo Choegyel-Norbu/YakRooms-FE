@@ -133,20 +133,17 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
   useEffect(() => {
     if (!isActive && isScanning) {
       // Stop scanning when component becomes inactive
-      console.log('⏸️ Component deactivated, stopping camera...');
       stopScanning();
     }
   }, [isActive, isScanning]);
 
   const initializeCamera = async () => {
     try {
-      console.log('🎥 Initializing camera...');
       setError(null);
       setHasPermission(null);
       
       // Get available video devices
       const videoInputDevices = await BrowserMultiFormatReader.listVideoInputDevices();
-      console.log('📱 Available video devices:', videoInputDevices);
       setDevices(videoInputDevices);
       
       if (videoInputDevices.length === 0) {
@@ -167,7 +164,6 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       });
       
       const selectedDevice = backCamera || videoInputDevices[0];
-      console.log('🎯 Selected device:', selectedDevice);
       setSelectedDevice(selectedDevice);
       setHasPermission(true);
       
@@ -179,8 +175,6 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
   };
 
   const startScanning = async () => {
-    console.log('🚀 Starting camera scan...');
-    
     if (!readerRef.current) {
       console.error('❌ No reader available');
       setError('QR scanner not initialized. Please refresh the page.');
@@ -206,16 +200,12 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       setError(null);
       setIsScanning(true);
       
-      console.log('📹 Starting camera with device:', selectedDevice.label);
-      console.log('Device ID:', selectedDevice.deviceId);
-      
       // Start continuous scanning with the visible video element
       await readerRef.current.decodeFromVideoDevice(
         selectedDevice.deviceId,
         videoRef.current,
         (scanResult, error) => {
           if (scanResult) {
-            console.log('✅ QR Code detected:', scanResult.getText());
             handleScanResult(scanResult.getText());
           }
           // Ignore NotFoundException as it's normal when no QR code is visible
@@ -225,7 +215,6 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
         }
       );
       
-      console.log('✅ Camera started successfully');
       setHasPermission(true);
       toast.success("Camera Active", {
         description: "Point camera at QR code within the frame",
@@ -266,8 +255,6 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
   };
 
   const stopScanning = () => {
-    console.log('⏹️ Stopping camera scan...');
-    
     if (readerRef.current) {
       try {
         // Stop the video stream from the main video element
@@ -284,8 +271,6 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
         } else if (typeof readerRef.current.stopContinuousDecode === 'function') {
           readerRef.current.stopContinuousDecode();
         }
-        
-        console.log('✅ Camera stopped successfully');
       } catch (err) {
         console.warn('Error stopping scanner:', err);
       }

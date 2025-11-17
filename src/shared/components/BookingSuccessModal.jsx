@@ -22,7 +22,6 @@ const BookingSuccessModal = ({ isOpen, onClose, bookingData }) => {
   const handlePaymentSuccess = (updatedBookingData) => {
     // Update the booking data with payment information
     // This could trigger a refresh of the booking status
-    console.log("Payment completed for booking:", updatedBookingData);
     setShowPaymentDialog(false);
     
     // Update the booking data to reflect payment completion

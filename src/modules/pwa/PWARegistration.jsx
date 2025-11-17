@@ -10,7 +10,6 @@ const PWARegistration = () => {
         window.location.reload();
       },
       onOfflineReady() {
-        console.log('PWA ready for offline use');
       },
     });
   }, []);

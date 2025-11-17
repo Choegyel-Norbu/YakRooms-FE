@@ -25,18 +25,16 @@ const NotificationsComponent = () => {
     if (isAuthenticated && userId) {
       // If there's no client instance, create one.
       if (!clientRef.current) {
-        console.log("Creating new STOMP client...");
         const client = new Client({
           webSocketFactory: () => new SockJS(SOCKET_URL),
           reconnectDelay: 10000, // Automatically reconnect in 10 seconds
           debug: (str) => {
-            console.log("STOMP: " + str);
+            // Debug logging disabled
           },
         });
 
         // This function is called when the client successfully connects to the server.
         client.onConnect = () => {
-          console.log(`WebSocket Connected! Subscribing for user: ${userId}`);
           setIsConnected(true);
 
           // The topic the client will subscribe to, now using the dynamic userId.
@@ -54,7 +52,6 @@ const NotificationsComponent = () => {
         };
 
         client.onDisconnect = () => {
-          console.log("WebSocket Disconnected!");
           setIsConnected(false);
         };
 
@@ -76,7 +73,6 @@ const NotificationsComponent = () => {
     // or when the dependencies (isAuthenticated, userId) change.
     return () => {
       if (clientRef.current && clientRef.current.active) {
-        console.log("Deactivating WebSocket client...");
         clientRef.current.deactivate();
       }
     };

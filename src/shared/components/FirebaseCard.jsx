@@ -76,7 +76,6 @@ function loginUser(email, password) {
   signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
       const user = userCredential.user;
-      console.log("Logged in:", user.email);
     })
     .catch((error) => {
       console.error("Login failed:", error.message);
@@ -87,7 +86,7 @@ function loginUser(email, password) {
 async function getPosts() {
   const querySnapshot = await getDocs(collection(db, "posts"));
   querySnapshot.forEach((doc) => {
-    console.log(doc.id, "=>", doc.data());
+    // Process document data
   });
 }`}</code>
                 </pre>

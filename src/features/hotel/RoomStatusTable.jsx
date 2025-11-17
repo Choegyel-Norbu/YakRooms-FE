@@ -86,13 +86,6 @@ const RoomStatusTable = ({ hotelId }) => {
     setSearchError(false);
     
     try {
-      console.log('Performing search:', {
-        roomNumber: searchQuery.trim(),
-        page: currentPage,
-        size: pageSize,
-        hotelId
-      });
-      
       // Use the provided API endpoint for room search with current page
       const response = await api.get(`/rooms/status/${hotelId}/search`, {
         params: {
@@ -101,8 +94,6 @@ const RoomStatusTable = ({ hotelId }) => {
           size: pageSize
         }
       });
-      
-      console.log('Search response:', response.data);
       
       if (response.status !== 200) {
         throw new Error('Failed to search rooms');
@@ -123,13 +114,6 @@ const RoomStatusTable = ({ hotelId }) => {
       
       setData(searchResult);
       setSearchError(false);
-      
-      console.log('Search results processed:', {
-        totalElements: searchResult.totalElements,
-        totalPages: searchResult.totalPages,
-        currentPage,
-        contentLength: searchResult.content.length
-      });
       
     } catch (err) {
       console.error('Search error details:', err);
