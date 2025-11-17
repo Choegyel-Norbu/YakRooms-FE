@@ -1,16 +1,25 @@
 import React from 'react';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { Button } from './button';
 
-const SearchButton = ({ children, className, ...props }) => {
+const SearchButton = ({ children, className, loading, loadingText, ...props }) => {
   return (
     <Button 
       type="submit" 
       className={className} 
       {...props}
     >
-      <Search className="w-4 h-4 mr-2" />
-      {children}
+      {loading ? (
+        <>
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          {loadingText || children}
+        </>
+      ) : (
+        <>
+          <Search className="w-4 h-4 mr-2" />
+          {children}
+        </>
+      )}
     </Button>
   );
 };

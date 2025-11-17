@@ -328,7 +328,7 @@ export default function TimeBasedBookingDialog({
               {isLoadingBookedDates && (
                 <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <svg className="w-4 h-4 animate-spin text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.646 9.646 8 0 0118 15.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A 8.001 8.001 0 0 0 4.646 9.646 A 8 8 0 0 1 18 15.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span className="text-sm text-blue-700">Loading booking calendar...</span>
                 </div>
