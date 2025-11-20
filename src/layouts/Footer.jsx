@@ -8,8 +8,19 @@ import TikTokIcon from "@/shared/components/TikTokIcon";
 
 const Footer = React.forwardRef((props, ref) => {
   return (
-    <footer ref={ref} className="bg-background border-t">
-      <div className="container mx-auto px-4 py-8">
+    <footer 
+      ref={ref} 
+      className="bg-background border-t relative overflow-hidden"
+      style={{
+        backgroundImage: 'url("/images/bumthang.jpg")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      {/* Subtle overlay to ensure content readability */}
+      <div className="absolute inset-0 bg-background/85 pointer-events-none"></div>
+      <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
