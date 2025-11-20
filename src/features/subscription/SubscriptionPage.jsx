@@ -176,7 +176,7 @@ const SubscriptionPage = () => {
           : subscriptionPlan === 'BASIC'
             ? 'Basic Subscription'
             : 'Pro Subscription',
-      price: 'Nu. 1,000',
+      price: 'Nu. 999',
       period: 'per month',
       description: isProActive 
         ? 'Your hotel listing is active and discoverable to guests worldwide.'
@@ -239,7 +239,7 @@ const SubscriptionPage = () => {
         nextBillingDate: trialEndDate.toISOString(),
         cancelDate: null,
         lastPaymentDate: null,
-        amount: 1000.0,
+        amount: 999.0,
         notes: "Initial subscription setup for new user"
       };
 
@@ -308,7 +308,7 @@ const SubscriptionPage = () => {
 
       const subscriptionData = {
         subscriptionPlan: 'PRO',
-        amount: 1000.0,
+        amount: 999.0,
         userId: userId,
         hotelId: hotelIdFromStorage
       };
@@ -386,7 +386,7 @@ const SubscriptionPage = () => {
       if (subscriptionPlan === 'TRIAL' && expiresTomorrow) {
         const subscriptionData = {
           subscriptionPlan: 'PRO',
-          amount: 1000.0,
+          amount: 999.0,
           userId: userId,
           hotelId: hotelIdFromStorage
         };
@@ -575,7 +575,7 @@ const SubscriptionPage = () => {
                 <div className="mb-6">
                   <div className="flex items-baseline justify-center">
                     <span className="text-3xl font-extrabold text-orange-500">
-                      Nu. 1,000
+                      Nu. 999
                     </span>
                     <span className="text-gray-600 ml-2 text-sm font-medium">
                       per month
@@ -672,7 +672,7 @@ const SubscriptionPage = () => {
                   <div className="flex items-baseline justify-center">
                     <span className="text-3xl font-extrabold text-blue-500">
                       {subscriptionPlan === 'PRO' || subscriptionPlan === 'PREMIUM' || subscriptionPlan === 'BASIC' 
-                        ? 'Nu. 1,000' 
+                        ? 'Nu. 999' 
                         : 'Free'}
                     </span>
                     <span className="text-gray-600 ml-2 text-sm font-medium">

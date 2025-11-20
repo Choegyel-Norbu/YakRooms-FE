@@ -29,7 +29,7 @@ export const SUBSCRIPTION_PLANS = {
   PRO: {
     id: 'PRO',
     name: 'Pro Subscription',
-    price: 1000,
+    price: 999,
     currency: 'Nu.',
     duration: 1, // month
     features: [
