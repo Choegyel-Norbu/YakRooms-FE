@@ -35,6 +35,11 @@
 <IfModule mod_headers.c>
     Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
     
+    # Referrer Policy
+    # Prevents cross-site referrer leakage by only sending origin (not path/query) for cross-origin requests
+    # Still allows full referrer for same-origin requests (useful for internal analytics)
+    Header always set Referrer-Policy "strict-origin"
+    
     # Content Security Policy (CSP)
     # Protects against XSS, code injection, and malicious script execution
     # Allows: Same-origin resources, Firebase, backend API, UploadThing, payment gateways
