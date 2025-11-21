@@ -48,6 +48,10 @@
           "value": "max-age=31536000; includeSubDomains; preload"
         },
         {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; connect-src 'self' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://ezeeroom-production.up.railway.app https://utfs.io https:; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; worker-src 'self' blob:; manifest-src 'self'; form-action 'self' https:; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests;"
+        },
+        {
           "key": "Cache-Control",
           "value": "public, max-age=0, must-revalidate"
         }
