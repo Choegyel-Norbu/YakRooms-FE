@@ -36,10 +36,10 @@
     Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
     
     # Referrer Policy
-    # Maximum privacy: Never sends referrer header for any requests (same-origin or cross-origin)
-    # Completely prevents referrer leakage, including internal analytics
-    # Use this for maximum security and privacy protection
-    Header always set Referrer-Policy "no-referrer"
+    # Balanced privacy: Sends only origin (not path/query) for cross-origin requests
+    # Allows OAuth flows to work while preventing sensitive path/parameter leakage
+    # Full referrer still sent for same-origin requests (useful for internal analytics)
+    Header always set Referrer-Policy "strict-origin"
     
     # Content Security Policy (CSP)
     # Protects against XSS, code injection, and malicious script execution
