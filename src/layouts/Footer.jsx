@@ -11,12 +11,6 @@ const Footer = React.forwardRef((props, ref) => {
     <footer 
       ref={ref} 
       className="bg-background border-t relative overflow-hidden"
-      style={{
-        backgroundImage: 'url("/images/bumthang.jpg")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
     >
       {/* Subtle overlay to ensure content readability */}
       <div className="absolute inset-0 bg-background/85 pointer-events-none"></div>

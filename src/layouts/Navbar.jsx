@@ -55,7 +55,7 @@ import {
 import { EzeeRoomLogo } from "@/shared/components";
 import HotelSelectionDialog from "@/shared/components/HotelSelectionDialog";
 
-const Navbar = ({ onLoginClick, onContactClick }) => {
+const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
   const navigate = useNavigate();
   const { isAuthenticated, logout, userName, email, roles, pictureURL, hasRole, getPrimaryRole, getCurrentActiveRole, switchToRole, selectedHotelId, userHotels, userId, fetchUserHotels, setSelectedHotelId, subscriptionIsActive, subscriptionPlan } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -119,6 +119,16 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
     { name: "Contact", path: "#contact", icon: Mail, description: "Get in touch", isContact: true },
   ];
 
+  // Helper function to format role name to title case
+  const formatRoleLabel = (role) => {
+    if (!role) return role;
+    // Handle snake_case and convert to Title Case
+    return role
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   // Helper function to get role display info
   const getRoleDisplayInfo = (role, isActive = false) => {
     const roleInfo = {
@@ -136,8 +146,22 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           : 'bg-blue-100 text-blue-800 border-blue-200',
         ringColor: 'rgb(59 130 246 / 0.4)'
       },
+      'MANAGER': { 
+        label: 'Manager', 
+        color: isActive 
+          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 shadow-lg shadow-blue-500/25' 
+          : 'bg-blue-100 text-blue-800 border-blue-200',
+        ringColor: 'rgb(59 130 246 / 0.4)'
+      },
       'STAFF': { 
         label: 'Staff', 
+        color: isActive 
+          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-500/25' 
+          : 'bg-green-100 text-green-800 border-green-200',
+        ringColor: 'rgb(34 197 94 / 0.4)'
+      },
+      'FRONTDESK': { 
+        label: 'Front Desk', 
         color: isActive 
           ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-500/25' 
           : 'bg-green-100 text-green-800 border-green-200',
@@ -152,7 +176,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
       },
     };
     return roleInfo[role] || { 
-      label: role, 
+      label: formatRoleLabel(role), 
       color: isActive 
         ? 'bg-gradient-to-r from-gray-500 to-gray-600 text-white border-gray-500 shadow-lg shadow-gray-500/25' 
         : 'bg-gray-100 text-gray-800 border-gray-200',
@@ -275,17 +299,23 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
     });
 
     return (
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            <Avatar className="h-10 w-10 border-2 border-yellow-500">
-              <AvatarImage src={pictureURL} alt={userName} />
-              <AvatarFallback className="bg-slate-700 text-yellow-500">
-                {userName?.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-          </Button>
-        </DropdownMenuTrigger>
+      <div className="flex items-center gap-2">
+        {/* Role Badge beside Avatar */}
+        <span className="hidden lg:inline-flex items-center text-sm font-medium text-muted-foreground">
+          {roleDisplayInfo.label}
+        </span>
+        
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+              <Avatar className="h-10 w-10 border-2 border-yellow-500">
+                <AvatarImage src={pictureURL} alt={userName} />
+                <AvatarFallback className="bg-slate-700 text-yellow-500">
+                  {userName?.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
         <DropdownMenuContent
           className="w-64"
           align="end"
@@ -296,19 +326,17 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           collisionPadding={10}
         >
           <DropdownMenuLabel className="font-normal">
-            <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{userName}</p>
-              <p className="text-xs leading-none text-muted-foreground">
-                {email}
-              </p>
-              {/* Enhanced Current Role Badge with bright colors */}
-              <div className="mt-2 flex items-center gap-2">
-                <span className={`inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-bold border-2 ${roleDisplayInfo.color} ring-2 ring-offset-1 ring-offset-background animate-pulse`} 
-                      style={{ ringColor: roleDisplayInfo.ringColor }}>
-                  <div className="w-1.5 h-1.5 rounded-full bg-white/90 mr-1.5 animate-pulse"></div>
-                  {roleDisplayInfo.label}
-                </span>
-                <span className="text-xs text-emerald-600 font-bold dark:text-emerald-400">● ACTIVE</span>
+            <div className="flex flex-col space-y-2">
+              <div>
+                <p className="text-sm font-medium leading-none">{userName}</p>
+                <p className="text-xs leading-none text-muted-foreground mt-0.5">
+                  {email}
+                </p>
+              </div>
+              {/* Minimal Current Role Badge */}
+              <div className="flex items-center gap-2 pt-1">
+                <div className="w-2.5 h-2.5 rounded-full bg-primary"></div>
+                <span className="text-sm font-medium text-muted-foreground">{roleDisplayInfo.label}</span>
               </div>
             </div>
           </DropdownMenuLabel>
@@ -316,37 +344,30 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           
           {/* Dashboard Navigation */}
           {(hasRole("HOTEL_ADMIN") || hasRole("SUPER_ADMIN") || hasRole("GUEST") || hasRole("STAFF")) && (
-            <DropdownMenuItem onClick={handleDashboardNavigation}>
+            <DropdownMenuItem onClick={handleDashboardNavigation} className="cursor-pointer">
               <LayoutDashboard className="mr-2 h-4 w-4" />
               <span>Dashboard</span>
             </DropdownMenuItem>
           )}
 
-
           {/* Role Switching Section */}
           {availableRoles.length > 0 && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-muted-foreground/40"></div>
-                Switch User Role
+              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+                Switch Role
               </DropdownMenuLabel>
               {availableRoles.map((role) => {
-                const roleInfo = getRoleDisplayInfo(role, false); // Non-active styling
+                const roleInfo = getRoleDisplayInfo(role, false);
                 return (
                   <DropdownMenuItem
                     key={role}
                     onClick={() => handleRoleSwitch(role)}
-                    className="cursor-pointer hover:bg-accent/50 transition-colors"
+                    className="cursor-pointer"
                   >
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-muted-foreground/30"></div>
-                        <span className="text-sm font-medium">{roleInfo.label}</span>
-                      </div>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${roleInfo.color} opacity-75`}>
-                        {roleInfo.label}
-                      </span>
+                    <div className="flex items-center gap-2 w-full">
+                      <div className="w-2 h-2 rounded-full bg-muted-foreground/50"></div>
+                      <span className="text-xs">{roleInfo.label}</span>
                     </div>
                   </DropdownMenuItem>
                 );
@@ -364,6 +385,7 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      </div>
     );
   };
 
@@ -504,14 +526,9 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           <div className="flex-1 min-w-0 pr-4">
             <p className="text-sm font-medium truncate">{userName}</p>
             <p className="text-xs text-muted-foreground truncate">{email}</p>
-            {/* Enhanced Current Role Badge for mobile with bright colors */}
+            {/* Minimal Current Role Badge for mobile */}
             <div className="mt-1.5 flex items-center gap-2">
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border-2 ${roleDisplayInfo.color} ring-2 ring-offset-1 ring-offset-background animate-pulse`} 
-                    style={{ ringColor: roleDisplayInfo.ringColor }}>
-                <div className="w-1 h-1 rounded-full bg-white/90 mr-1 animate-pulse"></div>
-                {roleDisplayInfo.label}
-              </span>
-              <span className="text-xs text-emerald-600 font-bold dark:text-emerald-400">● ACTIVE</span>
+              <span className="text-sm font-medium text-muted-foreground">{roleDisplayInfo.label}</span>
             </div>
           </div>
           
@@ -554,31 +571,27 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
           {/* Role Switching Section */}
           {availableRoles.length > 0 && (
             <>
-              <div className="px-3 py-1.5 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-muted-foreground/40"></div>
+              <div className="px-3 py-1.5">
                 <p className="text-xs font-medium text-muted-foreground">
-                  Switch User Role
+                  Switch Role
                 </p>
               </div>
               {availableRoles.map((role) => {
-                const roleInfo = getRoleDisplayInfo(role, false); // Non-active styling
+                const roleInfo = getRoleDisplayInfo(role, false);
                 return (
                   <SheetClose asChild key={role}>
                     <Button
                       variant="ghost"
-                      className="w-full justify-between px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent/50 transition-colors"
+                      className="w-full justify-start px-3 py-2 text-sm hover:bg-accent transition-colors"
                       onClick={() => {
                         handleRoleSwitch(role);
                         setIsMobileMenuOpen(false);
                       }}
                     >
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-muted-foreground/30"></div>
+                        <div className="w-2 h-2 rounded-full bg-muted-foreground/50"></div>
                         <span>{roleInfo.label}</span>
                       </div>
-                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium border ${roleInfo.color} opacity-75`}>
-                        {roleInfo.label}
-                      </span>
                     </Button>
                   </SheetClose>
                 );
@@ -594,8 +607,10 @@ const Navbar = ({ onLoginClick, onContactClick }) => {
   return (
     <header
       className={cn(
-        "fixed top-0 w-full z-50 transition-all duration-500 ease-in-out",
-        "translate-y-0 opacity-100",
+        "fixed top-0 w-full z-50 transition-all duration-1000 ease-in-out",
+        isVisible 
+          ? "translate-y-0 opacity-100" 
+          : "-translate-y-full opacity-0",
         isScrolled
           ? "bg-white shadow-md"
           : "bg-white"

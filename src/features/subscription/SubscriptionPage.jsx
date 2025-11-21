@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/components/card';
 import { Button } from '@/shared/components/button';
-import { Check, Loader2, ArrowLeft, CreditCard, Clock } from 'lucide-react';
+import { Check, ArrowLeft, CreditCard, Clock } from 'lucide-react';
+import { Spinner } from '@/components/ui/ios-spinner';
 import { enhancedApi } from '@/shared/services/Api';
 import { useAuth } from '@/features/authentication/AuthProvider';
 import { toast } from 'sonner';
@@ -620,7 +621,7 @@ const SubscriptionPage = () => {
                 >
                   {isSubscribing ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Spinner size="sm" className="mr-2" />
                       {subscriptionPlan === 'TRIAL' ? 'Subscribing...' : 'Renewing...'}
                     </>
                   ) : (
@@ -879,7 +880,7 @@ const SubscriptionPage = () => {
                 >
                   {isSubscribing ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Spinner size="sm" className="mr-2" />
                       {plan.isExpired ? 'Processing...' : 'Starting Trial...'}
                     </>
                   ) : (

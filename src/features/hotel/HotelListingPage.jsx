@@ -189,6 +189,8 @@ const HotelListingPage = () => {
   const abortControllerRef = useRef(null);
   const lastRequestRef = useRef(null);
   const pendingRequestRef = useRef(null); // Track pending requests to prevent duplicates
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const lastScrollY = useRef(0);
 
   // Memoized hotel types to prevent recreation on every render
   const hotelTypes = useMemo(() => [
@@ -397,6 +399,36 @@ const HotelListingPage = () => {
     };
   }, []);
 
+  // Track scroll direction for navbar visibility
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Show navbar when at top of page
+      if (currentScrollY < 10) {
+        setIsNavbarVisible(true);
+        lastScrollY.current = currentScrollY;
+        return;
+      }
+      
+      // Determine scroll direction
+      const scrollingDown = currentScrollY > lastScrollY.current;
+      const scrollingUp = currentScrollY < lastScrollY.current;
+      
+      // Show when scrolling up, hide when scrolling down
+      if (scrollingUp) {
+        setIsNavbarVisible(true);
+      } else if (scrollingDown) {
+        setIsNavbarVisible(false);
+      }
+      
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   // Memoized handlers to prevent unnecessary re-renders
   const handleSearch = useCallback(() => {
     const isSearchActive = searchState.district.trim() || searchState.locality.trim() || 
@@ -557,7 +589,11 @@ const HotelListingPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header with Logo */}
-      <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-20 shadow-sm">
+      <header className={`border-b sticky top-0 bg-background/95 backdrop-blur z-20 shadow-sm transition-all duration-1000 ease-in-out ${
+        isNavbarVisible 
+          ? "translate-y-0 opacity-100" 
+          : "-translate-y-full opacity-0"
+      }`}>
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             <Link to="/" className="flex items-center">

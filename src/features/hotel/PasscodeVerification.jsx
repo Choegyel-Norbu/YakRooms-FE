@@ -12,7 +12,6 @@ import { Alert, AlertDescription } from "@/shared/components/alert";
 import { Badge } from "@/shared/components/badge";
 import { Separator } from "@/shared/components/separator";
 import {
-  Loader2,
   CheckCircle,
   XCircle,
   Calendar,
@@ -21,6 +20,7 @@ import {
   Bed,
   Clock,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/ios-spinner";
 import api from "../../shared/services/Api";
 
 const PasscodeVerification = () => {
@@ -193,7 +193,7 @@ const PasscodeVerification = () => {
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Spinner size="sm" className="mr-2" />
                       Verifying...
                     </>
                   ) : (
@@ -261,7 +261,7 @@ const PasscodeVerification = () => {
                       {bookingData.status}
                     </Badge>
                     {checkingIn && (
-                      <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                      <Spinner size="sm" className="text-muted-foreground" />
                     )}
                   </div>
                 </div>
@@ -387,7 +387,7 @@ const PasscodeVerification = () => {
                     >
                       {checkingIn ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Spinner size="sm" className="mr-2" />
                           Checking In...
                         </>
                       ) : bookingData?.status === "CHECKED_IN" ? (

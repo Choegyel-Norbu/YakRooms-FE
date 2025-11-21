@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, AlertTriangle, CheckCircle } from "lucide-react";
+import { Spinner } from "@/components/ui/ios-spinner";
 import { Button } from "@/shared/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/card";
 import { RadioGroup, RadioGroupItem } from "@/shared/components/radio-group";
@@ -429,7 +430,7 @@ const AccountDeletionPage = () => {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Spinner size="sm" className="mr-2" />
                   Submitting Request...
                 </>
               ) : (

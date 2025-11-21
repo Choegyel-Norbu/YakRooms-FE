@@ -322,7 +322,20 @@ export default function TimeBasedBookingDialog({
             <DialogTitle>Hourly Booking - {room.hotelName}</DialogTitle>
             <DialogDescription>Room {room.roomNumber} - Hourly Booking</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="relative">
+            {/* Background dragon image - covers full form */}
+            <div 
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: 'url(/images/dragon.png)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'repeat',
+                opacity: 0.15,
+                zIndex: 0
+              }}
+            />
+            <div className="relative z-10 flex flex-col">
             <div className="grid gap-4 py-4 max-h-[50vh] overflow-y-auto pr-2">
               {/* Loading indicator for booked dates */}
               {isLoadingBookedDates && (
@@ -796,18 +809,6 @@ export default function TimeBasedBookingDialog({
                   <span>Transaction Total</span>
                   <span>Nu {calculateTxnTotalPrice().toFixed(2)}</span>
                 </div>
-                {(!bookingDetails.checkInDate || !bookingDetails.checkInTime || !bookingDetails.bookHours) && (
-                  <p className="text-sm text-amber-600">
-                    {!bookingDetails.checkInDate 
-                      ? "Please select a check-in date."
-                      : !bookingDetails.checkInTime
-                      ? "Please select a check-in time."
-                      : !bookingDetails.bookHours
-                      ? "Please select booking duration."
-                      : "Please complete all required fields."
-                    }
-                  </p>
-                )}
                 
                 {/* Date validation helper */}
                 {(errors.checkInDate || errors.checkInTime || errors.bookHours) && (
@@ -845,7 +846,7 @@ export default function TimeBasedBookingDialog({
                 )}
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="relative z-10">
               <DialogClose asChild>
                 <Button type="button" variant="outline">
                   Cancel
@@ -855,6 +856,7 @@ export default function TimeBasedBookingDialog({
                 {isBookingLoading ? "Booking..." : "Book Hourly"}
               </Button>
             </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>

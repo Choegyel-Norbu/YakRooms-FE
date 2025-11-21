@@ -12,7 +12,6 @@ import { Alert, AlertDescription } from "@/shared/components/alert";
 import { Badge } from "@/shared/components/badge";
 import { Separator } from "@/shared/components/separator";
 import {
-  Loader2,
   CheckCircle,
   XCircle,
   Calendar,
@@ -22,6 +21,7 @@ import {
   Clock,
   CreditCard,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/ios-spinner";
 import { useAuth } from "../authentication";
 import api from "../../shared/services/Api";
 
@@ -296,7 +296,7 @@ const CIDVerification = () => {
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Spinner size="sm" className="mr-2" />
                       Verifying...
                     </>
                   ) : (
@@ -493,7 +493,7 @@ const CIDVerification = () => {
                           >
                             {checkingIn && selectedBookingId === booking.bookingId ? (
                               <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <Spinner size="sm" className="mr-2" />
                                 Checking In...
                               </>
                             ) : booking.status === "CHECKED_IN" ? (
@@ -528,7 +528,7 @@ const CIDVerification = () => {
                         {(bookings[0] || bookingData)?.status}
                       </Badge>
                       {checkingIn && (
-                        <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                        <Spinner size="sm" className="text-muted-foreground" />
                       )}
                     </div>
                   </div>
@@ -654,7 +654,7 @@ const CIDVerification = () => {
                     >
                       {checkingIn ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Spinner size="sm" className="mr-2" />
                           Checking In...
                         </>
                         ) : (bookings[0] || bookingData)?.status === "CHECKED_IN" ? (

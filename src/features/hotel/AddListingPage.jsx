@@ -18,9 +18,9 @@ import {
   Camera,
   Shield,
   Navigation,
-  Loader2,
   AlertCircle
 } from "lucide-react";
+import { Spinner } from "@/components/ui/ios-spinner";
 
 import { Button } from "@/shared/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/card";
@@ -748,7 +748,7 @@ const AddListingPage = () => {
               notify you once it's approved.
             </p>
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Spinner size="sm" />
               <span>Redirecting...</span>
             </div>
           </CardContent>
@@ -1112,7 +1112,7 @@ const AddListingPage = () => {
                       >
                         {locationState.isGettingLocation ? (
                           <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Spinner size="sm" />
                             Getting location...
                           </>
                         ) : (
@@ -1190,6 +1190,13 @@ const AddListingPage = () => {
                           className={`w-full ${formData.longitude ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : ""}`}
                         />
                       </div>
+                    </div>
+
+                    {/* Manual Entry Message */}
+                    <div className="mt-2">
+                      <p className="text-xs text-muted-foreground italic">
+                        💡 Tip: Enter coordinates manually for more accuracy
+                      </p>
                     </div>
 
                     {/* Coordinates Display */}

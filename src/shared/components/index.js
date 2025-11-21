@@ -41,7 +41,8 @@ export { default as TailwindCard } from './TailwindCard';
 export { default as EzeeRoomLogo } from './EzeeRoomLogo';
 
 // Loader Components
-export { default as SimpleSpinner } from './SimpleSpinner';
+export { Spinner } from '@/components/ui/ios-spinner';
+export { IOSSpinner } from './ios-spinner'; // Legacy export - consider migrating to Spinner
 
 // Other Shared Components
 export { default as AvailabilityDatePicker } from './AvailabilityDatePicker';

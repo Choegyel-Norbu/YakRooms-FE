@@ -25,10 +25,10 @@ import {
   ChevronDown,
   Upload,
   Camera,
-  Loader2,
   Check,
   HelpCircle,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/ios-spinner";
 import {
   Card,
   CardContent,
@@ -1360,7 +1360,7 @@ const HotelAdminDashboard = () => {
                           >
                             {isUploadingFiles ? (
                               <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <Spinner size="sm" className="mr-2" />
                                 Uploading Documents...
                               </>
                             ) : (
@@ -1441,7 +1441,6 @@ const HotelAdminDashboard = () => {
                     </div>
                   </div>
                 </div>
-
 
                 {/* Top Hotel Congratulations Section */}
 

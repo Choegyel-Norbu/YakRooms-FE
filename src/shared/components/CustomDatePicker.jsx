@@ -254,7 +254,7 @@ const CustomDatePicker = ({
           flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all duration-200
           ${disabled 
             ? 'bg-gray-100 cursor-not-allowed border-gray-200' 
-            : 'bg-white hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200'
+            : 'bg-transparent hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200'
           }
           ${error ? 'border-red-500' : 'border-gray-300'}
           ${isOpen ? 'border-blue-500 ring-2 ring-blue-200' : ''}

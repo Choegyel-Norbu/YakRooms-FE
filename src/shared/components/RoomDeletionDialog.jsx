@@ -9,8 +9,8 @@ import {
   XCircle,
   AlertCircle,
   Trash2,
-  Loader2
 } from 'lucide-react';
+import { Spinner } from "@/components/ui/ios-spinner";
 import { toast } from 'sonner';
 
 // ShadCN UI Components
@@ -256,7 +256,7 @@ const RoomDeletionDialog = ({
           {isChecking && (
             <div className="flex items-center justify-center py-8">
               <div className="flex items-center gap-3">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <Spinner size="md" className="text-primary" />
                 <span className="text-sm text-muted-foreground">Checking room status...</span>
               </div>
             </div>
@@ -370,7 +370,7 @@ const RoomDeletionDialog = ({
             >
               {isDeleting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Spinner size="sm" className="mr-2" />
                   Deleting...
                 </>
               ) : (

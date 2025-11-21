@@ -13,7 +13,6 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle,
-  Loader2,
   Star,
   StarHalf,
   Home,
@@ -33,6 +32,7 @@ import {
   Instagram,
   Menu,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/ios-spinner";
 
 import { Button } from "@/shared/components/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/components/tooltip";
@@ -229,7 +229,7 @@ const RoomImageCarousel = ({ images, roomNumber, roomType, isActive }) => {
         {imageLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
             <div className="flex items-center gap-2 text-slate-600">
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Spinner size="md" />
               <span className="text-sm">Loading...</span>
             </div>
           </div>
@@ -1401,7 +1401,7 @@ const HotelDetailsPage = () => {
                           >
                             {testimonialsState.loading ? (
                               <>
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Spinner size="sm" />
                                 Loading...
                               </>
                             ) : (

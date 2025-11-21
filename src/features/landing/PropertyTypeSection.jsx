@@ -196,15 +196,13 @@ const PropertyTypeSection = () => {
                       </p>
                     </div>
                   </div>
+                  
+                  {/* Hover Indicator Bar */}
+                  <div className="mt-2 h-1 w-0 mx-auto bg-primary transition-all duration-300 group-hover:w-3/4 rounded-full" />
                 </div>
               );
             })}
           </div>
-
-          {/* Gradient Fade on Right - Desktop */}
-          {canScrollRight && (
-            <div className="hidden md:block absolute top-0 right-0 w-20 h-full pointer-events-none bg-gradient-to-l from-white dark:from-slate-900 to-transparent" />
-          )}
         </div>
 
         {/* Mobile Navigation Hint */}

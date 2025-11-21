@@ -981,7 +981,20 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
             <DialogTitle>Create New Booking</DialogTitle>
             <DialogDescription>Book a room for a customer (registered user or walk-in guest)</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="relative">
+            {/* Background dragon image - covers full form */}
+            <div 
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: 'url(/images/dragon.png)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'repeat',
+                opacity: 0.15,
+                zIndex: 0
+              }}
+            />
+            <div className="relative z-10 flex flex-col">
             <div className="grid gap-4 py-4 overflow-y-auto max-h-[60vh]">
               {/* Loading indicator for booked dates */}
               {isLoadingBookedDates && (
@@ -1551,7 +1564,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
                 </div>
               )}
             </div>
-            <DialogFooter>
+            <DialogFooter className="relative z-10">
               <DialogClose asChild>
                 <Button type="button" variant="outline">Cancel</Button>
               </DialogClose>
@@ -1559,6 +1572,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
                 {isTimeBasedBooking ? "Create Hourly Booking" : "Create Booking"}
               </Button>
             </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>

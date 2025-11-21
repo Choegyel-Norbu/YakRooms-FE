@@ -1,5 +1,6 @@
 import React from 'react';
-import { Search, Loader2 } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { Spinner } from '@/components/ui/ios-spinner';
 import { Button } from './button';
 
 const SearchButton = ({ children, className, loading, loadingText, ...props }) => {
@@ -11,7 +12,7 @@ const SearchButton = ({ children, className, loading, loadingText, ...props }) =
     >
       {loading ? (
         <>
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          <Spinner size="sm" className="mr-2" />
           {loadingText || children}
         </>
       ) : (

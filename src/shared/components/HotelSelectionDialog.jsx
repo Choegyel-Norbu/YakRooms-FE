@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Hotel, Loader2 } from "lucide-react";
+import { Hotel } from "lucide-react";
+import { Spinner } from "@/components/ui/ios-spinner";
 import {
   Dialog,
   DialogContent,
@@ -71,7 +72,7 @@ const HotelSelectionDialog = ({ isOpen, onClose, onHotelSelected }) => {
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <Spinner size="lg" className="text-blue-600" />
               <span className="ml-2 text-muted-foreground">Loading hotels...</span>
             </div>
           ) : hotels.length === 0 ? (

@@ -22,8 +22,8 @@ import {
   ExternalLink,
   Mail,
   Key,
-  Loader2
 } from "lucide-react";
+import { Spinner } from "@/components/ui/ios-spinner";
 import { toast } from "sonner";
 import api from "../../shared/services/Api";
 
@@ -214,7 +214,7 @@ const ScannedBookingModal = ({ isOpen, onClose, scannedData }) => {
             <div className="flex items-center gap-2 ml-auto">
               {getStatusBadge()}
               {checkingIn && (
-                <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                <Spinner size="sm" className="text-muted-foreground" />
               )}
             </div>
           </DialogTitle>
@@ -390,7 +390,7 @@ const ScannedBookingModal = ({ isOpen, onClose, scannedData }) => {
                     >
                       {checkingIn ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Spinner size="sm" className="mr-2" />
                           Checking In...
                         </>
                       ) : bookingDetails?.status === 'CHECKED_IN' ? (

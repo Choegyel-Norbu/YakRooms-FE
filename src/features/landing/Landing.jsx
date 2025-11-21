@@ -29,12 +29,44 @@ const Landing = () => {
   const [hasRated, setHasRated] = useState(
     getStorageItem("hasRated") === "true"
   );
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const lastScrollY = useRef(0);
 
   const { pathname } = useLocation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
+
+  // Track scroll direction for navbar visibility
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Show navbar when at top of page
+      if (currentScrollY < 10) {
+        setIsNavbarVisible(true);
+        lastScrollY.current = currentScrollY;
+        return;
+      }
+      
+      // Determine scroll direction
+      const scrollingDown = currentScrollY > lastScrollY.current;
+      const scrollingUp = currentScrollY < lastScrollY.current;
+      
+      // Show when scrolling up, hide when scrolling down
+      if (scrollingUp) {
+        setIsNavbarVisible(true);
+      } else if (scrollingDown) {
+        setIsNavbarVisible(false);
+      }
+      
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   useEffect(() => {
@@ -173,7 +205,11 @@ const Landing = () => {
       <div className=" relative bg-white text-black dark:text-white">
         {/* Navigation */}
         <div className="pr-0 sm:pr-0">
-          <Navbar onLoginClick={toggleLogin} onContactClick={() => footerRef.current?.scrollIntoView({ behavior: 'smooth' })} />
+          <Navbar 
+            onLoginClick={toggleLogin} 
+            onContactClick={() => footerRef.current?.scrollIntoView({ behavior: 'smooth' })} 
+            isVisible={isNavbarVisible}
+          />
         </div>
 
         {/* LoginModal */}

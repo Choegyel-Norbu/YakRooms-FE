@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react";
-import { MapPin, ExternalLink, Navigation, Loader2 } from "lucide-react";
+import { MapPin, ExternalLink, Navigation } from "lucide-react";
+import { Spinner } from "@/components/ui/ios-spinner";
 import { Button } from "./button";
 import { Card, CardContent, CardHeader, CardTitle } from "./card";
 import { Badge } from "./badge";
@@ -98,7 +99,7 @@ const HotelMap = ({
             {mapLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Spinner size="md" />
                   <span className="text-sm">Loading map...</span>
                 </div>
               </div>

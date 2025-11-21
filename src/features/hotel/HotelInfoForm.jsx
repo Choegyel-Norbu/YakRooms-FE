@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../authentication";
 import api from "../../shared/services/Api";
 import { uploadFile, deleteFileByUrl } from "../../shared/services/uploadService";
-import { CheckCircle, XCircle, Upload, Plus, X, MapPin, Loader2, Facebook, Instagram, Clock } from "lucide-react";
+import { CheckCircle, XCircle, Upload, Plus, X, MapPin, Facebook, Instagram, Clock } from "lucide-react";
+import { Spinner } from "@/components/ui/ios-spinner";
 import {
   Card,
   CardContent,
@@ -698,6 +699,13 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                     )}
                   />
                 </div>
+
+                {/* Manual Entry Message */}
+                <div className="mb-4">
+                  <p className="text-xs text-muted-foreground italic">
+                    💡 Tip: Enter coordinates manually for more accuracy
+                  </p>
+                </div>
                 
                 {isEditing && (
                   <div className="mt-4">
@@ -710,7 +718,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                     >
                       {isGettingLocation ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Spinner size="sm" className="mr-2" />
                           Getting Location...
                         </>
                       ) : (

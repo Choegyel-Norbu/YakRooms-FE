@@ -1618,7 +1618,20 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
             <DialogTitle>Standard Booking - {room.hotelName}</DialogTitle>
             <DialogDescription>Room {room.roomNumber} - Standard Booking</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 relative">
+            {/* Background dragon image - covers full form */}
+            <div 
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: 'url(/images/dragon.png)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'repeat',
+                opacity: 0.15,
+                zIndex: 0
+              }}
+            />
+            <div className="relative z-10 flex flex-col flex-1 min-h-0">
             <div className="grid gap-4 py-4 flex-1 overflow-y-auto pr-2">
               {/* Loading indicator for booked dates */}
               {isLoadingBookedDates && (
@@ -1959,7 +1972,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                 )}
               </div>
             </div>
-            <DialogFooter className="flex-shrink-0 mt-4 pt-4 border-t">
+            <DialogFooter className="flex-shrink-0 mt-4 pt-4 border-t relative z-10">
               <div className="flex flex-col sm:flex-row gap-2 w-full">
                 <DialogClose asChild>
                   <Button type="button" variant="outline" className="flex-1 sm:flex-none">
@@ -1971,6 +1984,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                 </Button>
               </div>
             </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
@@ -2050,7 +2064,20 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
               </div>
           </DialogHeader>
           
-          <form onSubmit={(e) => { e.preventDefault(); handleImmediateBooking(); }} className="flex flex-col flex-1 min-h-0">
+          <form onSubmit={(e) => { e.preventDefault(); handleImmediateBooking(); }} className="flex flex-col flex-1 min-h-0 relative">
+            {/* Background dragon image - covers full form */}
+            <div 
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: 'url(/images/dragon.png)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'repeat',
+                opacity: 0.15,
+                zIndex: 0
+              }}
+            />
+            <div className="relative z-10 flex flex-col flex-1 min-h-0">
             <div className="py-4 space-y-4 flex-1 overflow-y-auto pr-2">
               {/* Loading indicator for booked dates */}
               {isLoadingBookedDates && (
@@ -2276,7 +2303,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
               </div>
             </div>
 
-            <DialogFooter className="flex-shrink-0 mt-4 pt-4 border-t">
+            <DialogFooter className="flex-shrink-0 mt-4 pt-4 border-t relative z-10">
               <div className="flex flex-col sm:flex-row gap-2 w-full">
                 <Button 
                   type="button"
@@ -2304,6 +2331,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                 </Button>
               </div>
             </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>

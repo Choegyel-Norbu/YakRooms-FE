@@ -225,9 +225,18 @@ const BookingCalendar = ({ hotelId }) => {
     return "booked";
   };
 
+  // Check if date is in the future
+  const isFutureDate = (day) => {
+    const date = new Date(currentYear, currentMonth, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+    return date > today;
+  };
+
   // Get status styling
   const getStatusStyling = (status, isToday = false) => {
-    const baseClasses = "relative w-full h-full flex items-center justify-center text-sm font-medium transition-all duration-200 cursor-pointer hover:scale-105";
+    const baseClasses = "relative w-full h-full rounded-lg transition-colors duration-200 cursor-pointer";
     
     if (isToday) {
       switch (status) {
@@ -235,9 +244,9 @@ const BookingCalendar = ({ hotelId }) => {
         case "confirmed":
         case "pending":
         case "booked":
-          return `${baseClasses} bg-green-600 text-white ring-2 ring-green-300 shadow-lg`;
+          return `${baseClasses} bg-gradient-to-br from-green-500 to-green-600 text-white ring-2 ring-green-300 ring-offset-1 shadow-md hover:from-green-600 hover:to-green-700 hover:shadow-lg`;
         default:
-          return `${baseClasses} bg-primary text-primary-foreground ring-2 ring-primary/30 shadow-lg`;
+          return `${baseClasses} bg-gradient-to-br from-yellow-500 to-yellow-600 text-white ring-2 ring-yellow-300 ring-offset-1 shadow-md hover:from-yellow-600 hover:to-yellow-700 hover:shadow-lg`;
       }
     }
     
@@ -246,9 +255,9 @@ const BookingCalendar = ({ hotelId }) => {
       case "confirmed":
       case "pending":
       case "booked":
-        return `${baseClasses} bg-green-100 text-green-800 border border-green-300 hover:bg-green-200`;
+        return `${baseClasses} bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 hover:shadow-md`;
       default:
-        return `${baseClasses} bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100`;
+        return `${baseClasses} bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 hover:shadow-md`;
     }
   };
 
@@ -291,16 +300,33 @@ const BookingCalendar = ({ hotelId }) => {
       const isToday = new Date().toDateString() === new Date(currentYear, currentMonth, day).toDateString();
       const status = getDateStatus(day);
       const dayBookings = getBookingsForDate(day);
+      const isBooked = status !== "available";
       
       days.push(
-        <div key={day} className="aspect-square p-1">
+        <div key={day} className="aspect-square p-1.5">
           <div
             className={getStatusStyling(status, isToday)}
             onClick={(e) => handleDateClick(day, e)}
           >
-            <span className="relative z-10">{day}</span>
-            {dayBookings.length > 0 && (
-              <div className="absolute bottom-0 right-0 w-2 h-2 bg-current rounded-full opacity-60"></div>
+            {/* Date number - top right corner, bigger */}
+            {isToday ? (
+              <span className="absolute top-2 right-2 text-lg font-bold z-[1] flex items-center justify-center w-8 h-8 rounded-full border-2 border-white shadow-sm">
+                {day}
+              </span>
+            ) : (
+              <span className="absolute top-2 right-2 text-lg font-bold z-[1]">{day}</span>
+            )}
+            
+            {/* Status label - center bottom (hidden on small devices) */}
+            {isBooked && (
+              <span className="hidden sm:block absolute bottom-1.5 left-1/2 transform -translate-x-1/2 text-[10px] font-bold text-current opacity-90 whitespace-nowrap">
+                BOOKED
+              </span>
+            )}
+            {!isBooked && !isToday && (
+              <span className="hidden sm:block absolute bottom-1.5 left-1/2 transform -translate-x-1/2 text-[10px] font-medium text-gray-500 opacity-70 whitespace-nowrap">
+                Available
+              </span>
             )}
           </div>
         </div>
@@ -355,9 +381,9 @@ const BookingCalendar = ({ hotelId }) => {
           box-shadow: none !important;
         }
       `}</style>
-      <div className="space-y-4">
-        <Card className="shadow-sm border-border/50">
-        <CardHeader className="pb-4">
+      <div className="space-y-4 relative z-0">
+        <Card className="shadow-sm border-border/50 relative z-0">
+        <CardHeader className="pb-4 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-md">
               Booking Calendar
@@ -367,20 +393,20 @@ const BookingCalendar = ({ hotelId }) => {
                 variant="outline"
                 size="sm"
                 onClick={goToPreviousMonth}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-4 w-4 text-gray-700" />
               </Button>
-              <div className="text-sm font-semibold text-foreground min-w-[120px] text-center">
+              <div className="text-base font-bold text-foreground min-w-[140px] text-center tracking-tight">
                 {monthNames[currentMonth]} {currentYear}
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={goToNextMonth}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 hover:bg-gray-100 rounded-lg transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-4 w-4 text-gray-700" />
               </Button>
             </div>
           </div>
@@ -426,31 +452,38 @@ const BookingCalendar = ({ hotelId }) => {
           ) : (
             <>
               {/* Calendar Grid */}
-              <div className="space-y-2">
-                {/* Day headers */}
-                <div className="grid grid-cols-7 gap-1 mb-2">
+              <div className="space-y-3 w-[90%] mx-auto">
+                {/* Day headers - Styled as gradient buttons */}
+                <div className="grid grid-cols-7 gap-2 mb-3">
                   {dayNames.map(day => (
-                    <div key={day} className="text-center text-xs font-medium text-muted-foreground py-2">
+                    <div 
+                      key={day} 
+                      className="text-center text-xs font-bold text-white bg-black rounded-lg shadow-sm py-3 uppercase tracking-wide"
+                    >
                       {day}
                     </div>
                   ))}
                 </div>
                 
                 {/* Calendar days */}
-                <div className="grid grid-cols-7 gap-1">
+                <div className="grid grid-cols-7 gap-2">
                   {generateCalendarDays()}
                 </div>
               </div>
 
               {/* Legend */}
-              <div className="flex flex-wrap gap-4 pt-4 border-t border-border/50">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gray-100 border border-gray-300 rounded"></div>
-                  <span className="text-sm text-muted-foreground">Available</span>
+              <div className="flex flex-wrap items-center justify-center gap-4 pt-5 border-t border-border/50">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg">
+                  <div className="w-4 h-4 bg-gray-100 border border-gray-300 rounded shadow-sm"></div>
+                  <span className="text-sm font-medium text-gray-700">Available</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-green-100 border border-green-300 rounded"></div>
-                  <span className="text-sm text-muted-foreground">Booked</span>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-lg">
+                  <div className="w-4 h-4 bg-green-100 border border-green-300 rounded shadow-sm"></div>
+                  <span className="text-sm font-medium text-gray-700">Booked</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 rounded-lg">
+                  <div className="w-4 h-4 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded shadow-sm"></div>
+                  <span className="text-sm font-medium text-gray-700">Today</span>
                 </div>
               </div>
             </>

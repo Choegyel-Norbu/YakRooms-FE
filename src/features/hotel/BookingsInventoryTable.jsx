@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Download, Search, Calendar, FileText, Loader2, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
+import { Download, Search, Calendar, FileText, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
+import { Spinner } from "@/components/ui/ios-spinner";
 import * as XLSX from "xlsx";
 import {
   Card,
@@ -387,7 +388,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <Spinner size="lg" className="text-primary" />
             <span className="ml-2 text-muted-foreground">Loading bookings...</span>
           </div>
         </CardContent>
