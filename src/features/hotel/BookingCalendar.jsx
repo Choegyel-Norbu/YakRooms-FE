@@ -289,7 +289,7 @@ const BookingCalendar = ({ hotelId }) => {
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(
-        <div key={`empty-${i}`} className="aspect-square p-1">
+        <div key={`empty-${i}`} className="aspect-square p-0.5 md:p-1">
           <div className="w-full h-full"></div>
         </div>
       );
@@ -303,18 +303,18 @@ const BookingCalendar = ({ hotelId }) => {
       const isBooked = status !== "available";
       
       days.push(
-        <div key={day} className="aspect-square p-1.5">
+        <div key={day} className="aspect-square p-0.5 md:p-1.5">
           <div
             className={getStatusStyling(status, isToday)}
             onClick={(e) => handleDateClick(day, e)}
           >
-            {/* Date number - top right corner, bigger */}
+            {/* Date number - top right corner, responsive size */}
             {isToday ? (
-              <span className="absolute top-2 right-2 text-lg font-bold z-[1] flex items-center justify-center w-8 h-8 rounded-full border-2 border-white shadow-sm">
+              <span className="absolute top-1 right-1 md:top-2 md:right-2 text-xs md:text-lg font-bold z-[1] flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full border-2 border-white shadow-sm">
                 {day}
               </span>
             ) : (
-              <span className="absolute top-2 right-2 text-lg font-bold z-[1]">{day}</span>
+              <span className="absolute top-1 right-1 md:top-2 md:right-2 text-xs md:text-lg font-bold z-[1]">{day}</span>
             )}
             
             {/* Status label - center bottom (hidden on small devices) */}
@@ -452,13 +452,13 @@ const BookingCalendar = ({ hotelId }) => {
           ) : (
             <>
               {/* Calendar Grid */}
-              <div className="space-y-3 w-[90%] mx-auto">
+              <div className="space-y-3 w-full md:w-[90%] md:mx-auto">
                 {/* Day headers - Styled as gradient buttons */}
-                <div className="grid grid-cols-7 gap-2 mb-3">
+                <div className="grid grid-cols-7 gap-1 md:gap-2 mb-2 md:mb-3">
                   {dayNames.map(day => (
                     <div 
                       key={day} 
-                      className="text-center text-xs font-bold text-white bg-black rounded-lg shadow-sm py-3 uppercase tracking-wide"
+                      className="text-center text-[10px] md:text-xs font-bold text-white bg-black rounded-lg shadow-sm py-1.5 md:py-3 uppercase tracking-wide"
                     >
                       {day}
                     </div>
@@ -466,7 +466,7 @@ const BookingCalendar = ({ hotelId }) => {
                 </div>
                 
                 {/* Calendar days */}
-                <div className="grid grid-cols-7 gap-2">
+                <div className="grid grid-cols-7 gap-1 md:gap-2">
                   {generateCalendarDays()}
                 </div>
               </div>
