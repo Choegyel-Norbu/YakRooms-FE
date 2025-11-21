@@ -404,7 +404,7 @@ const FeatureSection = () => {
                       viewport={{ once: true }}
                       transition={{ duration: 0.5, delay: 0.4 }}
                     >
-                      3
+                      5
                     </motion.div>
                     <div className="text-sm text-muted-foreground">Dzongkhags Covered</div>
                   </motion.div>
