@@ -12,10 +12,19 @@ const InstallPrompt = () => {
 
   useEffect(() => {
     // Check if user previously dismissed the prompt
-    const dismissed = localStorage.getItem('pwa-install-dismissed');
-    if (dismissed === 'true') {
-      setIsDismissed(true);
-      return;
+    const dismissedTimestamp = localStorage.getItem('pwa-install-dismissed');
+    if (dismissedTimestamp) {
+      const dismissedTime = parseInt(dismissedTimestamp, 10);
+      const currentTime = Date.now();
+      const hoursPassed = (currentTime - dismissedTime) / (1000 * 60 * 60);
+      
+      // If less than 24 hours have passed, keep it dismissed
+      if (hoursPassed < 24) {
+        setIsDismissed(true);
+        return;
+      }
+      // If 24+ hours have passed, clear the old timestamp and show the prompt
+      localStorage.removeItem('pwa-install-dismissed');
     }
 
     // Show banner with a slight delay for better UX
@@ -37,7 +46,8 @@ const InstallPrompt = () => {
   const handleDismiss = () => {
     setIsVisible(false);
     setIsDismissed(true);
-    localStorage.setItem('pwa-install-dismissed', 'true');
+    // Store the current timestamp when dismissed
+    localStorage.setItem('pwa-install-dismissed', Date.now().toString());
   };
 
   // Don't render if not installable, already installed, or dismissed
