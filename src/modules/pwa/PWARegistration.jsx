@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { registerSW } from 'virtual:pwa-register';
+import InstallPrompt from './components/InstallPrompt';
 
 const PWARegistration = () => {
   useEffect(() => {
@@ -14,7 +15,7 @@ const PWARegistration = () => {
     });
   }, []);
 
-  return null;
+  return <InstallPrompt />;
 };
 
 export default PWARegistration;

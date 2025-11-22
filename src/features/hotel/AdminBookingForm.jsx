@@ -1030,7 +1030,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
                   value={bookingDetails.roomNumber}
                   onValueChange={handleRoomSelect}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full h-10">
                     <SelectValue placeholder="Select a room" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1084,7 +1084,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
                       type="time"
                       value={timeBasedDetails.checkInTime}
                       onChange={handleTimeBasedInputChange}
-                      className={`text-sm ${
+                      className={`h-10 text-sm ${
                         timeBasedErrors.checkInTime 
                           ? "border-destructive" 
                           : timeBasedDetails.checkInDate && timeBasedDetails.checkInTime && timeBasedDetails.bookHours && 
@@ -1107,7 +1107,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
                       value={String(timeBasedDetails.bookHours)}
                       onValueChange={handleTimeBasedBookHoursChange}
                     >
-                      <SelectTrigger className={`w-full text-sm ${
+                      <SelectTrigger className={`w-full h-10 text-sm ${
                         timeBasedErrors.bookHours 
                           ? "border-destructive" 
                           : timeBasedDetails.checkInDate && timeBasedDetails.checkInTime && timeBasedDetails.bookHourss && 
@@ -1298,6 +1298,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
                     value={isTimeBasedBooking ? timeBasedDetails.guestName : bookingDetails.guestName}
                     onChange={isTimeBasedBooking ? handleTimeBasedInputChange : handleInputChange}
                     placeholder="Enter guest name"
+                    className="h-10"
                   />
                   {(isTimeBasedBooking ? timeBasedErrors.guestName : errors.guestName) && (
                     <p className="text-sm text-destructive">
@@ -1317,7 +1318,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
                       value={isTimeBasedBooking ? timeBasedDetails.phone : bookingDetails.phone}
                       onChange={isTimeBasedBooking ? handleTimeBasedInputChange : handleInputChange}
                       placeholder="17123456"
-                      className="pl-14"
+                      className="h-10 pl-14"
                     />
                   </div>
                   {(isTimeBasedBooking ? timeBasedErrors.phone : errors.phone) && (
@@ -1369,7 +1370,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
                       onChange={isTimeBasedBooking ? handleTimeBasedInputChange : handleInputChange}
                       placeholder="11 digits (e.g., 10901001065)"
                       maxLength={11}
-                      className={`text-sm ${(isTimeBasedBooking ? timeBasedErrors.cid : errors.cid) ? "border-destructive" : ""}`}
+                      className={`h-10 text-sm ${(isTimeBasedBooking ? timeBasedErrors.cid : errors.cid) ? "border-destructive" : ""}`}
                     />
                     
                     {(isTimeBasedBooking ? timeBasedErrors.cid : errors.cid) && (
@@ -1389,7 +1390,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
                     value={isTimeBasedBooking ? timeBasedDetails.destination : bookingDetails.destination}
                     onChange={isTimeBasedBooking ? handleTimeBasedInputChange : handleInputChange}
                     placeholder="Enter destination"
-                    className={`text-sm ${(isTimeBasedBooking ? timeBasedErrors.destination : errors.destination) ? "border-destructive" : ""}`}
+                    className={`h-10 text-sm ${(isTimeBasedBooking ? timeBasedErrors.destination : errors.destination) ? "border-destructive" : ""}`}
                   />
                   {(isTimeBasedBooking ? timeBasedErrors.destination : errors.destination) && (
                     <p className="text-sm text-destructive">
@@ -1407,7 +1408,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
                     value={isTimeBasedBooking ? timeBasedDetails.origin : bookingDetails.origin}
                     onChange={isTimeBasedBooking ? handleTimeBasedInputChange : handleInputChange}
                     placeholder="Enter origin"
-                    className={`text-sm ${(isTimeBasedBooking ? timeBasedErrors.origin : errors.origin) ? "border-destructive" : ""}`}
+                    className={`h-10 text-sm ${(isTimeBasedBooking ? timeBasedErrors.origin : errors.origin) ? "border-destructive" : ""}`}
                   />
                   {(isTimeBasedBooking ? timeBasedErrors.origin : errors.origin) && (
                     <p className="text-sm text-destructive">
@@ -1429,7 +1430,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
                       }
                     }}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full h-10">
                       <SelectValue placeholder="Select guests" />
                     </SelectTrigger>
                     <SelectContent>

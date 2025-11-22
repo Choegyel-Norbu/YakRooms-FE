@@ -239,19 +239,36 @@ const CustomDatePicker = ({
     }
   }, [selectedDate]);
 
+  /**
+   * Parse label to make asterisks red
+   */
+  const renderLabel = () => {
+    if (!label) return null;
+    
+    // Split label by asterisk and wrap asterisks in red span
+    const parts = label.split(/(\*)/g);
+    return (
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        {parts.map((part, index) => 
+          part === '*' ? (
+            <span key={index} className="text-destructive">*</span>
+          ) : (
+            <span key={index}>{part}</span>
+          )
+        )}
+      </label>
+    );
+  };
+
   return (
     <div className={`date-picker-container relative ${className}`}>
       {/* Label */}
-      {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label}
-        </label>
-      )}
+      {renderLabel()}
 
       {/* Input Field */}
       <div 
         className={`
-          flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all duration-200
+          flex items-center justify-between h-10 px-3 border rounded-lg cursor-pointer transition-all duration-200
           ${disabled 
             ? 'bg-gray-100 cursor-not-allowed border-gray-200' 
             : 'bg-transparent hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200'

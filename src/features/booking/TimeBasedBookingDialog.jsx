@@ -395,7 +395,7 @@ export default function TimeBasedBookingDialog({
                           handleInputChange({ target: { name: 'checkInTime', value: `${newH}:${mmStr || '00'}` } });
                         }}
                       >
-                        <SelectTrigger className={`text-sm ${
+                        <SelectTrigger className={`h-10 text-sm ${
                           errors.checkInTime 
                             ? "border-destructive" 
                             : bookingDetails.checkInDate && bookingDetails.checkInTime && bookingDetails.bookHours && 
@@ -427,7 +427,7 @@ export default function TimeBasedBookingDialog({
                           handleInputChange({ target: { name: 'checkInTime', value: `${hhStr}:${value}` } });
                         }}
                       >
-                        <SelectTrigger className={`text-sm ${
+                        <SelectTrigger className={`h-10 text-sm ${
                           errors.checkInTime 
                             ? "border-destructive" 
                             : bookingDetails.checkInDate && bookingDetails.checkInTime && bookingDetails.bookHours && 
@@ -465,7 +465,7 @@ export default function TimeBasedBookingDialog({
                           handleInputChange({ target: { name: 'checkInTime', value: `${newH}:${mmStr || '00'}` } });
                         }}
                       >
-                        <SelectTrigger className={`text-sm ${
+                        <SelectTrigger className={`h-10 text-sm ${
                           errors.checkInTime 
                             ? "border-destructive" 
                             : bookingDetails.checkInDate && bookingDetails.checkInTime && bookingDetails.bookHours && 
@@ -498,7 +498,7 @@ export default function TimeBasedBookingDialog({
                       value={String(bookingDetails.bookHours)}
                       onValueChange={handleBookHoursChange}
                     >
-                      <SelectTrigger className={`w-full text-sm ${
+                      <SelectTrigger className={`w-full h-10 text-sm ${
                         errors.bookHours 
                           ? "border-destructive" 
                           : bookingDetails.checkInDate && bookingDetails.checkInTime && bookingDetails.bookHours && 
@@ -660,7 +660,7 @@ export default function TimeBasedBookingDialog({
                       value={bookingDetails.phone}
                       onChange={handleInputChange}
                       placeholder="17123456"
-                      className={`pl-14 placeholder:text-muted-foreground/50 ${errors.phone ? "border-destructive" : ""}`}
+                      className={`h-10 pl-14 placeholder:text-muted-foreground/50 ${errors.phone ? "border-destructive" : ""}`}
                     />
                   </div>
                   {errors.phone && (
@@ -692,7 +692,7 @@ export default function TimeBasedBookingDialog({
                       onChange={handleInputChange}
                       placeholder="11 digits"
                       maxLength={11}
-                      className={`text-sm placeholder:text-muted-foreground/50 ${errors.cid ? "border-destructive" : ""}`}
+                      className={`h-10 text-sm placeholder:text-muted-foreground/50 ${errors.cid ? "border-destructive" : ""}`}
                     />
                     
                     {/* CID Warning Message */}
@@ -720,7 +720,7 @@ export default function TimeBasedBookingDialog({
                     value={bookingDetails.destination}
                     onChange={handleInputChange}
                     placeholder="Enter destination"
-                    className={`text-sm placeholder:text-muted-foreground/50 ${errors.destination ? "border-destructive" : ""}`}
+                    className={`h-10 text-sm placeholder:text-muted-foreground/50 ${errors.destination ? "border-destructive" : ""}`}
                   />
                   {errors.destination && (
                     <p className="text-sm text-destructive">{errors.destination}</p>
@@ -736,7 +736,7 @@ export default function TimeBasedBookingDialog({
                     value={bookingDetails.origin}
                     onChange={handleInputChange}
                     placeholder="Enter origin"
-                    className={`text-sm placeholder:text-muted-foreground/50 ${errors.origin ? "border-destructive" : ""}`}
+                    className={`h-10 text-sm placeholder:text-muted-foreground/50 ${errors.origin ? "border-destructive" : ""}`}
                   />
                   {errors.origin && (
                     <p className="text-sm text-destructive">{errors.origin}</p>
@@ -752,7 +752,7 @@ export default function TimeBasedBookingDialog({
                       value={String(bookingDetails.guests)}
                       onValueChange={handleGuestsChange}
                     >
-                    <SelectTrigger className={`w-full text-sm ${errors.guests ? "border-destructive" : ""}`}>
+                    <SelectTrigger className={`w-full h-10 text-sm ${errors.guests ? "border-destructive" : ""}`}>
                       <SelectValue placeholder="Select guests" />
                     </SelectTrigger>
                     <SelectContent>

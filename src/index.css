@@ -610,3 +610,57 @@
     opacity: 0.25;
   }
 }
+
+/* ===== Remove Autofill Background Color ===== */
+/* This must be outside @layer to override browser defaults */
+/* Using box-shadow trick to override browser's autofill background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+input:-webkit-autofill-selected,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active,
+textarea:-webkit-autofill-selected,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active,
+select:-webkit-autofill-selected {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: inherit !important;
+  box-shadow: 0 0 0 1000px transparent inset !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  caret-color: inherit !important;
+  transition: background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s !important;
+}
+
+/* Additional specificity for inputs with specific types */
+input[type="text"]:-webkit-autofill,
+input[type="email"]:-webkit-autofill,
+input[type="password"]:-webkit-autofill,
+input[type="tel"]:-webkit-autofill,
+input[type="number"]:-webkit-autofill,
+input[type="search"]:-webkit-autofill,
+input[type="url"]:-webkit-autofill,
+input[type="date"]:-webkit-autofill,
+input[type="time"]:-webkit-autofill,
+input[type="datetime-local"]:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: inherit !important;
+  box-shadow: 0 0 0 1000px transparent inset !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Firefox autofill support */
+input:-moz-autofill,
+textarea:-moz-autofill,
+select:-moz-autofill {
+  background-color: transparent !important;
+  background-image: none !important;
+  color: inherit !important;
+}

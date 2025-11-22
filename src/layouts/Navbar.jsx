@@ -301,7 +301,7 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
     return (
       <div className="flex items-center gap-2">
         {/* Role Badge beside Avatar */}
-        <span className="hidden lg:inline-flex items-center text-sm font-medium text-muted-foreground">
+        <span className="hidden lg:inline-flex items-center text-sm font-bold text-muted-foreground">
           {roleDisplayInfo.label}
         </span>
         
@@ -336,7 +336,7 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
               {/* Minimal Current Role Badge */}
               <div className="flex items-center gap-2 pt-1">
                 <div className="w-2.5 h-2.5 rounded-full bg-primary"></div>
-                <span className="text-sm font-medium text-muted-foreground">{roleDisplayInfo.label}</span>
+                <span className="text-md font-bold text-muted-foreground">{roleDisplayInfo.label}</span>
               </div>
             </div>
           </DropdownMenuLabel>
@@ -529,7 +529,7 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
             {/* Minimal Current Role Badge for mobile */}
             <div className="mt-1.5 flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-primary"></div>
-              <span className="text-sm font-medium text-muted-foreground">{roleDisplayInfo.label}</span>
+              <span className="text-md font-bold text-muted-foreground">{roleDisplayInfo.label}</span>
             </div>
           </div>
           

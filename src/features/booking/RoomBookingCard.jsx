@@ -1729,7 +1729,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                       value={bookingDetails.phone}
                       onChange={handleInputChange}
                       placeholder="17123456"
-                      className={`pl-14 placeholder:text-muted-foreground/50 ${errors.phone ? "border-destructive" : ""}`}
+                      className={`h-10 pl-14 placeholder:text-muted-foreground/50 ${errors.phone ? "border-destructive" : ""}`}
                     />
                   </div>
                   {errors.phone && (
@@ -1775,7 +1775,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                       onChange={handleInputChange}
                       placeholder="11 digits"
                       maxLength={11}
-                      className={`text-sm placeholder:text-muted-foreground/50 ${errors.cid ? "border-destructive" : ""}`}
+                      className={`h-10 text-sm placeholder:text-muted-foreground/50 ${errors.cid ? "border-destructive" : ""}`}
                     />
                     
                     {/* CID Warning Message */}
@@ -1803,7 +1803,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                     value={bookingDetails.destination}
                     onChange={handleInputChange}
                     placeholder="Enter destination"
-                    className={`text-sm placeholder:text-muted-foreground/50 ${errors.destination ? "border-destructive" : ""}`}
+                    className={`h-10 text-sm placeholder:text-muted-foreground/50 ${errors.destination ? "border-destructive" : ""}`}
                   />
                   {errors.destination && (
                     <p className="text-sm text-destructive">{errors.destination}</p>
@@ -1819,7 +1819,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                     value={bookingDetails.origin}
                     onChange={handleInputChange}
                     placeholder="Enter origin"
-                    className={`text-sm placeholder:text-muted-foreground/50 ${errors.origin ? "border-destructive" : ""}`}
+                    className={`h-10 text-sm placeholder:text-muted-foreground/50 ${errors.origin ? "border-destructive" : ""}`}
                   />
                   {errors.origin && (
                     <p className="text-sm text-destructive">{errors.origin}</p>
@@ -1848,7 +1848,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                       }
                     }}
                   >
-                    <SelectTrigger className={`w-full text-sm ${errors.guests ? "border-destructive" : ""}`}>
+                    <SelectTrigger className={`w-full h-10 text-sm ${errors.guests ? "border-destructive" : ""}`}>
                       <SelectValue placeholder="Select guests" />
                     </SelectTrigger>
                     <SelectContent>
@@ -2104,7 +2104,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                     value={immediateBookingDetails.phone}
                     onChange={handleImmediateInputChange}
                     placeholder="17123456"
-                    className={`pl-14 placeholder:text-muted-foreground/50 ${immediateBookingErrors.phone ? "border-destructive" : ""}`}
+                    className={`h-10 pl-14 placeholder:text-muted-foreground/50 ${immediateBookingErrors.phone ? "border-destructive" : ""}`}
                   />
                 </div>
                 {immediateBookingErrors.phone && (
@@ -2154,7 +2154,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                     onChange={handleImmediateInputChange}
                     placeholder="11 digits"
                     maxLength={11}
-                    className={`text-sm placeholder:text-muted-foreground/50 ${immediateBookingErrors.cid ? "border-destructive" : ""}`}
+                    className={`h-10 text-sm placeholder:text-muted-foreground/50 ${immediateBookingErrors.cid ? "border-destructive" : ""}`}
                   />
                   
                   {/* CID Warning Message */}
@@ -2204,7 +2204,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                   value={immediateBookingDetails.origin}
                   onChange={handleImmediateInputChange}
                   placeholder="Enter origin"
-                  className={`text-sm placeholder:text-muted-foreground/50 ${immediateBookingErrors.origin ? "border-destructive" : ""}`}
+                  className={`h-10 text-sm placeholder:text-muted-foreground/50 ${immediateBookingErrors.origin ? "border-destructive" : ""}`}
                 />
                 {immediateBookingErrors.origin && (
                   <p className="text-sm text-destructive">{immediateBookingErrors.origin}</p>
@@ -2234,7 +2234,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                     }
                   }}
                 >
-                  <SelectTrigger className={`w-full text-sm ${immediateBookingErrors.guests ? "border-destructive" : ""}`}>
+                  <SelectTrigger className={`w-full h-10 text-sm ${immediateBookingErrors.guests ? "border-destructive" : ""}`}>
                     <SelectValue placeholder="Select guests" />
                   </SelectTrigger>
                   <SelectContent>

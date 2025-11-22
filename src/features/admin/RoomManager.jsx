@@ -548,7 +548,7 @@ const RoomManager = ({ hotelId }) => {
                   value={roomForm.roomType}
                   onValueChange={(value) => handleSelectChange("roomType", value)}
                 >
-                  <SelectTrigger className={`w-full ${errors.roomType ? "border-destructive" : ""}`}>
+                  <SelectTrigger className={`w-full h-10 ${errors.roomType ? "border-destructive" : ""}`}>
                     <SelectValue placeholder="Select Room Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -577,7 +577,7 @@ const RoomManager = ({ hotelId }) => {
                   step="1"
                   value={roomForm.price}
                   onChange={handleInputChange}
-                  className={errors.price ? "border-destructive" : ""}
+                  className={`h-10 ${errors.price ? "border-destructive" : ""}`}
                 />
                 {errors.price && (
                   <p className="text-sm text-destructive">{errors.price}</p>
@@ -594,7 +594,7 @@ const RoomManager = ({ hotelId }) => {
                   name="roomNumber"
                   value={roomForm.roomNumber}
                   onChange={handleInputChange}
-                  className={errors.roomNumber ? "border-destructive" : ""}
+                  className={`h-10 ${errors.roomNumber ? "border-destructive" : ""}`}
                 />
                 {errors.roomNumber && (
                   <p className="text-sm text-destructive">{errors.roomNumber}</p>
@@ -619,7 +619,7 @@ const RoomManager = ({ hotelId }) => {
                   value={roomForm.maxGuests}
                   onChange={handleInputChange}
                   placeholder="Enter max number of guests"
-                  className={errors.maxGuests ? "border-destructive" : ""}
+                  className={`h-10 ${errors.maxGuests ? "border-destructive" : ""}`}
                 />
                 {errors.maxGuests && (
                   <p className="text-sm text-destructive">{errors.maxGuests}</p>
