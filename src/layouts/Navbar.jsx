@@ -528,6 +528,7 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
             <p className="text-xs text-muted-foreground truncate">{email}</p>
             {/* Minimal Current Role Badge for mobile */}
             <div className="mt-1.5 flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-primary"></div>
               <span className="text-sm font-medium text-muted-foreground">{roleDisplayInfo.label}</span>
             </div>
           </div>

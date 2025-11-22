@@ -13,7 +13,6 @@ import api, { authService, enhancedApi } from "@/shared/services/Api";
 import axios from "axios";
 import { API_BASE_URL } from "@/shared/services/firebaseConfig";
 import subscriptionService from "@/shared/services/subscriptionService";
-import { shouldUseCrossDomainAuth } from "@/shared/utils/authDetection";
 import { hasValidTokens, clearTokens, isUsingLocalStorageTokens } from "@/shared/utils/tokenStorage";
 
 // === Constants ===

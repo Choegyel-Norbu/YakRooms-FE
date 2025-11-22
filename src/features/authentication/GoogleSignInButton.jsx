@@ -3,7 +3,7 @@ import { signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../../shared/services/firebaseConfig";
 import axios from "axios";
 import { API_BASE_URL } from "../../shared/services/firebaseConfig";
-import { shouldUseCrossDomainAuth, getAuthEndpoint, getAuthMethodDescription } from "../../shared/utils/authDetection";
+import { shouldUseCrossDomainAuth, getAuthEndpoint, getAuthMethodDescription, shouldUseCredentials } from "../../shared/utils/authDetection";
 import { storeTokens } from "../../shared/utils/tokenStorage";
 
 const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLoginComplete }) => {
@@ -14,6 +14,11 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
       const useCrossDomain = shouldUseCrossDomainAuth();
       const authEndpoint = getAuthEndpoint();
       
+      // Use helper function to determine if credentials should be sent
+      // macOS Safari supports SameSite=None; Secure cookies even in cross-domain
+      // iOS devices need localStorage tokens for cross-domain (no credentials)
+      const useCredentials = shouldUseCredentials();
+      
       const res = await axios.post(
         `${API_BASE_URL}${authEndpoint}`,
         { idToken },
@@ -21,13 +26,14 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
           headers: {
             "Content-Type": "application/json",
           },
-          withCredentials: !useCrossDomain, // Only send cookies for same-domain
+          withCredentials: useCredentials, // true for macOS Safari and same-domain, false for iOS cross-domain
           timeout: 15000,
         }
       );
 
       if (res.status === 200) {
-        // Handle cross-domain auth response (with tokens)
+        // Handle cross-domain auth response (with tokens) - only for iOS devices
+        // macOS Safari uses cookies even in cross-domain, so it won't receive tokens
         if (useCrossDomain && res.data.accessToken && res.data.refreshToken) {
           const tokenStored = storeTokens({
             accessToken: res.data.accessToken,
@@ -44,6 +50,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
         }
         
         // Pass user data to AuthProvider (same for both flows)
+        // macOS Safari uses 'cookie' method even in cross-domain (SameSite=None; Secure)
         await onLoginSuccess({
           email: res.data.user.email,
           userid: res.data.user.id,
@@ -53,7 +60,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
           flag: res.data.user.registerFlag || false,
           detailSet: res.data.user.detailSet || false,
           hotelIds: res.data.user.hotelIds || (res.data.user.hotelId ? [res.data.user.hotelId] : []),
-          authMethod: useCrossDomain ? 'localStorage' : 'cookie', // Add auth method info
+          authMethod: useCrossDomain ? 'localStorage' : 'cookie', // macOS Safari will use 'cookie'
         });
         
         // Close modal after successful login

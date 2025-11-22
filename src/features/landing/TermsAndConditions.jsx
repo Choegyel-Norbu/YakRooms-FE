@@ -6,7 +6,7 @@ import {
   ChevronRight,
   ChevronUp
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 // Breadcrumb Component
 const Breadcrumb = ({ items }) => {
@@ -32,6 +32,7 @@ const Breadcrumb = ({ items }) => {
 };
 
 const TermsAndConditions = () => {
+  const location = useLocation();
   const [expandedSections, setExpandedSections] = useState({
     acceptance: true,
     services: false,
@@ -48,9 +49,8 @@ const TermsAndConditions = () => {
 
   const [showScrollToTop, setShowScrollToTop] = useState(false);
 
-  // Scroll to top when component mounts and handle hash navigation
-  useEffect(() => {
-    // Check if there's a hash in the URL
+  // Handle hash navigation and expand sections
+  const handleHashNavigation = () => {
     const hash = window.location.hash;
     
     if (hash) {
@@ -58,14 +58,34 @@ const TermsAndConditions = () => {
       setTimeout(() => {
         const element = document.querySelector(hash);
         if (element) {
-          element.scrollIntoView({ 
-            behavior: 'smooth',
-            block: 'start'
-          });
-          // Ensure the section is expanded if it's collapsible
+          // Ensure the section is expanded if it's collapsible before scrolling
           const sectionId = hash.replace('#', '');
-          if (sectionId === 'cancellation-policy' && !expandedSections.cancellation) {
-            toggleSection('cancellation');
+          if (sectionId === 'cancellation-policy') {
+            setExpandedSections(prev => {
+              if (!prev.cancellation) {
+                // Expand the section first, then scroll
+                setTimeout(() => {
+                  element.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                  });
+                }, 50);
+                return { ...prev, cancellation: true };
+              } else {
+                // Section already expanded, just scroll
+                element.scrollIntoView({ 
+                  behavior: 'smooth',
+                  block: 'start'
+                });
+                return prev;
+              }
+            });
+          } else {
+            // For other sections, just scroll
+            element.scrollIntoView({ 
+              behavior: 'smooth',
+              block: 'start'
+            });
           }
         }
       }, 100);
@@ -73,7 +93,32 @@ const TermsAndConditions = () => {
       // If no hash, scroll to top
       window.scrollTo(0, 0);
     }
+  };
+
+  // Scroll to top when component mounts and handle hash navigation
+  useEffect(() => {
+    handleHashNavigation();
   }, []);
+
+  // Listen for hash changes (e.g., when navigating from footer)
+  useEffect(() => {
+    const handleHashChange = () => {
+      handleHashNavigation();
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+
+  // Listen to React Router location changes (handles same-page navigation)
+  useEffect(() => {
+    if (location.hash) {
+      handleHashNavigation();
+    }
+  }, [location.hash]);
 
   // Handle scroll event to show/hide scroll-to-top button
   useEffect(() => {
@@ -461,6 +506,7 @@ const TermsAndConditions = () => {
                               Step-by-Step Cancellation Process
                             </h5>
                             <ol className="text-blue-700 dark:text-blue-300 space-y-2 list-decimal list-inside">
+                              <li><strong>Apply for Cancellation from Dashboard:</strong> You can apply for cancellation directly from your user dashboard</li>
                               <li><strong>Contact the Hotel Directly:</strong> Use the contact information provided in user dashboard</li>
                               <li><strong>Follow Hotel's Policy:</strong> Each hotel has its own cancellation terms and conditions</li>
                             </ol>

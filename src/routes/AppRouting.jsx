@@ -13,6 +13,7 @@ import { GuestDashboard } from "../features/guest";
 import { PrivacyPolicy, TermsAndConditions } from "../features/landing";
 import { SubscriptionPage } from "../features/subscription";
 import { SubscriptionManagement } from "../shared/components";
+import { PaymentStatusPage } from "../features/payment";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -81,6 +82,7 @@ const AppRouting = () => {
       <Route path="/hotel/:id" element={<HotelDetailsPage />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+      <Route path="/payment/status" element={<PaymentStatusPage />} />
       <Route
         path="/subscription"
         element={
