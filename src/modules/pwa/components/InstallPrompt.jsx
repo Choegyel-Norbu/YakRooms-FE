@@ -65,7 +65,7 @@ const InstallPrompt = () => {
       <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-gray-200/50 p-5 transition-all duration-300 hover:shadow-3xl">
         {/* Header */}
         <div className="flex items-start gap-4 mb-5">
-          <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+          <div className="flex-shrink-0 w-12 h-12 bg-yellow-400 rounded-xl flex items-center justify-center shadow-lg">
             <svg
               className="w-7 h-7 text-white"
               fill="none"
@@ -123,7 +123,7 @@ const InstallPrompt = () => {
         <div className="flex gap-3">
           <button
             onClick={handleInstall}
-            className="flex-1 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-gray-900 font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-95"
+            className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-3 px-4 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-95"
           >
             Install App
           </button>
