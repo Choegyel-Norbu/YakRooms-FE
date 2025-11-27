@@ -167,7 +167,6 @@ const HotelListingPage = () => {
     loading: true,
     initialLoadDone: false,
     isInitialLoad: true, // Track if we're in the initial load phase
-    lastFetchKey: null, // Track last fetch to prevent duplicate calls
   });
 
   const [searchState, setSearchState] = useState({
@@ -177,43 +176,80 @@ const HotelListingPage = () => {
     sortBy: "default",
   });
 
+  const [mobileSearchField, setMobileSearchField] = useState("district");
+  const [mobileSearchValue, setMobileSearchValue] = useState("");
+
   const [pagination, setPagination] = useState({
     page: 0,
     size: 6,
     totalPages: 1,
     totalElements: 0,
   });
+  const [showNearbyHeading, setShowNearbyHeading] = useState(false);
 
   // Refs for performance optimization
   const debounceTimerRef = useRef(null);
   const abortControllerRef = useRef(null);
   const lastRequestRef = useRef(null);
   const pendingRequestRef = useRef(null); // Track pending requests to prevent duplicates
+  const lastFetchKeyRef = useRef(null);
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const lastScrollY = useRef(0);
 
-  // Memoized hotel types to prevent recreation on every render
-  const hotelTypes = useMemo(() => [
-    "Resort",
-    "Hotel", 
-    "Guesthouse",
-    "Homestay",
-    "Boutique Hotel",
-  ], []);
+  useEffect(() => {
+    if (mobileSearchField === "district") {
+      setMobileSearchValue(searchState.district);
+    } else if (mobileSearchField === "locality") {
+      setMobileSearchValue(searchState.locality);
+    } else {
+      setMobileSearchValue(searchState.hotelType || "all");
+    }
+  }, [
+    mobileSearchField,
+    searchState.district,
+    searchState.locality,
+    searchState.hotelType,
+  ]);
+
+  // Memoized hotel type options for consistent usage across breakpoints
+  const hotelCategoryOptions = useMemo(
+    () => [
+      { value: "all", label: "All Types" },
+      { value: "ONE_STAR", label: "One Star" },
+      { value: "TWO_STAR", label: "Two Star" },
+      { value: "THREE_STAR", label: "Three Star" },
+      { value: "FOUR_STAR", label: "Four Star" },
+      { value: "FIVE_STAR", label: "Five Star" },
+      { value: "BUDGET", label: "Budget" },
+      { value: "BOUTIQUE", label: "Boutique" },
+      { value: "RESORT", label: "Resort" },
+      { value: "HOMESTAY", label: "Homestay" },
+    ],
+    []
+  );
 
   // Memoized function to generate fetch key for deduplication
   const generateFetchKey = useCallback((page, district, locality, hotelType, sortBy) => {
     return `${page}-${district.trim()}-${locality.trim()}-${hotelType}-${sortBy}`;
   }, []);
 
+
+  // Derived flags
+  const isNearbySearch = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return Boolean(params.get("lat") && params.get("lon") && params.get("radius"));
+  }, [location.search]);
+
   // Optimized fetch function with request deduplication and caching
   const fetchHotels = useCallback(
-    async (page = 0, searchDistrict = "", searchLocality = "", searchHotelType = "", sortByParam = "default") => {
+    async (page = 0, searchDistrict = "", searchLocality = "", searchHotelType = "", sortByParam = "default", nearbyParams = null) => {
       // Generate unique key for this request
-      const fetchKey = generateFetchKey(page, searchDistrict, searchLocality, searchHotelType, sortByParam);
+      const fetchKey = nearbyParams 
+        ? `nearby-${nearbyParams.lat}-${nearbyParams.lon}-${nearbyParams.radius}-${page}`
+        : generateFetchKey(page, searchDistrict, searchLocality, searchHotelType, sortByParam);
       
       // Prevent duplicate API calls - check both completed and pending requests
-      if (appState.lastFetchKey === fetchKey && !appState.loading) {
+      if (lastFetchKeyRef.current === fetchKey) {
         return;
       }
       
@@ -237,31 +273,45 @@ const HotelListingPage = () => {
         setAppState(prev => ({ 
           ...prev, 
           loading: true, 
-          lastFetchKey: fetchKey
         }));
+        lastFetchKeyRef.current = fetchKey;
 
-        let endpoint = `/hotels/list?page=${page}&size=${pagination.size}`;
-        const isSearchActive = searchDistrict.trim() || searchLocality.trim() || 
-          (searchHotelType && searchHotelType !== "all");
-
-        // Build endpoint based on search/sort criteria
-        if (isSearchActive) {
+        let endpoint;
+        
+        // Check if this is a nearby search
+        if (nearbyParams) {
           const params = new URLSearchParams({
+            lat: nearbyParams.lat,
+            lon: nearbyParams.lon,
+            radius: nearbyParams.radius,
             page: page.toString(),
             size: pagination.size.toString(),
           });
-
-          if (searchDistrict.trim()) params.append("district", searchDistrict.trim());
-          if (searchLocality.trim()) params.append("locality", searchLocality.trim());
-          if (searchHotelType && searchHotelType !== "all") params.append("hotelType", searchHotelType);
-
-          endpoint = `/hotels/search?${params.toString()}`;
+          endpoint = `/hotels/nearby?${params.toString()}`;
         } else {
-          // Apply sorting only when not searching
-          if (sortByParam === "price-high") {
-            endpoint = `/hotels/sortedByHighestPrice?page=${page}&size=${pagination.size}`;
-          } else if (sortByParam === "price-low") {
-            endpoint = `/hotels/sortedByLowestPrice?page=${page}&size=${pagination.size}`;
+          endpoint = `/hotels/list?page=${page}&size=${pagination.size}`;
+          const isSearchActive = searchDistrict.trim() || searchLocality.trim() || 
+            (searchHotelType && searchHotelType !== "all");
+
+          // Build endpoint based on search/sort criteria
+          if (isSearchActive) {
+            const params = new URLSearchParams({
+              page: page.toString(),
+              size: pagination.size.toString(),
+            });
+
+            if (searchDistrict.trim()) params.append("district", searchDistrict.trim());
+            if (searchLocality.trim()) params.append("locality", searchLocality.trim());
+            if (searchHotelType && searchHotelType !== "all") params.append("hotelType", searchHotelType);
+
+            endpoint = `/hotels/search?${params.toString()}`;
+          } else {
+            // Apply sorting only when not searching
+            if (sortByParam === "price-high") {
+              endpoint = `/hotels/sortedByHighestPrice?page=${page}&size=${pagination.size}`;
+            } else if (sortByParam === "price-low") {
+              endpoint = `/hotels/sortedByLowestPrice?page=${page}&size=${pagination.size}`;
+            }
           }
         }
 
@@ -308,7 +358,7 @@ const HotelListingPage = () => {
           setAppState(prev => ({
             ...prev,
             hotels: [],
-            loading: true, // Keep loading state
+            loading: false,
           }));
         }
         
@@ -318,40 +368,50 @@ const HotelListingPage = () => {
         }
       }
     },
-    [pagination.size, generateFetchKey, appState.lastFetchKey, appState.loading]
+    [pagination.size, generateFetchKey]
   );
 
   // Handle initial URL parameters and data loading
   useEffect(() => {
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
     
     const params = new URLSearchParams(location.search);
     const districtParam = params.get("district") || "";
     const hotelTypeParam = params.get("hotelType") || "all";
     
-    // Set initial search state from URL
-    setSearchState(prev => ({
-      ...prev,
-      district: districtParam,
-      hotelType: hotelTypeParam,
-    }));
+    // Check for nearby search parameters
+    const lat = params.get("lat");
+    const lon = params.get("lon");
+    const radius = params.get("radius");
     
-    // Fetch initial data
-    fetchHotels(0, districtParam, "", hotelTypeParam, "default");
+    if (lat && lon && radius) {
+      // Nearby search mode - make API call directly
+      const nearbyParams = { lat, lon, radius };
+      setShowNearbyHeading(true);
+      fetchHotels(0, "", "", "all", "default", nearbyParams);
+    } else {
+      // Regular search mode
+      setShowNearbyHeading(false);
+      setSearchState(prev => ({
+        ...prev,
+        district: districtParam,
+        hotelType: hotelTypeParam,
+      }));
+      
+      fetchHotels(0, districtParam, "", hotelTypeParam, "default");
+    }
     
-    // Mark initial load as complete and no longer in initial load phase
     setAppState(prev => ({ 
       ...prev, 
       initialLoadDone: true,
       isInitialLoad: false
     }));
-  }, []); // Only run on mount
+  }, [location.search, fetchHotels]);
 
   // Optimized search effect with debouncing
   useEffect(() => {
     // Don't run during initial load or if initial load not done
-    if (!appState.initialLoadDone || appState.isInitialLoad) return;
+    if (!appState.initialLoadDone || appState.isInitialLoad || isNearbySearch) return;
 
     // Clear existing timer
     if (debounceTimerRef.current) {
@@ -371,19 +431,36 @@ const HotelListingPage = () => {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [searchState.district, searchState.locality, searchState.hotelType, fetchHotels, appState.initialLoadDone, appState.isInitialLoad]);
+  }, [
+    searchState.district,
+    searchState.locality,
+    searchState.hotelType,
+    fetchHotels,
+    appState.initialLoadDone,
+    appState.isInitialLoad,
+    isNearbySearch,
+  ]);
 
   // Separate effect for sort changes (no debounce needed)
   useEffect(() => {
     // Don't run during initial load or if initial load not done
-    if (!appState.initialLoadDone || appState.isInitialLoad) return;
+    if (!appState.initialLoadDone || appState.isInitialLoad || isNearbySearch) return;
     
     const isSearchActive = searchState.district.trim() || searchState.locality.trim() || 
       (searchState.hotelType && searchState.hotelType !== "all");
     if (!isSearchActive) {
       fetchHotels(0, searchState.district, searchState.locality, searchState.hotelType, searchState.sortBy);
     }
-  }, [searchState.sortBy, fetchHotels, appState.initialLoadDone, appState.isInitialLoad, searchState.district, searchState.locality, searchState.hotelType]);
+  }, [
+    searchState.sortBy,
+    fetchHotels,
+    appState.initialLoadDone,
+    appState.isInitialLoad,
+    searchState.district,
+    searchState.locality,
+    searchState.hotelType,
+    isNearbySearch,
+  ]);
 
   // Cleanup effect
   useEffect(() => {
@@ -435,6 +512,7 @@ const HotelListingPage = () => {
       (searchState.hotelType && searchState.hotelType !== "all");
     fetchHotels(0, searchState.district, searchState.locality, searchState.hotelType, 
       isSearchActive ? "default" : searchState.sortBy);
+    setShowNearbyHeading(false);
   }, [searchState.district, searchState.locality, searchState.hotelType, searchState.sortBy, fetchHotels]);
 
   const handleClearSearch = useCallback(() => {
@@ -446,17 +524,30 @@ const HotelListingPage = () => {
     }));
     
     window.history.replaceState({}, "", "/hotels");
+    setShowNearbyHeading(false);
     fetchHotels(0, "", "", "all", searchState.sortBy);
   }, [fetchHotels, searchState.sortBy]);
 
   const handlePageChange = useCallback((newPage) => {
     if (newPage >= 0 && newPage < pagination.totalPages) {
-      const isSearchActive = searchState.district.trim() || searchState.locality.trim() || 
-        (searchState.hotelType && searchState.hotelType !== "all");
-      fetchHotels(newPage, searchState.district, searchState.locality, searchState.hotelType, 
-        isSearchActive ? "default" : searchState.sortBy);
+      const params = new URLSearchParams(location.search);
+      const lat = params.get("lat");
+      const lon = params.get("lon");
+      const radius = params.get("radius");
+      
+      if (lat && lon && radius) {
+        // Nearby search pagination
+        const nearbyParams = { lat, lon, radius };
+        fetchHotels(newPage, "", "", "all", "default", nearbyParams);
+      } else {
+        // Regular search pagination
+        const isSearchActive = searchState.district.trim() || searchState.locality.trim() || 
+          (searchState.hotelType && searchState.hotelType !== "all");
+        fetchHotels(newPage, searchState.district, searchState.locality, searchState.hotelType, 
+          isSearchActive ? "default" : searchState.sortBy);
+      }
     }
-  }, [pagination.totalPages, searchState.district, searchState.locality, searchState.hotelType, searchState.sortBy, fetchHotels]);
+  }, [pagination.totalPages, searchState.district, searchState.locality, searchState.hotelType, searchState.sortBy, fetchHotels, location.search]);
 
   const handleDistrictChange = useCallback((value) => {
     setSearchState(prev => ({ ...prev, district: value }));
@@ -474,6 +565,42 @@ const HotelListingPage = () => {
     setSearchState(prev => ({ ...prev, sortBy: value }));
   }, []);
 
+  const handleMobileFieldChange = useCallback((value) => {
+    setMobileSearchField(value);
+    if (value === "district") {
+      setMobileSearchValue(searchState.district);
+    } else if (value === "locality") {
+      setMobileSearchValue(searchState.locality);
+    } else {
+      setMobileSearchValue(searchState.hotelType || "all");
+    }
+  }, [searchState.district, searchState.locality, searchState.hotelType]);
+
+  const handleMobileSearch = useCallback(() => {
+    const nextState = {
+      ...searchState,
+      district: mobileSearchField === "district" ? mobileSearchValue : searchState.district,
+      locality: mobileSearchField === "locality" ? mobileSearchValue : searchState.locality,
+      hotelType: mobileSearchField === "hotelType" ? (mobileSearchValue || "all") : searchState.hotelType,
+    };
+
+    setSearchState(nextState);
+
+    const hasSearchFilters =
+      nextState.district.trim() ||
+      nextState.locality.trim() ||
+      (nextState.hotelType && nextState.hotelType !== "all");
+
+    fetchHotels(
+      0,
+      nextState.district,
+      nextState.locality,
+      nextState.hotelType,
+      hasSearchFilters ? "default" : nextState.sortBy
+    );
+    setShowNearbyHeading(false);
+  }, [fetchHotels, mobileSearchField, mobileSearchValue, searchState]);
+
   const handleKeyPress = useCallback((e) => {
     if (e.key === 'Enter') {
       handleSearch();
@@ -487,6 +614,7 @@ const HotelListingPage = () => {
   }, [searchState.district, searchState.locality, searchState.hotelType]);
 
   const pageTitle = useMemo(() => {
+    if (showNearbyHeading) return "Hotels Near You";
     if (!isSearchActive) return "All Lodges registered with us";
     
     const parts = [];
@@ -500,7 +628,7 @@ const HotelListingPage = () => {
     }
     
     return parts.join(' - ') || "Search Results";
-  }, [isSearchActive, searchState.district, searchState.locality, searchState.hotelType]);
+  }, [isSearchActive, showNearbyHeading, searchState.district, searchState.locality, searchState.hotelType]);
 
   // Utility function to format time from "HH:MM:SS" to "H:MM AM/PM"
   const formatTime = useCallback((timeString) => {
@@ -606,70 +734,159 @@ const HotelListingPage = () => {
       <div className="container mx-auto px-4 py-6">
         {/* Main Content */}
         <main className="w-full">
-          {/* Simple Search Section */}
-          <div className="space-y-4 mb-6">
-            {/* First row - District, Locality and Hotel Type */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              {/* District Search */}
-              <div className="flex-1">
-                <Input
-                  placeholder="Search by district..."
-                  value={searchState.district}
-                  onChange={(e) => handleDistrictChange(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="w-full text-14"
-                />
-              </div>
+          {/* Search Surface */}
+          <div className="mb-6">
+            <div className="rounded-3xl border border-border/60 bg-card/70 backdrop-blur-sm shadow-sm">
+              <div className="p-4 sm:p-6 space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <p className="text-xs uppercase font-semibold tracking-[0.2em] text-muted-foreground">
+                      Plan Your Stay
+                    </p>
+                    <h2 className="text-xl sm:text-2xl font-semibold mt-1">
+                      Search verified stays across Bhutan
+                    </h2>
+                  </div>
+                  {isSearchActive && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleClearSearch}
+                      disabled={appState.loading}
+                      className="self-start sm:self-auto"
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Clear filters
+                    </Button>
+                  )}
+                </div>
 
-              {/* Locality Search */}
-              <div className="flex-1">
-                <Input
-                  placeholder="Search by locality/town..."
-                  value={searchState.locality}
-                  onChange={(e) => handleLocalityChange(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="w-full text-14"
-                />
-              </div>
+                {/* Mobile search */}
+                <div className="sm:hidden space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Quick search
+                    </span>
+                    <Select value={mobileSearchField} onValueChange={handleMobileFieldChange}>
+                      <SelectTrigger className="w-36 rounded-full text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="district">District</SelectItem>
+                        <SelectItem value="locality">Locality</SelectItem>
+                        <SelectItem value="hotelType">Type</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              {/* Hotel Type Filter */}
-              <div className="sm:w-48">
-                <Select value={searchState.hotelType} onValueChange={handleHotelTypeChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Hotel type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="ONE_STAR">One Star</SelectItem>
-                    <SelectItem value="TWO_STAR">Two Star</SelectItem>
-                    <SelectItem value="THREE_STAR">Three Star</SelectItem>
-                    <SelectItem value="FOUR_STAR">Four Star</SelectItem>
-                    <SelectItem value="FIVE_STAR">Five Star</SelectItem>
-                    <SelectItem value="BUDGET">Budget</SelectItem>
-                    <SelectItem value="BOUTIQUE">Boutique</SelectItem>
-                    <SelectItem value="RESORT">Resort</SelectItem>
-                    <SelectItem value="HOMESTAY">Homestay</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+                  <div className="flex items-center gap-2 rounded-full border bg-background/80 px-3 py-1.5 shadow-inner">
+                    {mobileSearchField === "hotelType" ? (
+                      <Select
+                        value={mobileSearchValue || "all"}
+                        onValueChange={(value) => setMobileSearchValue(value)}
+                      >
+                        <SelectTrigger className="flex-1 rounded-full text-sm border-none focus:ring-0 px-0">
+                          <SelectValue placeholder="Select hotel type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {hotelCategoryOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="relative flex-1">
+                        <Input
+                          placeholder={
+                            mobileSearchField === "district"
+                              ? "Search by district..."
+                              : "Search by locality..."
+                          }
+                          value={mobileSearchValue}
+                          onChange={(e) => setMobileSearchValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handleMobileSearch();
+                            }
+                          }}
+                          className="w-full border-none bg-transparent pl-0 text-sm focus-visible:ring-0"
+                        />
+                      </div>
+                    )}
 
-            {/* Second row - Search Actions */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              {/* Search Actions */}
-              <div className="flex gap-2 sm:flex-shrink-0">
-                <SearchButton 
-                  onClick={handleSearch} 
-                  disabled={appState.loading} 
-                  className="flex-1 sm:flex-initial bg-yellow-500 hover:bg-yellow-600 text-white cursor-pointer"
-                >
-                  Search
-                </SearchButton>
-                {isSearchActive && (
-                  <Button variant="outline" onClick={handleClearSearch} disabled={appState.loading}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
+                    <Button
+                      size="icon"
+                      onClick={handleMobileSearch}
+                      disabled={appState.loading}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white rounded-full"
+                    >
+                      <Search className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Desktop / Tablet search */}
+                <div className="hidden sm:grid gap-3 lg:gap-4 sm:grid-cols-[1.2fr,1.2fr,1fr,auto] items-center">
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by district"
+                      value={searchState.district}
+                      onChange={(e) => handleDistrictChange(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      className="w-full rounded-full pl-11 text-sm"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by locality / town"
+                      value={searchState.locality}
+                      onChange={(e) => handleLocalityChange(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      className="w-full rounded-full pl-11 text-sm"
+                    />
+                  </div>
+
+                    <div className="relative">
+                      <Home className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Select value={searchState.hotelType} onValueChange={handleHotelTypeChange}>
+                        <SelectTrigger className="rounded-full pl-11 text-left">
+                          <SelectValue placeholder="Hotel type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {hotelCategoryOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                  <div className="flex gap-2 justify-end">
+                    <SearchButton
+                      onClick={handleSearch}
+                      disabled={appState.loading}
+                      className="rounded-full bg-yellow-500 hover:bg-yellow-600 text-white px-6 font-medium"
+                    >
+                      Search
+                    </SearchButton>
+                    {isSearchActive && (
+                      <Button
+                        variant="outline"
+                        onClick={handleClearSearch}
+                        disabled={appState.loading}
+                        className="rounded-full"
+                      >
+                        Reset
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

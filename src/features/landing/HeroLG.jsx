@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/shared/utils";
 import EzeeroomHero from "@/assets/images/erHero-optimized.jpg";
+import { toast } from "sonner";
 
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
@@ -62,6 +63,60 @@ const HeroLG = () => {
   const handleStartExploring = () => {
     // Navigate to hotel listing page without filters
     navigate("/hotels");
+  };
+
+  const handleSearchNearby = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation not supported", {
+        description: "Please use a device that supports location services.",
+        duration: 6000,
+      });
+      return;
+    }
+
+    const loadingToast = toast.loading("Getting your location...");
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        toast.dismiss(loadingToast);
+
+        const searchParams = new URLSearchParams({
+          lat: coords.latitude.toString(),
+          lon: coords.longitude.toString(),
+          radius: "0.5",
+        });
+
+        navigate(`/hotels?${searchParams.toString()}`);
+      },
+      (error) => {
+        toast.dismiss(loadingToast);
+
+        let description = "Unable to get your location.";
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            description = "Enable location permissions to search nearby stays.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            description = "Location information is unavailable.";
+            break;
+          case error.TIMEOUT:
+            description = "Location request timed out. Please try again.";
+            break;
+          default:
+            description = "Unexpected location error. Please try again.";
+        }
+
+        toast.error("Location error", {
+          description,
+          duration: 6000,
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
   };
 
   return (
@@ -232,10 +287,19 @@ const HeroLG = () => {
           <Button 
             variant="outline" 
             size="lg" 
-            className="group border-white/30 text-black hover:bg-white/10 hover:text-white hover:border-white/50 cursor-pointer"
+            className="group text-xs text-black hover:bg-white/10 hover:text-white hover:border-white/50 cursor-pointer rounded-3xl transition-all duration-400"
             onClick={handleStartExploring}
           >
             Start Exploring
+            <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="group text-xs mx-3 text-black hover:bg-white/10 hover:text-white hover:border-white/50 cursor-pointer rounded-3xl transition-all duration-400"
+            onClick={handleSearchNearby}
+          >
+            Find nearby
             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Button>
         </div>

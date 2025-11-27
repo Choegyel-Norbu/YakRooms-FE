@@ -50,6 +50,7 @@ const PUBLIC_ENDPOINTS = [
   '/hotels/top-highlights',
   '/hotels/search',
   '/hotels/public',
+  '/hotels/nearby',
   '/auth/firebase',
   '/auth/firebase-cross-domain',
   '/auth/status',

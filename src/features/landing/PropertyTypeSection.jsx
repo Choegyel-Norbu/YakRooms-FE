@@ -14,63 +14,61 @@ const PropertyTypeSection = () => {
   // Falls back to using the current origin if not set
   const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL || window.location.origin;
 
-  // Property types with their backend values and display names
-  // These match the backend enum values from the hotel type filter
-  // Using Bhutanese context images from CDN
+  // Property types arranged from lowest to highest standard/priority
   const propertyTypes = [
     {
-      id: "RESORT",
-      label: "Resorts",
-      image: `${CDN_BASE_URL}/images/bumthang.jpg`, // Bumthang - beautiful Bhutanese valley
-      description: "Luxury resort experiences"
-    },
-    {
-      id: "BOUTIQUE",
-      label: "Boutique Hotels",
-      image: `${CDN_BASE_URL}/images/mongar.jpg`, // Mongar - traditional Bhutanese architecture
-      description: "Unique boutique experiences"
-    },
-    {
-      id: "HOMESTAY",
-      label: "Homestays",
-      image: `${CDN_BASE_URL}/images/trashigangtown.jpg`, // Traditional Bhutanese home
-      description: "Authentic local experiences"
-    },
-    {
-      id: "BUDGET",
-      label: "Budget Hotels",
-      image: `${CDN_BASE_URL}/images/trashigangtown.jpg`, // Trashigang - local accommodation
-      description: "Affordable accommodations"
-    },
-    {
-      id: "FIVE_STAR",
-      label: "Five Star",
-      image: `${CDN_BASE_URL}/images/sj.jpg`, // Luxury Bhutanese location
-      description: "Premium luxury stays"
-    },
-    {
-      id: "FOUR_STAR",
-      label: "Four Star",
-      image: `${CDN_BASE_URL}/images/bumthang.jpg`, // Upscale Bhutanese location
-      description: "Upscale accommodations"
-    },
-    {
-      id: "THREE_STAR",
-      label: "Three Star",
-      image: `${CDN_BASE_URL}/images/mongar.jpg`, // Mid-range Bhutanese hotel
-      description: "Quality mid-range stays"
+      id: "ONE_STAR",
+      label: "One Star",
+      image: `${CDN_BASE_URL}/images/onestar.jpg`,
+      description: "Basic accommodations"
     },
     {
       id: "TWO_STAR",
       label: "Two Star",
-      image: `${CDN_BASE_URL}/images/trashigangtown.jpg`, // Comfortable Bhutanese hotel
+      image: `${CDN_BASE_URL}/images/twostar.jpg`,
       description: "Comfortable stays"
     },
     {
-      id: "ONE_STAR",
-      label: "One Star",
-      image: `${CDN_BASE_URL}/images/sj.jpg`, // Basic Bhutanese accommodation
-      description: "Basic accommodations"
+      id: "BUDGET",
+      label: "Budget Hotels",
+      image: `${CDN_BASE_URL}/images/budget1.jpg`,
+      description: "Affordable accommodations"
+    },
+    {
+      id: "THREE_STAR",
+      label: "Three Star",
+      image: `${CDN_BASE_URL}/images/threestar.avif`,
+      description: "Quality mid-range stays"
+    },
+    {
+      id: "HOMESTAY",
+      label: "Homestays",
+      image: `${CDN_BASE_URL}/images/homestay.jpg`,
+      description: "Authentic local experiences"
+    },
+    {
+      id: "FOUR_STAR",
+      label: "Four Star",
+      image: `${CDN_BASE_URL}/images/four.jpg`,
+      description: "Upscale accommodations"
+    },
+    {
+      id: "FIVE_STAR",
+      label: "Five Star",
+      image: `${CDN_BASE_URL}/images/fivestar.jpeg`,
+      description: "Premium luxury stays"
+    },
+    {
+      id: "BOUTIQUE",
+      label: "Boutique Hotels",
+      image: `${CDN_BASE_URL}/images/suite.jpg`,
+      description: "Unique boutique experiences"
+    },
+    {
+      id: "RESORT",
+      label: "Resorts",
+      image: `${CDN_BASE_URL}/images/resort.jpg`,
+      description: "Luxury resort experiences"
     },
   ];
 
@@ -179,7 +177,7 @@ const PropertyTypeSection = () => {
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       onError={(e) => {
                         // Fallback to a placeholder if image fails
-                        e.target.src = `${CDN_BASE_URL}/images/bumthang.jpg`;
+                        e.target.src = `${CDN_BASE_URL}/images/suite.jpg`;
                       }}
                     />
                     

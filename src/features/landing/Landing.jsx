@@ -26,6 +26,7 @@ const Landing = () => {
   const contactMeRef = useRef(null);
   const homeRef = useRef(null);
   const footerRef = useRef(null);
+  const listPropertyRef = useRef(null);
   const [hasRated, setHasRated] = useState(
     getStorageItem("hasRated") === "true"
   );
@@ -227,7 +228,9 @@ const Landing = () => {
         <PropertyTypeSection />
         <FeatureSection />
         <TopHighlightsSection />
-        <ListYourPropertySection onLoginClick={toggleLogin} />
+        <div ref={listPropertyRef}>
+          <ListYourPropertySection onLoginClick={toggleLogin} />
+        </div>
         
         <Footer ref={footerRef} />
       </div>

@@ -65,21 +65,12 @@ const InstallPrompt = () => {
       <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-gray-200/50 p-5 transition-all duration-300 hover:shadow-3xl">
         {/* Header */}
         <div className="flex items-start gap-4 mb-5">
-          <div className="flex-shrink-0 w-12 h-12 bg-yellow-400 rounded-xl flex items-center justify-center shadow-lg">
-            <svg
-              className="w-7 h-7 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-              />
-            </svg>
+          <div className="flex-shrink-0 w-12 h-12 rounded-xl overflow-hidden shadow-lg">
+            <img
+              src="/images/er.png"
+              alt="Ezeeroom"
+              className="w-full h-full object-cover"
+            />
           </div>
           
           <div className="flex-1 min-w-0">
@@ -120,16 +111,16 @@ const InstallPrompt = () => {
         </div>
 
         {/* Action buttons */}
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <button
             onClick={handleInstall}
-            className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-3 px-4 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg active:scale-95"
+            className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg active:scale-95 cursor-pointer"
           >
             Install App
           </button>
           <button
             onClick={handleDismiss}
-            className="px-4 py-3 text-gray-600 hover:text-gray-800 font-medium rounded-xl hover:bg-gray-100 transition-colors duration-200"
+            className="flex-1 py-2 px-3 text-gray-600 hover:text-gray-800 text-sm font-medium rounded-lg hover:bg-gray-100 transition-all duration-200 active:scale-95 cursor-pointer"
           >
             Not now
           </button>

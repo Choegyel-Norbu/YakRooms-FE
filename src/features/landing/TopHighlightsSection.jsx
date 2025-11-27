@@ -75,8 +75,20 @@ const TopHighlightsSection = () => {
         `}
       </style>
       {/* Adjusted for consistent section padding and width across sizes */}
-      <section className="pb-20 lg:py-12 mt-10 px-6 sm:px-4 lg:px-8 lg:w-[70%] m-auto">
-        <div className="container mx-auto">
+      <section className="pb-20 lg:py-12 mt-10 px-6 sm:px-4 lg:px-8 lg:w-[70%] m-auto relative">
+        {/* Background dragon image - covers full section */}
+        <div 
+          className="absolute inset-0 pointer-events-none rounded-lg"
+          style={{
+            backgroundImage: 'url(/images/dragon.png)',
+            backgroundSize: '80%',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            opacity: 0.15,
+            zIndex: 0
+          }}
+        />
+        <div className="container mx-auto relative z-10">
           {/* Adjusted heading size for better hierarchy */}
           <h3 className="text-center text-2xl font-bold mb-8 text-gray-900">
             Top Listed Lodges

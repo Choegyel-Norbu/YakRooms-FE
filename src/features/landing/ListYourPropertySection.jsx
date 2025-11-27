@@ -14,7 +14,6 @@ import {
   Smartphone,
   Clock,
   MapPin,
-  AlertTriangle,
   CreditCard
 } from "lucide-react";
 
@@ -27,16 +26,7 @@ import { cn } from "@/shared/utils";
 import { useAuth } from "@/features/authentication";
 
 const ListYourPropertySection = ({ onLoginClick }) => {
-  const { 
-    isAuthenticated, 
-    roles, 
-    subscriptionIsActive, 
-    subscriptionPlan 
-  } = useAuth();
-
-  // Check if user is hotel admin with expired subscription
-  const isHotelAdmin = roles && roles.includes('HOTEL_ADMIN');
-  const hasExpiredSubscription = isHotelAdmin && subscriptionIsActive === false && subscriptionPlan;
+  const { isAuthenticated } = useAuth();
   
   const handleListPropertyClick = (e) => {
     if (!isAuthenticated) {
@@ -76,7 +66,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
   ];
 
   return (
-    <section className="pb-20 px-4 bg-muted/20 md:mt-10">
+    <section id="list-your-property" className="pb-20 px-4 bg-muted/20 md:mt-10">
       <div className="container mx-auto">
         <div className="max-w-6xl mx-auto">
           {/* Header Section */}
@@ -199,29 +189,8 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                         <span>List Your Property Today</span>
                         <ArrowUpRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />
                       </Button>
-                    ) : hasExpiredSubscription ? (
-                      // User is hotel admin with expired subscription
-                      <div className="space-y-3">
-                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                          <div className="flex items-start space-x-3">
-                            <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-                            <div className="space-y-2">
-                              <h4 className="font-semibold text-red-800">Subscription Expired</h4>
-                              <p className="text-sm text-red-700">
-                                Your subscription has expired. Please renew your subscription to continue listing properties and managing bookings.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <Link to="/subscription" className="block">
-                          <Button size="lg" className="w-full bg-red-500 hover:bg-red-600 text-white">
-                            <CreditCard className="mr-2 h-5 w-5" />
-                            <span>Renew Subscription</span>
-                          </Button>
-                        </Link>
-                      </div>
                     ) : (
-                      // User is authenticated with active subscription or non-hotel admin
+                      // User is authenticated - allow property listing regardless of subscription status
                       <Link to="/addListing" className="block">
                         <Button size="lg" className="w-full bg-yellow-500 hover:bg-yellow-600 text-primary cursor-pointer">
                           <span>List Your Property Today</span>

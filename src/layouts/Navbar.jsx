@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import {
   Menu,
@@ -57,13 +57,15 @@ import HotelSelectionDialog from "@/shared/components/HotelSelectionDialog";
 
 const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
   const navigate = useNavigate();
-  const { isAuthenticated, logout, userName, email, roles, pictureURL, hasRole, getPrimaryRole, getCurrentActiveRole, switchToRole, selectedHotelId, userHotels, userId, fetchUserHotels, setSelectedHotelId, subscriptionIsActive, subscriptionPlan } = useAuth();
+  const location = useLocation();
+  const { isAuthenticated, logout, userName, email, roles, pictureURL, hasRole, getPrimaryRole, getCurrentActiveRole, switchToRole, selectedHotelId, userHotels, userId, fetchUserHotels, setSelectedHotelId } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [theme, setTheme] = useState("light");
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const [isLogoutConfirmationOpen, setIsLogoutConfirmationOpen] = useState(false);
   const [isHotelSelectionOpen, setIsHotelSelectionOpen] = useState(false);
+  const [isListPropertyActive, setIsListPropertyActive] = useState(false);
 
   // Add CSS for hiding scrollbar
   useEffect(() => {
@@ -88,10 +90,24 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       setIsScrolled(scrollY > 10);
+      
+      // Check if ListYourPropertySection is in view
+      if (location.pathname === '/') {
+        const listPropertySection = document.getElementById('list-your-property');
+        if (listPropertySection) {
+          const rect = listPropertySection.getBoundingClientRect();
+          const isInView = rect.top <= 100 && rect.bottom >= 100;
+          setIsListPropertyActive(isInView);
+        }
+      } else {
+        setIsListPropertyActive(false);
+      }
     };
     window.addEventListener("scroll", handleScroll);
+    // Check initial state
+    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [location.pathname]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -245,26 +261,41 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
     // Hotel selection handled silently
   };
 
-  // Handle "Become a Host" click - same logic as ListYourPropertySection
-  const handleBecomeHostClick = (e) => {
-    if (!isAuthenticated) {
-      e.preventDefault();
-      onLoginClick();
-      return;
+  // Handle "List Property" click - scroll to section on landing page, or navigate to addListing
+  const handleListPropertyClick = (e) => {
+    e.preventDefault();
+    
+    // If we're on the landing page, scroll to the section
+    if (location.pathname === '/') {
+      const listPropertySection = document.getElementById('list-your-property');
+      if (listPropertySection) {
+        const offset = 80; // Account for navbar height
+        const elementPosition = listPropertySection.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    } else {
+      // If not on landing page, navigate to landing page first, then scroll
+      navigate('/');
+      // Wait for navigation and DOM update, then scroll
+      setTimeout(() => {
+        const listPropertySection = document.getElementById('list-your-property');
+        if (listPropertySection) {
+          const offset = 80;
+          const elementPosition = listPropertySection.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - offset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
     }
-
-    // Check if user is hotel admin with expired subscription
-    const isHotelAdmin = roles && roles.includes('HOTEL_ADMIN');
-    const hasExpiredSubscription = isHotelAdmin && subscriptionIsActive === false && subscriptionPlan;
-
-    if (hasExpiredSubscription) {
-      e.preventDefault();
-      navigate('/subscription');
-      return;
-    }
-
-    // User is authenticated with active subscription or non-hotel admin
-    navigate('/addListing');
   };
 
   const UserNav = () => {
@@ -275,7 +306,7 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
             onClick={onLoginClick}
             className="bg-yellow-500 hover:bg-yellow-600 text-slate-700 font-semibold px-6 py-2 rounded-full shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
           >
-            Login/Register
+            Login / Register
           </Button>
         </div>
       );
@@ -639,8 +670,10 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
                 className={cn(
                   "hover:bg-transparent",
                   "text-sm font-medium transition-all",
-                  link.isContact || link.isListProperty ? "text-primary" : undefined,
-                  "hover:border-b hover:border-b-primary/50 border-b border-b-transparent"
+                  link.isContact ? "text-primary" : undefined,
+                  link.isListProperty ? "text-primary" : undefined,
+                  "hover:border-b hover:border-b-primary/50 border-b border-b-transparent",
+                  link.isListProperty && isListPropertyActive ? "border-b-primary" : "border-b-transparent"
                 )}
               >
                 {link.isContact ? (
@@ -651,7 +684,8 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
                   </button>
                 ) : link.isListProperty ? (
                   <button
-                    onClick={handleBecomeHostClick}
+                    onClick={handleListPropertyClick}
+                    className="text-primary"
                   >
                   {link.name}
                   </button>
@@ -712,10 +746,10 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
                             <button
                               key={link.name}
                               onClick={(e) => {
-                                handleBecomeHostClick(e);
+                                handleListPropertyClick(e);
                                 setIsMobileMenuOpen(false);
                               }}
-                              className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group mx-6 w-full"
+                              className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-primary hover:bg-accent transition-colors group mx-6 w-full"
                             >
                               <div className="flex items-center">
                                 <div className="p-1.5 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">

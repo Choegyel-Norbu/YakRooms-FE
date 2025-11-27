@@ -31,6 +31,30 @@ import {
   Facebook,
   Instagram,
   Menu,
+  Tv,
+  Dumbbell,
+  Waves,
+  TreePine,
+  Shield,
+  Key,
+  Bed,
+  Sofa,
+  Gamepad2,
+  Music,
+  Briefcase,
+  Plane,
+  Bike,
+  ShoppingBag,
+  Heart,
+  Sparkles,
+  Flame,
+  Snowflake,
+  Sun,
+  Moon,
+  Cloud,
+  Droplets,
+  Wind,
+  MapPin,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/ios-spinner";
 
@@ -355,6 +379,55 @@ const RoomImageCarousel = ({ images, roomNumber, roomType, isActive }) => {
   );
 };
 
+// Comprehensive amenity icon mapping with unique icons
+// Defined outside component to avoid recreation on each render
+// All icons use the same color for consistency
+const amenityConfigs = [
+  // Technology & Connectivity
+  { keywords: ["wifi", "internet", "wireless"], icon: Wifi },
+  { keywords: ["tv", "television", "entertainment"], icon: Tv },
+  { keywords: ["phone", "telephone"], icon: Phone },
+  
+  // Transportation
+  { keywords: ["parking", "car", "vehicle"], icon: Car },
+  { keywords: ["airport", "shuttle", "transfer"], icon: Plane },
+  { keywords: ["bike", "bicycle", "cycling"], icon: Bike },
+  
+  // Food & Dining
+  { keywords: ["breakfast", "bb", "morning meal"], icon: Coffee },
+  { keywords: ["restaurant", "dining", "food", "meal"], icon: Utensils },
+  { keywords: ["bar", "drinks", "cocktail"], icon: Sparkles },
+  
+  // Facilities
+  { keywords: ["gym", "fitness", "workout", "exercise"], icon: Dumbbell },
+  { keywords: ["pool", "swimming", "water"], icon: Waves },
+  { keywords: ["spa", "massage", "wellness", "relax"], icon: Heart },
+  { keywords: ["garden", "outdoor", "nature"], icon: TreePine },
+  { keywords: ["shop", "shopping", "store", "mall"], icon: ShoppingBag },
+  { keywords: ["business", "meeting", "conference"], icon: Briefcase },
+  { keywords: ["game", "games", "arcade", "play"], icon: Gamepad2 },
+  { keywords: ["music", "karaoke", "entertainment"], icon: Music },
+  
+  // Room Features
+  { keywords: ["bath", "bathroom", "shower"], icon: Bath },
+  { keywords: ["ac", "air condition", "cooling"], icon: AirVent },
+  { keywords: ["heating", "heat", "warm"], icon: Flame },
+  { keywords: ["bed", "sleep", "room"], icon: Bed },
+  { keywords: ["sofa", "lounge", "sitting"], icon: Sofa },
+  { keywords: ["balcony", "terrace", "view"], icon: Sun },
+  
+  // Security & Services
+  { keywords: ["security", "safe", "lock"], icon: Shield },
+  { keywords: ["key", "access", "card"], icon: Key },
+  
+  // Weather & Environment
+  { keywords: ["rain", "water", "shower"], icon: Droplets },
+  { keywords: ["wind", "fan", "ventilation"], icon: Wind },
+  { keywords: ["snow", "winter"], icon: Snowflake },
+  { keywords: ["cloud", "weather"], icon: Cloud },
+  { keywords: ["moon", "night"], icon: Moon },
+];
+
 const HotelDetailsPage = () => {
   const { userId, isAuthenticated, roles, hasRole, hotelId, hotelIds, selectedHotelId } = useAuth();
   const { id } = useParams();
@@ -471,16 +544,49 @@ const HotelDetailsPage = () => {
   const hasInitialDataLoaded = useRef(false);
   const hotelNameSectionRef = useRef(null);
 
-  // Amenity icons mapping
-  const amenityIcons = {
-    wifi: Wifi,
-    parking: Car,
-    breakfast: Coffee,
-    restaurant: Utensils,
-    bathroom: Bath,
-    ac: AirVent,
-    default: CheckCircle,
-  };
+  // Function to get amenity config with unique icon assignment
+  const getAmenityConfig = useMemo(() => {
+    return (amenityLabel, usedIcons = new Set()) => {
+      const label = (amenityLabel || "").toLowerCase().trim();
+      
+      // Find matching config
+      let matchedConfig = null;
+      for (const config of amenityConfigs) {
+        if (config.keywords.some(keyword => label.includes(keyword))) {
+          // Check if this icon is already used
+          if (!usedIcons.has(config.icon)) {
+            matchedConfig = config;
+            usedIcons.add(config.icon);
+            break;
+          }
+        }
+      }
+      
+      // If no match or icon already used, find first unused icon
+      if (!matchedConfig) {
+        for (const config of amenityConfigs) {
+          if (!usedIcons.has(config.icon)) {
+            matchedConfig = config;
+            usedIcons.add(config.icon);
+            break;
+          }
+        }
+      }
+      
+      // Fallback to CheckCircle if all icons are used
+      if (!matchedConfig) {
+        matchedConfig = {
+          icon: CheckCircle,
+        };
+      }
+      
+      return {
+        Icon: matchedConfig.icon,
+        iconColor: "text-slate-700",
+        badgeClasses: "bg-slate-100 border-slate-300 border text-slate-900",
+      };
+    };
+  }, []);
 
   // Helper function to check if current user owns this hotel
   const isHotelOwner = useCallback(() => {
@@ -982,7 +1088,8 @@ const HotelDetailsPage = () => {
               </h1>
               {/* Location - Below Hotel Name */}
               {(appState.hotel?.locality || appState.hotel?.district) && (
-                <span className="text-sm text-slate-600 font-normal">
+                <span className="text-sm text-slate-600 font-normal flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
                   {appState.hotel.locality && `${appState.hotel.locality}, `}{appState.hotel.district}, Bhutan
                 </span>
               )}
@@ -1112,7 +1219,10 @@ const HotelDetailsPage = () => {
                     {/* Hotel Description */}
                    {transformedHotel.description && (
                       <div className="w-full">
-                        <div className="mb-0">
+                        <div className="mb-0 space-y-2">
+                          <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                            Description
+                          </h4>
                           <p className="text-sm text-slate-700 leading-relaxed">
                             {transformedHotel.description}
                           </p>
@@ -1236,17 +1346,22 @@ const HotelDetailsPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="flex flex-row flex-wrap">
-                  {appState.hotel.amenities?.map((amenity, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center"
-                    >
-                      <span className="text-sm text-gray-500 font-normal pr-8 py-1">
-                         {amenity}
-                      </span>
-                    </div>
-                  ))}
+                <div className="flex flex-row flex-wrap gap-2 rounded-lg">
+                  {(() => {
+                    const usedIcons = new Set();
+                    return appState.hotel.amenities?.map((amenity, index) => {
+                      const { Icon, iconColor } = getAmenityConfig(amenity, usedIcons);
+                      return (
+                        <div
+                          key={index}
+                          className="inline-flex items-center gap-1.5 py-2 px-4 text-sm bg-blue-50 rounded-2xl text-slate-900"
+                        >
+                          <Icon className={`h-5 w-5 ${iconColor}`} />
+                          <span>{amenity}</span>
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               </CardContent>
             {/* </Card> */}
@@ -1512,15 +1627,22 @@ const HotelDetailsPage = () => {
                                       Room Amenities
                                     </h4>
                                   <div className="flex flex-wrap gap-2">
-                                    {room.amenities.map((amenity, index) => (
-                                      <Badge
-                                        key={index}
-                                        variant="outline"
-                                        className="text-xs text-gray-500"
-                                      >
-                                        {amenity}
-                                      </Badge>
-                                    ))}
+                                    {(() => {
+                                      const usedIcons = new Set();
+                                      return room.amenities.map((amenity, index) => {
+                                        const { Icon, iconColor, badgeClasses } = getAmenityConfig(amenity, usedIcons);
+                                        return (
+                                          <Badge
+                                            key={index}
+                                            variant="outline"
+                                            className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full ${badgeClasses}`}
+                                          >
+                                            <Icon className={`h-5 w-5 ${iconColor}`} />
+                                            <span>{amenity}</span>
+                                          </Badge>
+                                        );
+                                      });
+                                    })()}
                                   </div>
                                 </div>
                               )}
@@ -1737,35 +1859,35 @@ const HotelDetailsPage = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-sm">Hotel Type</span>
+                  <span className="text-sm font-bold">Hotel Type</span>
                   <span className="text-sm">
                     {(appState.hotel.hotelType || "Hotel").replace(/_/g, " ")}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm">Location</span>
+                  <span className="text-sm font-bold">Location</span>
                   <span className="text-sm">
                     {appState.hotel.locality && `${appState.hotel.locality}, `}{appState.hotel.district}
                   </span>
                 </div>
                 {appState.hotel.address && (
                   <div className="flex justify-between">
-                    <span className="text-sm">Address</span>
+                    <span className="text-sm font-bold">Address</span>
                     <span className="text-sm">{appState.hotel.address}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-sm">Total Rooms</span>
+                  <span className="text-sm font-bold">Total Rooms</span>
                   <span className="text-sm">
-                    {roomsState.availableRooms.length}+ active
+                    {roomsState.paginationData?.page?.totalElements || 0}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm">Check-in Time</span>
+                  <span className="text-sm font-bold">Check-in Time</span>
                   <span className="text-sm">{formatTime(appState.hotel?.checkinTime)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm">Check-out Time</span>
+                  <span className="text-sm font-bold">Check-out Time</span>
                   <span className="text-sm">{formatTime(appState.hotel?.checkoutTime)}</span>
                 </div>
               </CardContent>
