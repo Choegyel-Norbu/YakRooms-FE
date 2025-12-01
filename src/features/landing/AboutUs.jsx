@@ -77,11 +77,6 @@ const AboutUs = () => {
               <div className="flex-1 flex justify-center">
                 <div className="text-center">
                   <EzeeRoomLogo size="large" />
-                  <div className="mt-2">
-                    <Badge variant="outline" className="text-xs">
-                      About Us
-                    </Badge>
-                  </div>
                 </div>
               </div>
               

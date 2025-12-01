@@ -23,6 +23,7 @@ import {
   MessageCircle,
   CalendarDays,
   TrendingUp,
+  Download,
 } from "lucide-react";
 import { Separator } from "@/shared/components/separator";
 import { Button } from "@/shared/components/button";
@@ -53,6 +54,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/shared/utils";
 import { API_BASE_URL } from "../../shared/services/firebaseConfig";
 import HotelReviewSheet from "../hotel/HotelReviewSheet";
+import { generateBookingReceipt } from "../../shared/utils/receiptGenerator";
 
 // Number formatting function
 const formatCurrency = (amount) => {
@@ -228,6 +230,7 @@ const ActionButton = ({ action, onClick, disabled = false }) => {
     contact: { label: "Contact", icon: Phone, variant: "outline" },
     extend: { label: "Extend", icon: CalendarPlus, variant: "outline" },
     review: { label: "Review", icon: Star, variant: "outline" },
+    receipt: { label: "Download Receipt", icon: Download, variant: "outline" },
   };
 
   const config = buttonConfig[action];
@@ -1380,6 +1383,7 @@ const BookingCard = ({
   onDirections,
   onExtend,
   onReview,
+  onDownloadReceipt,
 }) => {
   const config = statusConfig[booking.status] || statusConfig.PENDING; // Fallback to PENDING if status not found
   const isCancellationRequested = booking.status === "CANCELLATION_REQUESTED";
@@ -1745,6 +1749,16 @@ const BookingCard = ({
             }}
           />
         ))}
+        {/* Download Receipt Button for CONFIRMED, CHECKED_IN, and CHECKED_OUT */}
+        {(booking.status === "CONFIRMED" || 
+          booking.status === "CHECKED_IN" || 
+          booking.status === "CHECKED_OUT") && (
+          <ActionButton
+            action="receipt"
+            disabled={false}
+            onClick={() => onDownloadReceipt(booking)}
+          />
+        )}
       </div>
 
       {/* Floating WhatsApp Icon for specific statuses */}
@@ -1755,7 +1769,7 @@ const BookingCard = ({
         booking.hotelPhone && !isDisabled && (
         <button
           onClick={() => onContact(booking)}
-          className="absolute bottom-3 right-3 bg-[#25D366] hover:bg-[#20BA5A] text-white p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
+          className="absolute bottom-18 right-3 bg-[#25D366] hover:bg-[#20BA5A] text-white p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
           aria-label={`Contact ${booking.hotelName} on WhatsApp`}
         >
           {/* Official WhatsApp Icon SVG */}
@@ -2383,6 +2397,55 @@ const GuestDashboard = () => {
     // This callback is only for closing the sheet after successful submission
   };
 
+  // Receipt download handler
+  const handleDownloadReceipt = async (booking) => {
+    try {
+      const bookingId = booking.bookingId || booking.id;
+      const subscriptionId = booking.subscriptionId;
+      
+      if (!bookingId && !subscriptionId) {
+        toast.error("Invalid Booking/Subscription", {
+          description: "Booking or Subscription ID is missing. Cannot generate receipt.",
+          duration: 6000,
+        });
+        return;
+      }
+
+      // Determine receipt type and fetch data
+      let response;
+      if (subscriptionId) {
+        // Fetch subscription receipt data
+        response = await api.get(`/receipts/subscription/${subscriptionId}`);
+      } else {
+        // Fetch booking receipt data
+        response = await api.get(`/receipts/booking/${bookingId}`);
+      }
+      
+      if (response.status === 200 && response.data && response.data.length > 0) {
+        const receiptData = response.data[0]; // API returns an array, get first item
+        
+        // Generate and download receipt with API data (now async)
+        await generateBookingReceipt(booking, receiptData);
+        
+        const receiptType = receiptData.receiptType || 'BOOKING';
+        const receiptTypeLabel = receiptType === 'SUBSCRIPTION' ? 'subscription' : 'booking';
+        
+        toast.success("Receipt Downloaded", {
+          description: `Your ${receiptTypeLabel} receipt has been downloaded successfully.`,
+          duration: 6000,
+        });
+      } else {
+        throw new Error("No receipt data found");
+      }
+    } catch (error) {
+      console.error("Error generating receipt:", error);
+      toast.error("Failed to Generate Receipt", {
+        description: error.response?.data?.message || "There was an error generating your receipt. Please try again.",
+        duration: 6000,
+      });
+    }
+  };
+
   const handleReviewClose = () => {
     setIsReviewSheetOpen(false);
     setSelectedHotelForReview(null);
@@ -2597,6 +2660,7 @@ const GuestDashboard = () => {
                     onDirections={handleDirections}
                     onExtend={handleExtend}
                     onReview={handleOpenReview}
+                    onDownloadReceipt={handleDownloadReceipt}
                   />
                   {/* Mobile Separator between cards */}
                   {index < bookings.length - 1 && (

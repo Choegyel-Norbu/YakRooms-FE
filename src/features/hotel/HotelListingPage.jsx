@@ -7,7 +7,9 @@ import {
   Search,
   X,
   Clock,
+  Navigation,
 } from "lucide-react";
+import { toast } from "sonner";
 import SimpleSpinner from "@/shared/components/SimpleSpinner";
 import StarRating from "@/shared/components/star-rating";
 import { SearchButton } from "@/shared/components";
@@ -45,6 +47,28 @@ import {
 import api from "../../shared/services/Api";
 import Footer from "../../layouts/Footer";
 import { EzeeRoomLogo } from "@/shared/components";
+
+/**
+ * Calculate the distance between two coordinates using the Haversine formula
+ * @param {number} lat1 - Latitude of first point
+ * @param {number} lon1 - Longitude of first point
+ * @param {number} lat2 - Latitude of second point
+ * @param {number} lon2 - Longitude of second point
+ * @returns {number} Distance in meters
+ */
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371000; // Earth's radius in meters
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c); // Distance in meters, rounded
+};
 
 // Memoized HotelCard component to prevent unnecessary re-renders
 const HotelCard = React.memo(({ hotel }) => (
@@ -95,15 +119,19 @@ const HotelCard = React.memo(({ hotel }) => (
           </Link>
         </CardTitle>
         
-        <CardDescription className="flex items-center gap-1.5 text-sm">
-          <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
-          <span className="font-medium">
-            {hotel.locality && `${hotel.locality}, `}{hotel.district}, Bhutan
-          </span>
-        </CardDescription>
+        <div className="flex items-start justify-between gap-3">
+          <CardDescription className="flex items-center gap-1.5 text-sm flex-1">
+            <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+            <span className="font-medium">
+              {hotel.locality && `${hotel.locality}, `}{hotel.district}, Bhutan
+            </span>
+          </CardDescription>
+
+          
+        </div>
 
         {/* Check-in/Check-out Times */}
-        <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
+        {/* <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
           <div className="flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5 flex-shrink-0" />
             <span>Check-in: {hotel.checkinTime}</span>
@@ -112,7 +140,7 @@ const HotelCard = React.memo(({ hotel }) => (
             <Clock className="h-3.5 w-3.5 flex-shrink-0" />
             <span>Check-out: {hotel.checkoutTime}</span>
           </div>
-        </div>
+        </div> */}
 
         {/* Rating Section */}
         {hotel.averageRating > 0 && (
@@ -123,11 +151,26 @@ const HotelCard = React.memo(({ hotel }) => (
               showRating={true}
               className="flex-shrink-0"
             />
-            <span className="text-xs text-muted-foreground">
+            {/* <span className="text-xs text-muted-foreground">
               ({hotel.averageRating.toFixed(1)} Avg. Rating)
-            </span>
+            </span> */}
           </div>
         )}
+
+        {/* Distance Display - Badge Style */}
+        {hotel.distance !== null && hotel.distance !== undefined && (
+            <Badge
+              variant="outline"
+              className="bg-blue-50/80 border-blue-200 text-blue-700 hover:bg-blue-100/80 transition-colors duration-200 px-2.5 py-1 text-xs font-medium flex items-center gap-1.5 whitespace-nowrap backdrop-blur-sm"
+            >
+              <Navigation className="h-3 w-3 flex-shrink-0" />
+              <span className="font-semibold">
+                {hotel.distance >= 1000
+                  ? `${(hotel.distance / 1000).toFixed(1)} km`
+                  : `${hotel.distance} m away`}
+              </span>
+            </Badge>
+          )}
       </div>
     </CardHeader>
 
@@ -186,6 +229,12 @@ const HotelListingPage = () => {
     totalElements: 0,
   });
   const [showNearbyHeading, setShowNearbyHeading] = useState(false);
+  
+  // User location state
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
+  const locationRetryCountRef = useRef(0);
+  const maxRetries = 2; // Maximum retry attempts for better accuracy
 
   // Refs for performance optimization
   const debounceTimerRef = useRef(null);
@@ -239,6 +288,96 @@ const HotelListingPage = () => {
     const params = new URLSearchParams(location.search);
     return Boolean(params.get("lat") && params.get("lon") && params.get("radius"));
   }, [location.search]);
+
+  // Get user's current location with improved accuracy
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      console.warn("Geolocation is not supported by this browser");
+      return;
+    }
+
+    // Only request location if not already set and permission not denied
+    if (userLocation === null && !locationPermissionDenied) {
+      const requestLocation = (retryCount = 0) => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const accuracy = position.coords.accuracy; // Accuracy in meters
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+
+            // Log accuracy for debugging
+            console.log(`Location accuracy: ${accuracy.toFixed(0)}m`);
+
+            // Accept location if accuracy is good (< 100m) or if we've exhausted retries
+            // For mobile devices, accuracy can be 10-50m with GPS, 100-1000m with network
+            if (accuracy <= 100 || retryCount >= maxRetries) {
+              // If we had to fall back to a poorer accuracy after retries,
+              // let the user know nearby results might not be precise.
+              if (retryCount >= maxRetries && accuracy > 100) {
+                toast("Location accuracy is a bit low", {
+                  description:
+                    "We couldn't get a very precise location. Nearby hotel results might not be exact.",
+                });
+              }
+              setUserLocation({
+                latitude,
+                longitude,
+                accuracy, // Store accuracy for reference
+              });
+              locationRetryCountRef.current = 0; // Reset retry count on success
+            } else {
+              // Retry for better accuracy if current accuracy is poor and we have retries left
+              console.log(`Location accuracy ${accuracy.toFixed(0)}m is poor, retrying...`);
+              locationRetryCountRef.current = retryCount + 1;
+              setTimeout(() => {
+                requestLocation(retryCount + 1);
+              }, 1000 * (retryCount + 1)); // Exponential backoff: 1s, 2s
+            }
+          },
+          (error) => {
+            console.error("Geolocation error:", error);
+            
+            // Handle different error types
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                console.warn("Location permission denied by user");
+                setLocationPermissionDenied(true);
+                break;
+              case error.POSITION_UNAVAILABLE:
+                console.warn("Location information unavailable");
+                // Retry once if position unavailable (might be temporary)
+                if (retryCount < 1) {
+                  setTimeout(() => {
+                    requestLocation(retryCount + 1);
+                  }, 2000);
+                }
+                break;
+              case error.TIMEOUT:
+                console.warn("Location request timed out");
+                // Retry with longer timeout if we haven't exhausted retries
+                if (retryCount < maxRetries) {
+                  setTimeout(() => {
+                    requestLocation(retryCount + 1);
+                  }, 1000);
+                }
+                break;
+              default:
+                console.error("Unknown geolocation error:", error.message);
+                break;
+            }
+          },
+          {
+            enableHighAccuracy: true, // Request GPS-level accuracy
+            timeout: 20000, // Increased timeout to 20 seconds for high accuracy GPS
+            maximumAge: 0, // Force fresh location data (no cache)
+          }
+        );
+      };
+
+      // Initial location request
+      requestLocation(0);
+    }
+  }, [userLocation, locationPermissionDenied]);
 
   // Optimized fetch function with request deduplication and caching
   const fetchHotels = useCallback(
@@ -641,24 +780,42 @@ const HotelListingPage = () => {
   }, []);
 
   const transformedHotels = useMemo(() => {
-    return appState.hotels.map((hotel) => ({
-      id: hotel.id,
-      name: hotel.name,
-      district: hotel.district,
-      locality: hotel.locality,
-      price: hotel.lowestPrice,
-      lowestPrice: hotel.lowestPrice,
-      image: hotel.photoUrl || hotel.photoUrls?.[0] || 
-        `https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop&auto=format`,
-      type: hotel.hotelType || "Hotel",
-      amenities: hotel.amenities || [],
-      address: hotel.address,
-      averageRating: hotel.averageRating || 0,
-      verified: hotel.verified || hotel.isVerified || false,
-      checkinTime: formatTime(hotel.checkinTime || "12:00:00"),
-      checkoutTime: formatTime(hotel.checkoutTime || "14:00:00"),
-    }));
-  }, [appState.hotels, formatTime]);
+    return appState.hotels.map((hotel) => {
+      // Extract latitude and longitude from hotel data
+      const hotelLat = hotel.latitude ? parseFloat(hotel.latitude) : null;
+      const hotelLon = hotel.longitude ? parseFloat(hotel.longitude) : null;
+      
+      // Calculate distance if user location and hotel coordinates are available
+      let distance = null;
+      if (userLocation && hotelLat !== null && hotelLon !== null) {
+        distance = calculateDistance(
+          userLocation.latitude,
+          userLocation.longitude,
+          hotelLat,
+          hotelLon
+        );
+      }
+
+      return {
+        id: hotel.id,
+        name: hotel.name,
+        district: hotel.district,
+        locality: hotel.locality,
+        price: hotel.lowestPrice,
+        lowestPrice: hotel.lowestPrice,
+        image: hotel.photoUrl || hotel.photoUrls?.[0] || 
+          `https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop&auto=format`,
+        type: hotel.hotelType || "Hotel",
+        amenities: hotel.amenities || [],
+        address: hotel.address,
+        averageRating: hotel.averageRating || 0,
+        verified: hotel.verified || hotel.isVerified || false,
+        checkinTime: formatTime(hotel.checkinTime || "12:00:00"),
+        checkoutTime: formatTime(hotel.checkoutTime || "14:00:00"),
+        distance,
+      };
+    });
+  }, [appState.hotels, formatTime, userLocation]);
 
   // Memoized pagination component
   const renderPagination = useMemo(() => {
@@ -743,9 +900,9 @@ const HotelListingPage = () => {
                     <p className="text-xs uppercase font-semibold tracking-[0.2em] text-muted-foreground">
                       Plan Your Stay
                     </p>
-                    <h2 className="text-xl sm:text-2xl font-semibold mt-1">
+                    {/* <h2 className="text-xl sm:text-2xl font-semibold mt-1">
                       Search verified stays across Bhutan
-                    </h2>
+                    </h2> */}
                   </div>
                   {isSearchActive && (
                     <Button
@@ -969,7 +1126,7 @@ const HotelListingPage = () => {
                      
                       <CardTitle className="text-2xl">
                         {isSearchActive 
-                          ? "No Hotels Found" 
+                          ? "No results Found" 
                           : (
                             <div className="flex flex-col items-center justify-center">
                               <SimpleSpinner 

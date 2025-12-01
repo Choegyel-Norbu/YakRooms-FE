@@ -1623,26 +1623,19 @@ const HotelDetailsPage = () => {
 
                               {room.amenities?.length > 0 && (
                                 <div>
-                                    <h4 className="font-light text-sm mb-3 text-black">
+                                    {/* <h4 className="font-light text-sm mb-3 text-black">
                                       Room Amenities
-                                    </h4>
+                                    </h4> */}
                                   <div className="flex flex-wrap gap-2">
-                                    {(() => {
-                                      const usedIcons = new Set();
-                                      return room.amenities.map((amenity, index) => {
-                                        const { Icon, iconColor, badgeClasses } = getAmenityConfig(amenity, usedIcons);
-                                        return (
-                                          <Badge
-                                            key={index}
-                                            variant="outline"
-                                            className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full ${badgeClasses}`}
-                                          >
-                                            <Icon className={`h-5 w-5 ${iconColor}`} />
-                                            <span>{amenity}</span>
-                                          </Badge>
-                                        );
-                                      });
-                                    })()}
+                                    {room.amenities.map((amenity, index) => (
+                                      <Badge
+                                        key={index}
+                                        variant="outline"
+                                        className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-slate-100 border-slate-300 border text-slate-900"
+                                      >
+                                        <span>{amenity}</span>
+                                      </Badge>
+                                    ))}
                                   </div>
                                 </div>
                               )}
@@ -1652,9 +1645,9 @@ const HotelDetailsPage = () => {
                             {room.imageUrl && Array.isArray(room.imageUrl) && room.imageUrl.length > 1 && (
                               <div className="mt-6 pt-4 border-t">
                                 <div className="mb-4">
-                                  <h4 className="text-sm font-medium text-muted-foreground mb-3">
+                                  {/* <h4 className="text-sm font-medium text-muted-foreground mb-3">
                                     Room Photos
-                                  </h4>
+                                  </h4> */}
                                   <div className="flex gap-2 overflow-x-auto pb-2">
                                     {room.imageUrl.map((image, index) => (
                                       <button
@@ -1854,41 +1847,52 @@ const HotelDetailsPage = () => {
 
             {/* Quick Info Card */}
             <Card className="rounded-none" style={{ borderRadius: 0 }}>
-              <CardHeader>
-                <CardTitle>Quick Information</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-semibold">Quick Information</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-sm font-bold">Hotel Type</span>
-                  <span className="text-sm">
+              <CardContent className="space-y-0">
+                {/* Hotel Type */}
+                <div className="py-3 border-b border-slate-100 last:border-b-0">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Hotel Type</p>
+                  <p className="text-sm font-semibold text-slate-900">
                     {(appState.hotel.hotelType || "Hotel").replace(/_/g, " ")}
-                  </span>
+                  </p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-bold">Location</span>
-                  <span className="text-sm">
+
+                {/* Location */}
+                <div className="py-3 border-b border-slate-100 last:border-b-0">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Location</p>
+                  <p className="text-sm font-semibold text-slate-900">
                     {appState.hotel.locality && `${appState.hotel.locality}, `}{appState.hotel.district}
-                  </span>
+                  </p>
                 </div>
+
+                {/* Address */}
                 {appState.hotel.address && (
-                  <div className="flex justify-between">
-                    <span className="text-sm font-bold">Address</span>
-                    <span className="text-sm">{appState.hotel.address}</span>
+                  <div className="py-3 border-b border-slate-100 last:border-b-0">
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Address</p>
+                    <p className="text-sm font-semibold text-slate-900">{appState.hotel.address}</p>
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-sm font-bold">Total Rooms</span>
-                  <span className="text-sm">
+
+                {/* Total Rooms */}
+                <div className="py-3 border-b border-slate-100 last:border-b-0">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Total Rooms</p>
+                  <p className="text-sm font-semibold text-slate-900">
                     {roomsState.paginationData?.page?.totalElements || 0}
-                  </span>
+                  </p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-bold">Check-in Time</span>
-                  <span className="text-sm">{formatTime(appState.hotel?.checkinTime)}</span>
+
+                {/* Check-in Time */}
+                <div className="py-3 border-b border-slate-100 last:border-b-0">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Check-in Time</p>
+                  <p className="text-sm font-semibold text-slate-900">{formatTime(appState.hotel?.checkinTime)}</p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-bold">Check-out Time</span>
-                  <span className="text-sm">{formatTime(appState.hotel?.checkoutTime)}</span>
+
+                {/* Check-out Time */}
+                <div className="py-3">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Check-out Time</p>
+                  <p className="text-sm font-semibold text-slate-900">{formatTime(appState.hotel?.checkoutTime)}</p>
                 </div>
               </CardContent>
             </Card>

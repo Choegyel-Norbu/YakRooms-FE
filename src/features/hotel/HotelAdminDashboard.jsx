@@ -27,6 +27,10 @@ import {
   Camera,
   Check,
   HelpCircle,
+  FileText,
+  Download,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/ios-spinner";
 import {
@@ -86,6 +90,14 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/shared/components/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/components/table";
 import HotelInfoForm from "./HotelInfoForm";
 import RoomManager from "../admin/RoomManager";
 import BookingTable from "./BookingTable";
@@ -105,6 +117,7 @@ import { EzeeRoomLogo } from "@/shared/components";
 import SubscriptionExpirationNotification from "@/shared/components/SubscriptionExpirationNotification";
 import { uploadFile } from "../../shared/services/uploadService";
 import { calculateDaysUntil } from "@/shared/utils/subscriptionUtils";
+import { generateBookingReceipt } from "../../shared/utils/receiptGenerator";
 
 const HotelAdminDashboard = () => {
   const navigate = useNavigate();
@@ -151,6 +164,14 @@ const HotelAdminDashboard = () => {
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [uploadErrors, setUploadErrors] = useState({});
   const [documentsSubmitted, setDocumentsSubmitted] = useState(false);
+
+  // Receipts state
+  const [receipts, setReceipts] = useState([]);
+  const [receiptsLoading, setReceiptsLoading] = useState(false);
+  const [receiptsPage, setReceiptsPage] = useState(0);
+  const [receiptsTotalPages, setReceiptsTotalPages] = useState(1);
+  const [receiptsTotalElements, setReceiptsTotalElements] = useState(0);
+  const receiptsPageSize = 10;
 
   // Use selected hotel ID if available, otherwise fall back to hotelId
   const currentHotelId = selectedHotelId || hotelId;
@@ -385,6 +406,102 @@ const HotelAdminDashboard = () => {
     }
   }, [activeTab, fetchLeaveNotifications]);
 
+  // Fetch receipts when billing tab is active
+  const fetchReceipts = useCallback(async (page = 0) => {
+    if (!currentHotelId) return;
+
+    try {
+      setReceiptsLoading(true);
+      const response = await api.get(
+        `/receipts/hotel/${currentHotelId}?page=${page}&size=${receiptsPageSize}`
+      );
+
+      if (response.data) {
+        // Handle paginated response
+        if (response.data.content) {
+          setReceipts(response.data.content);
+          setReceiptsTotalPages(response.data.totalPages || 1);
+          setReceiptsTotalElements(response.data.totalElements || 0);
+        } else if (Array.isArray(response.data)) {
+          // Fallback for direct array response
+          setReceipts(response.data);
+          setReceiptsTotalPages(1);
+          setReceiptsTotalElements(response.data.length);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching receipts:", error);
+      toast.error("Failed to fetch receipts", {
+        duration: 6000,
+      });
+      setReceipts([]);
+      setReceiptsTotalPages(1);
+      setReceiptsTotalElements(0);
+    } finally {
+      setReceiptsLoading(false);
+    }
+  }, [currentHotelId, receiptsPageSize]);
+
+  // Fetch receipts when tab is active or hotel changes
+  useEffect(() => {
+    if (activeTab === "billing" && currentHotelId) {
+      fetchReceipts(receiptsPage);
+    }
+  }, [activeTab, currentHotelId, receiptsPage, fetchReceipts]);
+
+  // Download receipt PDF
+  const handleDownloadReceipt = useCallback(async (receipt) => {
+    try {
+      const receiptId = receipt.id;
+      const receiptType = receipt.receiptType || 'BOOKING';
+      
+      if (!receiptId) {
+        toast.error("Invalid Receipt", {
+          description: "Receipt ID is missing. Cannot generate receipt.",
+          duration: 6000,
+        });
+        return;
+      }
+
+      // Fetch receipt data by ID
+      const response = await api.get(`/receipts/${receiptId}`);
+      
+      if (response.status === 200 && response.data) {
+        // Handle array response (get first item) or direct object
+        const receiptData = Array.isArray(response.data) ? response.data[0] : response.data;
+        
+        // Create a booking-like object for the receipt generator
+        // The receipt generator needs some booking fields for backward compatibility
+        const bookingData = {
+          id: receiptData.bookingId || receiptId,
+          bookingId: receiptData.bookingId || receiptId,
+          subscriptionId: receiptData.subscriptionId,
+          hotelName: receiptData.hotelName,
+          hotelPhone: receiptData.hotelPhone,
+          hotelEmail: receiptData.hotelEmail,
+        };
+        
+        // Generate and download receipt with API data
+        await generateBookingReceipt(bookingData, receiptData);
+        
+        const receiptTypeLabel = receiptType === 'SUBSCRIPTION' ? 'subscription' : 'booking';
+        
+        toast.success("Receipt Downloaded", {
+          description: `Your ${receiptTypeLabel} receipt has been downloaded successfully.`,
+          duration: 6000,
+        });
+      } else {
+        throw new Error("No receipt data found");
+      }
+    } catch (error) {
+      console.error("Error generating receipt:", error);
+      toast.error("Failed to Generate Receipt", {
+        description: error.response?.data?.message || "There was an error generating your receipt. Please try again.",
+        duration: 6000,
+      });
+    }
+  }, []);
+
   // Mark leave notification as read
   const markLeaveNotificationAsRead = async (notificationId) => {
     try {
@@ -609,6 +726,7 @@ const HotelAdminDashboard = () => {
     ] : []),
     { id: "leave", label: "Leave Management", icon: Clock, locked: true },
     ...(roles && !roles.includes("FRONTDESK") && !roles.includes("STAFF") ? [
+      { id: "billing", label: "Billing", icon: FileText, locked: false },
       { id: "hotel", label: "Hotel Settings", icon: Settings, locked: true }
     ] : [])
   ];
@@ -623,6 +741,7 @@ const HotelAdminDashboard = () => {
       analytics: "Analytics & Reports",
       booking: "Booking Management",
       leave: "Leave Management",
+      billing: "Billing",
     };
     return titles[activeTab] || "Dashboard";
   };
@@ -639,6 +758,7 @@ const HotelAdminDashboard = () => {
       leave: roles?.includes("STAFF")
         ? "Request leave and view your leave history"
         : "Manage staff leave requests and approvals",
+      billing: "View and download receipts for your hotel",
     };
     return descriptions[activeTab] || "Manage your hotel operations";
   };
@@ -1762,6 +1882,138 @@ const HotelAdminDashboard = () => {
                   </div>
                 </CardContent>
               )}
+            </div>
+          )}
+
+          {activeTab === "billing" && (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <FileText className="h-5 w-5 text-primary" />
+                    Billing
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    View and download receipts for your hotel
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  {receiptsLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Spinner size="md" />
+                    </div>
+                  ) : receipts.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <FileText className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                      <p className="text-sm text-muted-foreground">
+                        No receipts found
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="rounded-md border">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Receipt Number</TableHead>
+                              <TableHead>Type</TableHead>
+                              <TableHead>Customer Name</TableHead>
+                              <TableHead>Amount</TableHead>
+                              <TableHead>Date</TableHead>
+                              <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {receipts.map((receipt) => (
+                              <TableRow key={receipt.id}>
+                                <TableCell className="font-medium">
+                                  {receipt.receiptNumber || "N/A"}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="outline">
+                                    {receipt.receiptType === "SUBSCRIPTION" 
+                                      ? "Subscription" 
+                                      : "Booking"}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  {receipt.customerName || "N/A"}
+                                </TableCell>
+                                <TableCell>
+                                  {receipt.currency || "BTN"} {parseFloat(receipt.amount || 0).toLocaleString('en-IN', { 
+                                    minimumFractionDigits: 2, 
+                                    maximumFractionDigits: 2 
+                                  })}
+                                </TableCell>
+                                <TableCell>
+                                  {receipt.issueDate 
+                                    ? new Date(receipt.issueDate).toLocaleDateString()
+                                    : receipt.updatedAt
+                                    ? new Date(receipt.updatedAt).toLocaleDateString()
+                                    : "N/A"}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDownloadReceipt(receipt)}
+                                  >
+                                    <Download className="h-4 w-4 mr-2" />
+                                    Download PDF
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+
+                      {/* Pagination Controls */}
+                      {receiptsTotalPages > 1 && (
+                        <div className="flex items-center justify-between pt-4">
+                          <div className="text-sm text-muted-foreground">
+                            Showing {receiptsPage * receiptsPageSize + 1} to{" "}
+                            {Math.min(
+                              (receiptsPage + 1) * receiptsPageSize,
+                              receiptsTotalElements
+                            )}{" "}
+                            of {receiptsTotalElements} receipts
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setReceiptsPage((prev) => Math.max(0, prev - 1))}
+                              disabled={receiptsPage === 0 || receiptsLoading}
+                            >
+                              <ChevronLeft className="h-4 w-4" />
+                              Previous
+                            </Button>
+                            <div className="text-sm text-muted-foreground">
+                              Page {receiptsPage + 1} of {receiptsTotalPages}
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                setReceiptsPage((prev) =>
+                                  Math.min(receiptsTotalPages - 1, prev + 1)
+                                )
+                              }
+                              disabled={
+                                receiptsPage >= receiptsTotalPages - 1 || receiptsLoading
+                              }
+                            >
+                              Next
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           )}
 

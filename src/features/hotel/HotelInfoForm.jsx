@@ -570,6 +570,20 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} rows={4} disabled={!isEditing} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               {/* Location Section */}
               <div className="md:col-span-2 border-t pt-4 mt-2">
                 <h4 className="text-base font-semibold mb-3 flex items-center gap-2">
@@ -1223,20 +1237,6 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                   </div>
                 )}
               </div>
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} rows={4} disabled={!isEditing} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               {/* Cancellation Policy Section */}
               <div className="md:col-span-2 border-t pt-4 mt-2">

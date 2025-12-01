@@ -130,9 +130,9 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
   const navLinks = [
     { name: "Home", path: "/", icon: Home, description: "Back to homepage" },
     { name: "Hotels", path: "/hotels", icon: Hotel, description: "Find accommodations" },
-    { name: "About", path: "/aboutus", icon: Info, description: "Learn about us" },
     { name: "List Property", path: "#", icon: Sparkles, description: "List your property", isListProperty: true },
     { name: "Contact", path: "#contact", icon: Mail, description: "Get in touch", isContact: true },
+    { name: "About Us", path: "/aboutus", icon: Info, description: "Learn about us" },
   ];
 
   // Helper function to format role name to title case

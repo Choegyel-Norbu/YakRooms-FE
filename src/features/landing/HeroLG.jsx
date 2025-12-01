@@ -10,6 +10,7 @@ import { Input } from "@/shared/components/input";
 import { Separator } from "@/shared/components/separator";
 import { Badge } from "@/shared/components/badge";
 import { SearchButton } from "@/shared/components";
+import { AnimatedButton } from "@/components/ui/animated-button";
 import {
   MapPin,
   Clock,
@@ -103,10 +104,11 @@ const HeroLG = () => {
             description = "Location request timed out. Please try again.";
             break;
           default:
-            description = "Unexpected location error. Please try again.";
+            description =
+              "We couldn't get a very precise location. Nearby stays might not be exact.";
         }
 
-        toast.error("Location error", {
+        toast.error("Location accuracy is a bit low", {
           description,
           duration: 6000,
         });
@@ -284,24 +286,38 @@ const HeroLG = () => {
           >
             Need a comfortable stay anywhere in Bhutan?
           </p>
-          <Button 
-            variant="outline" 
-            size="lg" 
-            className="group text-xs text-black hover:bg-white/10 hover:text-white hover:border-white/50 cursor-pointer rounded-3xl transition-all duration-400"
-            onClick={handleStartExploring}
-          >
-            Start Exploring
-            <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="lg" 
-            className="group text-xs mx-3 text-black hover:bg-white/10 hover:text-white hover:border-white/50 cursor-pointer rounded-3xl transition-all duration-400"
-            onClick={handleSearchNearby}
-          >
-            Find nearby
-            <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Button>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className="relative inline-flex items-center">
+              <AnimatedButton
+                animationColor="bg-yellow-500"
+                baseBg="bg-white"
+                baseText="text-black"
+                hoverTextColor="group-hover:text-white"
+                className="text-sm font-semibold border border-gray-200 rounded-lg px-4 py-3 cursor-pointer"
+                onClick={handleStartExploring}
+              >
+                <span className="flex items-center">
+                  Start Exploring
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </AnimatedButton>
+            </div>
+            <div className="relative inline-flex items-center">
+              <AnimatedButton
+                animationColor="bg-yellow-500"
+                baseBg="bg-white"
+                baseText="text-black"
+                hoverTextColor="group-hover:text-white"
+                className="text-sm font-semibold border border-gray-200 rounded-lg px-4 py-3 cursor-pointer"
+                onClick={handleSearchNearby}
+              >
+                <span className="flex items-center">
+                  Find nearby
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </AnimatedButton>
+            </div>
+          </div>
         </div>
       </div>
     </section>
