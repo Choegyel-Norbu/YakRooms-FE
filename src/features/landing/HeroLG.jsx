@@ -10,13 +10,7 @@ import { Input } from "@/shared/components/input";
 import { Separator } from "@/shared/components/separator";
 import { Badge } from "@/shared/components/badge";
 import { SearchButton } from "@/shared/components";
-import { AnimatedButton } from "@/components/ui/animated-button";
-import {
-  MapPin,
-  Clock,
-  Shield,
-  ArrowRight,
-} from "lucide-react";
+import { MapPin, Clock, Shield } from "lucide-react";
 
 const HeroLG = () => {
   const [searchDistrict, setSearchDistrict] = useState("");
@@ -277,46 +271,30 @@ const HeroLG = () => {
 
         {/* Call to Action */}
         <div className="space-y-4">
-          <p 
+          <p
             className="text-sm"
             style={{
-              color: '#ffffff',
-              textShadow: '1px 1px 4px rgba(0, 0, 0, 0.4)',
+              color: "#ffffff",
+              textShadow: "1px 1px 4px rgba(0, 0, 0, 0.4)",
             }}
           >
             Need a comfortable stay anywhere in Bhutan?
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <div className="relative inline-flex items-center">
-              <AnimatedButton
-                animationColor="bg-yellow-500"
-                baseBg="bg-white"
-                baseText="text-black"
-                hoverTextColor="group-hover:text-white"
-                className="text-sm font-semibold border border-gray-200 rounded-lg px-4 py-3 cursor-pointer"
-                onClick={handleStartExploring}
-              >
-                <span className="flex items-center">
-                  Start Exploring
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </span>
-              </AnimatedButton>
-            </div>
-            <div className="relative inline-flex items-center">
-              <AnimatedButton
-                animationColor="bg-yellow-500"
-                baseBg="bg-white"
-                baseText="text-black"
-                hoverTextColor="group-hover:text-white"
-                className="text-sm font-semibold border border-gray-200 rounded-lg px-4 py-3 cursor-pointer"
-                onClick={handleSearchNearby}
-              >
-                <span className="flex items-center">
-                  Find nearby
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </span>
-              </AnimatedButton>
-            </div>
+            <Button
+              type="button"
+              onClick={handleStartExploring}
+              className="px-7 py-5 text-sm font-semibold rounded-full bg-white/95 text-slate-900 border border-white/80 shadow-md shadow-black/25 transition-all duration-200 hover:bg-transparent hover:text-white hover:border-white hover:shadow-lg hover:-translate-y-0.5"
+            >
+              Start Exploring
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSearchNearby}
+              className="px-7 py-5 text-sm font-semibold rounded-full bg-white/95 text-slate-900 border border-white/80 shadow-md shadow-black/25 transition-all duration-200 hover:bg-transparent hover:text-white hover:border-white hover:shadow-lg hover:-translate-y-0.5"
+            >
+              Find nearby
+            </Button>
           </div>
         </div>
       </div>
