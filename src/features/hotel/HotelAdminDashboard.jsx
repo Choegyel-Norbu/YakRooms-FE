@@ -173,6 +173,17 @@ const HotelAdminDashboard = () => {
   const [receiptsTotalElements, setReceiptsTotalElements] = useState(0);
   const receiptsPageSize = 10;
 
+  // Billing tab state (Invoices / Receipts)
+  const [billingTab, setBillingTab] = useState("receipts");
+
+  // Invoices state
+  const [invoices, setInvoices] = useState([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(false);
+  const [invoicesPage, setInvoicesPage] = useState(0);
+  const [invoicesTotalPages, setInvoicesTotalPages] = useState(1);
+  const [invoicesTotalElements, setInvoicesTotalElements] = useState(0);
+  const invoicesPageSize = 10;
+
   // Use selected hotel ID if available, otherwise fall back to hotelId
   const currentHotelId = selectedHotelId || hotelId;
 
@@ -442,12 +453,56 @@ const HotelAdminDashboard = () => {
     }
   }, [currentHotelId, receiptsPageSize]);
 
+  // Fetch invoices (billing records) when invoices sub-tab is active
+  const fetchInvoices = useCallback(
+    async (page = 0) => {
+      if (!currentHotelId) return;
+
+      try {
+        setInvoicesLoading(true);
+        const response = await api.get(
+          `/receipts/billing/hotel/${currentHotelId}?page=${page}&size=${invoicesPageSize}`
+        );
+
+        if (response.data) {
+          if (response.data.content) {
+            setInvoices(response.data.content);
+            setInvoicesTotalPages(response.data.totalPages || 1);
+            setInvoicesTotalElements(response.data.totalElements || 0);
+          } else if (Array.isArray(response.data)) {
+            setInvoices(response.data);
+            setInvoicesTotalPages(1);
+            setInvoicesTotalElements(response.data.length);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching invoices:", error);
+        toast.error("Failed to fetch invoices", {
+          duration: 6000,
+        });
+        setInvoices([]);
+        setInvoicesTotalPages(1);
+        setInvoicesTotalElements(0);
+      } finally {
+        setInvoicesLoading(false);
+      }
+    },
+    [currentHotelId, invoicesPageSize]
+  );
+
   // Fetch receipts when tab is active or hotel changes
   useEffect(() => {
-    if (activeTab === "billing" && currentHotelId) {
+    if (activeTab === "billing" && currentHotelId && billingTab === "receipts") {
       fetchReceipts(receiptsPage);
     }
-  }, [activeTab, currentHotelId, receiptsPage, fetchReceipts]);
+  }, [activeTab, currentHotelId, receiptsPage, fetchReceipts, billingTab]);
+
+  // Fetch invoices when billing tab is active and invoices sub-tab is selected
+  useEffect(() => {
+    if (activeTab === "billing" && currentHotelId && billingTab === "invoices") {
+      fetchInvoices(invoicesPage);
+    }
+  }, [activeTab, currentHotelId, invoicesPage, fetchInvoices, billingTab]);
 
   // Download receipt PDF
   const handleDownloadReceipt = useCallback(async (receipt) => {
@@ -1888,130 +1943,292 @@ const HotelAdminDashboard = () => {
           {activeTab === "billing" && (
             <div className="space-y-4">
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <FileText className="h-5 w-5 text-primary" />
-                    Billing
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    View and download receipts for your hotel
-                  </p>
-                </CardHeader>
                 <CardContent>
-                  {receiptsLoading ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Spinner size="md" />
-                    </div>
-                  ) : receipts.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                      <FileText className="h-12 w-12 text-muted-foreground/30 mb-4" />
-                      <p className="text-sm text-muted-foreground">
-                        No receipts found
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="rounded-md border">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Receipt Number</TableHead>
-                              <TableHead>Type</TableHead>
-                              <TableHead>Customer Name</TableHead>
-                              <TableHead>Amount</TableHead>
-                              <TableHead>Date</TableHead>
-                              <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {receipts.map((receipt) => (
-                              <TableRow key={receipt.id}>
-                                <TableCell className="font-medium">
-                                  {receipt.receiptNumber || "N/A"}
-                                </TableCell>
-                                <TableCell>
-                                  <Badge variant="outline">
-                                    {receipt.receiptType === "SUBSCRIPTION" 
-                                      ? "Subscription" 
-                                      : "Booking"}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell>
-                                  {receipt.customerName || "N/A"}
-                                </TableCell>
-                                <TableCell>
-                                  {receipt.currency || "BTN"} {parseFloat(receipt.amount || 0).toLocaleString('en-IN', { 
-                                    minimumFractionDigits: 2, 
-                                    maximumFractionDigits: 2 
-                                  })}
-                                </TableCell>
-                                <TableCell>
-                                  {receipt.issueDate 
-                                    ? new Date(receipt.issueDate).toLocaleDateString()
-                                    : receipt.updatedAt
-                                    ? new Date(receipt.updatedAt).toLocaleDateString()
-                                    : "N/A"}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleDownloadReceipt(receipt)}
-                                  >
-                                    <Download className="h-4 w-4 mr-2" />
-                                    Download PDF
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-
-                      {/* Pagination Controls */}
-                      {receiptsTotalPages > 1 && (
-                        <div className="flex items-center justify-between pt-4">
-                          <div className="text-sm text-muted-foreground">
-                            Showing {receiptsPage * receiptsPageSize + 1} to{" "}
-                            {Math.min(
-                              (receiptsPage + 1) * receiptsPageSize,
-                              receiptsTotalElements
-                            )}{" "}
-                            of {receiptsTotalElements} receipts
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setReceiptsPage((prev) => Math.max(0, prev - 1))}
-                              disabled={receiptsPage === 0 || receiptsLoading}
-                            >
-                              <ChevronLeft className="h-4 w-4" />
-                              Previous
-                            </Button>
-                            <div className="text-sm text-muted-foreground">
-                              Page {receiptsPage + 1} of {receiptsTotalPages}
-                            </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setReceiptsPage((prev) =>
-                                  Math.min(receiptsTotalPages - 1, prev + 1)
-                                )
-                              }
-                              disabled={
-                                receiptsPage >= receiptsTotalPages - 1 || receiptsLoading
-                              }
-                            >
-                              Next
-                              <ChevronRight className="h-4 w-4" />
-                            </Button>
-                          </div>
+                  {/* Billing Tabs styled similar to Leave Management tabs */}
+                  <div className="mb-4">
+                    <div className="flex h-auto -space-x-px bg-background p-0 shadow-sm shadow-black/5 rtl:space-x-reverse rounded-lg">
+                      <button
+                        onClick={() => setBillingTab("invoices")}
+                        className={`cursor-pointer relative overflow-hidden rounded-none border border-border py-2.5 px-4 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e transition-colors ${
+                          billingTab === "invoices"
+                            ? "bg-muted after:bg-primary"
+                            : "hover:bg-muted/50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <FileText
+                            className="opacity-60"
+                            size={16}
+                            strokeWidth={2}
+                            aria-hidden="true"
+                          />
+                          <span className="text-sm font-medium whitespace-nowrap">
+                            Invoices
+                          </span>
                         </div>
-                      )}
-                    </>
-                  )}
+                      </button>
+                      <button
+                        onClick={() => setBillingTab("receipts")}
+                        className={`cursor-pointer relative overflow-hidden rounded-none border border-border py-2.5 px-4 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e transition-colors ${
+                          billingTab === "receipts"
+                            ? "bg-muted after:bg-primary"
+                            : "hover:bg-muted/50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Download
+                            className="opacity-60"
+                            size={16}
+                            strokeWidth={2}
+                            aria-hidden="true"
+                          />
+                          <span className="text-sm font-medium whitespace-nowrap">
+                            Receipts
+                          </span>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+              {/* Invoices Tab */}
+              {billingTab === "invoices" && (
+                invoicesLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Spinner size="md" />
+                  </div>
+                ) : invoices.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <FileText className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                    <p className="text-sm text-muted-foreground">
+                      No invoices found
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Billing Number</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Base Amount</TableHead>
+                            <TableHead>Next Billing Date</TableHead>
+                            <TableHead>Created At</TableHead>
+                            <TableHead>Receipts</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {invoices.map((invoice) => (
+                            <TableRow key={invoice.id || invoice.billingNumber}>
+                              <TableCell className="font-medium">
+                                {invoice.billingNumber || "N/A"}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">
+                                  {invoice.billingStatus || "N/A"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="secondary">
+                                  {invoice.billingType || "N/A"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {invoice.baseAmount != null
+                                  ? `BTN ${parseFloat(invoice.baseAmount).toLocaleString("en-IN", {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    })}`
+                                  : "N/A"}
+                              </TableCell>
+                              <TableCell>
+                                {invoice.nextBillingDate
+                                  ? new Date(invoice.nextBillingDate).toLocaleDateString()
+                                  : "N/A"}
+                              </TableCell>
+                              <TableCell>
+                                {invoice.createdAt
+                                  ? new Date(invoice.createdAt).toLocaleDateString()
+                                  : "N/A"}
+                              </TableCell>
+                              <TableCell>
+                                {typeof invoice.receiptCount === "number"
+                                  ? invoice.receiptCount
+                                  : "N/A"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    {invoicesTotalPages > 1 && (
+                      <div className="flex items-center justify-between pt-4">
+                        <div className="text-sm text-muted-foreground">
+                          Showing {invoicesPage * invoicesPageSize + 1} to{" "}
+                          {Math.min(
+                            (invoicesPage + 1) * invoicesPageSize,
+                            invoicesTotalElements
+                          )}{" "}
+                          of {invoicesTotalElements} invoices
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setInvoicesPage((prev) => Math.max(0, prev - 1))
+                            }
+                            disabled={invoicesPage === 0 || invoicesLoading}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            Previous
+                          </Button>
+                          <div className="text-sm text-muted-foreground">
+                            Page {invoicesPage + 1} of {invoicesTotalPages}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setInvoicesPage((prev) =>
+                                Math.min(invoicesTotalPages - 1, prev + 1)
+                              )
+                            }
+                            disabled={
+                              invoicesPage >= invoicesTotalPages - 1 || invoicesLoading
+                            }
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )
+              )}
+
+              {/* Receipts Tab (existing functionality) */}
+              {billingTab === "receipts" && (
+                receiptsLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Spinner size="md" />
+                  </div>
+                ) : receipts.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <FileText className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                    <p className="text-sm text-muted-foreground">
+                      No receipts found
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Receipt Number</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Customer Name</TableHead>
+                            <TableHead>Amount</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {receipts.map((receipt) => (
+                            <TableRow key={receipt.id}>
+                              <TableCell className="font-medium">
+                                {receipt.receiptNumber || "N/A"}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">
+                                  {receipt.receiptType === "SUBSCRIPTION"
+                                    ? "Subscription"
+                                    : "Booking"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {receipt.customerName || "N/A"}
+                              </TableCell>
+                              <TableCell>
+                                {receipt.currency || "BTN"}{" "}
+                                {parseFloat(receipt.amount || 0).toLocaleString("en-IN", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </TableCell>
+                              <TableCell>
+                                {receipt.issueDate
+                                  ? new Date(receipt.issueDate).toLocaleDateString()
+                                  : receipt.updatedAt
+                                  ? new Date(receipt.updatedAt).toLocaleDateString()
+                                  : "N/A"}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDownloadReceipt(receipt)}
+                                >
+                                  <Download className="h-4 w-4 mr-2" />
+                                  Download PDF
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    {receiptsTotalPages > 1 && (
+                      <div className="flex items-center justify-between pt-4">
+                        <div className="text-sm text-muted-foreground">
+                          Showing {receiptsPage * receiptsPageSize + 1} to{" "}
+                          {Math.min(
+                            (receiptsPage + 1) * receiptsPageSize,
+                            receiptsTotalElements
+                          )}{" "}
+                          of {receiptsTotalElements} receipts
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setReceiptsPage((prev) => Math.max(0, prev - 1))
+                            }
+                            disabled={receiptsPage === 0 || receiptsLoading}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            Previous
+                          </Button>
+                          <div className="text-sm text-muted-foreground">
+                            Page {receiptsPage + 1} of {receiptsTotalPages}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setReceiptsPage((prev) =>
+                                Math.min(receiptsTotalPages - 1, prev + 1)
+                              )
+                            }
+                            disabled={
+                              receiptsPage >= receiptsTotalPages - 1 || receiptsLoading
+                            }
+                          >
+                            Next
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )
+              )}
                 </CardContent>
               </Card>
             </div>
