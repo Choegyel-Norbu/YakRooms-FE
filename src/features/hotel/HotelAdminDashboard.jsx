@@ -2015,7 +2015,7 @@ const HotelAdminDashboard = () => {
                             <TableHead>Base Amount</TableHead>
                             <TableHead>Next Billing Date</TableHead>
                             <TableHead>Created At</TableHead>
-                            <TableHead>Receipts</TableHead>
+                            <TableHead>Month</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -2053,9 +2053,7 @@ const HotelAdminDashboard = () => {
                                   : "N/A"}
                               </TableCell>
                               <TableCell>
-                                {typeof invoice.receiptCount === "number"
-                                  ? invoice.receiptCount
-                                  : "N/A"}
+                                {invoice.monthInWords || "N/A"}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -2131,9 +2129,9 @@ const HotelAdminDashboard = () => {
                           <TableRow>
                             <TableHead>Receipt Number</TableHead>
                             <TableHead>Type</TableHead>
-                            <TableHead>Customer Name</TableHead>
                             <TableHead>Amount</TableHead>
                             <TableHead>Date</TableHead>
+                            <TableHead>Month</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -2151,9 +2149,6 @@ const HotelAdminDashboard = () => {
                                 </Badge>
                               </TableCell>
                               <TableCell>
-                                {receipt.customerName || "N/A"}
-                              </TableCell>
-                              <TableCell>
                                 {receipt.currency || "BTN"}{" "}
                                 {parseFloat(receipt.amount || 0).toLocaleString("en-IN", {
                                   minimumFractionDigits: 2,
@@ -2166,6 +2161,9 @@ const HotelAdminDashboard = () => {
                                   : receipt.updatedAt
                                   ? new Date(receipt.updatedAt).toLocaleDateString()
                                   : "N/A"}
+                              </TableCell>
+                              <TableCell>
+                                {receipt.monthInWords || "N/A"}
                               </TableCell>
                               <TableCell className="text-right">
                                 <Button
