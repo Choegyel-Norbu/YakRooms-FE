@@ -36,6 +36,7 @@ const AUTH_STORAGE_KEYS = {
   SUBSCRIPTION_PAYMENT_STATUS: 'subscriptionPaymentStatus',
   SUBSCRIPTION_PLAN: 'subscriptionPlan',
   SUBSCRIPTION_IS_ACTIVE: 'subscriptionIsActive',
+  SUBSCRIPTION_IS_EXPIRED: 'subscriptionIsExpired',
   SUBSCRIPTION_NEXT_BILLING_DATE: 'subscriptionNextBillingDate',
   SUBSCRIPTION_EXPIRATION_NOTIFICATION: 'subscriptionExpirationNotification',
   SUBSCRIPTION_FETCHED_SESSION: 'subscriptionFetchedSession'
@@ -247,6 +248,7 @@ const defaultAuthState = {
   subscriptionPaymentStatus: null,
   subscriptionPlan: null,
   subscriptionIsActive: null,
+  subscriptionIsExpired: null,
 };
 
 export const AuthProvider = ({ children }) => {
@@ -289,6 +291,8 @@ export const AuthProvider = ({ children }) => {
         subscriptionPlan: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PLAN) || null,
         subscriptionIsActive: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE) === "true" ? true : 
                              getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE) === "false" ? false : null,
+        subscriptionIsExpired: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_EXPIRED) === "true" ? true : 
+                              getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_EXPIRED) === "false" ? false : null,
         subscriptionNextBillingDate: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_NEXT_BILLING_DATE) || null,
         subscriptionExpirationNotification: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_EXPIRATION_NOTIFICATION) === "true",
       };
@@ -334,6 +338,7 @@ export const AuthProvider = ({ children }) => {
           paymentStatus: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS),
           subscriptionPlan: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PLAN),
           isActive: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE) === "true",
+          isExpired: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_EXPIRED) === "true",
           nextBillingDate: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_NEXT_BILLING_DATE),
           expirationNotification: getStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_EXPIRATION_NOTIFICATION) === "true"
         };
@@ -351,6 +356,9 @@ export const AuthProvider = ({ children }) => {
         setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS, hotelSubscription.paymentStatus);
         setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PLAN, hotelSubscription.subscriptionPlan);
         setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE, Boolean(hotelSubscription.isActive).toString());
+        // Store isExpired from API (can be isExpired or expired field)
+        const isExpired = hotelSubscription.isExpired !== undefined ? hotelSubscription.isExpired : hotelSubscription.expired;
+        setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_EXPIRED, Boolean(isExpired).toString());
         setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_NEXT_BILLING_DATE, hotelSubscription.nextBillingDate || '');
         setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_EXPIRATION_NOTIFICATION, Boolean(hotelSubscription.expirationNotification).toString());
         
@@ -369,6 +377,7 @@ export const AuthProvider = ({ children }) => {
           subscriptionPaymentStatus: hotelSubscription.paymentStatus,
           subscriptionPlan: hotelSubscription.subscriptionPlan,
           subscriptionIsActive: hotelSubscription.isActive,
+          subscriptionIsExpired: isExpired,
           subscriptionNextBillingDate: hotelSubscription.nextBillingDate,
           subscriptionExpirationNotification: hotelSubscription.expirationNotification,
         }));
@@ -381,6 +390,7 @@ export const AuthProvider = ({ children }) => {
         removeStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS);
         removeStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PLAN);
         removeStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE);
+        removeStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_EXPIRED);
         removeStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_NEXT_BILLING_DATE);
         removeStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_EXPIRATION_NOTIFICATION);
         
@@ -391,6 +401,7 @@ export const AuthProvider = ({ children }) => {
           subscriptionPaymentStatus: null,
           subscriptionPlan: null,
           subscriptionIsActive: null,
+          subscriptionIsExpired: null,
           subscriptionNextBillingDate: null,
           subscriptionExpirationNotification: false,
         }));
@@ -415,6 +426,9 @@ export const AuthProvider = ({ children }) => {
       setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PAYMENT_STATUS, subscriptionData.paymentStatus);
       setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_PLAN, subscriptionData.subscriptionPlan);
       setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_ACTIVE, Boolean(subscriptionData.isActive).toString());
+      // Store isExpired from API (can be isExpired or expired field)
+      const isExpired = subscriptionData.isExpired !== undefined ? subscriptionData.isExpired : subscriptionData.expired;
+      setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_IS_EXPIRED, Boolean(isExpired).toString());
       setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_NEXT_BILLING_DATE, subscriptionData.nextBillingDate || '');
       setStorageItem(AUTH_STORAGE_KEYS.SUBSCRIPTION_EXPIRATION_NOTIFICATION, Boolean(subscriptionData.expirationNotification).toString());
       
@@ -430,6 +444,7 @@ export const AuthProvider = ({ children }) => {
         subscriptionPaymentStatus: subscriptionData.paymentStatus,
         subscriptionPlan: subscriptionData.subscriptionPlan,
         subscriptionIsActive: subscriptionData.isActive,
+        subscriptionIsExpired: isExpired,
         subscriptionNextBillingDate: subscriptionData.nextBillingDate,
         subscriptionExpirationNotification: subscriptionData.expirationNotification,
       }));
@@ -1270,6 +1285,7 @@ export const AuthProvider = ({ children }) => {
     subscriptionPaymentStatus: authState.subscriptionPaymentStatus,
     subscriptionPlan: authState.subscriptionPlan,
     subscriptionIsActive: authState.subscriptionIsActive,
+    subscriptionIsExpired: authState.subscriptionIsExpired,
     subscriptionNextBillingDate: authState.subscriptionNextBillingDate,
     subscriptionExpirationNotification: authState.subscriptionExpirationNotification,
     lastLogin,

@@ -133,6 +133,7 @@ const HotelAdminDashboard = () => {
     topHotelIds,
     subscriptionPlan,
     subscriptionIsActive,
+    subscriptionIsExpired,
     subscriptionNextBillingDate,
     subscriptionExpirationNotification,
     fetchUserHotels,
@@ -188,18 +189,23 @@ const HotelAdminDashboard = () => {
   const currentHotelId = selectedHotelId || hotelId;
 
   // Check if subscription is expired
-  // Subscription is expired if the expiration date has passed (daysUntilExpiration <= 0)
-  // The subscription is valid until the expiration date, regardless of the isActive flag
+  // Priority: 1) Use isExpired from API (most reliable), 2) Check date calculation, 3) Fall back to isActive flag
   const isSubscriptionExpired = () => {
-    if (!subscriptionNextBillingDate) {
-      // If no billing date, use isActive flag as fallback
-      return subscriptionIsActive === false;
+    // First, check if API explicitly says subscription is expired
+    if (subscriptionIsExpired !== null && subscriptionIsExpired !== undefined) {
+      return subscriptionIsExpired === true;
     }
     
-    const daysUntilExpiration = calculateDaysUntil(subscriptionNextBillingDate);
-    // Subscription is expired if the date has passed (including today, as expiration date means expired)
-    // If daysUntilExpiration > 0, subscription is still valid until that date
-    return daysUntilExpiration <= 0;
+    // If no explicit expiration flag, check the billing date
+    if (subscriptionNextBillingDate) {
+      const daysUntilExpiration = calculateDaysUntil(subscriptionNextBillingDate);
+      // Subscription is expired if the date has passed (including today, as expiration date means expired)
+      // If daysUntilExpiration > 0, subscription is still valid until that date
+      return daysUntilExpiration <= 0;
+    }
+    
+    // Final fallback: use isActive flag
+    return subscriptionIsActive === false;
   };
 
   // Define which tabs should be locked when subscription is expired
