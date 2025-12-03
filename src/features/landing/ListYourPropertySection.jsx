@@ -143,6 +143,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                     <img
                       src="/images/previewLandingDash.png"
                       alt="EzeeRoom platform preview"
+                      loading="lazy"
                       className="w-full h-full object-cover transition-all duration-500 ease-in-out opacity-0 animate-[fadeIn_1s_ease-in-out_0.2s_forwards] group-hover:scale-110"
                       onError={(e) => {
                         // Fallback to a placeholder if image doesn't exist

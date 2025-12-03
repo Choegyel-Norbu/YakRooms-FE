@@ -185,6 +185,7 @@ const AboutUs = () => {
                   <img 
                     src="https://images.ecency.com/DQmVm8Gt2bwhX1B4iB9WiXbWMCLv69Ks3LdDNfoQ9DUKZt9/images_4_.jpeg" 
                     alt="Chogyal Norbu" 
+                    loading="lazy"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -208,6 +209,7 @@ const AboutUs = () => {
                     <img 
                       src="/images/zepa1.jpeg" 
                       alt="Zepa Dorji" 
+                      loading="lazy"
                       className="w-full h-full object-cover"
                     />
                   </div>

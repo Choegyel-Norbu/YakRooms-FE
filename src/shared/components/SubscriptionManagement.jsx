@@ -127,7 +127,7 @@ const SubscriptionManagement = () => {
         window.location.href = response.payment.paymentUrl;
       }
     } catch (error) {
-      console.error('Payment initiation failed:', error);
+      
       // Error is already handled in the context
     } finally {
       setIsProcessing(false);
@@ -150,7 +150,7 @@ const SubscriptionManagement = () => {
     try {
       await cancelSubscription(subscriptionId, 'User requested cancellation');
     } catch (error) {
-      console.error('Cancellation failed:', error);
+      
       // Error is already handled in the context
     } finally {
       setIsProcessing(false);
@@ -169,13 +169,12 @@ const SubscriptionManagement = () => {
     try {
       await reactivateSubscription(subscriptionId);
     } catch (error) {
-      console.error('Reactivation failed:', error);
+      
       // Error is already handled in the context
     } finally {
       setIsProcessing(false);
     }
   };
-
 
   const statusInfo = getStatusInfo();
   const StatusIcon = statusInfo.icon;

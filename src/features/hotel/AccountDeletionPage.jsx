@@ -217,7 +217,7 @@ const AccountDeletionPage = () => {
         removeStorageItem('subscriptionFetchedSession');
 
       } catch (cleanupError) {
-        console.error("❌ Error cleaning up localStorage:", cleanupError);
+        
         // Don't fail the deletion request if cleanup fails
       }
 
@@ -234,7 +234,7 @@ const AccountDeletionPage = () => {
       }, 3000);
 
     } catch (error) {
-      console.error("Error submitting deletion request:", error);
+      
       toast.error("Failed to submit deletion request", {
         description: "Please try again or contact support if the issue persists.",
         duration: 6000

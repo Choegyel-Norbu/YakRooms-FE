@@ -25,7 +25,7 @@ class SubscriptionService {
       const response = await enhancedApi.post("/subscriptions", subscriptionData);
       return response.data;
     } catch (error) {
-      console.error("❌ Failed to create subscription:", error);
+      
       throw error;
     }
   }
@@ -40,7 +40,7 @@ class SubscriptionService {
       const response = await enhancedApi.get(`/subscriptions/user/${userId}`);
       return response.data;
     } catch (error) {
-      console.error("❌ Failed to fetch subscriptions:", error);
+      
       throw error;
     }
   }
@@ -63,7 +63,7 @@ class SubscriptionService {
       
       return activeSubscription;
     } catch (error) {
-      console.error("❌ Failed to fetch subscription:", error);
+      
       throw error;
     }
   }
@@ -78,7 +78,7 @@ class SubscriptionService {
       const response = await enhancedApi.get(`/subscriptions/${subscriptionId}`);
       return response.data;
     } catch (error) {
-      console.error("❌ Failed to fetch subscription by ID:", error);
+      
       throw error;
     }
   }
@@ -94,7 +94,7 @@ class SubscriptionService {
       const response = await enhancedApi.put(`/subscriptions/${subscriptionId}`, updateData);
       return response.data;
     } catch (error) {
-      console.error("❌ Failed to update subscription:", error);
+      
       throw error;
     }
   }
@@ -122,7 +122,7 @@ class SubscriptionService {
       
       return response.data;
     } catch (error) {
-      console.error("❌ Failed to initiate payment:", error);
+      
       throw error;
     }
   }
@@ -137,7 +137,7 @@ class SubscriptionService {
       const response = await enhancedApi.post("/payment/callback", callbackData);
       return response.data;
     } catch (error) {
-      console.error("❌ Failed to process payment callback:", error);
+      
       throw error;
     }
   }
@@ -152,7 +152,7 @@ class SubscriptionService {
       const response = await enhancedApi.get(`/payment/status/${transactionId}`);
       return response.data;
     } catch (error) {
-      console.error("❌ Failed to get payment status:", error);
+      
       throw error;
     }
   }
@@ -168,7 +168,7 @@ class SubscriptionService {
       const response = await enhancedApi.post(`/subscriptions/${subscriptionId}/cancel`, { reason });
       return response.data;
     } catch (error) {
-      console.error("❌ Failed to cancel subscription:", error);
+      
       throw error;
     }
   }
@@ -183,7 +183,7 @@ class SubscriptionService {
       const response = await enhancedApi.post(`/subscriptions/${subscriptionId}/reactivate`);
       return response.data;
     } catch (error) {
-      console.error("❌ Failed to reactivate subscription:", error);
+      
       throw error;
     }
   }
@@ -199,7 +199,7 @@ class SubscriptionService {
       const response = await enhancedApi.get(url);
       return response.data;
     } catch (error) {
-      console.error("❌ Failed to get subscription analytics:", error);
+      
       throw error;
     }
   }
@@ -214,7 +214,7 @@ class SubscriptionService {
       const response = await enhancedApi.get(`/subscriptions/user/${userId}`);
       return response.data;
     } catch (error) {
-      console.error("❌ Failed to get subscription history:", error);
+      
       throw error;
     }
   }
@@ -240,7 +240,7 @@ class SubscriptionService {
         return null;
       }
     } catch (error) {
-      console.error("❌ Failed to get subscription for hotel:", error);
+      
       throw error;
     }
   }
@@ -255,7 +255,7 @@ class SubscriptionService {
       const response = await enhancedApi.get(`/subscriptions/${subscriptionId}/validate`);
       return response.data;
     } catch (error) {
-      console.error("❌ Failed to validate subscription status:", error);
+      
       throw error;
     }
   }
@@ -270,7 +270,7 @@ class SubscriptionService {
       const response = await enhancedApi.get(`/subscriptions/renewals/upcoming?days=${days}`);
       return response.data;
     } catch (error) {
-      console.error("❌ Failed to get upcoming renewals:", error);
+      
       throw error;
     }
   }
@@ -288,7 +288,7 @@ class SubscriptionService {
       });
       return response.data;
     } catch (error) {
-      console.error("❌ Failed to send subscription reminder:", error);
+      
       throw error;
     }
   }

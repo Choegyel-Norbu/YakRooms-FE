@@ -177,7 +177,7 @@ const PaymentDialog = ({ isOpen, onClose, bookingData, onPaymentSuccess }) => {
       onClose();
       
     } catch (error) {
-      console.error("Payment failed:", error);
+      
       toast.error("Payment Failed", {
         description: "There was an error processing your payment. Please try again.",
         duration: 5000
@@ -230,7 +230,7 @@ const PaymentDialog = ({ isOpen, onClose, bookingData, onPaymentSuccess }) => {
       onClose();
       
     } catch (error) {
-      console.error("BFS Payment redirect failed:", error);
+      
       toast.error("Payment Redirect Failed", {
         description: "There was an error redirecting to the payment gateway. Please try again.",
         duration: 6000

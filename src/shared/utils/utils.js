@@ -109,7 +109,7 @@ export function exportToExcel(data, filename = 'export', sheetName = 'Sheet1', o
     
     return { success: true, message: 'Excel file downloaded successfully' };
   } catch (error) {
-    console.error('Error exporting to Excel:', error);
+    
     return { success: false, message: 'Failed to export Excel file', error };
   }
 }

@@ -20,7 +20,7 @@ class FeedbackService {
       const response = await api.post("/feedbacks", feedbackData);
       return response.data;
     } catch (error) {
-      console.error("Failed to submit feedback:", error);
+      
       throw error;
     }
   }
@@ -34,7 +34,7 @@ class FeedbackService {
       const response = await api.get("/feedbacks/stats");
       return response.data;
     } catch (error) {
-      console.error("Failed to get feedback stats:", error);
+      
       throw error;
     }
   }
@@ -53,7 +53,7 @@ class FeedbackService {
       const response = await api.post("/feedbacks/check-device", deviceInfo);
       return response.data;
     } catch (error) {
-      console.error("Failed to check device feedback:", error);
+      
       throw error;
     }
   }
@@ -68,7 +68,7 @@ class FeedbackService {
       const response = await api.get("/feedbacks", { params });
       return response.data;
     } catch (error) {
-      console.error("Failed to get recent feedbacks:", error);
+      
       throw error;
     }
   }

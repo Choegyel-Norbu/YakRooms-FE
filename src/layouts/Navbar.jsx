@@ -247,7 +247,7 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
           setIsHotelSelectionOpen(true);
         }
       } catch (error) {
-        console.error("Error handling dashboard navigation:", error);
+        
         // Fallback - show selection dialog
         setIsHotelSelectionOpen(true);
       }
@@ -475,8 +475,6 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
         </div>
       </div>
 
-
-
       {/* Logout Button */}
       {isAuthenticated && (
         <>
@@ -598,7 +596,6 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
               <Separator className="my-1.5" />
             </>
           )}
-
 
           {/* Role Switching Section */}
           {availableRoles.length > 0 && (

@@ -252,7 +252,7 @@ const BookingTable = ({ hotelId }) => {
           duration: 6000
         }
       );
-      console.error("Status update error:", err);
+      
     } finally {
       setLoading(false);
     }
@@ -331,7 +331,7 @@ const BookingTable = ({ hotelId }) => {
           duration: 6000
         }
       );
-      console.error("Delete booking error:", err);
+      
     } finally {
       setLoading(false);
       setDeleteDialog(false); // Close the dialog

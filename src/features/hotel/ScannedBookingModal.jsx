@@ -80,7 +80,7 @@ const ScannedBookingModal = ({ isOpen, onClose, scannedData }) => {
         });
       }
     } catch (err) {
-      console.error('Error verifying booking:', err);
+      
       setError('Unable to verify booking. Please check manually.');
       setVerificationStatus('error');
       
@@ -170,7 +170,7 @@ const ScannedBookingModal = ({ isOpen, onClose, scannedData }) => {
         setError('Failed to check in');
       }
     } catch (err) {
-      console.error('Check-in error:', err);
+      
       if (err.response?.data?.message) {
         setError(err.response.data.message);
       } else if (err.response?.status === 404) {

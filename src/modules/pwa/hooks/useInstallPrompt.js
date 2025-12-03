@@ -25,12 +25,11 @@ const useInstallPrompt = () => {
             setDeferredPrompt(e);
             setIsInstallable(true);
 
-            console.log('PWA install prompt is ready');
         };
 
         // Listen for successful installation
         const handleAppInstalled = () => {
-            console.log('PWA was installed successfully');
+            
             setIsInstalled(true);
             setIsInstallable(false);
             setDeferredPrompt(null);
@@ -51,7 +50,7 @@ const useInstallPrompt = () => {
      */
     const promptInstall = async () => {
         if (!deferredPrompt) {
-            console.warn('Install prompt is not available');
+            
             return false;
         }
 
@@ -60,8 +59,6 @@ const useInstallPrompt = () => {
 
         // Wait for the user to respond to the prompt
         const { outcome } = await deferredPrompt.userChoice;
-
-        console.log(`User response to install prompt: ${outcome}`);
 
         // Clear the deferredPrompt for next time
         setDeferredPrompt(null);

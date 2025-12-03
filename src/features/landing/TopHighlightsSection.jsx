@@ -28,7 +28,7 @@ const TopHighlightsSection = () => {
     const authContext = useAuth();
     setTopHotelIds = authContext.setTopHotelIds;
   } catch (error) {
-    console.warn("AuthProvider not available in TopHighlightsSection:", error.message);
+    
   }
 
   useEffect(() => {

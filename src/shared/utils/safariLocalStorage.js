@@ -41,7 +41,6 @@ class CrossBrowserStorage {
       localStorage.removeItem(testKey);
       return true;
     } catch (error) {
-      console.error('localStorage not available:', error);
       return false;
     }
   }
@@ -129,7 +128,7 @@ class CrossBrowserStorage {
         }
       }
     } catch (error) {
-      console.warn('Failed to cleanup old data:', error);
+      // Silently handle cleanup errors
     }
   }
 
@@ -197,8 +196,6 @@ class CrossBrowserStorage {
     const strategy = this.getStorageStrategy();
     
     if (!this.storageAvailable) {
-      console.warn(`localStorage not available for key: ${key} on ${this.platform}`);
-      
       // Try sessionStorage fallback
       try {
         const sessionValue = sessionStorage.getItem(key);
@@ -206,7 +203,7 @@ class CrossBrowserStorage {
           return this.parseValue(sessionValue, defaultValue);
         }
       } catch (sessionError) {
-        console.error('SessionStorage fallback failed:', sessionError);
+        // Silently handle sessionStorage errors
       }
       
       // Try memory storage as last resort
@@ -221,8 +218,6 @@ class CrossBrowserStorage {
       const value = localStorage.getItem(key);
       return this.parseValue(value, defaultValue);
     } catch (error) {
-      console.error(`Failed to get ${key} from localStorage on ${this.platform}:`, error);
-      
       // Platform-specific error recovery
       return this.handleStorageError(key, defaultValue, strategy);
     }
@@ -245,7 +240,6 @@ class CrossBrowserStorage {
       try {
         return JSON.parse(value);
       } catch (parseError) {
-        console.error(`Failed to parse JSON:`, parseError);
         return defaultValue;
       }
     }
@@ -282,7 +276,7 @@ class CrossBrowserStorage {
           return this.parseValue(sessionValue, defaultValue);
         }
       } catch (sessionError) {
-        console.error('SessionStorage recovery failed:', sessionError);
+        // Silently handle sessionStorage errors
       }
     }
     
@@ -299,7 +293,6 @@ class CrossBrowserStorage {
     const strategy = this.getStorageStrategy();
     
     if (!this.storageAvailable || this.isPrivateBrowsing) {
-      console.warn(`localStorage not available for setting key: ${key} on ${this.platform} (private: ${this.isPrivateBrowsing})`);
       return this.setItemFallback(key, value, strategy);
     }
 
@@ -315,8 +308,6 @@ class CrossBrowserStorage {
       
       return true;
     } catch (error) {
-      console.error(`Failed to set ${key} in localStorage on ${this.platform}:`, error);
-      
       // Handle quota exceeded specifically
       if (this.isQuotaExceededError(error)) {
         return this.handleQuotaExceeded(key, value, strategy);
@@ -359,7 +350,7 @@ class CrossBrowserStorage {
       try {
         sessionStorage.setItem(key, value);
       } catch (sessionError) {
-        console.warn('Failed to backup to sessionStorage:', sessionError);
+        // Silently handle backup errors
       }
     }
     
@@ -368,7 +359,7 @@ class CrossBrowserStorage {
       try {
         this.memoryStorage.set(key, this.parseValue(value));
       } catch (memoryError) {
-        console.warn('Failed to backup to memory storage:', memoryError);
+        // Silently handle backup errors
       }
     }
   }
@@ -383,7 +374,7 @@ class CrossBrowserStorage {
         sessionStorage.setItem(key, stringValue);
         return true;
       } catch (sessionError) {
-        console.error('SessionStorage fallback failed:', sessionError);
+        // Silently handle sessionStorage errors
       }
     }
     
@@ -393,7 +384,7 @@ class CrossBrowserStorage {
         this.memoryStorage.set(key, this.parseValue(stringValue));
         return true;
       } catch (memoryError) {
-        console.error('Memory storage fallback failed:', memoryError);
+        // Silently handle memory storage errors
       }
     }
     
@@ -405,7 +396,6 @@ class CrossBrowserStorage {
     const strategy = this.getStorageStrategy();
     
     if (!this.storageAvailable) {
-      console.warn(`localStorage not available for removing key: ${key} on ${this.platform}`);
       return this.removeItemFallback(key, strategy);
     }
 
@@ -417,7 +407,6 @@ class CrossBrowserStorage {
       
       return true;
     } catch (error) {
-      console.error(`Failed to remove ${key} from localStorage on ${this.platform}:`, error);
       return this.removeItemFallback(key, strategy);
     }
   }
@@ -429,7 +418,7 @@ class CrossBrowserStorage {
       try {
         sessionStorage.removeItem(key);
       } catch (sessionError) {
-        console.warn('Failed to remove from sessionStorage:', sessionError);
+        // Silently handle errors
       }
     }
     
@@ -438,7 +427,7 @@ class CrossBrowserStorage {
       try {
         this.memoryStorage.delete(key);
       } catch (memoryError) {
-        console.warn('Failed to remove from memory storage:', memoryError);
+        // Silently handle errors
       }
     }
   }
@@ -451,7 +440,7 @@ class CrossBrowserStorage {
         sessionStorage.removeItem(key);
         return true;
       } catch (sessionError) {
-        console.error('SessionStorage removal failed:', sessionError);
+        // Silently handle errors
       }
     }
     
@@ -461,7 +450,7 @@ class CrossBrowserStorage {
         this.memoryStorage.delete(key);
         return true;
       } catch (memoryError) {
-        console.error('Memory storage removal failed:', memoryError);
+        // Silently handle errors
       }
     }
     
@@ -473,7 +462,6 @@ class CrossBrowserStorage {
     const strategy = this.getStorageStrategy();
     
     if (!this.storageAvailable) {
-      console.warn(`localStorage not available for clearing on ${this.platform}`);
       return this.clearFallback(strategy);
     }
 
@@ -485,7 +473,6 @@ class CrossBrowserStorage {
       
       return true;
     } catch (error) {
-      console.error(`Failed to clear localStorage on ${this.platform}:`, error);
       return this.clearFallback(strategy);
     }
   }
@@ -497,7 +484,7 @@ class CrossBrowserStorage {
       try {
         sessionStorage.clear();
       } catch (sessionError) {
-        console.warn('Failed to clear sessionStorage:', sessionError);
+        // Silently handle errors
       }
     }
     
@@ -506,7 +493,7 @@ class CrossBrowserStorage {
       try {
         this.memoryStorage.clear();
       } catch (memoryError) {
-        console.warn('Failed to clear memory storage:', memoryError);
+        // Silently handle errors
       }
     }
   }
@@ -519,7 +506,7 @@ class CrossBrowserStorage {
         sessionStorage.clear();
         return true;
       } catch (sessionError) {
-        console.error('SessionStorage clear failed:', sessionError);
+        // Silently handle errors
       }
     }
     
@@ -529,7 +516,7 @@ class CrossBrowserStorage {
         this.memoryStorage.clear();
         return true;
       } catch (memoryError) {
-        console.error('Memory storage clear failed:', memoryError);
+        // Silently handle errors
       }
     }
     
@@ -552,7 +539,6 @@ class CrossBrowserStorage {
       }
       return items;
     } catch (error) {
-      console.error('Failed to get all localStorage items:', error);
       return {};
     }
   }
@@ -566,7 +552,6 @@ class CrossBrowserStorage {
     try {
       return localStorage.getItem(key) !== null;
     } catch (error) {
-      console.error(`Failed to check if ${key} exists:`, error);
       return false;
     }
   }
@@ -588,7 +573,6 @@ class CrossBrowserStorage {
       }
       return size;
     } catch (error) {
-      console.error('Failed to get localStorage size:', error);
       return 0;
     }
   }
@@ -642,8 +626,6 @@ class CrossBrowserStorage {
 
   // Handle quota exceeded errors
   handleQuotaExceeded(key, value, strategy) {
-    console.warn(`Storage quota exceeded for key: ${key}. Attempting cleanup...`);
-    
     this.quotaExceededCount++;
     
     if (this.quotaExceededCount <= this.maxQuotaRetries) {
@@ -656,7 +638,7 @@ class CrossBrowserStorage {
         localStorage.setItem(key, stringValue);
         return true;
       } catch (retryError) {
-        console.error(`Retry failed for ${key}:`, retryError);
+        // Silently handle retry errors
       }
     }
     
@@ -700,7 +682,7 @@ class CrossBrowserStorage {
         };
       }
     } catch (error) {
-      console.warn('Failed to get storage info:', error);
+      // Silently handle errors
     }
     
     return {
@@ -832,7 +814,6 @@ export const setStorageItemSafe = async (key, value, retries = 3) => {
     await new Promise(resolve => setTimeout(resolve, 100 * (i + 1)));
   }
   
-  console.error(`Failed to store ${key} after ${retries} retries`);
   return false;
 };
 

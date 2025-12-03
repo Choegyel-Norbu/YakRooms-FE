@@ -112,7 +112,7 @@ const BookingsTrendChart = ({ hotelId }) => {
       // Save the file
       XLSX.writeFile(wb, filename);
     } catch (error) {
-      console.error("Error exporting to Excel:", error);
+      
       alert("Failed to export data. Please try again.");
     }
   };
@@ -145,7 +145,7 @@ const BookingsTrendChart = ({ hotelId }) => {
       const processedData = result
         .map((item) => {
           if (!item.monthYear || typeof item.bookingCount !== "number") {
-            console.warn("Invalid data item:", item);
+            
             return null;
           }
           return {
@@ -163,7 +163,7 @@ const BookingsTrendChart = ({ hotelId }) => {
       setData(processedData);
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching bookings data:", err);
+      
       setError(err.message);
       setLoading(false);
     }

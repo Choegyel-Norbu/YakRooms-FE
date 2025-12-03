@@ -67,28 +67,8 @@ const FeatureSection = () => {
     },
   };
 
-  const floatAnimation = {
-    animate: {
-      y: [0, -10, 0],
-      transition: {
-        duration: 3,
-        repeat: Infinity,
-        ease: "easeInOut",
-      },
-    },
-  };
-
-  const pulseAnimation = {
-    animate: {
-      scale: [1, 1.1, 1],
-      opacity: [0.3, 0.5, 0.3],
-      transition: {
-        duration: 4,
-        repeat: Infinity,
-        ease: "easeInOut",
-      },
-    },
-  };
+  // Removed infinite animations for performance
+  // These were causing continuous repaints and main thread blocking
 
   const trustIndicatorVariants = {
     hidden: { opacity: 0, x: -20 },
@@ -130,24 +110,10 @@ const FeatureSection = () => {
               className="p-8 md:p-12 border border-border/50 rounded-2xl relative overflow-hidden"
               variants={scaleIn}
             >
-              {/* Background Decorative Elements with animations */}
-              <motion.div
-                className="absolute top-4 left-4 w-20 h-20 bg-primary/1 rounded-full blur-xl"
-                variants={pulseAnimation}
-                animate="animate"
-              ></motion.div>
-              <motion.div
-                className="absolute bottom-4 right-4 w-32 h-32 bg-yellow-500/5 rounded-full blur-xl"
-                variants={pulseAnimation}
-                animate="animate"
-                transition={{ delay: 1 }}
-              ></motion.div>
-              <motion.div
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-primary/3 rounded-full blur-2xl"
-                variants={pulseAnimation}
-                animate="animate"
-                transition={{ delay: 2 }}
-              ></motion.div>
+              {/* Static background decorative elements (removed infinite animations for performance) */}
+              <div className="absolute top-4 left-4 w-20 h-20 bg-primary/10 rounded-full blur-xl"></div>
+              <div className="absolute bottom-4 right-4 w-32 h-32 bg-yellow-500/10 rounded-full blur-xl"></div>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-primary/5 rounded-full blur-2xl"></div>
               
               <div className="relative z-10 space-y-8">
                 {/* Adventure Header */}

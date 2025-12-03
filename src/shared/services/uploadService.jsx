@@ -63,7 +63,7 @@ export const deleteFileByUrl = async (fileUrl) => {
         data: result,
       };
     } else {
-      console.error("Backend API error:", result);
+      
       return {
         success: false,
         message: result.message || "Failed to delete file",
@@ -73,8 +73,7 @@ export const deleteFileByUrl = async (fileUrl) => {
       };
     }
   } catch (error) {
-    console.error("Failed to delete file:", error);
-    
+
     return {
       success: false,
       message: "Failed to delete file. Please try again.",
@@ -125,7 +124,7 @@ export const uploadFile = async (file, field) => {
       fileKey: response.data.fileKey || response.data.key || null,
     };
   } catch (error) {
-    console.error(`Upload failed for ${field}:`, error);
+    
     throw error;
   }
 };

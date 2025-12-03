@@ -34,7 +34,7 @@ const HotelSelectionDialog = ({ isOpen, onClose, onHotelSelected }) => {
             setHotels([]);
           }
         } catch (error) {
-          console.error("Failed to load hotels:", error);
+          
           setHotels([]);
         } finally {
           setLoading(false);

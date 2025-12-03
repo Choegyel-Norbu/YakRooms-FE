@@ -18,7 +18,7 @@ export const roomDeletionService = {
         data: response.data
       };
     } catch (error) {
-      console.error('Error checking room deletion status:', error);
+      
       return {
         success: false,
         error: error.response?.data?.message || 'Failed to check deletion status',
@@ -41,7 +41,7 @@ export const roomDeletionService = {
         message: 'Room deleted successfully'
       };
     } catch (error) {
-      console.error('Error deleting room:', error);
+      
       return {
         success: false,
         error: error.response?.data?.message || 'Failed to delete room',

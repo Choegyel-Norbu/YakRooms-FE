@@ -123,7 +123,7 @@ const formatTimeWithDescription = (timeString) => {
     
     return `${hour12}:${formattedMinutes} ${ampm} ${description}`;
   } catch (error) {
-    console.error('Error formatting time:', error);
+    
     return "Invalid time";
   }
 };
@@ -140,7 +140,7 @@ const formatTime = (timeString) => {
     
     return `${hour12}:${formattedMinutes} ${ampm}`;
   } catch (error) {
-    console.error('Error formatting time:', error);
+    
     return "Invalid time";
   }
 };
@@ -322,8 +322,6 @@ const RoomImageCarousel = ({ images, roomNumber, roomType, isActive }) => {
           {isActive ? "Active" : "Inactive"}
         </Badge>
       </div>
-
-      
 
       {/* Image Modal */}
       <Sheet open={showImageModal} onOpenChange={setShowImageModal}>
@@ -606,7 +604,6 @@ const HotelDetailsPage = () => {
     );
   }, [hasRole, hotelIds, id]);
 
-
   // Optimized data fetching with single API call for initial load
   const fetchInitialData = useCallback(async () => {
     if (!id || hasInitialDataLoaded.current) return;
@@ -653,7 +650,7 @@ const HotelDetailsPage = () => {
           loading: false,
         }));
       } else {
-        console.error("Error fetching rooms:", roomsResult.reason);
+        
         setRoomsState(prev => ({ ...prev, loading: false }));
       }
 
@@ -666,7 +663,7 @@ const HotelDetailsPage = () => {
           loading: false,
         }));
       } else {
-        console.error("Error fetching testimonials:", testimonialsResult.reason);
+        
         setTestimonialsState(prev => ({ 
           ...prev, 
           loading: false, 
@@ -684,9 +681,7 @@ const HotelDetailsPage = () => {
       if (err.name === 'AbortError') {
         return; // Ignore aborted requests
       }
-      
-      console.error("Error fetching hotel details:", err);
-      
+
       // Only set hotel error when hotel details specifically fail
       setAppState(prev => ({
         ...prev,
@@ -714,7 +709,7 @@ const HotelDetailsPage = () => {
         loading: false,
       }));
     } catch (err) {
-      console.error("Error fetching rooms:", err);
+      
       setRoomsState(prev => ({ ...prev, loading: false }));
     }
   }, [id]);
@@ -743,7 +738,7 @@ const HotelDetailsPage = () => {
         };
       });
     } catch (err) {
-      console.error("Error fetching testimonials:", err);
+      
       setTestimonialsState(prev => ({
         ...prev,
         error: "Failed to load testimonials",
@@ -907,7 +902,6 @@ const HotelDetailsPage = () => {
     // This function is no longer needed in HotelDetailsPage
     // Review functionality moved to GuestDashboard
   }, []);
-
 
   const toggleDescription = useCallback(() => {
     setUiState(prev => ({ ...prev, isDescriptionExpanded: !prev.isDescriptionExpanded }));
@@ -1934,7 +1928,6 @@ const HotelDetailsPage = () => {
           </div>
         </SheetContent>
       </Sheet>
-
 
       {/* Room Image Modal */}
       {roomImageModal.isOpen && (

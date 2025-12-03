@@ -711,7 +711,7 @@ const AddListingPage = () => {
       }
       setIsSubmitted(true);
     } catch (error) {
-      console.error("Submission failed:", error);
+      
       alert(`Submission failed: ${error.message}`);
     } finally {
       setIsSubmitting(false);

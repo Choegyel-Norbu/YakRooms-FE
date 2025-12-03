@@ -142,7 +142,7 @@ const MonthlyPerformanceChart = ({ hotelId }) => {
       const processedData = result
         .map((item) => {
           if (!item.monthYear || typeof item.totalRevenue !== "number") {
-            console.warn("Invalid data item:", item);
+            
             return null;
           }
           return {
@@ -159,7 +159,7 @@ const MonthlyPerformanceChart = ({ hotelId }) => {
       setData(processedData);
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching performance data:", err);
+      
       setError(err.message);
       setLoading(false);
     }
@@ -266,7 +266,7 @@ const MonthlyPerformanceChart = ({ hotelId }) => {
       // Save the file
       XLSX.writeFile(wb, filename);
     } catch (error) {
-      console.error("Error exporting to Excel:", error);
+      
       alert("Failed to export data. Please try again.");
     }
   };

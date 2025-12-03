@@ -240,7 +240,6 @@ const HotelAdminDashboard = () => {
       ? window.matchMedia("(max-width: 640px)").matches
       : false;
 
-
   useEffect(() => {
     const fetchHotelData = async () => {
       try {
@@ -302,7 +301,6 @@ const HotelAdminDashboard = () => {
       });
     }
   }, [userId, roles, subscriptionIsActive, selectedHotelId, location.search, fetchSubscriptionData, navigate]);
-
 
   // Fetch all notifications from backend when component mounts or hotel changes
   useEffect(() => {
@@ -447,7 +445,7 @@ const HotelAdminDashboard = () => {
         }
       }
     } catch (error) {
-      console.error("Error fetching receipts:", error);
+      
       toast.error("Failed to fetch receipts", {
         duration: 6000,
       });
@@ -482,7 +480,7 @@ const HotelAdminDashboard = () => {
           }
         }
       } catch (error) {
-        console.error("Error fetching invoices:", error);
+        
         toast.error("Failed to fetch invoices", {
           duration: 6000,
         });
@@ -555,7 +553,7 @@ const HotelAdminDashboard = () => {
         throw new Error("No receipt data found");
       }
     } catch (error) {
-      console.error("Error generating receipt:", error);
+      
       toast.error("Failed to Generate Receipt", {
         description: error.response?.data?.message || "There was an error generating your receipt. Please try again.",
         duration: 6000,
@@ -611,7 +609,6 @@ const HotelAdminDashboard = () => {
       await markAllNotificationsAsRead();
     }
   };
-
 
   const updateHotel = (updatedHotel) => {
     setHotel(updatedHotel);
@@ -893,8 +890,7 @@ const HotelAdminDashboard = () => {
                 <EzeeRoomLogo size="default" />
               </div>
             </div>
-            
-            
+
             {/* Subscription Status */}
             {subscriptionPlan === 'TRIAL' && (
               <Badge 
@@ -1650,7 +1646,6 @@ const HotelAdminDashboard = () => {
               {showStaffGrid && <StaffCardGrid hotelId={currentHotelId} />}
             </div>
           )}
-
 
           {activeTab === "rooms" && (
             <div className="space-y-4">

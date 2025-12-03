@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 
 import LoginModal from "../authentication/LoginModal";
 import "../../assets/css/custom.css";
-import AOS from "aos";
-import "aos/dist/aos.css";
 import Footer from "../../layouts/Footer";
 import { useInView } from "react-intersection-observer";
 import HeroLG from "./HeroLG";
@@ -89,12 +87,8 @@ const Landing = () => {
     
   };
 
-  useEffect(() => {
-    AOS.init({
-      duration: 1000, // animation duration
-      once: true, // only animate once
-    });
-  }, []);
+  // Removed AOS initialization - using Framer Motion for all animations
+  // This eliminates double animation overhead and scroll event conflicts
 
   useEffect(() => {
     const timer = setTimeout(() => {

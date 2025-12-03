@@ -127,7 +127,6 @@ const HotelCard = React.memo(({ hotel }) => (
             </span>
           </CardDescription>
 
-          
         </div>
 
         {/* Check-in/Check-out Times */}
@@ -282,7 +281,6 @@ const HotelListingPage = () => {
     return `${page}-${district.trim()}-${locality.trim()}-${hotelType}-${sortBy}`;
   }, []);
 
-
   // Derived flags
   const isNearbySearch = useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -292,7 +290,7 @@ const HotelListingPage = () => {
   // Get user's current location with improved accuracy
   useEffect(() => {
     if (!navigator.geolocation) {
-      console.warn("Geolocation is not supported by this browser");
+      
       return;
     }
 
@@ -304,9 +302,6 @@ const HotelListingPage = () => {
             const accuracy = position.coords.accuracy; // Accuracy in meters
             const latitude = position.coords.latitude;
             const longitude = position.coords.longitude;
-
-            // Log accuracy for debugging
-            console.log(`Location accuracy: ${accuracy.toFixed(0)}m`);
 
             // Accept location if accuracy is good (< 100m) or if we've exhausted retries
             // For mobile devices, accuracy can be 10-50m with GPS, 100-1000m with network
@@ -327,7 +322,6 @@ const HotelListingPage = () => {
               locationRetryCountRef.current = 0; // Reset retry count on success
             } else {
               // Retry for better accuracy if current accuracy is poor and we have retries left
-              console.log(`Location accuracy ${accuracy.toFixed(0)}m is poor, retrying...`);
               locationRetryCountRef.current = retryCount + 1;
               setTimeout(() => {
                 requestLocation(retryCount + 1);
@@ -335,16 +329,15 @@ const HotelListingPage = () => {
             }
           },
           (error) => {
-            console.error("Geolocation error:", error);
-            
+
             // Handle different error types
             switch (error.code) {
               case error.PERMISSION_DENIED:
-                console.warn("Location permission denied by user");
+                
                 setLocationPermissionDenied(true);
                 break;
               case error.POSITION_UNAVAILABLE:
-                console.warn("Location information unavailable");
+                
                 // Retry once if position unavailable (might be temporary)
                 if (retryCount < 1) {
                   setTimeout(() => {
@@ -353,7 +346,7 @@ const HotelListingPage = () => {
                 }
                 break;
               case error.TIMEOUT:
-                console.warn("Location request timed out");
+                
                 // Retry with longer timeout if we haven't exhausted retries
                 if (retryCount < maxRetries) {
                   setTimeout(() => {
@@ -362,7 +355,7 @@ const HotelListingPage = () => {
                 }
                 break;
               default:
-                console.error("Unknown geolocation error:", error.message);
+                
                 break;
             }
           },
@@ -491,8 +484,7 @@ const HotelListingPage = () => {
           }
           return;
         }
-        
-        console.error("Error fetching hotels:", error);
+
         if (lastRequestRef.current?.fetchKey === fetchKey) {
           setAppState(prev => ({
             ...prev,
@@ -1055,7 +1047,6 @@ const HotelListingPage = () => {
                 <h1 className="text-2xl md:text-xl font-semibold tracking-tight">
                   {pageTitle}
                 </h1>
-              
 
                 {/* Active filters display */}
                 {isSearchActive && !appState.loading && (

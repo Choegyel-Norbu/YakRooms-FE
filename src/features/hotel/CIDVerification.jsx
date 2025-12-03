@@ -142,7 +142,7 @@ const CIDVerification = () => {
         setError("Failed to check in");
       }
     } catch (err) {
-      console.error("Check-in error:", err);
+      
       if (err.response?.data?.message) {
         setError(err.response.data.message);
       } else if (err.response?.status === 404) {
@@ -228,7 +228,7 @@ const CIDVerification = () => {
         setError("No booking found for this CID number");
       }
     } catch (err) {
-      console.error("CID verification error:", err);
+      
       if (err.response?.status === 404) {
         setError("No booking found for this CID number");
       } else if (err.response?.status === 400) {

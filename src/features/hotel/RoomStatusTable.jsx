@@ -108,7 +108,7 @@ const RoomStatusTable = ({ hotelId }) => {
       
       // Ensure content array exists
       if (!Array.isArray(searchResult.content)) {
-        console.warn('Search result missing content array, creating empty array');
+        
         searchResult.content = [];
       }
       
@@ -116,9 +116,7 @@ const RoomStatusTable = ({ hotelId }) => {
       setSearchError(false);
       
     } catch (err) {
-      console.error('Search error details:', err);
-      console.error('Error response:', err.response?.data);
-      
+
       // Keep search input and show error message
       setSearchError(true);
       setData({ content: [], totalElements: 0, totalPages: 0 });

@@ -87,8 +87,7 @@ export default function TimeBasedBookingDialog({
         setTimeBasedBookings(bookedResponse.data.timeBasedBookings || []);
       }
     } catch (error) {
-      console.error('Failed to fetch booked dates:', error);
-      
+
       if (error.response?.status === 401 || error.response?.status === 403) {
         toast.info('Please login to view detailed availability', {
           description: 'You can still proceed with booking, but some dates may appear available when they are not.',
@@ -252,7 +251,7 @@ export default function TimeBasedBookingDialog({
         }
       }
     } catch (error) {
-      console.error("Hourly booking failed:", error);
+      
       toast.error("Hourly Booking Failed", {
         description: "There was conflict while booking. Please try another date or time.",
         duration: 6000
@@ -288,7 +287,7 @@ export default function TimeBasedBookingDialog({
       });
       
     } catch (error) {
-      console.error("BFS Payment redirect failed:", error);
+      
       // Close redirect dialog on error
       setOpenPaymentRedirectDialog(false);
       toast.error("Payment Redirect Failed", {

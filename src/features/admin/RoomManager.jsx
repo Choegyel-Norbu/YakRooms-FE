@@ -192,7 +192,7 @@ const RoomManager = ({ hotelId }) => {
         const response = await api.get(`/rooms/hotel/${hotelId}`);
         setRooms(response.data);
       } catch (err) {
-        console.error("Error fetching rooms:", err);
+        
         toast.error("Failed to load rooms", {
           duration: 6000
         });
@@ -463,7 +463,6 @@ const RoomManager = ({ hotelId }) => {
 
       cancelEdit();
     } catch (error) {
-      console.error("Error submitting room:", error);
 
       if (error.response?.data?.errors) {
         const serverErrors = {};

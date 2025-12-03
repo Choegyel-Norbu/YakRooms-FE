@@ -273,7 +273,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       toast.error("Failed to upload images. Please try again.", {
         duration: 6000
       });
-      console.error("Image upload error:", err);
+      
     } finally {
       setIsLoading(false);
     }
@@ -311,7 +311,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
         });
       }
     } catch (error) {
-      console.error("Error deleting image:", error);
+      
       toast.error("Failed to delete image. Please try again.", {
         duration: 6000
       });
@@ -459,7 +459,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       toast.error("Failed to update hotel information.", {
         duration: 6000
       });
-      console.error("Update error:", err);
+      
     } finally {
       setIsLoading(false);
     }

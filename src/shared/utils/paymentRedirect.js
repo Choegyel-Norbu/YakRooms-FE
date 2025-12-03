@@ -49,14 +49,13 @@ export const handlePaymentRedirect = (paymentData, options = {}) => {
     }
     
   } catch (error) {
-    console.error("❌ Payment redirect failed:", error);
-    
+
     // Call error callback if provided
     if (onError) {
       onError(error);
     } else {
       // Default error handling - you might want to use your toast system here
-      console.error("Payment Redirect Failed:", error.message);
+      
     }
     
     throw error;
@@ -101,7 +100,7 @@ const handleFormBasedRedirect = (paymentData, gatewayName) => {
     paymentForm.submit();
     
   } catch (error) {
-    console.error("❌ Form-based redirect failed:", error);
+    
     throw error;
   }
 };
@@ -137,7 +136,7 @@ const handleUrlBasedRedirect = (paymentData, gatewayName) => {
     }
     
   } catch (error) {
-    console.error("❌ URL-based redirect failed:", error);
+    
     throw error;
   }
 };
@@ -167,7 +166,7 @@ const handlePostFormRedirect = (paymentData, gatewayName) => {
     paymentForm.submit();
     
   } catch (error) {
-    console.error("❌ POST form redirect failed:", error);
+    
     throw error;
   }
 };

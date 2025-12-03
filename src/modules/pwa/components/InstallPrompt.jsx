@@ -116,7 +116,7 @@ const InstallPrompt = () => {
             onClick={handleInstall}
             className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg active:scale-95 cursor-pointer"
           >
-            Install App
+            Install
           </button>
           <button
             onClick={handleDismiss}

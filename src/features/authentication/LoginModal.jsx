@@ -40,7 +40,7 @@ const LoginModal = ({ onClose, flag }) => {
       setMessage("Login successful!");
     } catch (error) {
       setError("Login failed. Please try again.");
-      console.error("Login error:", error);
+      
     }
   };
 

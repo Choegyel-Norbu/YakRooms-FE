@@ -18,7 +18,7 @@ const RatingWidget = ({ onClose }) => {
         const res = await api.get("/averageRating"); // 👈 Await here
         setSummary(res.data);
       } catch (error) {
-        console.error("Error fetching average rating:", error);
+        
       }
     };
 
@@ -42,7 +42,7 @@ const RatingWidget = ({ onClose }) => {
         }, 3000);
       }
     } catch (error) {
-      console.error("Error fetching average rating:", error);
+      
     }
     setRating(0);
   };

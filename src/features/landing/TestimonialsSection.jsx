@@ -83,6 +83,7 @@ const TestimonialsSection = () => {
                       <img
                         src={testimonial.avatar}
                         alt={testimonial.name}
+                        loading="lazy"
                         className="w-10 h-10 rounded-full object-cover mr-3"
                       />
                     ) : (

@@ -90,7 +90,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
       const response = await api.get(`/rooms/available/${hotelId}?page=0&size=50`);
       setAvailableRooms(response.data.content || []);
     } catch (error) {
-      console.error("Error fetching available rooms:", error);
+      
       if (showErrorToast) {
         toast.error("Failed to fetch available rooms", {
           duration: 6000
@@ -115,7 +115,7 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
         setSelectedRoomForDates(roomId);
       }
     } catch (error) {
-      console.error('Failed to fetch booked dates:', error);
+      
       toast.error('Failed to load booking calendar', {
         description: 'Could not fetch booked dates. Some dates may appear available when they are not.',
         duration: 4000
@@ -928,12 +928,12 @@ export default function AdminBookingForm({ hotelId, onBookingSuccess, isDisabled
           try {
             onBookingSuccess();
           } catch (error) {
-            console.error("Error in onBookingSuccess callback:", error);
+            
           }
         }
       }
     } catch (error) {
-      console.error("Booking failed:", error);
+      
       toast.error("Booking Failed", {
         description: "There was an error processing the booking. Please try again.",
         duration: 6000

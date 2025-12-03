@@ -46,7 +46,7 @@ const NotificationsComponent = () => {
               const newNotification = JSON.parse(message.body);
               setNotifications((prev) => [newNotification, ...prev]);
             } catch (error) {
-              console.error("Could not parse notification message:", error);
+              
             }
           });
         };
@@ -56,8 +56,7 @@ const NotificationsComponent = () => {
         };
 
         client.onStompError = (frame) => {
-          console.error("Broker reported error: " + frame.headers["message"]);
-          console.error("Additional details: " + frame.body);
+
         };
 
         clientRef.current = client;

@@ -72,7 +72,7 @@ const RatingDialog = ({ open, onOpenChange }) => {
         }, 2000);
       }
     } catch (error) {
-      console.error("Failed to submit feedback:", error);
+      
       // You could add a toast notification here
     } finally {
       setIsSubmitting(false);

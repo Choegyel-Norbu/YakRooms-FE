@@ -233,7 +233,7 @@ const LeaveManagement = ({ hotelId }) => {
         }
       }
     } catch (error) {
-      console.error("Error fetching leaves:", error);
+      
       toast.error("Failed to fetch leave requests");
       setEnhancedLeaves([]);
     } finally {
@@ -246,7 +246,7 @@ const LeaveManagement = ({ hotelId }) => {
       const response = await api.get(`/hotels/${hotelId}/staff`);
       setStaff(response.data);
     } catch (error) {
-      console.error("Error fetching staff:", error);
+      
     }
   };
 
@@ -255,7 +255,7 @@ const LeaveManagement = ({ hotelId }) => {
       const response = await api.get(`/leave-types`);
       setLeavePolicies(response.data);
     } catch (error) {
-      console.error("Error fetching leave policies:", error);
+      
       toast.error("Failed to fetch leave policies");
     }
   };
@@ -266,11 +266,7 @@ const LeaveManagement = ({ hotelId }) => {
       const response = await api.get(`/staff/hotel/${hotelId}`);
       setAllStaff(response.data);
     } catch (error) {
-      console.error("Error fetching all staff:", error);
-      console.error("Error details:", error.response?.data);
-      console.error("Error status:", error.response?.status);
-      console.error("Full error object:", error);
-      
+
       // Try alternative endpoint if the first one fails
       if (error.response?.status === 404) {
         try {
@@ -278,7 +274,7 @@ const LeaveManagement = ({ hotelId }) => {
           setAllStaff(altResponse.data);
           return;
         } catch (altError) {
-          console.error("Alternative endpoint also failed:", altError);
+          
         }
       }
       
@@ -302,9 +298,7 @@ const LeaveManagement = ({ hotelId }) => {
         }
       }, 200);
     } catch (error) {
-      console.error("Error fetching staff leaves:", error);
-      console.error("Error details:", error.response?.data);
-      console.error("Error status:", error.response?.status);
+
       toast.error(`Failed to fetch staff leave history: ${error.response?.data?.message || error.message}`);
       setStaffLeaves([]);
     } finally {
@@ -384,7 +378,7 @@ const LeaveManagement = ({ hotelId }) => {
         duration: 6000,
       });
     } catch (error) {
-      console.error("Error exporting leaves:", error);
+      
       toast.error("Failed to export leave data to Excel");
     }
   };
@@ -401,7 +395,7 @@ const LeaveManagement = ({ hotelId }) => {
           const response = await api.get(`/leaves/summary/user/${userId}`);
           setLeaveSummary(response.data);
         } catch (error) {
-          console.error("Error fetching leave summary:", error);
+          
           toast.error("Failed to fetch leave summary");
           return;
         } finally {
@@ -463,9 +457,7 @@ const LeaveManagement = ({ hotelId }) => {
       });
       fetchLeaves();
     } catch (error) {
-      console.error("Error submitting leave:", error);
-      console.error("Leave data that was sent:", leaveData);
-      console.error("Error response:", error.response?.data);
+
       toast.error(`Failed to submit leave request: ${error.response?.data?.message || error.message}`);
     }
   };
@@ -480,7 +472,7 @@ const LeaveManagement = ({ hotelId }) => {
       toast.success(`Leave request ${status.toLowerCase()}`);
       fetchLeaves();
     } catch (error) {
-      console.error("Error updating leave status:", error);
+      
       toast.error("Failed to update leave status");
     }
   };
@@ -509,7 +501,7 @@ const LeaveManagement = ({ hotelId }) => {
       toast.success("Leave request deleted");
       fetchLeaves();
     } catch (error) {
-      console.error("Error deleting leave:", error);
+      
       toast.error("Failed to delete leave request");
     }
   };
@@ -575,9 +567,7 @@ const LeaveManagement = ({ hotelId }) => {
       });
       fetchLeavePolicies();
     } catch (error) {
-      console.error("Error submitting policy:", error);
-      console.error("Policy data that was sent:", policyData);
-      console.error("Error response:", error.response?.data);
+
       toast.error(`Failed to submit leave policy: ${error.response?.data?.message || error.message}`);
     }
   };
@@ -588,7 +578,7 @@ const LeaveManagement = ({ hotelId }) => {
       toast.success("Leave policy deleted");
       fetchLeavePolicies();
     } catch (error) {
-      console.error("Error deleting policy:", error);
+      
       toast.error("Failed to delete leave policy");
     }
   };

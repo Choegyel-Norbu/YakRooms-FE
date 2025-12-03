@@ -120,7 +120,7 @@ const RoomItemForm = ({ room = null, onSave, onCancel, isEditing = false }) => {
         });
       }
     } catch (error) {
-      console.error("Error deleting image:", error);
+      
       toast.error("Failed to delete image. Please try again.", {
         duration: 6000
       });

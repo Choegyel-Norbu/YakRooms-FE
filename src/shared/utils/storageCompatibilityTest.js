@@ -117,7 +117,7 @@ export class StorageCompatibilityTester {
       return this.results;
       
     } catch (error) {
-      console.error('❌ Test suite failed:', error);
+      
       this.results.addError(error);
       return this.results;
     }
@@ -341,7 +341,7 @@ export class StorageCompatibilityTester {
       return summary;
       
     } catch (error) {
-      console.error('❌ Quick test failed:', error);
+      
       return { score: 0, error: error.message };
     }
   }
@@ -368,7 +368,7 @@ export const logStorageDebugInfo = async () => {
     // Debug information available but not logged
     return { platformInfo, storageInfo, validation, isPrivate };
   } catch (error) {
-    console.error('Failed to get debug info:', error);
+    
     throw error;
   }
 };

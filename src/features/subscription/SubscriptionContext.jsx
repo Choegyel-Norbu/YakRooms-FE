@@ -169,7 +169,7 @@ export const SubscriptionProvider = ({ children }) => {
 
       return history;
     } catch (error) {
-      console.error("❌ Failed to fetch payment history:", error);
+      
       toast.error("Failed to load payment history.");
       return [];
     }
@@ -205,8 +205,7 @@ export const SubscriptionProvider = ({ children }) => {
       toast.success("Subscription created successfully!");
       return newSubscription;
     } catch (error) {
-      console.error("❌ Failed to create subscription:", error);
-      
+
       setSubscriptionState(prev => ({
         ...prev,
         isLoading: false,
@@ -264,8 +263,7 @@ export const SubscriptionProvider = ({ children }) => {
 
       return paymentResponse;
     } catch (error) {
-      console.error("❌ Failed to initiate payment:", error);
-      
+
       setSubscriptionState(prev => ({
         ...prev,
         isLoading: false,
@@ -319,8 +317,7 @@ export const SubscriptionProvider = ({ children }) => {
       toast.success("Subscription updated successfully!");
       return updatedSubscription;
     } catch (error) {
-      console.error("❌ Failed to update subscription:", error);
-      
+
       setSubscriptionState(prev => ({
         ...prev,
         isLoading: false,
@@ -385,8 +382,7 @@ export const SubscriptionProvider = ({ children }) => {
       toast.success("Subscription reactivated successfully!");
       return reactivationResult;
     } catch (error) {
-      console.error("❌ Failed to reactivate subscription:", error);
-      
+
       setSubscriptionState(prev => ({
         ...prev,
         isLoading: false,
@@ -546,7 +542,7 @@ export const SubscriptionProvider = ({ children }) => {
 export const useSubscription = () => {
   const context = useContext(SubscriptionContext);
   if (!context) {
-    console.error("useSubscription must be used within a SubscriptionProvider. Make sure the component is wrapped in <SubscriptionProvider>");
+    
     throw new Error("useSubscription must be used within a SubscriptionProvider");
   }
   return context;

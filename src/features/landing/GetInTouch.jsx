@@ -43,7 +43,7 @@ const GetInTouch = React.forwardRef((props, ref) => {
         throw new Error("Submission failed");
       }
     } catch (error) {
-      console.error("Error submitting form:", error);
+      
       toast.error("ERROR! There was a problem submitting your information.");
     } finally {
       setIsSubmitting(false);

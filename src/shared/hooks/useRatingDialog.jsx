@@ -41,7 +41,7 @@ export const useRatingDialog = () => {
       
       return true; // Device not found, can show popup
     } catch (error) {
-      console.error("Error checking device feedback:", error);
+      
       // If API call fails, show popup anyway (fallback)
       return true;
     } finally {

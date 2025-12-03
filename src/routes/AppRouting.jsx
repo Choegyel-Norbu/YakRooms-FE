@@ -1,21 +1,53 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../features/authentication";
-import { Landing } from "../features/landing";
-import { AboutUs } from "../features/landing";
-import { FAQs } from "../features/landing";
-import { HotelListingPage } from "../features/hotel";
-import { HotelDetailsPage } from "../features/hotel";
-import { AddListingPage } from "../features/hotel";
-import { HotelAdminDashboard, AccountDeletionPage, UserManual } from "../features/hotel";
-import { SuperAdmin } from "../features/admin";
-import { GuestDashboard } from "../features/guest";
-import { PrivacyPolicy, TermsAndConditions } from "../features/landing";
-import { SubscriptionPage } from "../features/subscription";
-import { SubscriptionManagement } from "../shared/components";
-import { PaymentStatusPage } from "../features/payment";
 
-// Protected Route Component
+// ============================================
+// LAZY LOADED ROUTE COMPONENTS
+// ============================================
+// This implements code splitting to reduce initial bundle size
+// Each route is loaded on-demand when the user navigates to it
+
+// Public Routes - Landing & Info Pages
+const Landing = lazy(() => import("../features/landing").then(m => ({ default: m.Landing })));
+const AboutUs = lazy(() => import("../features/landing").then(m => ({ default: m.AboutUs })));
+const FAQs = lazy(() => import("../features/landing").then(m => ({ default: m.FAQs })));
+const PrivacyPolicy = lazy(() => import("../features/landing").then(m => ({ default: m.PrivacyPolicy })));
+const TermsAndConditions = lazy(() => import("../features/landing").then(m => ({ default: m.TermsAndConditions })));
+
+// Hotel Routes
+const HotelListingPage = lazy(() => import("../features/hotel").then(m => ({ default: m.HotelListingPage })));
+const HotelDetailsPage = lazy(() => import("../features/hotel").then(m => ({ default: m.HotelDetailsPage })));
+const AddListingPage = lazy(() => import("../features/hotel").then(m => ({ default: m.AddListingPage })));
+const HotelAdminDashboard = lazy(() => import("../features/hotel").then(m => ({ default: m.HotelAdminDashboard })));
+const AccountDeletionPage = lazy(() => import("../features/hotel").then(m => ({ default: m.AccountDeletionPage })));
+const UserManual = lazy(() => import("../features/hotel").then(m => ({ default: m.UserManual })));
+
+// Admin & Dashboard Routes
+const SuperAdmin = lazy(() => import("../features/admin").then(m => ({ default: m.SuperAdmin })));
+const GuestDashboard = lazy(() => import("../features/guest").then(m => ({ default: m.GuestDashboard })));
+
+// Subscription & Payment Routes
+const SubscriptionPage = lazy(() => import("../features/subscription").then(m => ({ default: m.SubscriptionPage })));
+const SubscriptionManagement = lazy(() => import("../shared/components").then(m => ({ default: m.SubscriptionManagement })));
+const PaymentStatusPage = lazy(() => import("../features/payment").then(m => ({ default: m.PaymentStatusPage })));
+
+// ============================================
+// LOADING FALLBACK COMPONENT
+// ============================================
+// Shown while lazy-loaded components are being fetched
+const RouteLoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="text-center">
+      <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+      <p className="text-gray-600 font-medium">Loading...</p>
+    </div>
+  </div>
+);
+
+// ============================================
+// PROTECTED ROUTE COMPONENT
+// ============================================
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { isAuthenticated, hasRole, roles, userId, email } = useAuth();
 
@@ -73,9 +105,10 @@ const UnauthorizedPage = () => (
 const AppRouting = () => {
 
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<Landing />} />
+    <Suspense fallback={<RouteLoadingFallback />}>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Landing />} />
       <Route path="/aboutus" element={<AboutUs />} />
       <Route path="/faqs" element={<FAQs />} />
       <Route path="/hotels" element={<HotelListingPage />} />
@@ -171,7 +204,8 @@ const AppRouting = () => {
 
       {/* Catch all route */}
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 };
 

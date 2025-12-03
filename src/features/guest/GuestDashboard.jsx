@@ -266,7 +266,7 @@ const GoogleMapsModal = ({ booking, isOpen, onClose }) => {
           setLocationError(false);
         },
         (error) => {
-          console.error("Error getting location:", error);
+          
           setLocationError(true);
         }
       );
@@ -485,7 +485,7 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
         setAvailabilityChecked(true);
       }
     } catch (error) {
-      console.error('Failed to fetch booked dates:', error);
+      
       toast.error('Failed to load booking calendar', {
         description: 'Could not fetch booked dates. Please try again.',
         duration: 6000
@@ -914,8 +914,7 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
         }
       }
     } catch (error) {
-      console.error("Error extending booking:", error);
-      
+
       // Handle specific error cases
       if (error.response?.status === 409) {
         setError("The selected dates/times are no longer available. Please choose different dates/times.");
@@ -960,7 +959,7 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
       });
       
     } catch (error) {
-      console.error("Extension payment redirect failed:", error);
+      
       // Close redirect dialog on error
       setOpenPaymentRedirectDialog(false);
       toast.error("Payment Redirect Failed", {
@@ -1014,7 +1013,7 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
         }
         
       } catch (error) {
-        console.error("Error checking extension payment status:", error);
+        
         attempts++;
         if (attempts < maxAttempts) {
           setTimeout(checkStatus, 10000);
@@ -1500,8 +1499,7 @@ const BookingCard = ({
           
           <div className="flex items-center gap-2">
             <Calendar className="text-primary flex-shrink-0" size={16} />
-            
-            
+
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Check-in</p>
               <p
@@ -1931,7 +1929,6 @@ const CancellationConfirmationDialog = ({
   );
 };
 
-
 // Empty state component
 const EmptyState = ({ onRetry }) => (
   <div className="text-center py-12">
@@ -2138,7 +2135,7 @@ const GuestDashboard = () => {
         setTotalItems(data.totalItems || 0);
       }
     } catch (error) {
-      console.error("Error fetching bookings:", error);
+      
       setError(error);
       setBookings([]);
       setTotalPages(0);
@@ -2206,7 +2203,7 @@ const GuestDashboard = () => {
       );
       setUnreadCount(0);
     } catch (error) {
-      console.error("[API] Error marking notifications as read:", error);
+      
     }
   };
 
@@ -2258,7 +2255,6 @@ const GuestDashboard = () => {
     }
   };
 
-
   // Handle page change
   const handlePageChange = (newPage) => {
     if (newPage !== currentPage && newPage >= 1 && newPage <= totalPages) {
@@ -2309,7 +2305,7 @@ const GuestDashboard = () => {
         throw new Error("Unexpected response status");
       }
     } catch (error) {
-      console.error("Error requesting cancellation:", error);
+      
       toast.error("Failed to submit cancellation request. Please try again.", {
         description: "There was an error processing your request. Please contact support if the issue persists.",
         duration: 6000,
@@ -2357,7 +2353,7 @@ const GuestDashboard = () => {
         duration: 3000,
       });
     } catch (error) {
-      console.error('Error opening WhatsApp:', error);
+      
       toast.error('Failed to open WhatsApp. Please try again.', {
         duration: 4000,
       });
@@ -2438,7 +2434,7 @@ const GuestDashboard = () => {
         throw new Error("No receipt data found");
       }
     } catch (error) {
-      console.error("Error generating receipt:", error);
+      
       toast.error("Failed to Generate Receipt", {
         description: error.response?.data?.message || "There was an error generating your receipt. Please try again.",
         duration: 6000,
@@ -2634,7 +2630,6 @@ const GuestDashboard = () => {
       <div className="block sm:hidden">
         <Separator />
       </div>
-
 
       {/* Bookings List */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">

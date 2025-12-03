@@ -59,7 +59,7 @@ const QRCodeGenerator = ({ isOpen, onClose, bookingData }) => {
       
       setQrCodeUrl(url);
     } catch (error) {
-      console.error('Error generating QR code:', error);
+      
       toast.error("Failed to generate QR code", {
         duration: 6000
       });
@@ -109,7 +109,7 @@ const QRCodeGenerator = ({ isOpen, onClose, bookingData }) => {
         await copyBookingInfo();
       }
     } catch (error) {
-      console.error('Error sharing QR code:', error);
+      
       toast.error("Failed to share QR code", {
         duration: 6000
       });
@@ -142,7 +142,7 @@ const QRCodeGenerator = ({ isOpen, onClose, bookingData }) => {
         duration: 6000
       });
     } catch (error) {
-      console.error('Error copying to clipboard:', error);
+      
       toast.error("Failed to copy booking details", {
         duration: 6000
       });
@@ -196,7 +196,6 @@ const QRCodeGenerator = ({ isOpen, onClose, bookingData }) => {
           </div>
 
           <Separator />
-
 
           <Separator />
 

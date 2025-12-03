@@ -125,7 +125,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       try {
         stopScanning();
       } catch (err) {
-        console.warn('Error during component cleanup:', err);
+        
       }
     };
   }, [isMobile]);
@@ -168,7 +168,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       setHasPermission(true);
       
     } catch (err) {
-      console.error('❌ Error initializing camera:', err);
+      
       setError(`Unable to access camera: ${err.message}`);
       setHasPermission(false);
     }
@@ -176,13 +176,13 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
 
   const startScanning = async () => {
     if (!readerRef.current) {
-      console.error('❌ No reader available');
+      
       setError('QR scanner not initialized. Please refresh the page.');
       return;
     }
     
     if (!selectedDevice) {
-      console.error('❌ No device selected, initializing...');
+      
       await initializeCamera();
       if (!selectedDevice) {
         setError('No camera device available. Please check your device has a camera.');
@@ -191,7 +191,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
     }
 
     if (!videoRef.current) {
-      console.error('❌ No video element available');
+      
       setError('Camera interface not ready. Please try again.');
       return;
     }
@@ -210,7 +210,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
           }
           // Ignore NotFoundException as it's normal when no QR code is visible
           if (error && error.name !== 'NotFoundException') {
-            console.warn('Scanner warning:', error);
+            
           }
         }
       );
@@ -222,13 +222,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       });
       
     } catch (err) {
-      console.error('❌ Error starting scanner:', err);
-      console.error('Error details:', {
-        name: err.name,
-        message: err.message,
-        stack: err.stack
-      });
-      
+
       setIsScanning(false);
       setHasPermission(false);
       
@@ -272,7 +266,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
           readerRef.current.stopContinuousDecode();
         }
       } catch (err) {
-        console.warn('Error stopping scanner:', err);
+        
       }
     }
     setIsScanning(false);
@@ -299,7 +293,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       }
       
     } catch (err) {
-      console.error('Error parsing QR code:', err);
+      
       toast.error("Invalid QR Code", {
         description: "This doesn't appear to be a valid booking QR code",
         duration: 6000
@@ -351,7 +345,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
           const result = await readerRef.current.decodeFromImageUrl(imageUrl);
           handleScanResult(result.getText());
         } catch (err) {
-          console.error('Error reading QR code from image:', err);
+          
           toast.error("No QR Code Found", {
             description: "Could not find a valid QR code in this image",
             duration: 6000
@@ -372,7 +366,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
       img.src = imageUrl;
 
     } catch (err) {
-      console.error('Error processing upload:', err);
+      
       setProcessingUpload(false);
       toast.error("Upload Failed", {
         description: "There was an error processing your image",

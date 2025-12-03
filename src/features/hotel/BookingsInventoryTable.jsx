@@ -38,8 +38,6 @@ const BookingsInventoryTable = ({ hotelId }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
-  
-
 
   const pageSize = 10; // Number of bookings per page
 
@@ -89,7 +87,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
         setTotalElements(response.data.length);
       }
     } catch (error) {
-      console.error("Error fetching bookings:", error);
+      
       toast.error("Failed to fetch bookings data");
       setBookings([]);
       setTotalPages(1);
@@ -183,7 +181,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
           allBookings = response.data;
         }
       } catch (error) {
-        console.error("Error fetching all bookings for export:", error);
+        
         // Fallback to current page data
         allBookings = bookings;
       }
@@ -260,7 +258,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
         duration: 6000,
       });
     } catch (error) {
-      console.error("Error exporting to Excel:", error);
+      
       toast.error("Failed to export data to Excel");
     }
   };
@@ -374,8 +372,6 @@ const BookingsInventoryTable = ({ hotelId }) => {
     setCurrentPage(0);
     fetchBookings(0);
   };
-
-
 
   if (loading) {
     return (

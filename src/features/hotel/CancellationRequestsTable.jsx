@@ -126,7 +126,7 @@ const CancellationRequestsTable = ({ hotelId }) => {
       }
     } catch (err) {
       setError(err.message);
-      console.error("Error fetching cancellation requests:", err);
+      
     } finally {
       setLoading(false);
     }
@@ -183,7 +183,7 @@ const CancellationRequestsTable = ({ hotelId }) => {
           duration: 6000
         }
       );
-      console.error("Cancellation action error:", err);
+      
     } finally {
       setLoading(false);
       setActionDialog(false);

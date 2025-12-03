@@ -74,7 +74,7 @@ const authSlice = createSlice({
       try {
         clearStorage();
       } catch (error) {
-        console.error("Failed to clear localStorage:", error);
+        
       }
     },
   },

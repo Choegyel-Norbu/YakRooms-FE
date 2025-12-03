@@ -206,7 +206,7 @@ const StaffCardGrid = ({ hotelId, className = "" }) => {
       setStaff(staffData);
      
     } catch (err) {
-      console.error('Error fetching staff:', err);
+      
       if (err.response?.status === 404) {
         setError('No staff members found for this hotel.');
       } else {

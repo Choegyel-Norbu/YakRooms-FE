@@ -98,7 +98,7 @@ const PasscodeVerification = () => {
         setError("Failed to check in");
       }
     } catch (err) {
-      console.error("Check-in error:", err);
+      
       if (err.response?.data?.message) {
         setError(err.response.data.message);
       } else if (err.response?.status === 404) {
@@ -143,7 +143,7 @@ const PasscodeVerification = () => {
       }
     } catch (err) {
       setError("Network error. Please check your connection and try again.");
-      console.error("Verification error:", err);
+      
     } finally {
       setLoading(false);
     }

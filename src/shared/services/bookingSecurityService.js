@@ -52,7 +52,7 @@ export const createSecureBooking = async (bookingData, displayPricing = {}) => {
         bookingData
       });
       // Don't block - let backend make final decision
-      console.warn('[Security] Suspicious booking pattern detected:', suspicionCheck.reasons);
+      
     }
     
     // Step 3: Sanitize payload (remove client prices)
@@ -99,7 +99,7 @@ export const createSecureBooking = async (bookingData, displayPricing = {}) => {
           });
           
           // Don't fail - show warning to user
-          console.warn('[Security] Price discrepancy:', validation.message);
+          
         }
       }
       
@@ -312,7 +312,7 @@ export const getSecurityAuditLogs = async (userId) => {
     const response = await api.get(`/security/audit/${userId}`);
     return response.data;
   } catch (error) {
-    console.error('Failed to fetch security audit logs:', error);
+    
     return [];
   }
 };
@@ -334,7 +334,7 @@ export const reportSecurityIssue = async (issueType, details) => {
       url: window.location.href
     });
   } catch (error) {
-    console.error('Failed to report security issue:', error);
+    
   }
 };
 

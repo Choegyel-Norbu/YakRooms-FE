@@ -203,7 +203,7 @@ const SuperAdmin = () => {
         setNotifications(sortedNotifications);
         setUnreadCount(unreadNotifications.length);
       } catch (error) {
-        console.error("[API] Error fetching notifications:", error);
+        
       } finally {
         setLoadingNotifications(false);
       }
@@ -233,7 +233,7 @@ const SuperAdmin = () => {
           totalElements: response.data.totalElements || 0,
         }));
       } catch (err) {
-        console.error("Error fetching all notifications:", err);
+        
         toast.error("Failed to fetch notifications");
       } finally {
         setLoadingAllNotifications(false);
@@ -271,7 +271,7 @@ const SuperAdmin = () => {
           totalElements: response.data.page?.totalElements || 0,
         }));
       } catch (err) {
-        console.error("Error fetching deletion requests:", err);
+        
         toast.error("Failed to fetch deletion requests");
       } finally {
         setLoadingDeletionRequests(false);
@@ -300,7 +300,7 @@ const SuperAdmin = () => {
           totalElements: response.data.totalElements || 0,
         }));
       } catch (err) {
-        console.error("Error fetching reviews:", err);
+        
         toast.error("Failed to fetch reviews");
       } finally {
         setLoadingReviews(false);
@@ -329,7 +329,7 @@ const SuperAdmin = () => {
           totalElements: response.data.totalElements || 0,
         }));
       } catch (err) {
-        console.error("Error fetching feedbacks:", err);
+        
         toast.error("Failed to fetch feedbacks");
       } finally {
         setLoadingFeedbacks(false);
@@ -378,7 +378,7 @@ const SuperAdmin = () => {
           }));
         }
       } catch (err) {
-        console.error("Error fetching bookings:", err);
+        
         toast.error("Failed to fetch bookings");
       } finally {
         setLoadingBookings(false);
@@ -408,7 +408,7 @@ const SuperAdmin = () => {
           totalElements: response.data.totalElements || 0,
         }));
       } catch (err) {
-        console.error("Error fetching subscriptions:", err);
+        
         toast.error("Failed to fetch subscriptions");
       } finally {
         setLoadingSubscriptions(false);
@@ -555,7 +555,7 @@ const SuperAdmin = () => {
         handleDenyHotelCancel();
       }
     } catch (err) {
-      console.error("Error denying hotel:", err);
+      
       toast.error("Denial Failed", {
         description: "There was an error denying the hotel. Please try again.",
         icon: <XCircle className="text-red-600" />,
@@ -592,7 +592,7 @@ const SuperAdmin = () => {
       setNotifications([]);
       setUnreadCount(0);
     } catch (error) {
-      console.error("[API] Error deleting notifications:", error);
+      
     }
   };
 
@@ -694,7 +694,7 @@ const SuperAdmin = () => {
         setBookings(refreshResponse.data.content || []);
       }
     } catch (err) {
-      console.error("Error updating booking status:", err);
+      
       toast.error("Status Update Failed", {
         description: "There was an error updating the booking status. Please try again.",
         icon: <XCircle className="text-red-600" />,
@@ -709,7 +709,6 @@ const SuperAdmin = () => {
     setSelectedBookingForDetails(booking);
     setShowBookingDetails(true);
   };
-
 
   // Handle clearing all read notifications
   const handleClearReadNotifications = async () => {
@@ -741,7 +740,7 @@ const SuperAdmin = () => {
         }));
       }
     } catch (err) {
-      console.error("Error clearing read notifications:", err);
+      
       toast.error("Failed to Clear Notifications", {
         description: "There was an error clearing read notifications. Please try again.",
         icon: <XCircle className="text-red-600" />,
@@ -875,7 +874,7 @@ const SuperAdmin = () => {
         throw new Error(result.message);
       }
     } catch (err) {
-      console.error("Error exporting notifications:", err);
+      
       toast.error("Export Failed", {
         description: "There was an error exporting notifications. Please try again.",
         icon: <XCircle className="text-red-600" />,
@@ -911,7 +910,7 @@ const SuperAdmin = () => {
         }));
       }
     } catch (err) {
-      console.error("Error deleting hotel:", err);
+      
       toast.error("Failed to Delete Hotel", {
         description: "There was an error deleting the hotel. Please try again.",
         icon: <XCircle className="text-red-600" />,
@@ -947,7 +946,7 @@ const SuperAdmin = () => {
         }));
       }
     } catch (err) {
-      console.error("Error deleting review:", err);
+      
       toast.error("Failed to Delete Review", {
         description: "There was an error deleting the review. Please try again.",
         icon: <XCircle className="text-red-600" />,
@@ -1010,7 +1009,7 @@ const SuperAdmin = () => {
         setExtensionDialog(false);
       }
     } catch (error) {
-      console.error("Error extending booking:", error);
+      
     } finally {
       setIsExtending(false);
     }
@@ -1066,7 +1065,7 @@ const SuperAdmin = () => {
       // Clear the form
       handleTransferCancel();
     } catch (err) {
-      console.error("Error performing transfer action:", err);
+      
       toast.error("Transfer Failed", {
         description: err.response?.data?.message || "There was an error updating transfer details. Please try again.",
         icon: <XCircle className="text-red-600" />,
@@ -3329,7 +3328,7 @@ const SuperAdmin = () => {
           const response = await api.get("/bookings/all");
           allBookings = response.data || [];
         } catch (error) {
-          console.error("Error fetching all bookings for export:", error);
+          
           toast.dismiss(loadingToast);
           toast.error("Failed to fetch bookings data for export");
           return;
@@ -3392,7 +3391,7 @@ const SuperAdmin = () => {
           toast.error("Failed to export bookings data");
         }
       } catch (error) {
-        console.error("Error exporting bookings to Excel:", error);
+        
         toast.error("Failed to export bookings data to Excel");
       }
     };

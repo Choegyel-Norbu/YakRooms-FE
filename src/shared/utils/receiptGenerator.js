@@ -75,7 +75,7 @@ export const generateBookingReceipt = async (booking, receiptData = {}) => {
     doc.addImage(logoImageData, 'PNG', margin, margin, logoWidth, logoHeight);
   } catch (error) {
     // If logo fails to load, use a simple text fallback
-    console.warn('Receipt logo could not be loaded, using text fallback:', error);
+    
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('EzeeRoom', margin, margin + 10);
@@ -362,7 +362,7 @@ export const generateBookingReceipt = async (booking, receiptData = {}) => {
     doc.addImage(sealImageData, 'JPEG', sealX, sealY, sealWidth, sealHeight);
   } catch (error) {
     // If image fails to load, add a placeholder
-    console.warn('Seal image could not be loaded, using placeholder:', error);
+    
     doc.setFillColor(240, 240, 240);
     doc.rect(sealX, sealY, sealWidth, sealHeight, 'F');
     doc.setFontSize(8);

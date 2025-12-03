@@ -66,7 +66,7 @@ const RoomDeletionDialog = ({
       }
     } catch (err) {
       setError('Failed to check room deletion status. Please try again.');
-      console.error('Error checking deletion status:', err);
+      
     } finally {
       setIsChecking(false);
     }
@@ -95,7 +95,7 @@ const RoomDeletionDialog = ({
       toast.error('An unexpected error occurred while deleting the room', {
         duration: 6000
       });
-      console.error('Error deleting room:', err);
+      
     } finally {
       setIsDeleting(false);
     }

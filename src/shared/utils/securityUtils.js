@@ -102,11 +102,7 @@ export const validateServerPricing = (serverResponse, expectedPrice) => {
   const isValid = discrepancy <= 1;
   
   if (!isValid) {
-    console.warn('[Security] Price discrepancy detected:', {
-      expected: expectedPrice,
-      received: serverPrice,
-      difference: discrepancy
-    });
+    
   }
   
   return {
@@ -193,7 +189,7 @@ export const logSecurityEvent = (eventType, details) => {
   
   // Log to console in development
   if (process.env.NODE_ENV === 'development') {
-    console.warn('[Security Event]', event);
+    
   }
   
   // In production, send to backend for monitoring
@@ -204,7 +200,7 @@ export const logSecurityEvent = (eventType, details) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(event)
-    }).catch(err => console.error('Failed to log security event', err));
+    }).catch(err => );
   }
   */
 };
@@ -269,7 +265,7 @@ export const checkRateLimit = (key, maxAttempts = 5, windowMs = 60000) => {
     return true;
   } catch (error) {
     // If localStorage fails, allow the action (fail open)
-    console.error('Rate limit check failed:', error);
+    
     return true;
   }
 };
@@ -285,7 +281,7 @@ export const clearRateLimit = (key) => {
   try {
     localStorage.removeItem(storageKey);
   } catch (error) {
-    console.error('Failed to clear rate limit:', error);
+    
   }
 };
 

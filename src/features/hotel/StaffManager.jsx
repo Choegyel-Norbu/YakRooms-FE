@@ -107,9 +107,7 @@ const StaffManager = ({ hotelId }) => {
 
       setStaff(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error fetching staff:", error);
-      console.error("Error response data:", error.response?.data);
-      
+
       let errorMessage = "Failed to load staff members";
       
       // Handle different error response formats
@@ -119,7 +117,7 @@ const StaffManager = ({ hotelId }) => {
         const responseData = error.response.data;
         if (responseData.error === "Internal Server Error" && responseData.status === 500) {
           errorMessage = "The server encountered an unexpected error while loading staff members. Please try again in a few moments.";
-          console.error("Server error details:", responseData);
+          
         } else {
           errorMessage = `Server error: ${responseData.error}`;
         }
@@ -196,8 +194,7 @@ const StaffManager = ({ hotelId }) => {
       handleCloseDialog();
       toast.success("Staff member added successfully!", { duration: 6000 });
     } catch (error) {
-      console.error("Error adding staff:", error);
-      console.error("Error response data:", error.response?.data);
+
       let errorMessage = "Failed to add staff member";
       
       // Handle specific backend exceptions
@@ -229,12 +226,7 @@ const StaffManager = ({ hotelId }) => {
           errorMessage = "The server encountered an unexpected error while adding the staff member. Please try again in a few moments.";
           
           // Log detailed error for debugging
-          console.error("Server error details:", {
-            timestamp: responseData.timestamp,
-            status: responseData.status,
-            error: responseData.error,
-            path: responseData.path
-          });
+          
         } else {
           errorMessage = `Server error: ${responseData.error}`;
         }
@@ -271,9 +263,7 @@ const StaffManager = ({ hotelId }) => {
       setStaff((prev) => prev.filter((member) => member.staffId !== staffMember.staffId));
       toast.success("Staff member removed successfully!", { duration: 6000 });
     } catch (error) {
-      console.error("Error deleting staff:", error);
-      console.error("Error response data:", error.response?.data);
-      
+
       let errorMessage = "Failed to delete staff member";
       
       // Handle different error response formats
@@ -283,7 +273,7 @@ const StaffManager = ({ hotelId }) => {
         const responseData = error.response.data;
         if (responseData.error === "Internal Server Error" && responseData.status === 500) {
           errorMessage = "The server encountered an unexpected error while deleting the staff member. Please try again in a few moments.";
-          console.error("Server error details:", responseData);
+          
         } else {
           errorMessage = `Server error: ${responseData.error}`;
         }

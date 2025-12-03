@@ -69,7 +69,7 @@ export default function AvailabilityDatePicker({
 }) {
   // Validate required props
   if (!roomId || !hotelId) {
-    console.warn("AvailabilityDatePicker: roomId and hotelId are required");
+    
     return (
       <Button
         variant="outline"
@@ -124,7 +124,7 @@ export default function AvailabilityDatePicker({
         }
       }
     } catch (err) {
-      console.error("Error fetching room availability:", err);
+      
       setError("Failed to load availability data");
       // Don't block the user if availability check fails
       setUnavailableDates([]);
@@ -175,7 +175,7 @@ export default function AvailabilityDatePicker({
         });
       }
     } catch (err) {
-      console.error("Error processing availability data:", err);
+      
     }
     
     return unavailable;

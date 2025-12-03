@@ -78,7 +78,7 @@ function loginUser(email, password) {
       const user = userCredential.user;
     })
     .catch((error) => {
-      console.error("Login failed:", error.message);
+      
     });
 }
 

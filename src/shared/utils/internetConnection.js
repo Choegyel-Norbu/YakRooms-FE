@@ -39,7 +39,7 @@ class InternetConnectionDetector {
       try {
         callback(isOnline);
       } catch (error) {
-        console.error('Error in connection callback:', error);
+        
       }
     });
   }

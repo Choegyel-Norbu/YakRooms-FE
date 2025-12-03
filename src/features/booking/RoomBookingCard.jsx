@@ -161,8 +161,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         setHasCheckedBookings(true);
       }
     } catch (error) {
-      console.error('Failed to fetch booked dates:', error);
-      
+
       // Handle authentication errors gracefully for unauthenticated users
       if (error.response?.status === 401 || error.response?.status === 403) {
         // For unauthenticated users, show a message that they can view availability but need to login to book
@@ -543,7 +542,6 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
     return daysDiff > 0 ? daysDiff : 0;
   };
 
-
   const calculateTotalPrice = () => {
     const days = calculateDays();
     const basePrice = days * room.price * bookingDetails.numberOfRooms;
@@ -756,7 +754,6 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
 
     }
 
-
     // Validate guest count
     if (!bookingDetails.guests || bookingDetails.guests < 1) {
       newErrors.guests = "Number of guests is required and must be at least 1";
@@ -907,8 +904,6 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       }
     }
   };
-
-
 
   const handleImmediateInputChange = (e) => {
     const { name, value } = e.target;
@@ -1151,12 +1146,11 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
           isBhutanese: true,
         });
         setErrors({});
-        
-        
+
         setOpenBookingDialog(false);
       }
     } catch (error) {
-      console.error("Standard booking failed:", error);
+      
       toast.error("Standard Booking Failed", {
         description:
           "There was conflict while booking. Please try another date or time.",
@@ -1266,7 +1260,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         });
       }
     } catch (error) {
-      console.error("Booking failed:", error);
+      
       toast.error("Booking Failed", {
         description:
           "There was conflict while booking. Please try another date or time.",
@@ -1306,7 +1300,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
       });
       
     } catch (error) {
-      console.error("BFS Payment redirect failed:", error);
+      
       // Close redirect dialog on error
       setOpenPaymentRedirectDialog(false);
       toast.error("Payment Redirect Failed", {
@@ -1355,7 +1349,7 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         }
         
       } catch (error) {
-        console.error("Error checking payment status:", error);
+        
         attempts++;
         if (attempts < maxAttempts) {
           setTimeout(checkStatus, 10000);
@@ -1600,7 +1594,6 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
         </div>
       </div>
 
-
       {/* Booking Dialog */}
       {/* This Dialog's `open` state is completely independent */}
       <Dialog 
@@ -1683,7 +1676,6 @@ export default function RoomBookingCard({ room, hotelId, hotel }) {
                   </div>
                 )}
 
-                
                 {shouldHideCheckoutDate() && (
                   <div className="grid gap-2">
                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">

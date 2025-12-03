@@ -95,8 +95,7 @@ const HotelReviewSheet = ({
         throw new Error('Failed to submit review');
       }
     } catch (error) {
-      console.error('Error submitting review:', error);
-      
+
       // Extract message from plain text response
       let errorMessage = 'Failed to submit review. Please try again.';
       

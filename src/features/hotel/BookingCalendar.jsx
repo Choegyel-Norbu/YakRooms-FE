@@ -25,7 +25,7 @@ const formatTime = (timeString) => {
     
     return `${hour12}:${formattedMinutes} ${ampm}`;
   } catch (error) {
-    console.error('Error formatting time:', error);
+    
     return "";
   }
 };
@@ -70,7 +70,7 @@ const BookingCalendar = ({ hotelId }) => {
         const roomsData = response.data || [];
         setRooms(roomsData);
       } catch (error) {
-        console.error("Error fetching rooms:", error);
+        
         toast.error("Failed to load rooms", { duration: 4000 });
       } finally {
         setLoadingRooms(false);
@@ -144,7 +144,7 @@ const BookingCalendar = ({ hotelId }) => {
 
         setBookings(monthlyBookings);
       } catch (error) {
-        console.error("Error fetching bookings:", error);
+        
         toast.error("Failed to load booking calendar data", {
           duration: 6000
         });
