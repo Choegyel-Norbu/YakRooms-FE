@@ -1996,30 +1996,34 @@ const HotelAdminDashboard = () => {
                   <div className="flex items-center justify-center py-12">
                     <Spinner size="md" />
                   </div>
-                ) : invoices.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <FileText className="h-12 w-12 text-muted-foreground/30 mb-4" />
-                    <p className="text-sm text-muted-foreground">
-                      No invoices found
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="rounded-md border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Billing Number</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Base Amount</TableHead>
-                            <TableHead>Next Billing Date</TableHead>
-                            <TableHead>Created At</TableHead>
-                            <TableHead>Month</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {invoices.map((invoice) => (
+                ) : (() => {
+                  const pendingInvoices = invoices.filter(
+                    (invoice) => invoice.billingStatus === "PENDING"
+                  );
+                  return pendingInvoices.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <FileText className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                      <p className="text-sm text-muted-foreground">
+                        No pending invoices found
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="rounded-md border">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Billing Number</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Type</TableHead>
+                              <TableHead>Base Amount</TableHead>
+                              <TableHead>Next Billing Date</TableHead>
+                              <TableHead>Created At</TableHead>
+                              <TableHead>Month</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {pendingInvoices.map((invoice) => (
                             <TableRow key={invoice.id || invoice.billingNumber}>
                               <TableCell className="font-medium">
                                 {invoice.billingNumber || "N/A"}
@@ -2067,9 +2071,9 @@ const HotelAdminDashboard = () => {
                           Showing {invoicesPage * invoicesPageSize + 1} to{" "}
                           {Math.min(
                             (invoicesPage + 1) * invoicesPageSize,
-                            invoicesTotalElements
+                            pendingInvoices.length
                           )}{" "}
-                          of {invoicesTotalElements} invoices
+                          of {pendingInvoices.length} pending invoices
                         </div>
                         <div className="flex items-center gap-2">
                           <Button
@@ -2100,12 +2104,13 @@ const HotelAdminDashboard = () => {
                           >
                             Next
                             <ChevronRight className="h-4 w-4" />
-                          </Button>
+                            </Button>
                         </div>
                       </div>
                     )}
                   </>
-                )
+                  );
+                })()
               )}
 
               {/* Receipts Tab (existing functionality) */}
