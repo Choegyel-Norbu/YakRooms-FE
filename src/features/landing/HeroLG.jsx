@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/shared/utils";
 const EzeeroomHero = "/images/erHero.webp";
+const EzeeroomHeroMobile = "/images/heroIMG.webp";
 import { toast } from "sonner";
 
 import { Button } from "@/shared/components/button";
@@ -116,12 +117,26 @@ const HeroLG = () => {
   };
 
   return (
-    <section 
-      className="relative flex min-h-screen w-full items-center justify-center px-4 bg-cover bg-center bg-no-repeat overflow-hidden"
-      style={{
-        backgroundImage: `url(${EzeeroomHero})`,
-      }}
-    >
+    <>
+      <style>
+        {`
+          .hero-section-responsive {
+            background-image: url(${EzeeroomHeroMobile});
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+          }
+          
+          @media (min-width: 768px) {
+            .hero-section-responsive {
+              background-image: url(${EzeeroomHero});
+            }
+          }
+        `}
+      </style>
+      <section 
+        className="hero-section-responsive relative flex min-h-screen w-full items-center justify-center px-4 overflow-hidden"
+      >
       <div className="relative z-10 flex w-full max-w-4xl flex-col items-center justify-center space-y-8 text-center">
         {/* Header Section */}
         <div className="space-y-2">
@@ -348,6 +363,7 @@ const HeroLG = () => {
         </div>
       </div>
     </section>
+    </>
   );
 };
 
