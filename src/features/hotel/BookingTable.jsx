@@ -853,14 +853,6 @@ const BookingTable = ({ hotelId }) => {
                     <span className="font-semibold text-gray-600 text-sm">Destination:</span>
                     <span className="text-gray-900 text-sm">{selectedBooking.destination || 'Not provided'}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-600 text-sm">Hotel:</span>
-                    <span className="text-gray-900 text-sm">{selectedBooking.hotelName || 'Not provided'}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-600 text-sm">District:</span>
-                    <span className="text-gray-900 text-sm">{selectedBooking.hotelDistrict || 'Not provided'}</span>
-                  </div>
                 </div>
               </div>
 
@@ -923,10 +915,6 @@ const BookingTable = ({ hotelId }) => {
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-gray-600 text-sm">Status:</span>
                     <div className="mt-1">{getStatusBadge(selectedBooking.status)}</div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-600 text-sm">Transfer Status:</span>
-                    <div className="mt-1">{getStatusBadge(selectedBooking.transferStatus)}</div>
                   </div>
                   {selectedBooking.extension && selectedBooking.extendedAmount ? (
                     <div className="space-y-3">

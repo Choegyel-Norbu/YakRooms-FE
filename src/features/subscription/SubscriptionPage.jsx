@@ -182,12 +182,12 @@ const SubscriptionPage = () => {
     {
       id: 'subscription',
       name: isProActive 
-        ? 'Pro Subscription' 
+        ? 'Paid Subscription' 
         : subscriptionPlan === 'PREMIUM' 
           ? 'Premium Subscription'
           : subscriptionPlan === 'BASIC'
             ? 'Basic Subscription'
-            : 'Pro Subscription',
+            : 'Paid Subscription',
       price: 'Nu. 999',
       period: 'per month',
       description: isProActive 
@@ -524,7 +524,7 @@ const SubscriptionPage = () => {
               </>
             ) : hasEverHadPro ? (
               <>
-                Pro Subscription <span className="text-gray-500">Inactive</span>
+                Paid Subscription <span className="text-gray-500">Inactive</span>
               </>
             ) : (
               <>
@@ -544,7 +544,7 @@ const SubscriptionPage = () => {
                   : isProActive
                     ? `Your ${subscriptionPlan === 'PREMIUM' ? 'Premium' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Pro'} subscription is active and your hotel listing is discoverable to guests worldwide. Manage your subscription below.`
                     : hasEverHadPro
-                      ? 'Your Pro subscription is currently inactive. Reactivate below to restore your hotel listing visibility.'
+                      ? 'Your Paid subscription is currently inactive. Reactivate below to restore your hotel listing visibility.'
                       : 'Get 2 months completely free to grow your hotel business with full access to all platform features.'
             }
           </p>
@@ -574,7 +574,7 @@ const SubscriptionPage = () => {
                       ? 'Premium Subscription Renewal'
                       : subscriptionPlan === 'BASIC'
                         ? 'Basic Subscription Renewal'
-                        : 'Pro Subscription Renewal'}
+                        : 'Paid Subscription Renewal'}
                 </CardTitle>
                 <CardDescription className="text-gray-600 text-sm leading-relaxed">
                   {subscriptionPlan === 'TRIAL'
@@ -644,7 +644,7 @@ const SubscriptionPage = () => {
                           ? 'Renew Premium Subscription'
                           : subscriptionPlan === 'BASIC'
                             ? 'Renew Basic Subscription'
-                            : 'Renew Pro Subscription'}
+                            : 'Renew Paid Subscription'}
                     </>
                   )}
                 </Button>
@@ -665,7 +665,7 @@ const SubscriptionPage = () => {
               <CardHeader className="text-center pb-4">
                 <CardTitle className="text-2xl font-extrabold text-gray-900">
                   {subscriptionPlan === 'PRO' 
-                    ? 'Pro Subscription' 
+                    ? 'Paid Subscription' 
                     : subscriptionPlan === 'PREMIUM'
                       ? 'Premium Subscription'
                       : subscriptionPlan === 'BASIC'
@@ -782,7 +782,7 @@ const SubscriptionPage = () => {
               {plan.isProActive && plan.isSubscription && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                   <div className="bg-purple-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                    Pro Subscription
+                    Paid Subscription
                   </div>
                 </div>
               )}
