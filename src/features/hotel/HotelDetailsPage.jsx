@@ -377,55 +377,6 @@ const RoomImageCarousel = ({ images, roomNumber, roomType, isActive }) => {
   );
 };
 
-// Comprehensive amenity icon mapping with unique icons
-// Defined outside component to avoid recreation on each render
-// All icons use the same color for consistency
-const amenityConfigs = [
-  // Technology & Connectivity
-  { keywords: ["wifi", "internet", "wireless"], icon: Wifi },
-  { keywords: ["tv", "television", "entertainment"], icon: Tv },
-  { keywords: ["phone", "telephone"], icon: Phone },
-  
-  // Transportation
-  { keywords: ["parking", "car", "vehicle"], icon: Car },
-  { keywords: ["airport", "shuttle", "transfer"], icon: Plane },
-  { keywords: ["bike", "bicycle", "cycling"], icon: Bike },
-  
-  // Food & Dining
-  { keywords: ["breakfast", "bb", "morning meal"], icon: Coffee },
-  { keywords: ["restaurant", "dining", "food", "meal"], icon: Utensils },
-  { keywords: ["bar", "drinks", "cocktail"], icon: Sparkles },
-  
-  // Facilities
-  { keywords: ["gym", "fitness", "workout", "exercise"], icon: Dumbbell },
-  { keywords: ["pool", "swimming", "water"], icon: Waves },
-  { keywords: ["spa", "massage", "wellness", "relax"], icon: Heart },
-  { keywords: ["garden", "outdoor", "nature"], icon: TreePine },
-  { keywords: ["shop", "shopping", "store", "mall"], icon: ShoppingBag },
-  { keywords: ["business", "meeting", "conference"], icon: Briefcase },
-  { keywords: ["game", "games", "arcade", "play"], icon: Gamepad2 },
-  { keywords: ["music", "karaoke", "entertainment"], icon: Music },
-  
-  // Room Features
-  { keywords: ["bath", "bathroom", "shower"], icon: Bath },
-  { keywords: ["ac", "air condition", "cooling"], icon: AirVent },
-  { keywords: ["heating", "heat", "warm"], icon: Flame },
-  { keywords: ["bed", "sleep", "room"], icon: Bed },
-  { keywords: ["sofa", "lounge", "sitting"], icon: Sofa },
-  { keywords: ["balcony", "terrace", "view"], icon: Sun },
-  
-  // Security & Services
-  { keywords: ["security", "safe", "lock"], icon: Shield },
-  { keywords: ["key", "access", "card"], icon: Key },
-  
-  // Weather & Environment
-  { keywords: ["rain", "water", "shower"], icon: Droplets },
-  { keywords: ["wind", "fan", "ventilation"], icon: Wind },
-  { keywords: ["snow", "winter"], icon: Snowflake },
-  { keywords: ["cloud", "weather"], icon: Cloud },
-  { keywords: ["moon", "night"], icon: Moon },
-];
-
 const HotelDetailsPage = () => {
   const { userId, isAuthenticated, roles, hasRole, hotelId, hotelIds, selectedHotelId } = useAuth();
   const { id } = useParams();
@@ -541,50 +492,6 @@ const HotelDetailsPage = () => {
   const abortControllerRef = useRef(null);
   const hasInitialDataLoaded = useRef(false);
   const hotelNameSectionRef = useRef(null);
-
-  // Function to get amenity config with unique icon assignment
-  const getAmenityConfig = useMemo(() => {
-    return (amenityLabel, usedIcons = new Set()) => {
-      const label = (amenityLabel || "").toLowerCase().trim();
-      
-      // Find matching config
-      let matchedConfig = null;
-      for (const config of amenityConfigs) {
-        if (config.keywords.some(keyword => label.includes(keyword))) {
-          // Check if this icon is already used
-          if (!usedIcons.has(config.icon)) {
-            matchedConfig = config;
-            usedIcons.add(config.icon);
-            break;
-          }
-        }
-      }
-      
-      // If no match or icon already used, find first unused icon
-      if (!matchedConfig) {
-        for (const config of amenityConfigs) {
-          if (!usedIcons.has(config.icon)) {
-            matchedConfig = config;
-            usedIcons.add(config.icon);
-            break;
-          }
-        }
-      }
-      
-      // Fallback to CheckCircle if all icons are used
-      if (!matchedConfig) {
-        matchedConfig = {
-          icon: CheckCircle,
-        };
-      }
-      
-      return {
-        Icon: matchedConfig.icon,
-        iconColor: "text-slate-700",
-        badgeClasses: "bg-slate-100 border-slate-300 border text-slate-900",
-      };
-    };
-  }, []);
 
   // Helper function to check if current user owns this hotel
   const isHotelOwner = useCallback(() => {
@@ -1341,21 +1248,14 @@ const HotelDetailsPage = () => {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="flex flex-row flex-wrap gap-2 rounded-lg">
-                  {(() => {
-                    const usedIcons = new Set();
-                    return appState.hotel.amenities?.map((amenity, index) => {
-                      const { Icon, iconColor } = getAmenityConfig(amenity, usedIcons);
-                      return (
-                        <div
-                          key={index}
-                          className="inline-flex items-center gap-1.5 py-2 px-4 text-sm bg-blue-50 rounded-2xl text-slate-900"
-                        >
-                          <Icon className={`h-5 w-5 ${iconColor}`} />
-                          <span>{amenity}</span>
-                        </div>
-                      );
-                    });
-                  })()}
+                  {appState.hotel.amenities?.map((amenity, index) => (
+                    <div
+                      key={index}
+                      className="inline-flex items-center py-2 px-4 text-sm bg-blue-50 rounded-2xl text-slate-900"
+                    >
+                      <span>{amenity}</span>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             {/* </Card> */}

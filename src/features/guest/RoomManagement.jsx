@@ -1,29 +1,24 @@
 import React, { useState } from "react";
 import {
-  FiEdit,
-  FiTrash2,
-  FiPlus,
-  FiCheck,
-  FiX,
-  FiImage,
-  FiWifi,
-  FiCoffee,
-  FiTv,
-} from "react-icons/fi";
-import {
-  FaBed,
-  FaBath,
-  FaSnowflake,
-  FaLock,
-  FaFireExtinguisher,
-} from "react-icons/fa";
-import {
-  MdBalcony,
-  MdChargingStation,
-  MdTableRestaurant,
-  MdChair,
-} from "react-icons/md";
-import { IoVolumeMute } from "react-icons/io5";
+  Edit,
+  Trash2,
+  Plus,
+  Check,
+  X,
+  Image,
+  Wifi,
+  Coffee,
+  Tv,
+  Bed,
+  Bath,
+  Snowflake,
+  Lock,
+  FireExtinguisher,
+  Armchair,
+  Plug,
+  UtensilsCrossed,
+  VolumeX,
+} from "lucide-react";
 import Footer from "../../layouts/Footer";
 import {
   Card,
@@ -122,50 +117,50 @@ const RoomManagement = () => {
   });
 
   const standardAmenities = [
-    { id: 1, name: "Single Bed", icon: <FaBed />, type: "bed" },
-    { id: 2, name: "Double Bed", icon: <FaBed />, type: "bed" },
-    { id: 3, name: "Queen Bed", icon: <FaBed />, type: "bed" },
-    { id: 4, name: "King Bed", icon: <FaBed />, type: "bed" },
-    { id: 5, name: "Smart TV", icon: <FiTv />, type: "electronics" },
-    { id: 6, name: "Normal TV", icon: <FiTv />, type: "electronics" },
-    { id: 7, name: "Wi-Fi", icon: <FiWifi />, type: "electronics" },
-    { id: 8, name: "Attached Bathroom", icon: <FaBath />, type: "bathroom" },
-    { id: 9, name: "Electric Kettle", icon: <FiCoffee />, type: "comfort" },
+    { id: 1, name: "Single Bed", icon: <Bed size={18} />, type: "bed" },
+    { id: 2, name: "Double Bed", icon: <Bed size={18} />, type: "bed" },
+    { id: 3, name: "Queen Bed", icon: <Bed size={18} />, type: "bed" },
+    { id: 4, name: "King Bed", icon: <Bed size={18} />, type: "bed" },
+    { id: 5, name: "Smart TV", icon: <Tv size={18} />, type: "electronics" },
+    { id: 6, name: "Normal TV", icon: <Tv size={18} />, type: "electronics" },
+    { id: 7, name: "Wi-Fi", icon: <Wifi size={18} />, type: "electronics" },
+    { id: 8, name: "Attached Bathroom", icon: <Bath size={18} />, type: "bathroom" },
+    { id: 9, name: "Electric Kettle", icon: <Coffee size={18} />, type: "comfort" },
     {
       id: 10,
       name: "Air Conditioning",
-      icon: <FaSnowflake />,
+      icon: <Snowflake size={18} />,
       type: "comfort",
     },
     {
       id: 11,
       name: "Charging Ports",
-      icon: <MdChargingStation />,
+      icon: <Plug size={18} />,
       type: "electronics",
     },
-    { id: 12, name: "Mirror", icon: <MdTableRestaurant />, type: "bathroom" },
+    { id: 12, name: "Mirror", icon: <UtensilsCrossed size={18} />, type: "bathroom" },
     {
       id: 13,
       name: "Wardrobe/Closet",
-      icon: <MdTableRestaurant />,
+      icon: <UtensilsCrossed size={18} />,
       type: "furniture",
     },
     {
       id: 14,
       name: "Table & Chairs",
-      icon: <MdTableRestaurant />,
+      icon: <UtensilsCrossed size={18} />,
       type: "furniture",
     },
-    { id: 15, name: "Towel/Toiletries", icon: <MdBalcony />, type: "bathroom" },
-    { id: 16, name: "Safe Locker", icon: <FaLock />, type: "security" },
+    { id: 15, name: "Towel/Toiletries", icon: <Armchair size={18} />, type: "bathroom" },
+    { id: 16, name: "Safe Locker", icon: <Lock size={18} />, type: "security" },
     {
       id: 17,
       name: "Fire Extinguisher",
-      icon: <FaFireExtinguisher />,
+      icon: <FireExtinguisher size={18} />,
       type: "security",
     },
-    { id: 18, name: "Balcony", icon: <MdBalcony />, type: "view" },
-    { id: 19, name: "Soundproofing", icon: <IoVolumeMute />, type: "comfort" },
+    { id: 18, name: "Balcony", icon: <Armchair size={18} />, type: "view" },
+    { id: 19, name: "Soundproofing", icon: <VolumeX size={18} />, type: "comfort" },
   ];
 
   const handleInputChange = (e) => {
@@ -386,7 +381,7 @@ const RoomManagement = () => {
       case "kettle":
         return <FiCoffee />;
       default:
-        return <FiCheck />;
+        return <Check size={16} />;
     }
   };
 
@@ -572,7 +567,7 @@ const RoomManagement = () => {
                             variant="destructive"
                             size="icon"
                           >
-                            <FiX />
+                            <X size={16} />
                           </Button>
                         </div>
                       ))}
@@ -581,7 +576,7 @@ const RoomManagement = () => {
                       htmlFor="photo-upload"
                       className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-amber-400 transition"
                     >
-                      <FiImage className="text-amber-500 text-2xl mb-2" />
+                      <Image className="text-amber-500 text-2xl mb-2" />
                       <p className="text-sm text-gray-600">
                         Upload room photos (5 max)
                       </p>
@@ -710,7 +705,7 @@ const RoomManagement = () => {
                         onClick={() => setShowAmenityForm(true)}
                         className="p-0 h-auto"
                       >
-                        <FiPlus className="mr-1" /> Add Custom Amenity
+                        <Plus className="mr-1" size={16} /> Add Custom Amenity
                       </Button>
                     )}
 
@@ -731,7 +726,7 @@ const RoomManagement = () => {
                                 </span>
                               ) : (
                                 <span className="text-amber-500 mr-1">
-                                  <FiCheck />
+                                  <Check size={16} />
                                 </span>
                               )}
                               {amenity.name}
@@ -742,7 +737,7 @@ const RoomManagement = () => {
                                 size="icon"
                                 className="ml-1 h-5 w-5"
                               >
-                                <FiX size={14} />
+                                <X size={14} />
                               </Button>
                             </div>
                           ))}
@@ -775,7 +770,7 @@ const RoomManagement = () => {
           }}
           className="mb-6"
         >
-          <FiPlus className="mr-2" /> Add New Room
+          <Plus className="mr-2" size={18} /> Add New Room
         </Button>
       )}
 
@@ -860,11 +855,11 @@ const RoomManagement = () => {
                         >
                           {room.active ? (
                             <>
-                              <FiCheck className="mr-1" /> Active
+                              <Check className="mr-1" size={16} /> Active
                             </>
                           ) : (
                             <>
-                              <FiX className="mr-1" /> Inactive
+                              <X className="mr-1" size={16} /> Inactive
                             </>
                           )}
                         </div>
@@ -876,15 +871,17 @@ const RoomManagement = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => startEditRoom(room)}
+                        aria-label="Edit room"
                       >
-                        <FiEdit className="h-4 w-4" />
+                        <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => deleteRoom(room.id)}
+                        aria-label="Delete room"
                       >
-                        <FiTrash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>

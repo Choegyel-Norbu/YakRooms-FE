@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
 import { useAuth } from "../../features/authentication";
 import { API_BASE_URL } from "../services/firebaseConfig";
 
-// The URL for the SockJS endpoint you configured in Spring Boot.
+// The URL for the WebSocket endpoint
 const SOCKET_URL = API_BASE_URL.replace('http://', 'ws://').replace('https://', 'wss://') + "/ws";
 
 /**
@@ -26,7 +25,7 @@ const NotificationsComponent = () => {
       // If there's no client instance, create one.
       if (!clientRef.current) {
         const client = new Client({
-          webSocketFactory: () => new SockJS(SOCKET_URL),
+          brokerURL: SOCKET_URL,
           reconnectDelay: 10000, // Automatically reconnect in 10 seconds
           debug: (str) => {
             // Debug logging disabled

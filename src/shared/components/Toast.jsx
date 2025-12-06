@@ -1,9 +1,5 @@
 import React, { useEffect } from "react";
-import { HiCheckCircle } from "react-icons/hi";
-import { BiErrorCircle } from "react-icons/bi";
-import { HiInformationCircle } from "react-icons/hi";
-import { HiExclamationTriangle } from "react-icons/hi2";
-import { HiXMark } from "react-icons/hi2";
+import { CheckCircle, AlertCircle, Info, AlertTriangle, X } from "lucide-react";
 
 const Toast = ({ type, message, onClose }) => {
   useEffect(() => {
@@ -19,7 +15,7 @@ const Toast = ({ type, message, onClose }) => {
         return {
           bgColor: "bg-white border-l-4 border-yellow-400 shadow-lg",
           textColor: "text-gray-800",
-          icon: <HiCheckCircle className="text-yellow-500 w-6 h-6" />,
+          icon: <CheckCircle className="text-yellow-500 w-6 h-6" />,
           iconBg: "bg-yellow-50",
           progressBar: "bg-yellow-400"
         };
@@ -27,7 +23,7 @@ const Toast = ({ type, message, onClose }) => {
         return {
           bgColor: "bg-white border-l-4 border-yellow-400 shadow-lg",
           textColor: "text-gray-800",
-          icon: <BiErrorCircle className="text-yellow-500 w-6 h-6" />,
+          icon: <AlertCircle className="text-yellow-500 w-6 h-6" />,
           iconBg: "bg-yellow-50",
           progressBar: "bg-yellow-400"
         };
@@ -35,7 +31,7 @@ const Toast = ({ type, message, onClose }) => {
         return {
           bgColor: "bg-white border-l-4 border-yellow-400 shadow-lg",
           textColor: "text-gray-800",
-          icon: <HiExclamationTriangle className="text-yellow-500 w-6 h-6" />,
+          icon: <AlertTriangle className="text-yellow-500 w-6 h-6" />,
           iconBg: "bg-yellow-50",
           progressBar: "bg-yellow-400"
         };
@@ -44,7 +40,7 @@ const Toast = ({ type, message, onClose }) => {
         return {
           bgColor: "bg-white border-l-4 border-yellow-400 shadow-lg",
           textColor: "text-gray-800",
-          icon: <HiInformationCircle className="text-yellow-500 w-6 h-6" />,
+          icon: <Info className="text-yellow-500 w-6 h-6" />,
           iconBg: "bg-yellow-50",
           progressBar: "bg-yellow-400"
         };
@@ -87,7 +83,7 @@ const Toast = ({ type, message, onClose }) => {
             className="flex-shrink-0 p-1 rounded-full hover:bg-gray-100 transition-colors duration-200 group"
             aria-label="Close notification"
           >
-            <HiXMark className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
+            <X className="w-4 h-4 text-gray-400 group-hover:text-gray-600" />
           </button>
         </div>
       </div>

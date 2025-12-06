@@ -1,20 +1,18 @@
 // HotelReviewModal.jsx
 import React from "react";
 import {
-  FiX,
-  FiUser,
-  FiMail,
-  FiPhone,
-  FiMapPin,
-  FiFileText,
-} from "react-icons/fi";
-import {
-  FaBed,
-  FaWifi,
-  FaTv,
-  FaSnowflake,
-  FaSwimmingPool,
-} from "react-icons/fa";
+  X,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  FileText,
+  Bed,
+  Wifi,
+  Tv,
+  Snowflake,
+  Waves,
+} from "lucide-react";
 
 const HotelReviewModal = ({
   listing,
@@ -30,15 +28,15 @@ const HotelReviewModal = ({
   const getAmenityIcon = (amenity) => {
     switch (amenity.toLowerCase()) {
       case "wifi":
-        return <FaWifi className="h-3 w-3 text-blue-500" />;
+        return <Wifi className="h-3 w-3 text-blue-500" />;
       case "tv":
-        return <FaTv className="h-3 w-3 text-purple-500" />;
+        return <Tv className="h-3 w-3 text-purple-500" />;
       case "ac":
-        return <FaSnowflake className="h-3 w-3 text-teal-500" />;
+        return <Snowflake className="h-3 w-3 text-teal-500" />;
       case "pool":
-        return <FaSwimmingPool className="h-3 w-3 text-blue-400" />;
+        return <Waves className="h-3 w-3 text-blue-400" />;
       default:
-        return <FaBed className="h-3 w-3 text-amber-500" />;
+        return <Bed className="h-3 w-3 text-amber-500" />;
     }
   };
 
@@ -68,8 +66,9 @@ const HotelReviewModal = ({
               <button
                 onClick={onClose}
                 className="text-gray-400 hover:text-gray-500 cursor-pointer"
+                aria-label="Close modal"
               >
-                <FiX className="h-6 w-6" />
+                <X className="h-6 w-6" />
               </button>
             </div>
 
@@ -84,7 +83,7 @@ const HotelReviewModal = ({
                   <p className="text-gray-700 mb-4">{listing.description}</p>
 
                   <div className="flex items-start mb-2">
-                    <FiMapPin className="text-gray-400 mr-2 mt-1 flex-shrink-0" />
+                    <MapPin className="text-gray-400 mr-2 mt-1 flex-shrink-0" size={18} />
                     <div>
                       <p className="text-gray-700">
                         {listing.location.city}, {listing.location.district}
@@ -105,19 +104,19 @@ const HotelReviewModal = ({
                   </h4>
                   <div className="space-y-2">
                     <div className="flex items-center">
-                      <FiUser className="text-gray-400 mr-2" />
+                      <User className="text-gray-400 mr-2" size={18} />
                       <span className="text-gray-700">
                         {listing.owner.name}
                       </span>
                     </div>
                     <div className="flex items-center">
-                      <FiMail className="text-gray-400 mr-2" />
+                      <Mail className="text-gray-400 mr-2" size={18} />
                       <span className="text-gray-700">
                         {listing.owner.email}
                       </span>
                     </div>
                     <div className="flex items-center">
-                      <FiPhone className="text-gray-400 mr-2" />
+                      <Phone className="text-gray-400 mr-2" size={18} />
                       <span className="text-gray-700">
                         {listing.owner.phone}
                       </span>
@@ -132,13 +131,13 @@ const HotelReviewModal = ({
                   </h4>
                   <div className="space-y-2">
                     <div className="flex items-center">
-                      <FiFileText className="text-gray-400 mr-2" />
+                      <FileText className="text-gray-400 mr-2" size={18} />
                       <a href="#" className="text-amber-600 hover:underline">
                         Trade License: {listing.documents.license}
                       </a>
                     </div>
                     <div className="flex items-center">
-                      <FiFileText className="text-gray-400 mr-2" />
+                      <FileText className="text-gray-400 mr-2" size={18} />
                       <a href="#" className="text-amber-600 hover:underline">
                         ID Proof: {listing.documents.idProof}
                       </a>

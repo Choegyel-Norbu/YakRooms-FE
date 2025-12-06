@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaStar } from "react-icons/fa";
+import { Star } from "lucide-react";
 import { getStorageItem, setStorageItem } from "@/shared/utils/safariLocalStorage";
 import api from "../../shared/services/Api";
 
@@ -66,12 +66,12 @@ const RatingWidget = ({ onClose }) => {
 
               <div className="flex justify-center mb-4">
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <FaStar
+                  <Star
                     key={star}
                     size={25}
                     className={`cursor-pointer transition-transform duration-200 ${
                       (hovered || rating) >= star
-                        ? "text-yellow-400 scale-110"
+                        ? "text-yellow-400 scale-110 fill-yellow-400"
                         : "text-gray-300"
                     }`}
                     onMouseEnter={() => setHovered(star)}

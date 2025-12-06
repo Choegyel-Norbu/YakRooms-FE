@@ -1,6 +1,6 @@
 // SummaryCards.jsx
 import React from "react";
-import { FiCalendar, FiCheck, FiClock, FiX } from "react-icons/fi";
+import { Calendar, Check, Clock, X } from "lucide-react";
 
 const SummaryCards = ({ rooms, bookings, notifications, markAsRead }) => {
   const totalRooms = rooms.length;
@@ -26,7 +26,7 @@ const SummaryCards = ({ rooms, bookings, notifications, markAsRead }) => {
             <p className="text-2xl font-bold">{totalRooms}</p>
           </div>
           <div className="bg-amber-100 p-3 rounded-full text-amber-600">
-            <FiCheck size={20} />
+            <Check size={20} />
           </div>
         </div>
       </div>
@@ -39,7 +39,7 @@ const SummaryCards = ({ rooms, bookings, notifications, markAsRead }) => {
             <p className="text-2xl font-bold">{availableRooms}</p>
           </div>
           <div className="bg-green-100 p-3 rounded-full text-green-600">
-            <FiCheck size={20} />
+            <Check size={20} />
           </div>
         </div>
       </div>
@@ -52,7 +52,7 @@ const SummaryCards = ({ rooms, bookings, notifications, markAsRead }) => {
             <p className="text-2xl font-bold">{monthlyBookings}</p>
           </div>
           <div className="bg-blue-100 p-3 rounded-full text-blue-600">
-            <FiCalendar size={20} />
+            <Calendar size={20} />
           </div>
         </div>
       </div>
@@ -65,7 +65,7 @@ const SummaryCards = ({ rooms, bookings, notifications, markAsRead }) => {
             <p className="text-2xl font-bold">{pendingCheckIns}</p>
           </div>
           <div className="bg-purple-100 p-3 rounded-full text-purple-600">
-            <FiClock size={20} />
+            <Clock size={20} />
           </div>
         </div>
       </div>

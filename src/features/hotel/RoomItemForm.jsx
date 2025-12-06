@@ -1,22 +1,8 @@
 // RoomItemForm.jsx
 import React, { useState } from "react";
-import { FiPlus, FiTrash2, FiSave, FiX } from "react-icons/fi";
+import { Plus, Trash2, Save, X, Bed, Tv, Wifi, Snowflake, Waves, ParkingCircle, Coffee, ShowerHead, User, Eye, Monitor, Armchair } from "lucide-react";
 import { uploadFile, deleteFileByUrl } from "../../shared/services/uploadService";
 import { toast } from "sonner";
-import {
-  FaBed,
-  FaTv,
-  FaWifi,
-  FaSnowflake,
-  FaSwimmingPool,
-  FaParking,
-  FaCoffee,
-  FaShower,
-  FaUser,
-  FaEye,
-} from "react-icons/fa";
-import { GiDesk } from "react-icons/gi";
-import { MdBalcony, MdElectricalServices } from "react-icons/md";
 
 const RoomItemForm = ({ room = null, onSave, onCancel, isEditing = false }) => {
   // Initial form state
@@ -40,21 +26,21 @@ const RoomItemForm = ({ room = null, onSave, onCancel, isEditing = false }) => {
 
   // Standard amenities with icons
   const standardAmenities = [
-    { id: "single-bed", name: "Single Bed", icon: <FaBed /> },
-    { id: "double-bed", name: "Double Bed", icon: <FaBed /> },
-    { id: "king-bed", name: "King Bed", icon: <FaBed /> },
-    { id: "smart-tv", name: "Smart TV", icon: <FaTv /> },
-    { id: "wifi", name: "Wi-Fi", icon: <FaWifi /> },
-    { id: "ac", name: "Air Conditioning", icon: <FaSnowflake /> },
-    { id: "pool", name: "Pool Access", icon: <FaSwimmingPool /> },
-    { id: "parking", name: "Parking", icon: <FaParking /> },
-    { id: "kettle", name: "Electric Kettle", icon: <FaCoffee /> },
-    { id: "shower", name: "Hot Shower", icon: <FaShower /> },
-    { id: "wardrobe", name: "Wardrobe", icon: <FaUser /> },
-    { id: "mirror", name: "Mirror", icon: <FaEye /> },
-    { id: "desk", name: "Work Desk", icon: <GiDesk /> },
-    { id: "balcony", name: "Balcony", icon: <MdBalcony /> },
-    { id: "outlets", name: "Power Outlets", icon: <MdElectricalServices /> },
+    { id: "single-bed", name: "Single Bed", icon: <Bed size={18} /> },
+    { id: "double-bed", name: "Double Bed", icon: <Bed size={18} /> },
+    { id: "king-bed", name: "King Bed", icon: <Bed size={18} /> },
+    { id: "smart-tv", name: "Smart TV", icon: <Tv size={18} /> },
+    { id: "wifi", name: "Wi-Fi", icon: <Wifi size={18} /> },
+    { id: "ac", name: "Air Conditioning", icon: <Snowflake size={18} /> },
+    { id: "pool", name: "Pool Access", icon: <Waves size={18} /> },
+    { id: "parking", name: "Parking", icon: <ParkingCircle size={18} /> },
+    { id: "kettle", name: "Electric Kettle", icon: <Coffee size={18} /> },
+    { id: "shower", name: "Hot Shower", icon: <ShowerHead size={18} /> },
+    { id: "wardrobe", name: "Wardrobe", icon: <Armchair size={18} /> },
+    { id: "mirror", name: "Mirror", icon: <Eye size={18} /> },
+    { id: "desk", name: "Work Desk", icon: <Monitor size={18} /> },
+    { id: "balcony", name: "Balcony", icon: <Armchair size={18} /> },
+    { id: "outlets", name: "Power Outlets", icon: <Snowflake size={18} /> },
   ];
 
   // Handle input changes
@@ -316,11 +302,12 @@ const RoomItemForm = ({ room = null, onSave, onCancel, isEditing = false }) => {
                   onClick={() => removeImage(index)}
                   className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                   disabled={deletingImageIndex === index}
+                  aria-label="Delete room image"
                 >
                   {deletingImageIndex === index ? (
                     <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    <FiTrash2 size={14} />
+                    <Trash2 size={14} />
                   )}
                 </button>
               </div>
@@ -329,7 +316,7 @@ const RoomItemForm = ({ room = null, onSave, onCancel, isEditing = false }) => {
 
           {/* Image Upload */}
           <label className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-amber-400 transition">
-            <FiPlus className="text-amber-500 text-2xl mb-2" />
+            <Plus className="text-amber-500 text-2xl mb-2" />
             <p className="text-sm text-gray-600">Upload Room Images (Max 5)</p>
             <input
               type="file"
@@ -390,7 +377,7 @@ const RoomItemForm = ({ room = null, onSave, onCancel, isEditing = false }) => {
                   className="flex items-center bg-amber-50 px-3 py-1 rounded-full text-sm"
                 >
                   {amenity.icon === "custom" ? (
-                    <FiPlus className="text-amber-500 mr-1" />
+                    <Plus className="text-amber-500 mr-1" size={16} />
                   ) : (
                     <span className="text-amber-500 mr-1">
                       {standardAmenities.find((a) => a.id === amenity.id)?.icon}
@@ -401,8 +388,9 @@ const RoomItemForm = ({ room = null, onSave, onCancel, isEditing = false }) => {
                     type="button"
                     onClick={() => removeAmenity(amenity.id)}
                     className="ml-1 text-gray-500 hover:text-red-500"
+                    aria-label={`Remove ${amenity.name} amenity`}
                   >
-                    <FiX size={14} />
+                    <X size={14} />
                   </button>
                 </div>
               ))}
@@ -441,7 +429,7 @@ const RoomItemForm = ({ room = null, onSave, onCancel, isEditing = false }) => {
             type="submit"
             className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 flex items-center gap-2"
           >
-            <FiSave /> {isEditing ? "Update Room" : "Save Room"}
+            <Save size={18} /> {isEditing ? "Update Room" : "Save Room"}
           </button>
         </div>
       </form>

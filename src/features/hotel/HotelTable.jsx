@@ -1,24 +1,23 @@
 // HotelTable.jsx
 import React from "react";
-import { FiEye, FiCheck, FiX, FiClock } from "react-icons/fi";
-import { FaRegCheckCircle, FaRegTimesCircle } from "react-icons/fa";
+import { Eye, Check, X, Clock, CheckCircle, XCircle } from "lucide-react";
 
 const StatusBadge = ({ status }) => {
   const statusMap = {
     pending: {
-      icon: <FiClock className="text-amber-500" />,
+      icon: <Clock className="text-amber-500" size={16} />,
       text: "Pending",
       bg: "bg-amber-100",
       textColor: "text-amber-800",
     },
     approved: {
-      icon: <FaRegCheckCircle className="text-green-500" />,
+      icon: <CheckCircle className="text-green-500" size={16} />,
       text: "Approved",
       bg: "bg-green-100",
       textColor: "text-green-800",
     },
     rejected: {
-      icon: <FaRegTimesCircle className="text-red-500" />,
+      icon: <XCircle className="text-red-500" size={16} />,
       text: "Rejected",
       bg: "bg-red-100",
       textColor: "text-red-800",
@@ -126,23 +125,26 @@ const HotelTable = ({ listings, onView, onApprove, onReject }) => {
                     <button
                       onClick={() => onView(listing)}
                       className="text-amber-600 hover:text-amber-900 cursor-pointer"
+                      aria-label="View hotel details"
                     >
-                      <FiEye className="h-5 w-5" />
+                      <Eye className="h-5 w-5" />
                     </button>
                     {listing.status !== "approved" && (
                       <button
                         onClick={() => onApprove(listing.id)}
                         className="text-green-600 hover:text-green-900 cursor-pointer"
+                        aria-label="Approve hotel listing"
                       >
-                        <FiCheck className="h-5 w-5" />
+                        <Check className="h-5 w-5" />
                       </button>
                     )}
                     {listing.status !== "rejected" && (
                       <button
                         onClick={() => onReject(listing.id)}
                         className="text-red-600 hover:text-red-900 cursor-pointer"
+                        aria-label="Reject hotel listing"
                       >
-                        <FiX className="h-5 w-5" />
+                        <X className="h-5 w-5" />
                       </button>
                     )}
                   </div>

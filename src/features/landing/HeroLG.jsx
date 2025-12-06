@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/shared/utils";
-import EzeeroomHero from "@/assets/images/erHero-optimized.jpg";
+const EzeeroomHero = "/images/erHero.webp";
 import { toast } from "sonner";
 
 import { Button } from "@/shared/components/button";
@@ -218,47 +218,96 @@ const HeroLG = () => {
         </div>
 
         {/* Search Form */}
-        <div className="w-full max-w-4xl space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="relative md:col-span-2">
-              <MapPin 
-                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 z-10"
-                style={{
-                  color: '#1a1a1a',
-                }}
-              />
-              <Input
-                type="text"
-                placeholder="Search district (e.g., Mongar, Samdrup Jongkhar, Trashigang)"
-                className={cn(
-                  "h-10 sm:h-12 pl-10 text-sm sm:text-base",
-                  searchError && "border-red-500 focus:border-red-500"
-                )}
-                style={{
-                  color: '#1a1a1a',
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  borderColor: 'rgba(255, 255, 255, 0.3)',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
-                }}
-                value={searchDistrict}
-                onChange={(e) => {
-                  setSearchDistrict(e.target.value);
-                  if (searchError) setSearchError(""); // Clear error when user starts typing
-                }}
-                onKeyPress={handleKeyPress}
-              />
-              {searchError && (
-                <p className="mt-2 text-sm text-red-500 text-left">{searchError}</p>
-              )}
-            </div>
+        <div className="w-full max-w-5xl">
+          <div 
+            className="rounded-2xl p-6 backdrop-blur-xs border border-white/20 shadow-2xl"
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+            }}
+          >
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="p-2 rounded-lg bg-white/20">
+                  <MapPin className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-white">
+                  Find Your Perfect Stay
+                </h3>
+              </div>
+              
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <MapPin 
+                      className="h-4 w-4"
+                      style={{
+                        color: '#6b7280',
+                      }}
+                    />
+                  </div>
+                  <Input
+                    type="text"
+                    placeholder="Search by district (e.g., Mongar, Samdrup Jongkhar, Trashigang)"
+                    className={cn(
+                      "h-10 pl-9 pr-4 text-sm rounded-lg",
+                      "bg-white/95 backdrop-blur-sm",
+                      "border-2 transition-all duration-200",
+                      searchError 
+                        ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200" 
+                        : "border-white/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20",
+                      "placeholder:text-gray-400",
+                      "shadow-lg"
+                    )}
+                    style={{
+                      color: '#1f2937',
+                    }}
+                    value={searchDistrict}
+                    onChange={(e) => {
+                      setSearchDistrict(e.target.value);
+                      if (searchError) setSearchError(""); // Clear error when user starts typing
+                    }}
+                    onKeyPress={handleKeyPress}
+                  />
+                  {searchError && (
+                    <p className="mt-2 ml-1 text-sm font-medium text-red-300 flex items-center gap-1">
+                      <span>⚠</span>
+                      <span>{searchError}</span>
+                    </p>
+                  )}
+                </div>
 
-            <SearchButton
-              size="lg"
-              className="h-10 sm:h-12 text-sm sm:text-base bg-yellow-500 hover:bg-yellow-600 text-black cursor-pointer"
-              onClick={validateAndSearch}
-            >
-              Search Hotels
-            </SearchButton>
+                <SearchButton
+                  className={cn(
+                    "h-10 px-6 text-sm font-semibold rounded-full",
+                    "bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700",
+                    "text-black shadow-lg hover:shadow-xl",
+                    "transition-all duration-200 hover:scale-105 active:scale-95",
+                    "whitespace-nowrap"
+                  )}
+                  onClick={validateAndSearch}
+                >
+                  Search Hotels
+                </SearchButton>
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <p className="text-sm text-white/80">
+                  Popular:
+                </p>
+                {['Thimphu', 'Paro', 'Samdrup Jongkhar', 'Mongar'].map((district) => (
+                  <button
+                    key={district}
+                    onClick={() => {
+                      setSearchDistrict(district);
+                      setSearchError("");
+                    }}
+                    className="px-3 py-1 text-sm font-medium text-white bg-white/20 hover:bg-white/30 rounded-full transition-colors duration-200 border border-white/30 hover:border-white/50"
+                  >
+                    {district}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
