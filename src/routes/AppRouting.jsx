@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../features/authentication";
+import SimpleSpinner from "@/shared/components/SimpleSpinner";
 
 // ============================================
 // LAZY LOADED ROUTE COMPONENTS
@@ -38,10 +39,7 @@ const PaymentStatusPage = lazy(() => import("../features/payment").then(m => ({ 
 // Shown while lazy-loaded components are being fetched
 const RouteLoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
-    <div className="text-center">
-      <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-      <p className="text-gray-600 font-medium">Loading...</p>
-    </div>
+    <SimpleSpinner size={32} text="Loading..." />
   </div>
 );
 

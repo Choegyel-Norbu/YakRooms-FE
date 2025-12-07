@@ -23,7 +23,7 @@ function App() {
           <RatingDialogProvider />
           <ToastContainer />
           <Toaster
-            position="bottom-right"
+            position="top-center"
             closeButton={true}
             duration={6000}
             richColors={false}

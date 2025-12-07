@@ -104,7 +104,7 @@ const FeatureSection = () => {
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary">
-                      9
+                      4
                     </div>
                     <div className="text-sm text-muted-foreground">Dzongkhags Covered</div>
                   </div>
