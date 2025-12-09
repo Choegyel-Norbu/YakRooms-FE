@@ -241,14 +241,6 @@ const HeroLG = () => {
             }}
           >
             <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="p-2 rounded-lg bg-white/20">
-                  <MapPin className="h-5 w-5 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-white">
-                  Find Your Perfect Stay
-                </h3>
-              </div>
               
               <div className="flex flex-col gap-3 sm:flex-row">
                 <div className="relative flex-1">

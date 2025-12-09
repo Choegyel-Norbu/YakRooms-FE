@@ -3,11 +3,11 @@ import { getStorageItem, setStorageItem } from "@/shared/utils/safariLocalStorag
 import feedbackService from "@/shared/services/feedbackService";
 
 const RATING_DIALOG_STORAGE_KEY = "ratingDialogShown";
-const RATING_DIALOG_DELAY = 5 * 60 * 1000; // 5 minutes in milliseconds
+const RATING_DIALOG_DELAY = 15 * 60 * 1000; // 15 minutes in milliseconds
 
 /**
  * Custom hook to manage rating dialog auto-popup
- * Shows the dialog after 5 minutes if it hasn't been shown before
+ * Shows the dialog after 15 minutes if it hasn't been shown before
  */
 export const useRatingDialog = () => {
   const [isOpen, setIsOpen] = useState(false);

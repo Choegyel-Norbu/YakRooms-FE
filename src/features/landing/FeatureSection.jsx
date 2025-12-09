@@ -11,8 +11,6 @@ const FeatureSection = () => {
           <div className="max-w-6xl mx-auto">
             <div className="p-8 md:p-12 border border-border/50 rounded-2xl relative overflow-hidden">
               {/* Static background decorative elements */}
-              <div className="absolute top-4 left-4 w-20 h-20 bg-primary/10 rounded-full blur-xl"></div>
-              <div className="absolute bottom-4 right-4 w-32 h-32 bg-yellow-500/10 rounded-full blur-xl"></div>
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-primary/5 rounded-full blur-2xl"></div>
               
               <div className="relative z-10 space-y-8">
