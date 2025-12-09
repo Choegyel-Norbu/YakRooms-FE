@@ -4,7 +4,7 @@ import { getAuth, GoogleAuthProvider, connectAuthEmulator } from "firebase/auth"
 
 const firebaseConfig = {
   apiKey: "AIzaSyCpztRaIhsRMisykJgEZD_d0HDnIuKxyKw",
-  authDomain: "ezeeroom.bt",
+  authDomain: "yakrooms.firebaseapp.com", // Use Firebase default domain even if hosting on Vercel
   projectId: "yakrooms",
   storageBucket: "yakrooms.appspot.com",
   messagingSenderId: "165341953510",
