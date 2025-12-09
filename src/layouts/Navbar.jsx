@@ -746,7 +746,8 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
                                 handleListPropertyClick(e);
                                 setIsMobileMenuOpen(false);
                               }}
-                              className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-primary hover:bg-accent transition-colors group mx-6 w-full"
+                              className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group mx-6 w-full text-left border-0 bg-transparent"
+                              style={{ appearance: 'none', WebkitAppearance: 'none' }}
                             >
                               <div className="flex items-center">
                                 <div className="p-1.5 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
@@ -769,7 +770,7 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
                                     setIsMobileMenuOpen(false);
                                   }
                                 }}
-                                className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group mx-6"
+                                className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-accent transition-colors group mx-6 w-full text-left"
                               >
                                 <div className="flex items-center">
                                   <div className="p-1.5 mr-3 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">

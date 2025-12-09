@@ -241,7 +241,6 @@ const HeroLG = () => {
             }}
           >
             <div className="space-y-4">
-              
               <div className="flex flex-col gap-3 sm:flex-row">
                 <div className="relative flex-1">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
