@@ -4,7 +4,7 @@ import { getAuth, GoogleAuthProvider, connectAuthEmulator } from "firebase/auth"
 
 const firebaseConfig = {
   apiKey: "AIzaSyCpztRaIhsRMisykJgEZD_d0HDnIuKxyKw",
-  authDomain: "yakrooms.firebaseapp.com",
+  authDomain: "ezeeroom.bt",
   projectId: "yakrooms",
   storageBucket: "yakrooms.appspot.com",
   messagingSenderId: "165341953510",
