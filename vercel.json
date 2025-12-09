@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "redirects": [
     {
-      "source": "/(.*)",
+      "source": "/((?!__/auth/handler).*)",
       "has": [
         {
           "type": "host",
