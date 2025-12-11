@@ -111,7 +111,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
               {/* Benefits List */}
               <div className="space-y-8">
                 <div className="space-y-2">
-                  <h3 className="text-3xl font-bold tracking-tight text-gray-900">
+                  <h3 className="text-lg font-bold tracking-tight text-gray-900">
                     Why Partner with Us?
                   </h3>
                   <p className="text-gray-500">Join the fastest growing hospitality network in Bhutan.</p>

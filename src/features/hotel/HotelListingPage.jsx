@@ -854,40 +854,40 @@ const HotelListingPage = () => {
           isNavbarVisible ? "top-20" : "top-4"
         )}>
           <div className="mx-auto max-w-5xl">
-            <div className="relative rounded-full bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-slate-200">
+            <div className="relative rounded-full bg-white p-1.5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-slate-200">
               
               {/* Desktop Search */}
               <div className="hidden sm:flex items-center divide-x divide-slate-100">
-                <div className="flex-1 px-4">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-3">Where</label>
+                <div className="flex-1 px-3">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-2.5">Where</label>
                   <div className="relative">
                     <Input
                       placeholder="Search district..."
                       value={searchState.district}
                       onChange={(e) => handleDistrictChange(e.target.value)}
                       onKeyPress={handleKeyPress}
-                      className="border-0 bg-transparent p-0 pl-3 h-7 text-sm font-medium placeholder:text-slate-400 focus-visible:ring-0"
+                      className="border-0 bg-transparent p-0 pl-2.5 h-6 text-sm font-medium placeholder:text-slate-400 focus-visible:ring-0"
                     />
                   </div>
                 </div>
 
-                <div className="flex-1 px-4">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-3">Locality</label>
+                <div className="flex-1 px-3">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-2.5">Locality</label>
                   <div className="relative">
                     <Input
                       placeholder="Town or area..."
                       value={searchState.locality}
                       onChange={(e) => handleLocalityChange(e.target.value)}
                       onKeyPress={handleKeyPress}
-                      className="border-0 bg-transparent p-0 pl-3 h-7 text-sm font-medium placeholder:text-slate-400 focus-visible:ring-0"
+                      className="border-0 bg-transparent p-0 pl-2.5 h-6 text-sm font-medium placeholder:text-slate-400 focus-visible:ring-0"
                     />
                   </div>
                 </div>
 
-                <div className="flex-1 px-4">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-3">Type</label>
+                <div className="flex-1 px-3">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-2.5">Type</label>
                   <Select value={searchState.hotelType} onValueChange={handleHotelTypeChange}>
-                    <SelectTrigger className="border-0 bg-transparent p-0 pl-3 h-7 text-sm font-medium focus:ring-0">
+                    <SelectTrigger className="border-0 bg-transparent p-0 pl-2.5 h-6 text-sm font-medium focus:ring-0">
                       <SelectValue placeholder="All types" />
                     </SelectTrigger>
                     <SelectContent>
@@ -904,18 +904,18 @@ const HotelListingPage = () => {
                   <Button
                     onClick={handleSearch}
                     disabled={appState.loading}
-                    className="h-12 w-12 rounded-full bg-primary p-0 text-primary-foreground hover:bg-primary/90 shadow-md transition-transform active:scale-95 flex items-center justify-center"
+                    className="h-10 w-10 rounded-full bg-primary p-0 text-primary-foreground hover:bg-primary/90 shadow-md transition-transform active:scale-95 flex items-center justify-center"
                   >
-                    <Search className="h-5 w-5" />
+                    <Search className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
 
               {/* Mobile Search */}
-              <div className="sm:hidden p-1">
-                <div className="flex items-center gap-2">
+              <div className="sm:hidden p-0.5">
+                <div className="flex items-center gap-1.5">
                    <Select value={mobileSearchField} onValueChange={handleMobileFieldChange}>
-                      <SelectTrigger className="w-[110px] rounded-full border-0 bg-slate-100 text-xs font-medium">
+                      <SelectTrigger className="w-[100px] h-8 rounded-full border-0 bg-slate-100 text-xs font-medium">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -931,7 +931,7 @@ const HotelListingPage = () => {
                           value={mobileSearchValue || "all"}
                           onValueChange={(value) => setMobileSearchValue(value)}
                         >
-                          <SelectTrigger className="w-full border-0 bg-transparent text-sm focus:ring-0">
+                          <SelectTrigger className="w-full h-8 border-0 bg-transparent text-sm focus:ring-0">
                             <SelectValue placeholder="Select type" />
                           </SelectTrigger>
                           <SelectContent>
@@ -948,18 +948,18 @@ const HotelListingPage = () => {
                           value={mobileSearchValue}
                           onChange={(e) => setMobileSearchValue(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && handleMobileSearch()}
-                          className="w-full border-0 bg-transparent text-sm focus-visible:ring-0 pl-2"
+                          className="w-full h-8 border-0 bg-transparent text-sm focus-visible:ring-0 pl-2"
                         />
-                      )}
-                   </div>
+                       )}
+                    </div>
 
-                   <Button
+                    <Button
                       size="icon"
                       onClick={handleMobileSearch}
                       disabled={appState.loading}
-                      className="h-10 w-10 rounded-full bg-primary text-primary-foreground shadow-sm"
+                      className="h-8 w-8 rounded-full bg-primary text-primary-foreground shadow-sm"
                     >
-                      <Search className="h-4 w-4" />
+                      <Search className="h-3.5 w-3.5" />
                     </Button>
                 </div>
               </div>
@@ -971,9 +971,9 @@ const HotelListingPage = () => {
         {/* Results Header & Filters */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            <h3 className="text-2xl font-bold tracking-tight text-slate-900">
               {pageTitle}
-            </h1>
+            </h3>
             <p className="text-sm text-slate-500">
               {appState.loading 
                 ? "Searching for the best stays..." 
