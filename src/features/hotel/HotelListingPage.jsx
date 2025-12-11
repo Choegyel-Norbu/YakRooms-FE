@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 import SimpleSpinner from "@/shared/components/SimpleSpinner";
 import StarRating from "@/shared/components/star-rating";
-import { SearchButton } from "@/shared/components";
+
 
 import { Button } from "@/shared/components/button";
 import {
@@ -901,13 +901,13 @@ const HotelListingPage = () => {
                 </div>
 
                 <div className="pl-2 pr-1">
-                  <SearchButton
+                  <Button
                     onClick={handleSearch}
                     disabled={appState.loading}
                     className="h-12 w-12 rounded-full bg-primary p-0 text-primary-foreground hover:bg-primary/90 shadow-md transition-transform active:scale-95 flex items-center justify-center"
                   >
                     <Search className="h-5 w-5" />
-                  </SearchButton>
+                  </Button>
                 </div>
               </div>
 

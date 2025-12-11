@@ -10,8 +10,8 @@ import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
 import { Separator } from "@/shared/components/separator";
 import { Badge } from "@/shared/components/badge";
-import { SearchButton } from "@/shared/components";
-import { MapPin, Clock, Shield } from "lucide-react";
+
+import { MapPin, Clock, Shield, Search } from "lucide-react";
 
 const HeroLG = () => {
   const [searchDistrict, setSearchDistrict] = useState("");
@@ -240,16 +240,16 @@ const HeroLG = () => {
           className="w-full max-w-3xl"
         >
           <div className="relative rounded-3xl bg-white/10 p-2 backdrop-blur-md border border-white/20 shadow-2xl ring-1 ring-black/5">
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-row gap-2">
               <div className="relative flex-1 group">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                  <MapPin className="h-5 w-5 text-gray-300 group-focus-within:text-yellow-400 transition-colors" />
+                  <MapPin className="h-5 w-5 text-gray-300 group-focus-within:text-white transition-colors" />
                 </div>
                 <Input
                   type="text"
                   placeholder="Where do you want to go? (e.g., Thimphu, Paro)"
                   className={cn(
-                    "h-14 pl-11 pr-4 w-full rounded-2xl text-base",
+                    "h-12 pl-11 pr-4 w-full rounded-2xl text-base",
                     "bg-white/10 text-white placeholder:text-gray-300",
                     "border-transparent focus:border-white/30 focus:bg-white/20",
                     "focus:ring-0 transition-all duration-300",
@@ -264,18 +264,18 @@ const HeroLG = () => {
                 />
               </div>
               
-              <SearchButton
+              <Button
                 className={cn(
-                  "h-14 px-8 rounded-2xl font-bold text-base tracking-wide",
+                  "h-12 w-12 sm:w-auto px-0 sm:px-8 rounded-3xl font-bold text-base tracking-wide flex items-center justify-center",
                   "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600",
-                  "text-slate-900 shadow-lg hover:shadow-yellow-500/25",
-                  "transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]",
-                  "w-full sm:w-auto"
+                  "text-white shadow-lg hover:shadow-yellow-500/25",
+                  "transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 )}
                 onClick={validateAndSearch}
               >
-                Search
-              </SearchButton>
+                <Search className="h-5 w-5 sm:hidden" />
+                <span className="hidden sm:inline">Search</span>
+              </Button>
             </div>
           </div>
 

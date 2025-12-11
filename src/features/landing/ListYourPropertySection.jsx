@@ -109,27 +109,35 @@ const ListYourPropertySection = ({ onLoginClick }) => {
               </div>
 
               {/* Benefits List */}
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold mb-4 text-center sm:text-left">Why Partner with Us?</h3>
-                {benefits.map((benefit, index) => (
-                  <div key={index} className="hover:shadow-md transition-all duration-200 group">
-                    <CardContent className="p-6">
-                      <div className="flex items-start space-x-4">
-                        <div className="p-3 rounded-lg text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                          <benefit.icon className="w-6 h-6" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold mb-1 group-hover:text-primary transition-colors">
-                            {benefit.title}
-                          </h4>
-                          <p className="text-muted-foreground text-sm">
-                            {benefit.description}
-                          </p>
-                        </div>
+              <div className="space-y-8">
+                <div className="space-y-2">
+                  <h3 className="text-3xl font-bold tracking-tight text-gray-900">
+                    Why Partner with Us?
+                  </h3>
+                  <p className="text-gray-500">Join the fastest growing hospitality network in Bhutan.</p>
+                </div>
+                
+                <div className="grid sm:grid-cols-2 gap-x-12 gap-y-10">
+                  {benefits.map((benefit, index) => (
+                    <div key={index} className="group flex items-start gap-3">
+                      <div className="flex-shrink-0 mt-1">
+                        <benefit.icon 
+                          className="w-6 h-6 text-orange-500 group-hover:scale-110 transition-transform duration-300 ease-out" 
+                          strokeWidth={1.5}
+                        />
                       </div>
-                    </CardContent>
-                  </div>
-                ))}
+                      
+                      <div className="space-y-1">
+                        <h4 className="font-bold text-base text-gray-900 group-hover:text-orange-600 transition-colors duration-300">
+                          {benefit.title}
+                        </h4>
+                        <p className="text-sm text-gray-500 leading-relaxed">
+                          {benefit.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -144,7 +152,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                       src="/images/previewLandingDash.png"
                       alt="EzeeRoom platform preview"
                       loading="lazy"
-                      className="w-full h-full object-cover transition-all duration-500 ease-in-out opacity-0 animate-[fadeIn_1s_ease-in-out_0.2s_forwards] group-hover:scale-110"
+                      className="w-full h-full object-cover transition-all duration-500 ease-in-out opacity-0 animate-[fadeIn_1s_ease-in-out_0.2s_forwards]"
                       onError={(e) => {
                         // Fallback to a placeholder if image doesn't exist
                         e.target.src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80";
@@ -184,7 +192,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                       // User is not authenticated
                       <Button 
                         size="lg" 
-                        className="w-full bg-yellow-500 hover:bg-yellow-600 text-primary cursor-pointer"
+                        className="w-full sm:w-[60%] mx-auto flex bg-black hover:bg-gray-800 text-white rounded-full cursor-pointer hover:scale-105 transition-transform duration-200"
                         onClick={handleListPropertyClick}
                       >
                         <span>List Your Property Today</span>
@@ -193,7 +201,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                     ) : (
                       // User is authenticated - allow property listing regardless of subscription status
                       <Link to="/addListing" className="block">
-                        <Button size="lg" className="w-full bg-yellow-500 hover:bg-yellow-600 text-primary cursor-pointer">
+                        <Button size="lg" className="w-full sm:w-[60%] mx-auto flex bg-black hover:bg-gray-800 text-white rounded-full cursor-pointer hover:scale-105 transition-transform duration-200">
                           <span>List Your Property Today</span>
                           <ArrowUpRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />
                         </Button>
