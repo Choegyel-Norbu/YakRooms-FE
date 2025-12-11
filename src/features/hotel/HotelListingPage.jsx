@@ -309,9 +309,10 @@ const HotelListingPage = () => {
               // If we had to fall back to a poorer accuracy after retries,
               // let the user know nearby results might not be precise.
               if (retryCount >= maxRetries && accuracy > 100) {
-                toast("Location accuracy is a bit low", {
+                toast.warning("Location accuracy is a bit low", {
                   description:
                     "We couldn't get a very precise location. Nearby hotel results might not be exact.",
+                  duration: 6000,
                 });
               }
               setUserLocation({
@@ -333,8 +334,11 @@ const HotelListingPage = () => {
             // Handle different error types
             switch (error.code) {
               case error.PERMISSION_DENIED:
-                
                 setLocationPermissionDenied(true);
+                toast.error("Location access denied", {
+                  description: "Please enable location permissions in your browser settings to use the nearby search feature.",
+                  duration: 6000,
+                });
                 break;
               case error.POSITION_UNAVAILABLE:
                 
@@ -454,9 +458,20 @@ const HotelListingPage = () => {
 
         // Check if this is still the current request
         if (lastRequestRef.current?.fetchKey === fetchKey) {
-          // Handle new nested response structure
-          const hotelsData = response.data.content?.[0]?.content || response.data.content || [];
-          const pageData = response.data.content?.[0] || response.data.page || response.data;
+          // Handle nested response structure for nearby searches
+          let hotelsData = [];
+          let pageData = {};
+          
+          if (nearbyParams) {
+            // Nearby search response structure: { content: [{ content: [], pageNumber: 0, ... }], page: {...} }
+            const nestedContent = response.data.content?.[0];
+            hotelsData = nestedContent?.content || [];
+            pageData = nestedContent || response.data.page || {};
+          } else {
+            // Regular search response structure
+            hotelsData = response.data.content?.[0]?.content || response.data.content || [];
+            pageData = response.data.content?.[0] || response.data.page || response.data;
+          }
           
           setAppState(prev => ({
             ...prev,
@@ -896,7 +911,7 @@ const HotelListingPage = () => {
                       Search verified stays across Bhutan
                     </h2> */}
                   </div>
-                  {isSearchActive && (
+                  {(isSearchActive || showNearbyHeading) && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -905,7 +920,7 @@ const HotelListingPage = () => {
                       className="self-start sm:self-auto"
                     >
                       <X className="h-4 w-4 mr-2" />
-                      Clear filters
+                      {showNearbyHeading ? "Clear nearby search" : "Clear filters"}
                     </Button>
                   )}
                 </div>
@@ -1089,6 +1104,32 @@ const HotelListingPage = () => {
             </div>
           </div>
 
+          {/* Location Permission Denied Message */}
+          {locationPermissionDenied && isNearbySearch && !appState.loading && (
+            <Card className="mb-6 border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20">
+              <CardContent className="pt-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <CardTitle className="text-lg text-yellow-900 dark:text-yellow-100">
+                      Location access required
+                    </CardTitle>
+                    <CardDescription className="text-yellow-800 dark:text-yellow-200">
+                      Location permission is required to show nearby hotels. Please enable location access in your browser settings and refresh the page.
+                    </CardDescription>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={handleClearSearch}
+                    className="border-yellow-300 text-yellow-900 hover:bg-yellow-100 dark:text-yellow-100 dark:border-yellow-800 dark:hover:bg-yellow-900/30"
+                  >
+                    <X className="mr-2 h-4 w-4" />
+                    Clear Nearby Search
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Results */}
           {appState.loading ? (
             <div className="flex flex-col items-center justify-center h-96">
@@ -1116,30 +1157,26 @@ const HotelListingPage = () => {
                     <CardContent className="space-y-4">
                      
                       <CardTitle className="text-2xl">
-                        {isSearchActive 
+                        {showNearbyHeading 
+                          ? "No nearby hotels found"
+                          : isSearchActive 
                           ? "No results Found" 
-                          : (
-                            <div className="flex flex-col items-center justify-center">
-                              <SimpleSpinner 
-                                size={24} 
-                                text="Loading hotels..."
-                                className="mb-2"
-                              />
-                            </div>
-                          )
+                          : "No hotels found"
                         }
                       </CardTitle>
                       <CardDescription className="max-w-md mx-auto">
-                        {isSearchActive 
+                        {showNearbyHeading
+                          ? "We couldn't find any hotels near your location. Try expanding your search radius or searching by district or locality."
+                          : isSearchActive 
                           ? `We couldn't find any hotels matching your search criteria. Try adjusting your filters or search terms.`
                           : "We couldn't find any hotels. Please try again later."
                         }
                       </CardDescription>
                       <div className="flex justify-center gap-3 mt-6">
-                        {isSearchActive && (
+                        {(isSearchActive || showNearbyHeading) && (
                           <Button variant="outline" onClick={handleClearSearch}>
                             <X className="mr-2 h-4 w-4" />
-                            Clear Search
+                            {showNearbyHeading ? "Clear Nearby Search" : "Clear Search"}
                           </Button>
                         )}
                         <Button asChild>
