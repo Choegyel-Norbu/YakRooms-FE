@@ -232,90 +232,82 @@ const HeroLG = () => {
           </div>
         </div>
 
-        {/* Search Form */}
-        <div className="w-full max-w-5xl">
-          <div 
-            className="rounded-2xl p-6 backdrop-blur-xs border border-white/20 shadow-2xl"
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.15)',
-            }}
-          >
-            <div className="space-y-4">
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <MapPin 
-                      className="h-4 w-4"
-                      style={{
-                        color: '#6b7280',
-                      }}
-                    />
-                  </div>
-                  <Input
-                    type="text"
-                    placeholder="Search by district (e.g., Mongar, Samdrup Jongkhar, Trashigang)"
-                    className={cn(
-                      "h-10 pl-9 pr-4 text-sm rounded-lg",
-                      "bg-white/95 backdrop-blur-sm",
-                      "border-2 transition-all duration-200",
-                      searchError 
-                        ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200" 
-                        : "border-white/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20",
-                      "placeholder:text-gray-400",
-                      "shadow-lg"
-                    )}
-                    style={{
-                      color: '#1f2937',
-                    }}
-                    value={searchDistrict}
-                    onChange={(e) => {
-                      setSearchDistrict(e.target.value);
-                      if (searchError) setSearchError(""); // Clear error when user starts typing
-                    }}
-                    onKeyPress={handleKeyPress}
-                  />
-                  {searchError && (
-                    <p className="mt-2 ml-1 text-sm font-medium text-red-300 flex items-center gap-1">
-                      <span>⚠</span>
-                      <span>{searchError}</span>
-                    </p>
-                  )}
+        {/* Search Section (NEW) */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="w-full max-w-3xl"
+        >
+          <div className="relative rounded-3xl bg-white/10 p-2 backdrop-blur-md border border-white/20 shadow-2xl ring-1 ring-black/5">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1 group">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                  <MapPin className="h-5 w-5 text-gray-300 group-focus-within:text-yellow-400 transition-colors" />
                 </div>
-
-                <SearchButton
+                <Input
+                  type="text"
+                  placeholder="Where do you want to go? (e.g., Thimphu, Paro)"
                   className={cn(
-                    "h-10 px-6 text-sm font-semibold rounded-full",
-                    "bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700",
-                    "text-black shadow-lg hover:shadow-xl",
-                    "transition-all duration-200 hover:scale-105 active:scale-95",
-                    "whitespace-nowrap"
+                    "h-14 pl-11 pr-4 w-full rounded-2xl text-base",
+                    "bg-white/10 text-white placeholder:text-gray-300",
+                    "border-transparent focus:border-white/30 focus:bg-white/20",
+                    "focus:ring-0 transition-all duration-300",
+                    searchError && "border-red-400 focus:border-red-400"
                   )}
-                  onClick={validateAndSearch}
-                >
-                  Search Hotels
-                </SearchButton>
+                  value={searchDistrict}
+                  onChange={(e) => {
+                    setSearchDistrict(e.target.value);
+                    if (searchError) setSearchError("");
+                  }}
+                  onKeyPress={handleKeyPress}
+                />
               </div>
               
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <p className="text-sm text-white/80">
-                  Popular:
-                </p>
-                {['Thimphu', 'Paro', 'Samdrup Jongkhar', 'Mongar'].map((district) => (
-                  <button
-                    key={district}
-                    onClick={() => {
-                      setSearchDistrict(district);
-                      setSearchError("");
-                    }}
-                    className="px-3 py-1 text-sm font-medium text-white bg-white/20 hover:bg-white/30 rounded-full transition-colors duration-200 border border-white/30 hover:border-white/50"
-                  >
-                    {district}
-                  </button>
-                ))}
-              </div>
+              <SearchButton
+                className={cn(
+                  "h-14 px-8 rounded-2xl font-bold text-base tracking-wide",
+                  "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600",
+                  "text-slate-900 shadow-lg hover:shadow-yellow-500/25",
+                  "transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]",
+                  "w-full sm:w-auto"
+                )}
+                onClick={validateAndSearch}
+              >
+                Search
+              </SearchButton>
             </div>
           </div>
-        </div>
+
+          {/* Error Message */}
+          {searchError && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="mt-3 flex items-center justify-center gap-2 text-red-300 bg-red-900/30 py-2 px-4 rounded-lg backdrop-blur-sm border border-red-500/30 mx-auto w-fit"
+            >
+              <span className="text-lg">⚠</span>
+              <span className="text-sm font-medium">{searchError}</span>
+            </motion.div>
+          )}
+
+          {/* Popular Destinations */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            <span className="text-sm font-medium text-white/70 mr-2">Popular:</span>
+            {['Mongar', 'Trashigang', 'Thimphu', 'Punakha'].map((district) => (
+              <button
+                key={district}
+                onClick={() => {
+                  setSearchDistrict(district);
+                  setSearchError("");
+                }}
+                className="px-4 py-1.5 text-xs sm:text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-full transition-all duration-200 border border-white/10 hover:border-white/30 backdrop-blur-sm"
+              >
+                {district}
+              </button>
+            ))}
+          </div>
+        </motion.div>
 
         <Separator 
           className="w-full max-w-2xl"
@@ -352,8 +344,8 @@ const HeroLG = () => {
             </Button>
           </div>
         </div>
-      </div>
-    </section>
+        </div>
+      </section>
     </>
   );
 };

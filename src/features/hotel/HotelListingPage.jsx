@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { cn } from "@/shared/utils";
 import {
   MapPin,
   Home,
@@ -8,6 +9,7 @@ import {
   X,
   Clock,
   Navigation,
+  Shield,
 } from "lucide-react";
 import { toast } from "sonner";
 import SimpleSpinner from "@/shared/components/SimpleSpinner";
@@ -70,134 +72,86 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return Math.round(R * c); // Distance in meters, rounded
 };
 
-// Memoized HotelCard component to prevent unnecessary re-renders
 const HotelCard = React.memo(({ hotel }) => (
-  <Card className="overflow-hidden flex flex-col group transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 border border-border/50 shadow-lg rounded-lg bg-card">
-    <div className="relative overflow-hidden rounded-t-lg">
-      <Link to={`/hotel/${hotel.id}`}>
+  <Link to={`/hotel/${hotel.id}`} className="group block h-full focus:outline-none">
+    <Card className="h-full overflow-hidden rounded-3xl border-0 bg-card shadow-sm transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] hover:-translate-y-1">
+      {/* Image Container */}
+      <div className="relative aspect-[4/3] overflow-hidden">
         <img
           src={hotel.image}
           alt={hotel.name}
-          className="h-40 w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
           loading="lazy"
         />
-      </Link>
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-      {/* Hotel Type Badge */}
-      <div className="absolute top-3 left-3">
-        <Badge
-          variant="secondary"
-          className="bg-background/95 backdrop-blur-md shadow-lg border border-border/20 text-xs font-medium px-2 py-0.5 text-yellow-700"
-        >
-          {hotel.type}
-        </Badge>
-      </div>
-
-      {/* Price Badge - Compact positioning */}
-      {hotel.lowestPrice && hotel.lowestPrice > 0 && (
-        <div className="absolute top-3 right-3">
-          <div className="bg-primary text-primary-foreground px-2 py-1.5 rounded-md shadow-lg backdrop-blur-md border border-primary/20">
-            <span className="text-14 text-yellow-500">From</span>
-            <div className="text-xs font-bold leading-none">
-              Nu. {hotel.lowestPrice.toLocaleString()}
-            </div>
-            <div className="text-xs opacity-90 leading-none">per night</div>
-          </div>
-        </div>
-      )}
-    </div>
-
-    <CardHeader className="flex-1 p-4 pb-3">
-      <div className="space-y-2">
-        <CardTitle className="text-lg font-semibold leading-tight group-hover:text-primary transition-colors duration-200 line-clamp-2">
-          <Link
-            to={`/hotel/${hotel.id}`}
-            className="hover:underline decoration-2 underline-offset-2"
-          >
-            {hotel.name}
-          </Link>
-        </CardTitle>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         
-        <div className="flex items-start justify-between gap-3">
-          <CardDescription className="flex items-center gap-1.5 text-sm flex-1">
-            <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
-            <span className="font-medium">
-              {hotel.locality && `${hotel.locality}, `}{hotel.district}, Bhutan
-            </span>
-          </CardDescription>
-
-        </div>
-
-        {/* Check-in/Check-out Times */}
-        {/* <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
-          <div className="flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5 flex-shrink-0" />
-            <span>Check-in: {hotel.checkinTime}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5 flex-shrink-0" />
-            <span>Check-out: {hotel.checkoutTime}</span>
-          </div>
-        </div> */}
-
-        {/* Rating Section */}
-        {hotel.averageRating > 0 && (
-          <div className="flex items-center gap-2 pt-1">
-            <StarRating 
-              rating={hotel.averageRating} 
-              size={14} 
-              showRating={true}
-              className="flex-shrink-0"
-            />
-            {/* <span className="text-xs text-muted-foreground">
-              ({hotel.averageRating.toFixed(1)} Avg. Rating)
-            </span> */}
-          </div>
-        )}
-
-        {/* Distance Display - Badge Style */}
-        {hotel.distance !== null && hotel.distance !== undefined && (
-            <Badge
-              variant="outline"
-              className="bg-blue-50/80 border-blue-200 text-blue-700 hover:bg-blue-100/80 transition-colors duration-200 px-2.5 py-1 text-xs font-medium flex items-center gap-1.5 whitespace-nowrap backdrop-blur-sm"
-            >
-              <Navigation className="h-3 w-3 flex-shrink-0" />
-              <span className="font-semibold">
-                {hotel.distance >= 1000
-                  ? `${(hotel.distance / 1000).toFixed(1)} km`
-                  : `${hotel.distance} m away`}
-              </span>
+        {/* Top Badges */}
+        <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+          <Badge variant="secondary" className="bg-white/90 text-slate-900 backdrop-blur-md shadow-sm hover:bg-white">
+            {hotel.type}
+          </Badge>
+          {hotel.verified && (
+            <Badge className="bg-green-500/90 text-white backdrop-blur-md shadow-sm hover:bg-green-600 border-0 gap-1.5">
+              <Shield className="h-3 w-3" /> Verified
             </Badge>
           )}
-      </div>
-    </CardHeader>
-
-    <CardFooter className="bg-muted/30 border-t border-border/50 p-4 pt-3 mt-auto">
-      <div className="flex justify-between items-center w-full">
-        <div className="flex items-center gap-3">
-          {/* Verified Badge */}
-          <Badge 
-            variant="outline" 
-            className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100 transition-colors duration-200 px-2 py-1 text-xs font-medium flex items-center gap-1"
-          >
-            <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            Verified
-          </Badge>
         </div>
-        
-        <Button 
-          asChild 
-          size="sm" 
-          className="ml-3 shadow-sm hover:shadow-md transition-shadow duration-200 px-4 py-1.5 font-medium text-sm bg-yellow-500 hover:bg-yellow-600 text-white rounded-[20px]"
-        >
-          <Link to={`/hotel/${hotel.id}`}>View Details</Link>
-        </Button>
+
+        {/* Price Tag */}
+        {hotel.lowestPrice > 0 && (
+          <div className="absolute bottom-4 right-4 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+            <div className="flex flex-col items-end rounded-2xl bg-white/95 px-4 py-2 shadow-lg backdrop-blur-md">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Starts from</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg font-bold text-slate-900">Nu. {hotel.lowestPrice.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </CardFooter>
-  </Card>
+
+      {/* Content */}
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1.5">
+            <h3 className="line-clamp-1 text-lg font-bold text-slate-900 group-hover:text-primary transition-colors">
+              {hotel.name}
+            </h3>
+            <div className="flex items-center gap-1.5 text-sm text-slate-500">
+              <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
+              <span className="line-clamp-1">
+                {hotel.locality && `${hotel.locality}, `}{hotel.district}
+              </span>
+            </div>
+          </div>
+          {hotel.averageRating > 0 && (
+            <div className="flex shrink-0 items-center gap-1 rounded-full bg-yellow-50 px-2.5 py-1">
+              <StarRating rating={hotel.averageRating} size={12} showRating={false} />
+              <span className="text-xs font-bold text-yellow-700">{hotel.averageRating.toFixed(1)}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4 flex items-center gap-3 border-t border-slate-100 pt-4">
+           {hotel.distance !== null ? (
+             <div className="flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
+               <Navigation className="h-3 w-3" />
+               <span>{hotel.distance >= 1000 ? `${(hotel.distance / 1000).toFixed(1)} km` : `${hotel.distance}m`} away</span>
+             </div>
+           ) : (
+             <div className="flex items-center gap-1.5 text-xs text-slate-400">
+               <Clock className="h-3.5 w-3.5" />
+               <span>Check-in: {hotel.checkinTime}</span>
+             </div>
+           )}
+           
+           <div className="ml-auto">
+             <span className="text-xs font-medium text-primary group-hover:underline">View Details</span>
+           </div>
+        </div>
+      </CardContent>
+    </Card>
+  </Link>
 ));
 
 const HotelListingPage = () => {
@@ -879,60 +833,89 @@ const HotelListingPage = () => {
   }, [pagination.totalPages, pagination.page, handlePageChange]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50/50">
       {/* Header with Logo */}
-      <header className={`border-b sticky top-0 bg-background/95 backdrop-blur z-20 shadow-sm transition-all duration-1000 ease-in-out ${
-        isNavbarVisible 
-          ? "translate-y-0 opacity-100" 
-          : "-translate-y-full opacity-0"
-      }`}>
-        <div className="container mx-auto px-4">
-          <div className="flex h-16 items-center justify-between">
-            <Link to="/" className="flex items-center">
-              <EzeeRoomLogo size="default" />
-            </Link>
-          </div>
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isNavbarVisible ? "translate-y-0" : "-translate-y-full"
+      } bg-white/80 backdrop-blur-md border-b border-slate-200/60`}>
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <EzeeRoomLogo size="default" />
+          </Link>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
-        {/* Main Content */}
-        <main className="w-full">
-          {/* Search Surface */}
-          <div className="mb-6">
-            <div className="rounded-3xl border border-border/60 bg-card/70 backdrop-blur-sm shadow-sm">
-              <div className="p-4 sm:p-6 space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase font-semibold tracking-[0.2em] text-muted-foreground">
-                      Plan Your Stay
-                    </p>
-                    {/* <h2 className="text-xl sm:text-2xl font-semibold mt-1">
-                      Search verified stays across Bhutan
-                    </h2> */}
+      {/* Main Content */}
+      <main className="container mx-auto px-4 pt-24 pb-12">
+        
+        {/* Search Section */}
+        <div className={cn(
+          "sticky z-40 mb-8 -mx-4 px-4 sm:mx-0 sm:px-0 transition-all duration-300",
+          isNavbarVisible ? "top-20" : "top-4"
+        )}>
+          <div className="mx-auto max-w-5xl">
+            <div className="relative rounded-full bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-slate-200">
+              
+              {/* Desktop Search */}
+              <div className="hidden sm:flex items-center divide-x divide-slate-100">
+                <div className="flex-1 px-4">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-3">Where</label>
+                  <div className="relative">
+                    <Input
+                      placeholder="Search district..."
+                      value={searchState.district}
+                      onChange={(e) => handleDistrictChange(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      className="border-0 bg-transparent p-0 pl-3 h-7 text-sm font-medium placeholder:text-slate-400 focus-visible:ring-0"
+                    />
                   </div>
-                  {(isSearchActive || showNearbyHeading) && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleClearSearch}
-                      disabled={appState.loading}
-                      className="self-start sm:self-auto"
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      {showNearbyHeading ? "Clear nearby search" : "Clear filters"}
-                    </Button>
-                  )}
                 </div>
 
-                {/* Mobile search */}
-                <div className="sm:hidden space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Quick search
-                    </span>
-                    <Select value={mobileSearchField} onValueChange={handleMobileFieldChange}>
-                      <SelectTrigger className="w-36 rounded-full text-xs">
+                <div className="flex-1 px-4">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-3">Locality</label>
+                  <div className="relative">
+                    <Input
+                      placeholder="Town or area..."
+                      value={searchState.locality}
+                      onChange={(e) => handleLocalityChange(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      className="border-0 bg-transparent p-0 pl-3 h-7 text-sm font-medium placeholder:text-slate-400 focus-visible:ring-0"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex-1 px-4">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-3">Type</label>
+                  <Select value={searchState.hotelType} onValueChange={handleHotelTypeChange}>
+                    <SelectTrigger className="border-0 bg-transparent p-0 pl-3 h-7 text-sm font-medium focus:ring-0">
+                      <SelectValue placeholder="All types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {hotelCategoryOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="pl-2 pr-1">
+                  <SearchButton
+                    onClick={handleSearch}
+                    disabled={appState.loading}
+                    className="h-12 w-12 rounded-full bg-primary p-0 text-primary-foreground hover:bg-primary/90 shadow-md transition-transform active:scale-95 flex items-center justify-center"
+                  >
+                    <Search className="h-5 w-5" />
+                  </SearchButton>
+                </div>
+              </div>
+
+              {/* Mobile Search */}
+              <div className="sm:hidden p-1">
+                <div className="flex items-center gap-2">
+                   <Select value={mobileSearchField} onValueChange={handleMobileFieldChange}>
+                      <SelectTrigger className="w-[110px] rounded-full border-0 bg-slate-100 text-xs font-medium">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -940,262 +923,178 @@ const HotelListingPage = () => {
                         <SelectItem value="locality">Locality</SelectItem>
                         <SelectItem value="hotelType">Type</SelectItem>
                       </SelectContent>
-                    </Select>
-                  </div>
+                   </Select>
 
-                  <div className="flex items-center gap-2 rounded-full border bg-background/80 px-3 py-1.5 shadow-inner">
-                    {mobileSearchField === "hotelType" ? (
-                      <Select
-                        value={mobileSearchValue || "all"}
-                        onValueChange={(value) => setMobileSearchValue(value)}
-                      >
-                        <SelectTrigger className="flex-1 rounded-full text-sm border-none focus:ring-0 px-0">
-                          <SelectValue placeholder="Select hotel type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {hotelCategoryOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <div className="relative flex-1">
+                   <div className="flex-1 relative">
+                      {mobileSearchField === "hotelType" ? (
+                        <Select
+                          value={mobileSearchValue || "all"}
+                          onValueChange={(value) => setMobileSearchValue(value)}
+                        >
+                          <SelectTrigger className="w-full border-0 bg-transparent text-sm focus:ring-0">
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {hotelCategoryOptions.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
                         <Input
-                          placeholder={
-                            mobileSearchField === "district"
-                              ? "Search by district..."
-                              : "Search by locality..."
-                          }
+                          placeholder="Search..."
                           value={mobileSearchValue}
                           onChange={(e) => setMobileSearchValue(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              handleMobileSearch();
-                            }
-                          }}
-                          className="w-full border-none bg-transparent pl-0 text-sm focus-visible:ring-0"
+                          onKeyDown={(e) => e.key === "Enter" && handleMobileSearch()}
+                          className="w-full border-0 bg-transparent text-sm focus-visible:ring-0 pl-2"
                         />
-                      </div>
-                    )}
+                      )}
+                   </div>
 
-                    <Button
+                   <Button
                       size="icon"
                       onClick={handleMobileSearch}
                       disabled={appState.loading}
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white rounded-full"
+                      className="h-10 w-10 rounded-full bg-primary text-primary-foreground shadow-sm"
                     >
                       <Search className="h-4 w-4" />
                     </Button>
-                  </div>
-                </div>
-
-                {/* Desktop / Tablet search */}
-                <div className="hidden sm:grid gap-3 lg:gap-4 sm:grid-cols-[1.2fr,1.2fr,1fr,auto] items-center">
-                  <div className="relative">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search by district"
-                      value={searchState.district}
-                      onChange={(e) => handleDistrictChange(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      className="w-full rounded-full pl-11 text-sm"
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search by locality / town"
-                      value={searchState.locality}
-                      onChange={(e) => handleLocalityChange(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      className="w-full rounded-full pl-11 text-sm"
-                    />
-                  </div>
-
-                    <div className="relative">
-                      <Home className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Select value={searchState.hotelType} onValueChange={handleHotelTypeChange}>
-                        <SelectTrigger className="rounded-full pl-11 text-left">
-                          <SelectValue placeholder="Hotel type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {hotelCategoryOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                  <div className="flex gap-2 justify-end">
-                    <SearchButton
-                      onClick={handleSearch}
-                      disabled={appState.loading}
-                      className="rounded-full bg-yellow-500 hover:bg-yellow-600 text-white px-6 font-medium"
-                    >
-                      Search
-                    </SearchButton>
-                    {isSearchActive && (
-                      <Button
-                        variant="outline"
-                        onClick={handleClearSearch}
-                        disabled={appState.loading}
-                        className="rounded-full"
-                      >
-                        Reset
-                      </Button>
-                    )}
-                  </div>
                 </div>
               </div>
+
             </div>
           </div>
+        </div>
 
-          {/* Results Header */}
-          <div className="mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl md:text-xl font-semibold tracking-tight">
-                  {pageTitle}
-                </h1>
-
-                {/* Active filters display */}
-                {isSearchActive && !appState.loading && (
-                  <div className="flex gap-2 mt-2 flex-wrap">
-                    {searchState.locality && (
-                      <Badge variant="secondary" className="text-xs text-blue-900">
-                        Locality: {searchState.locality}
-                      </Badge>
-                    )}
-                    {searchState.district && (
-                      <Badge variant="secondary" className="text-xs">
-                        District: {searchState.district}
-                      </Badge>
-                    )}
-                    {searchState.hotelType && searchState.hotelType !== "all" && (
-                      <Badge variant="secondary" className="text-xs text-yellow-900">
-                        Type: {searchState.hotelType.replace(/_/g, " ")}
-                      </Badge>
-                    )}
-                  </div>
+        {/* Results Header & Filters */}
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              {pageTitle}
+            </h1>
+            <p className="text-sm text-slate-500">
+              {appState.loading 
+                ? "Searching for the best stays..." 
+                : `${pagination.totalElements} accommodations found`}
+            </p>
+            
+            {/* Active Filters */}
+            {(isSearchActive || showNearbyHeading) && (
+              <div className="flex flex-wrap gap-2 pt-2">
+                {searchState.district && (
+                  <Badge variant="secondary" className="bg-white border border-slate-200 text-slate-700">
+                    District: {searchState.district}
+                  </Badge>
                 )}
+                {searchState.locality && (
+                  <Badge variant="secondary" className="bg-white border border-slate-200 text-slate-700">
+                    Locality: {searchState.locality}
+                  </Badge>
+                )}
+                {searchState.hotelType && searchState.hotelType !== "all" && (
+                  <Badge variant="secondary" className="bg-white border border-slate-200 text-slate-700">
+                    Type: {searchState.hotelType.replace(/_/g, " ")}
+                  </Badge>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearSearch}
+                  className="h-6 px-2 text-xs text-red-500 hover:bg-red-50 hover:text-red-600"
+                >
+                  <X className="mr-1 h-3 w-3" />
+                  Clear all
+                </Button>
               </div>
-
-              {/* Sort Controls - only show when not searching */}
-              {!isSearchActive && !appState.loading && (
-                <div className="flex items-center gap-3">
-                  <Label className="text-sm font-medium">Sort by</Label>
-                  <Select value={searchState.sortBy} onValueChange={handleSortChange}>
-                    <SelectTrigger className="w-44">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="default">Default</SelectItem>
-                      <SelectItem value="price-low">Price: Low to High</SelectItem>
-                      <SelectItem value="price-high">Price: High to Low</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
+            )}
           </div>
 
-          {/* Location Permission Denied Message */}
-          {locationPermissionDenied && isNearbySearch && !appState.loading && (
-            <Card className="mb-6 border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20">
-              <CardContent className="pt-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg text-yellow-900 dark:text-yellow-100">
-                      Location access required
-                    </CardTitle>
-                    <CardDescription className="text-yellow-800 dark:text-yellow-200">
-                      Location permission is required to show nearby hotels. Please enable location access in your browser settings and refresh the page.
-                    </CardDescription>
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={handleClearSearch}
-                    className="border-yellow-300 text-yellow-900 hover:bg-yellow-100 dark:text-yellow-100 dark:border-yellow-800 dark:hover:bg-yellow-900/30"
-                  >
-                    <X className="mr-2 h-4 w-4" />
-                    Clear Nearby Search
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Sort */}
+          {!isSearchActive && !appState.loading && (
+             <div className="flex items-center gap-2">
+               <span className="text-sm font-medium text-slate-500">Sort by</span>
+               <Select value={searchState.sortBy} onValueChange={handleSortChange}>
+                 <SelectTrigger className="w-[160px] rounded-full border-slate-200 bg-white text-sm">
+                   <SelectValue />
+                 </SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="default">Recommended</SelectItem>
+                   <SelectItem value="price-low">Price: Low to High</SelectItem>
+                   <SelectItem value="price-high">Price: High to Low</SelectItem>
+                 </SelectContent>
+               </Select>
+             </div>
           )}
+        </div>
 
-          {/* Results */}
-          {appState.loading ? (
-            <div className="flex flex-col items-center justify-center h-96">
-              <SimpleSpinner 
-                size={32} 
-                text="Loading hotels..."
-                className="mb-4"
-              />
+        {/* Location Permission Warning */}
+        {locationPermissionDenied && isNearbySearch && !appState.loading && (
+            <div className="mb-8 rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-yellow-100 rounded-full text-yellow-600">
+                  <MapPin className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-yellow-900">Location access required</h3>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    Please enable location access to see hotels near you.
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearSearch}
+                  className="text-yellow-700 hover:bg-yellow-100"
+                >
+                  Dismiss
+                </Button>
+              </div>
             </div>
-          ) : (
-            <>
-              {transformedHotels.length > 0 ? (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-                    {transformedHotels.map((hotel) => (
-                      <HotelCard key={hotel.id} hotel={hotel} />
-                    ))}
-                  </div>
-                  {renderPagination}
-                </>
-              ) : (
-                // Only show no results if we're not loading and have confirmed empty results
-                !appState.loading && appState.initialLoadDone && (
-                  <Card className="text-center py-16 px-6 bg-muted/20 border-dashed border-2 rounded-xl">
-                    <CardContent className="space-y-4">
-                     
-                      <CardTitle className="text-2xl">
-                        {showNearbyHeading 
-                          ? "No nearby hotels found"
-                          : isSearchActive 
-                          ? "No results Found" 
-                          : "No hotels found"
-                        }
-                      </CardTitle>
-                      <CardDescription className="max-w-md mx-auto">
-                        {showNearbyHeading
-                          ? "We couldn't find any hotels near your location. Try expanding your search radius or searching by district or locality."
-                          : isSearchActive 
-                          ? `We couldn't find any hotels matching your search criteria. Try adjusting your filters or search terms.`
-                          : "We couldn't find any hotels. Please try again later."
-                        }
-                      </CardDescription>
-                      <div className="flex justify-center gap-3 mt-6">
-                        {(isSearchActive || showNearbyHeading) && (
-                          <Button variant="outline" onClick={handleClearSearch}>
-                            <X className="mr-2 h-4 w-4" />
-                            {showNearbyHeading ? "Clear Nearby Search" : "Clear Search"}
-                          </Button>
-                        )}
-                        <Button asChild>
-                          <Link to="/">
-                            <Home className="mr-2 h-4 w-4" />
-                            Back to Home
-                          </Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              )}
-            </>
-          )}
-        </main>
-      </div>
-      
-      {/* Footer */}
+        )}
+
+        {/* Grid Content */}
+        {appState.loading ? (
+           <div className="flex h-64 flex-col items-center justify-center gap-4">
+             <SimpleSpinner size={40} className="text-primary" />
+             <p className="text-sm font-medium text-slate-500 animate-pulse">Finding perfect stays for you...</p>
+           </div>
+        ) : (
+           <>
+             {transformedHotels.length > 0 ? (
+               <>
+                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                   {transformedHotels.map((hotel) => (
+                     <HotelCard key={hotel.id} hotel={hotel} />
+                   ))}
+                 </div>
+                 {renderPagination}
+               </>
+             ) : (
+               appState.initialLoadDone && (
+                 <div className="flex flex-col items-center justify-center py-20 text-center">
+                   <div className="mb-6 rounded-full bg-slate-100 p-6">
+                     <Search className="h-10 w-10 text-slate-400" />
+                   </div>
+                   <h3 className="text-xl font-semibold text-slate-900">No hotels found</h3>
+                   <p className="mt-2 max-w-md text-slate-500">
+                     We couldn't find any matches for your search. Try adjusting your filters or search for a different location.
+                   </p>
+                   <Button 
+                     variant="outline" 
+                     onClick={handleClearSearch}
+                     className="mt-8 rounded-full px-8"
+                   >
+                     Clear all filters
+                   </Button>
+                 </div>
+               )
+             )}
+           </>
+        )}
+
+      </main>
       <Footer />
     </div>
   );
