@@ -721,8 +721,8 @@ const LeaveManagement = ({ hotelId }) => {
         {canViewBasicLeaves && !roles?.includes("MANAGER") && activeTab === "requests" && (
           <div className="space-y-4">
           
-          {/* Leave Requests - Desktop Table View */}
-          <Card className="hidden md:block">
+          {/* Leave Requests - Table View */}
+          <Card>
             <CardHeader>
             </CardHeader>
             <CardContent className="p-0">
@@ -859,7 +859,7 @@ const LeaveManagement = ({ hotelId }) => {
           </Card>
 
           {/* Leave Requests - Mobile Card View */}
-          <div className="md:hidden space-y-4">
+          <div className="hidden space-y-4">
             
             {filteredLeaves.length === 0 ? (
               <Card>
@@ -998,8 +998,8 @@ const LeaveManagement = ({ hotelId }) => {
             </Button>
           </div>
 
-          {/* Enhanced Leave Requests - Desktop Table View */}
-          <Card className="hidden md:block">
+          {/* Enhanced Leave Requests - Table View */}
+          <Card>
             <CardHeader>
             </CardHeader>
             <CardContent className="p-0">
@@ -1157,7 +1157,7 @@ const LeaveManagement = ({ hotelId }) => {
           </Card>
 
           {/* Enhanced Leave Requests - Mobile Card View */}
-          <div className="md:hidden space-y-4">
+          <div className="hidden space-y-4">
             
             {filteredEnhancedLeaves.length === 0 ? (
               <Card>

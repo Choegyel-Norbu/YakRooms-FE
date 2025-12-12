@@ -424,7 +424,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
 
                 {/* Conditional Search Input */}
                 {searchOption !== "all" ? (
-                  <div className="flex gap-2 flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row gap-2 flex-1 min-w-0">
                     <div className="relative flex-1 min-w-0">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -435,28 +435,28 @@ const BookingsInventoryTable = ({ hotelId }) => {
                         className="pl-10 w-full"
                       />
                     </div>
-                    <Button
-                      onClick={handleSearch}
-                      disabled={!searchTerm.trim()}
-                      className="px-4 flex-shrink-0"
-                    >
-                      <Search className="h-4 w-4 mr-1" />
-                      <span className="hidden sm:inline">Search</span>
-                    </Button>
+                    <div className="flex gap-2 sm:flex-shrink-0">
+                      <Button
+                        onClick={handleSearch}
+                        disabled={!searchTerm.trim()}
+                        className="px-4 flex-1 sm:flex-initial"
+                      >
+                        <Search className="h-4 w-4 mr-1" />
+                        <span className="hidden sm:inline">Search</span>
+                      </Button>
+                      {searchTerm && (
+                        <Button
+                          onClick={clearSearch}
+                          variant="outline"
+                          size="sm"
+                          className="px-3 flex-shrink-0"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ) : null}
-
-                {/* Clear Search Button */}
-                {searchTerm && (
-                  <Button
-                    onClick={clearSearch}
-                    variant="outline"
-                    size="sm"
-                    className="px-3 flex-shrink-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
               </div>
             </div>
 
@@ -470,34 +470,6 @@ const BookingsInventoryTable = ({ hotelId }) => {
               <span className="hidden sm:inline">Export Excel</span>
               <span className="sm:hidden">Export</span>
             </Button>
-          </div>
-        </div>
-
-        {/* Summary Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-primary">{totalElements}</div>
-            <div className="text-sm text-muted-foreground">Total Bookings</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-primary">
-              {bookings.filter((b) => b.status === "CONFIRMED").length}
-            </div>
-            <div className="text-sm text-muted-foreground">Confirmed</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-primary">
-              {bookings.filter((b) => b.status === "CHECKED_IN").length}
-            </div>
-            <div className="text-sm text-muted-foreground">Checked In</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-500">
-              {formatCurrency(
-                bookings.reduce((sum, booking) => sum + (booking.totalPrice || 0), 0)
-              )}
-            </div>
-            <div className="text-sm text-muted-foreground">Revenue</div>
           </div>
         </div>
 

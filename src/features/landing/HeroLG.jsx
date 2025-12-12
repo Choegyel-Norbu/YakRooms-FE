@@ -135,28 +135,28 @@ const HeroLG = () => {
         `}
       </style>
       <section 
-        className="hero-section-responsive relative flex min-h-screen w-full items-center justify-center px-4 overflow-hidden"
+        className="hero-section-responsive relative flex min-h-screen w-full items-center justify-center px-3 sm:px-4 py-6 sm:py-8 lg:py-12 overflow-y-auto"
       >
-      <div className="relative z-10 flex w-full max-w-4xl flex-col items-center justify-center space-y-8 text-center">
+      <div className="relative z-10 flex w-full max-w-4xl flex-col items-center justify-center space-y-4 sm:space-y-6 lg:space-y-8 text-center">
         {/* Header Section */}
-        <div className="space-y-2">
+        <div className="space-y-1.5 sm:space-y-2">
           <div className="flex items-center justify-center space-x-2">
             <Badge 
               variant="secondary" 
-              className="px-3 py-1"
+              className="px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.9)',
                 color: '#0f172a',
                 borderColor: 'rgba(255, 255, 255, 0.2)',
               }}
             >
-              <MapPin className="mr-1 h-3 w-3" />
+              <MapPin className="mr-1 h-2.5 w-2.5 sm:h-3 sm:w-3" />
               EzeeRoom
             </Badge>
           </div>
 
           <motion.h1 
-            className="text-3xl font-semibold tracking-tight sm:text-4xl"
+            className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight px-2"
             style={{
               color: '#ffffff',
               textShadow: '2px 2px 8px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 0, 0, 0.25)',
@@ -177,7 +177,7 @@ const HeroLG = () => {
           </motion.h1>
 
           <motion.p 
-            className="mx-auto max-w-2xl text-14 sm:text-xl"
+            className="mx-auto max-w-2xl text-sm px-3 sm:px-4"
             style={{
               color: '#ffffff',
               textShadow: '1px 1px 4px rgba(0, 0, 0, 0.4), 0 0 10px rgba(0, 0, 0, 0.25)',
@@ -192,7 +192,7 @@ const HeroLG = () => {
         </div>
 
         <Separator 
-          className="w-24"
+          className="w-16 sm:w-20 lg:w-24"
           style={{
             backgroundColor: 'rgba(255, 255, 255, 0.3)',
           }}
@@ -237,19 +237,19 @@ const HeroLG = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="w-full max-w-3xl"
+          className="w-full max-w-3xl px-2 sm:px-0"
         >
           <div className="relative rounded-3xl bg-white/10 p-2 backdrop-blur-md border border-white/20 shadow-2xl ring-1 ring-black/5">
             <div className="flex flex-row gap-2">
               <div className="relative flex-1 group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                  <MapPin className="h-5 w-5 text-gray-300 group-focus-within:text-white transition-colors" />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 sm:pl-4 pointer-events-none">
+                  <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-gray-300 group-focus-within:text-white transition-colors" />
                 </div>
                 <Input
                   type="text"
                   placeholder="Where do you want to go? (e.g., Thimphu, Paro)"
                   className={cn(
-                    "h-12 pl-11 pr-4 w-full rounded-2xl text-base",
+                    "h-10 sm:h-12 pl-10 sm:pl-11 pr-3 sm:pr-4 w-full rounded-2xl text-sm sm:text-base",
                     "bg-white/10 text-white placeholder:text-gray-300",
                     "border-transparent focus:border-white/30 focus:bg-white/20",
                     "focus:ring-0 transition-all duration-300",
@@ -266,15 +266,15 @@ const HeroLG = () => {
               
               <Button
                 className={cn(
-                  "h-12 w-12 sm:w-auto px-0 sm:px-8 rounded-3xl font-bold text-base tracking-wide flex items-center justify-center",
+                  "h-10 sm:h-12 w-10 sm:w-12 lg:w-auto px-0 sm:px-6 lg:px-8 rounded-2xl sm:rounded-3xl font-bold text-sm sm:text-base tracking-wide flex items-center justify-center",
                   "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600",
                   "text-white shadow-lg hover:shadow-yellow-500/25",
                   "transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 )}
                 onClick={validateAndSearch}
               >
-                <Search className="h-5 w-5 sm:hidden" />
-                <span className="hidden sm:inline">Search</span>
+                <Search className="h-4 w-4 sm:h-5 sm:w-5 lg:hidden" />
+                <span className="hidden lg:inline">Search</span>
               </Button>
             </div>
           </div>
@@ -292,8 +292,8 @@ const HeroLG = () => {
           )}
 
           {/* Popular Destinations */}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <span className="text-sm font-medium text-white/70 mr-2">Popular:</span>
+          <div className="mt-4 sm:mt-6 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 px-2">
+            <span className="text-xs sm:text-sm font-medium text-white/70 mr-1 sm:mr-2">Popular:</span>
             {['Mongar', 'Trashigang', 'Thimphu', 'Punakha'].map((district) => (
               <button
                 key={district}
@@ -310,16 +310,16 @@ const HeroLG = () => {
         </motion.div>
 
         <Separator 
-          className="w-full max-w-2xl"
+          className="w-full max-w-2xl mt-2 sm:mt-0"
           style={{
             backgroundColor: 'rgba(255, 255, 255, 0.3)',
           }}
         />
 
         {/* Call to Action */}
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4 px-2">
           <p
-            className="text-sm"
+            className="text-xs sm:text-sm"
             style={{
               color: "#ffffff",
               textShadow: "1px 1px 4px rgba(0, 0, 0, 0.4)",
@@ -327,18 +327,18 @@ const HeroLG = () => {
           >
             Need a comfortable stay anywhere in Bhutan?
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
             <Button
               type="button"
               onClick={handleStartExploring}
-              className="px-7 py-5 text-sm font-semibold rounded-full bg-white/95 text-slate-900 border border-white/80 shadow-md shadow-black/25 transition-all duration-200 hover:bg-transparent hover:text-white hover:border-white hover:shadow-lg hover:-translate-y-0.5"
+              className="px-5 sm:px-7 py-3 sm:py-5 text-xs sm:text-sm font-semibold rounded-full bg-white/95 text-slate-900 border border-white/80 shadow-md shadow-black/25 transition-all duration-200 hover:bg-transparent hover:text-white hover:border-white hover:shadow-lg hover:-translate-y-0.5"
             >
               Start Exploring
             </Button>
             <Button
               type="button"
               onClick={handleSearchNearby}
-              className="px-7 py-5 text-sm font-semibold rounded-full bg-white/95 text-slate-900 border border-white/80 shadow-md shadow-black/25 transition-all duration-200 hover:bg-transparent hover:text-white hover:border-white hover:shadow-lg hover:-translate-y-0.5"
+              className="px-5 sm:px-7 py-3 sm:py-5 text-xs sm:text-sm font-semibold rounded-full bg-white/95 text-slate-900 border border-white/80 shadow-md shadow-black/25 transition-all duration-200 hover:bg-transparent hover:text-white hover:border-white hover:shadow-lg hover:-translate-y-0.5"
             >
               Find nearby
             </Button>
