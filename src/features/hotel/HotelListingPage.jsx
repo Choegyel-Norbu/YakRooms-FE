@@ -241,15 +241,29 @@ const HotelListingPage = () => {
     return Boolean(params.get("lat") && params.get("lon") && params.get("radius"));
   }, [location.search]);
 
+  // Reset location permission state when starting a nearby search
+  // This ensures we attempt to request location again and show the proper toast if denied
+  useEffect(() => {
+    if (isNearbySearch) {
+      setLocationPermissionDenied(false);
+      setUserLocation(null);
+      locationRetryCountRef.current = 0;
+    }
+  }, [isNearbySearch]);
+
   // Get user's current location with improved accuracy
+  // Only request location when navigating from "find nearby" button (isNearbySearch is true)
   useEffect(() => {
     if (!navigator.geolocation) {
       
       return;
     }
 
-    // Only request location if not already set and permission not denied
-    if (userLocation === null && !locationPermissionDenied) {
+    // Only request location if:
+    // 1. It's a nearby search (navigated from "find nearby" button)
+    // 2. Location is not already set
+    // 3. Permission hasn't been denied
+    if (isNearbySearch && userLocation === null && !locationPermissionDenied) {
       const requestLocation = (retryCount = 0) => {
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -289,6 +303,7 @@ const HotelListingPage = () => {
             switch (error.code) {
               case error.PERMISSION_DENIED:
                 setLocationPermissionDenied(true);
+                // Show toast when permission is denied during nearby search
                 toast.error("Location access denied", {
                   description: "Please enable location permissions in your browser settings to use the nearby search feature.",
                   duration: 6000,
@@ -328,7 +343,7 @@ const HotelListingPage = () => {
       // Initial location request
       requestLocation(0);
     }
-  }, [userLocation, locationPermissionDenied]);
+  }, [userLocation, locationPermissionDenied, isNearbySearch]);
 
   // Optimized fetch function with request deduplication and caching
   const fetchHotels = useCallback(
@@ -963,7 +978,6 @@ const HotelListingPage = () => {
                     </Button>
                 </div>
               </div>
-
             </div>
           </div>
         </div>

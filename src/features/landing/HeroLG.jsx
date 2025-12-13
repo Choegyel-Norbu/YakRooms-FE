@@ -11,11 +11,12 @@ import { Input } from "@/shared/components/input";
 import { Separator } from "@/shared/components/separator";
 import { Badge } from "@/shared/components/badge";
 
-import { MapPin, Clock, Shield, Search } from "lucide-react";
+import { MapPin, Clock, Shield, Search, Loader2 } from "lucide-react";
 
 const HeroLG = () => {
   const [searchDistrict, setSearchDistrict] = useState("");
   const [searchError, setSearchError] = useState("");
+  const [isFindingLocation, setIsFindingLocation] = useState(false);
   const navigate = useNavigate();
 
   // Simple fade-in animation for header and description
@@ -70,11 +71,13 @@ const HeroLG = () => {
       return;
     }
 
+    setIsFindingLocation(true);
     const loadingToast = toast.loading("Getting your location...");
 
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         toast.dismiss(loadingToast);
+        setIsFindingLocation(false);
 
         const searchParams = new URLSearchParams({
           lat: coords.latitude.toString(),
@@ -86,27 +89,34 @@ const HeroLG = () => {
       },
       (error) => {
         toast.dismiss(loadingToast);
+        setIsFindingLocation(false);
 
-        let description = "Unable to get your location.";
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            description = "Enable location permissions to search nearby stays.";
+            toast.error("Location access denied", {
+              description: "Please enable location permissions in your browser settings to use the nearby search feature.",
+              duration: 6000,
+            });
             break;
           case error.POSITION_UNAVAILABLE:
-            description = "Location information is unavailable.";
+            toast.error("Location unavailable", {
+              description: "Location information is unavailable. Please try again later.",
+              duration: 6000,
+            });
             break;
           case error.TIMEOUT:
-            description = "Location request timed out. Please try again.";
+            toast.error("Location request timed out", {
+              description: "The location request took too long. Please try again.",
+              duration: 6000,
+            });
             break;
           default:
-            description =
-              "We couldn't get a very precise location. Nearby stays might not be exact.";
+            toast.warning("Location accuracy is a bit low", {
+              description: "We couldn't get a very precise location. Nearby stays might not be exact.",
+              duration: 6000,
+            });
+            break;
         }
-
-        toast.error("Location accuracy is a bit low", {
-          description,
-          duration: 6000,
-        });
       },
       {
         enableHighAccuracy: true,
@@ -338,9 +348,17 @@ const HeroLG = () => {
             <Button
               type="button"
               onClick={handleSearchNearby}
-              className="px-5 sm:px-7 py-3 sm:py-5 text-xs sm:text-sm font-semibold rounded-full bg-white/95 text-slate-900 border border-white/80 shadow-md shadow-black/25 transition-all duration-200 hover:bg-transparent hover:text-white hover:border-white hover:shadow-lg hover:-translate-y-0.5"
+              disabled={isFindingLocation}
+              className="px-5 sm:px-7 py-3 sm:py-5 text-xs sm:text-sm font-semibold rounded-full bg-white/95 text-slate-900 border border-white/80 shadow-md shadow-black/25 transition-all duration-200 hover:bg-transparent hover:text-white hover:border-white hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
-              Find nearby
+              {isFindingLocation ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Finding...
+                </>
+              ) : (
+                "Find nearby"
+              )}
             </Button>
           </div>
         </div>
