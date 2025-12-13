@@ -273,7 +273,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       toast.error("Failed to upload images. Please try again.", {
         duration: 6000
       });
-      
+      console.error("Image upload error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -311,7 +311,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
         });
       }
     } catch (error) {
-      
+      console.error("Error deleting image:", error);
       toast.error("Failed to delete image. Please try again.", {
         duration: 6000
       });
@@ -459,7 +459,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       toast.error("Failed to update hotel information.", {
         duration: 6000
       });
-      
+      console.error("Update error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -565,20 +565,6 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                         <SelectItem value="HOMESTAY">Homestay</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} rows={4} disabled={!isEditing} />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1237,6 +1223,20 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                   </div>
                 )}
               </div>
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} rows={4} disabled={!isEditing} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* Cancellation Policy Section */}
               <div className="md:col-span-2 border-t pt-4 mt-2">

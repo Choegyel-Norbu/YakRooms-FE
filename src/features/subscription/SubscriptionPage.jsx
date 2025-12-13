@@ -520,7 +520,7 @@ const SubscriptionPage = () => {
               </>
             ) : isProActive ? (
               <>
-                {subscriptionPlan === 'PREMIUM' ? 'Premium' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Pro'} Subscription <span className="text-blue-600">Active</span>
+                {subscriptionPlan === 'PREMIUM' ? 'Premium' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Paid'} Subscription <span className="text-blue-600">Active</span>
               </>
             ) : hasEverHadPro ? (
               <>
@@ -536,13 +536,13 @@ const SubscriptionPage = () => {
             {expiresTomorrow 
               ? subscriptionPlan === 'TRIAL'
                 ? `Your trial period expires tomorrow (${formatDate(subscriptionNextBillingDate)}). Subscribe now to continue enjoying all features and avoid service interruption.`
-                : `Your ${subscriptionPlan === 'PREMIUM' ? 'Premium' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Pro'} subscription expires tomorrow (${formatDate(subscriptionNextBillingDate)}). Renew now to keep your hotel listing active and avoid service interruption.`
+                : `Your ${subscriptionPlan === 'PREMIUM' ? 'Premium' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Paid'} subscription expires tomorrow (${formatDate(subscriptionNextBillingDate)}). Renew now to keep your hotel listing active and avoid service interruption.`
               : isTrialExpired 
                 ? 'Your free trial has ended. Subscribe now to continue managing your hotel business with EzeeRoom.'
                 : isTrialActive
                   ? 'You are currently in your free trial period. Make the most of all features before your trial ends.'
                   : isProActive
-                    ? `Your ${subscriptionPlan === 'PREMIUM' ? 'Premium' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Pro'} subscription is active and your hotel listing is discoverable to guests worldwide. Manage your subscription below.`
+                    ? `Your ${subscriptionPlan === 'PREMIUM' ? 'Premium' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Paid'} subscription is active and your hotel listing is discoverable to guests worldwide. Manage your subscription below.`
                     : hasEverHadPro
                       ? 'Your Paid subscription is currently inactive. Reactivate below to restore your hotel listing visibility.'
                       : 'Get 2 months completely free to grow your hotel business with full access to all platform features.'
@@ -579,7 +579,7 @@ const SubscriptionPage = () => {
                 <CardDescription className="text-gray-600 text-sm leading-relaxed">
                   {subscriptionPlan === 'TRIAL'
                     ? 'Your trial period expires tomorrow. Subscribe now to continue enjoying all features and avoid service interruption.'
-                    : `Your ${subscriptionPlan === 'PREMIUM' ? 'Premium' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Pro'} subscription expires tomorrow. Renew now to keep your hotel listing active and avoid service interruption.`}
+                    : `Your ${subscriptionPlan === 'PREMIUM' ? 'Premium' : subscriptionPlan === 'BASIC' ? 'Basic' : 'Paid'} subscription expires tomorrow. Renew now to keep your hotel listing active and avoid service interruption.`}
                 </CardDescription>
               </CardHeader>
 
