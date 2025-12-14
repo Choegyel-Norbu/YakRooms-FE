@@ -3,17 +3,10 @@ import { Link } from "react-router-dom";
 import { 
   Home, 
   TrendingUp, 
-  Users, 
-  Star,
+  Users,
   ArrowUpRight,
   Sparkles,
   Settings,
-  Search,
-  Calendar,
-  BarChart3,
-  Smartphone,
-  Clock,
-  MapPin,
   CreditCard
 } from "lucide-react";
 
@@ -22,7 +15,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/sha
 import { Button } from "@/shared/components/button";
 import { Badge } from "@/shared/components/badge";
 import { Separator } from "@/shared/components/separator";
-import { cn } from "@/shared/utils";
 import { useAuth } from "@/features/authentication";
 
 const ListYourPropertySection = ({ onLoginClick }) => {

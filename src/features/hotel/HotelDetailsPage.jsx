@@ -1223,11 +1223,11 @@ const HotelDetailsPage = () => {
               <div className="mt-6 pt-4 border-t border-slate-200">
                 <div className="flex flex-row items-start gap-6">
                   <div className="flex-1">
-                    <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Check-in Time</h4>
+                    <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Check-in</h4>
                     <p className="text-sm font-semibold text-blue-700">{formatTime(appState.hotel?.checkinTime)}</p>
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Check-out Time</h4>
+                    <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Check-out</h4>
                     <p className="text-sm font-semibold text-blue-700">{formatTime(appState.hotel?.checkoutTime)}</p>
                   </div>
                 </div>
@@ -1779,13 +1779,13 @@ const HotelDetailsPage = () => {
 
                 {/* Check-in Time */}
                 <div className="py-3 border-b border-slate-100 last:border-b-0">
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Check-in Time</p>
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Check-in</p>
                   <p className="text-sm font-semibold text-slate-900">{formatTime(appState.hotel?.checkinTime)}</p>
                 </div>
 
                 {/* Check-out Time */}
                 <div className="py-3">
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Check-out Time</p>
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Check-out</p>
                   <p className="text-sm font-semibold text-slate-900">{formatTime(appState.hotel?.checkoutTime)}</p>
                 </div>
               </CardContent>

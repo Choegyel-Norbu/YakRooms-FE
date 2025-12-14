@@ -1,7 +1,6 @@
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, ChevronLeft } from "lucide-react";
-import { Button } from "@/shared/components/button";
 import { cn } from "@/shared/utils";
 
 const PropertyTypeSection = () => {
@@ -11,7 +10,6 @@ const PropertyTypeSection = () => {
   const [canScrollRight, setCanScrollRight] = useState(true);
 
   // CDN base URL - can be configured via VITE_CDN_BASE_URL environment variable
-  // Falls back to using the current origin if not set
   const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL || window.location.origin;
 
   // Property types arranged from lowest to highest standard/priority
@@ -117,45 +115,43 @@ const PropertyTypeSection = () => {
     <section className="pt-12 md:pb-12 px-4 bg-white dark:bg-slate-900">
       <div className="container mx-auto max-w-7xl">
         {/* Section Header */}
-        <div className="flex flex-col items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 font-sans">
+        <div className="text-center mb-8">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             Browse by property type
-          </h1>
+          </h3>
           
           {/* Navigation Arrows - Desktop */}
-          <div className="hidden md:flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
+          <div className="hidden md:flex items-center justify-center gap-3">
+            <button
               className={cn(
-                "rounded-full h-10 w-10",
-                !canScrollLeft && "opacity-50 cursor-not-allowed"
+                "flex items-center justify-center w-12 h-12 rounded-full border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2",
+                !canScrollLeft && "opacity-40 cursor-not-allowed border-slate-100 text-slate-300"
               )}
               onClick={() => scroll("left")}
               disabled={!canScrollLeft}
+              aria-label="Scroll left"
             >
               <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
+            </button>
+            <button
               className={cn(
-                "rounded-full h-10 w-10",
-                !canScrollRight && "opacity-50 cursor-not-allowed"
+                "flex items-center justify-center w-12 h-12 rounded-full border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2",
+                !canScrollRight && "opacity-40 cursor-not-allowed border-slate-100 text-slate-300"
               )}
               onClick={() => scroll("right")}
               disabled={!canScrollRight}
+              aria-label="Scroll right"
             >
               <ChevronRight className="h-5 w-5" />
-            </Button>
+            </button>
           </div>
         </div>
 
         {/* Scrollable Property Type Cards */}
-        <div className="relative">
+        <div className="relative -mx-4 px-4 md:mx-0 md:px-0">
           <div
             ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto scrollbar-hide pb-4"
+            className="flex gap-6 overflow-x-auto scrollbar-hide pb-8 snap-x snap-mandatory"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none",
@@ -167,47 +163,39 @@ const PropertyTypeSection = () => {
                 <div
                   key={property.id}
                   onClick={() => handlePropertyTypeClick(property)}
-                  className="flex-shrink-0 w-64 md:w-72 cursor-pointer group"
+                  className="flex-shrink-0 w-64 md:w-72 cursor-pointer group snap-start"
                 >
-                  <div className="relative h-48 md:h-56 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02]">
+                  <div className="relative h-48 md:h-56 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 ease-out border border-white/10 transform hover:-translate-y-1">
                     {/* Image */}
                     <img
                       src={property.image}
                       alt={property.label}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                       onError={(e) => {
                         // Fallback to a placeholder if image fails
                         e.target.src = `${CDN_BASE_URL}/images/suite.jpg`;
                       }}
                     />
                     
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    {/* Modern Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
                     
-                    {/* Label */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <h3 className="text-white font-bold text-lg md:text-xl">
+                    {/* Content */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                      <h3 className="text-white text-md tracking-wide">
                         {property.label}
                       </h3>
-                      <p className="text-white/80 text-sm mt-1">
-                        {property.description}
-                      </p>
+                      <div className="h-0 group-hover:h-auto overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100">
+                        <p className="text-white/80 text-sm font-light mt-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75">
+                          {property.description}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  
-                  {/* Hover Indicator Bar */}
-                  <div className="mt-2 h-1 w-0 mx-auto bg-primary transition-all duration-300 group-hover:w-3/4 rounded-full" />
                 </div>
               );
             })}
           </div>
-        </div>
-
-        {/* Mobile Navigation Hint */}
-        <div className="md:hidden text-center mt-4">
-          <p className="text-sm text-muted-foreground">
-            Swipe to see more property types
-          </p>
         </div>
       </div>
     </section>
