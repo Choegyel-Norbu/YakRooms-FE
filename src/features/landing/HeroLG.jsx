@@ -145,7 +145,7 @@ const HeroLG = () => {
         `}
       </style>
       <section 
-        className="hero-section-responsive relative flex min-h-screen w-full items-center justify-center px-3 sm:px-4 py-6 sm:py-8 lg:py-12 overflow-y-auto"
+        className="hero-section-responsive relative flex min-h-screen w-full items-center justify-center px-3 sm:px-4 pt-12 sm:pt-24 lg:pt-28 pb-6 sm:pb-8 lg:pb-12 overflow-y-auto"
       >
       <div className="relative z-10 flex w-full max-w-4xl flex-col items-center justify-center space-y-4 sm:space-y-6 lg:space-y-8 text-center">
         {/* Header Section */}
