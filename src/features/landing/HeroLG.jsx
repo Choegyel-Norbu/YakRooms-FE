@@ -150,21 +150,6 @@ const HeroLG = () => {
       <div className="relative z-10 flex w-full max-w-4xl flex-col items-center justify-center space-y-4 sm:space-y-6 lg:space-y-8 text-center">
         {/* Header Section */}
         <div className="space-y-1.5 sm:space-y-2">
-          <div className="flex items-center justify-center space-x-2">
-            <Badge 
-              variant="secondary" 
-              className="px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm"
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                color: '#0f172a',
-                borderColor: 'rgba(255, 255, 255, 0.2)',
-              }}
-            >
-              <MapPin className="mr-1 h-2.5 w-2.5 sm:h-3 sm:w-3" />
-              EzeeRoom
-            </Badge>
-          </div>
-
           <motion.h1 
             className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight px-2"
             style={{
