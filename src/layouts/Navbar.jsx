@@ -882,6 +882,10 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
                 logout();
                 setIsLogoutConfirmationOpen(false);
                 setIsMobileMenuOpen(false);
+                toast.info("You are logged out", {
+                  description: "You have been successfully logged out.",
+                  duration: 6000,
+                });
               }}
             >
               Log Out
