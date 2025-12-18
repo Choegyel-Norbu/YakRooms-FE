@@ -55,6 +55,7 @@ import {
   Droplets,
   Wind,
   MapPin,
+  Globe,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/ios-spinner";
 
@@ -1139,81 +1140,60 @@ const HotelDetailsPage = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent blur-sm"></div>
               </div>
 
-              {/* Social Media Links Section */}
-              {(appState.hotel?.facebookUrl || appState.hotel?.instagramUrl || appState.hotel?.tiktokUrl) && (
+              {/* Simple Connect Section */}
+              {(appState.hotel?.websiteUrl || appState.hotel?.facebookUrl || appState.hotel?.instagramUrl || appState.hotel?.tiktokUrl) && (
                 <div className="mt-6 pt-4 border-t border-slate-200">
                   <div className="mb-4">
-                    <h4 className="text-sm font-medium text-slate-800 mb-2">Follow Us</h4>
-                    <p className="text-xs text-slate-600">Stay connected with our latest updates</p>
+                    <h4 className="text-sm font-medium text-slate-800 mb-1">Website & Social Media</h4>
                   </div>
-                  <div className="flex flex-wrap gap-3">
-                    {appState.hotel.facebookUrl && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <a
-                              href={appState.hotel.facebookUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="group flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 rounded-lg transition-all duration-200 hover:scale-105"
-                            >
-                              <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center group-hover:bg-blue-700 transition-colors duration-200">
-                                <Facebook className="h-3.5 w-3.5 text-white" />
-                              </div>
-                              <span className="text-sm font-medium text-blue-800 group-hover:text-blue-900">Facebook</span>
-                            </a>
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="text-xs">
-                            Visit our Facebook page
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                  
+                  <div className="flex flex-wrap items-center gap-3">
+                    {appState.hotel?.websiteUrl && (
+                      <a
+                        href={appState.hotel.websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                      >
+                        <Globe className="h-4 w-4" />
+                        <span>Visit Website</span>
+                      </a>
                     )}
 
-                    {appState.hotel.instagramUrl && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <a
-                              href={appState.hotel.instagramUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="group flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border border-purple-200 hover:border-purple-300 rounded-lg transition-all duration-200 hover:scale-105"
-                            >
-                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center group-hover:from-purple-700 group-hover:to-pink-700 transition-all duration-200">
-                                <Instagram className="h-3.5 w-3.5 text-white" />
-                              </div>
-                              <span className="text-sm font-medium text-purple-800 group-hover:text-purple-900">Instagram</span>
-                            </a>
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="text-xs">
-                            Follow us on Instagram
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                    {appState.hotel?.facebookUrl && (
+                      <a
+                        href={appState.hotel.facebookUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                      >
+                        <Facebook className="h-4 w-4" />
+                        <span>Facebook</span>
+                      </a>
                     )}
 
-                    {appState.hotel.tiktokUrl && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <a
-                              href={appState.hotel.tiktokUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="group flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300 rounded-lg transition-all duration-200 hover:scale-105"
-                            >
-                              <div className="w-6 h-6 rounded-full bg-black flex items-center justify-center group-hover:bg-gray-800 transition-colors duration-200">
-                                <TikTokIcon className="h-3.5 w-3.5 text-white" />
-                              </div>
-                              <span className="text-sm font-medium text-gray-800 group-hover:text-gray-900">TikTok</span>
-                            </a>
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="text-xs">
-                            Check out our TikTok videos
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                    {appState.hotel?.instagramUrl && (
+                      <a
+                        href={appState.hotel.instagramUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                      >
+                        <Instagram className="h-4 w-4" />
+                        <span>Instagram</span>
+                      </a>
+                    )}
+
+                    {appState.hotel?.tiktokUrl && (
+                      <a
+                        href={appState.hotel.tiktokUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                      >
+                        <TikTokIcon className="h-4 w-4" />
+                        <span>TikTok</span>
+                      </a>
                     )}
                   </div>
                 </div>
@@ -1675,30 +1655,34 @@ const HotelDetailsPage = () => {
               district={appState.hotel?.district}
             />
 
-            {/* Social Media Card - Desktop Sidebar */}
-            {(appState.hotel?.facebookUrl || appState.hotel?.instagramUrl || appState.hotel?.tiktokUrl) && (
+            {/* Website & Social Media Card - Desktop Sidebar */}
+            {(appState.hotel?.websiteUrl || appState.hotel?.facebookUrl || appState.hotel?.instagramUrl || appState.hotel?.tiktokUrl) && (
               <Card className="rounded-none" style={{ borderRadius: 0 }}>
                 <CardHeader>
-                  <CardTitle className="text-base">Follow Us</CardTitle>
-                  <CardDescription className="text-sm">
-                    Stay connected with our latest updates
-                  </CardDescription>
+                  <CardTitle className="text-base">Website & Social Media</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-2">
+                  {appState.hotel.websiteUrl && (
+                    <a
+                      href={appState.hotel.websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 hover:underline py-1"
+                    >
+                      <Globe className="h-4 w-4" />
+                      <span>Visit Website</span>
+                    </a>
+                  )}
+
                   {appState.hotel.facebookUrl && (
                     <a
                       href={appState.hotel.facebookUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 transition-colors duration-200"
+                      className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 hover:underline py-1"
                     >
-                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center group-hover:bg-blue-700 transition-colors duration-200">
-                        <Facebook className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">Facebook</p>
-                        <p className="text-xs text-gray-500 truncate">Visit our page</p>
-                      </div>
+                      <Facebook className="h-4 w-4" />
+                      <span>Facebook</span>
                     </a>
                   )}
 
@@ -1707,15 +1691,10 @@ const HotelDetailsPage = () => {
                       href={appState.hotel.instagramUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center gap-3 p-2 rounded-lg hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all duration-200"
+                      className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 hover:underline py-1"
                     >
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center group-hover:from-purple-700 group-hover:to-pink-700 transition-all duration-200">
-                        <Instagram className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">Instagram</p>
-                        <p className="text-xs text-gray-500 truncate">Follow us</p>
-                      </div>
+                      <Instagram className="h-4 w-4" />
+                      <span>Instagram</span>
                     </a>
                   )}
 
@@ -1724,15 +1703,10 @@ const HotelDetailsPage = () => {
                       href={appState.hotel.tiktokUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                      className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 hover:underline py-1"
                     >
-                      <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center group-hover:bg-gray-800 transition-colors duration-200">
-                        <TikTokIcon className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">TikTok</p>
-                        <p className="text-xs text-gray-500 truncate">Watch our videos</p>
-                      </div>
+                      <TikTokIcon className="h-4 w-4" />
+                      <span>TikTok</span>
                     </a>
                   )}
                 </CardContent>

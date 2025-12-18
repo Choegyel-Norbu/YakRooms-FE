@@ -71,6 +71,8 @@ const formSchema = z.object({
   facebookUrl: z.string().url("Please enter a valid Facebook URL").optional().or(z.literal("")),
   instagramUrl: z.string().url("Please enter a valid Instagram URL").optional().or(z.literal("")),
   tiktokUrl: z.string().url("Please enter a valid TikTok URL").optional().or(z.literal("")),
+  // Website URL
+  websiteUrl: z.string().url("Please enter a valid website URL").optional().or(z.literal("")),
   // Bank Account Information
   accountNumber: z.string().optional(),
   accountHolderName: z.string().optional(),
@@ -199,6 +201,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       facebookUrl: hotel.facebookUrl || "",
       instagramUrl: hotel.instagramUrl || "",
       tiktokUrl: hotel.tiktokUrl || "",
+      websiteUrl: hotel.websiteUrl || "",
       accountNumber: hotel.accountNumber || "",
       accountHolderName: hotel.accountHolderName || "",
       bankType: hotel.bankType || "",
@@ -231,6 +234,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
       facebookUrl: hotel.facebookUrl || "",
       instagramUrl: hotel.instagramUrl || "",
       tiktokUrl: hotel.tiktokUrl || "",
+      websiteUrl: hotel.websiteUrl || "",
       accountNumber: hotel.accountNumber || "",
       accountHolderName: hotel.accountHolderName || "",
       bankType: hotel.bankType || "",
@@ -439,6 +443,8 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
         facebookUrl: values.facebookUrl || null,
         instagramUrl: values.instagramUrl || null,
         tiktokUrl: values.tiktokUrl || null,
+        // Include website URL
+        websiteUrl: values.websiteUrl || null,
         // Include bank account information
         accountNumber: values.accountNumber || null,
         accountHolderName: values.accountHolderName || null,
@@ -499,6 +505,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                   facebookUrl: hotel.facebookUrl || "",
                   instagramUrl: hotel.instagramUrl || "",
                   tiktokUrl: hotel.tiktokUrl || "",
+                  websiteUrl: hotel.websiteUrl || "",
                   accountNumber: hotel.accountNumber || "",
                   accountHolderName: hotel.accountHolderName || "",
                   bankType: hotel.bankType || "",
@@ -736,22 +743,65 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
               </div>
 
               <div className="md:col-span-2 border-t pt-4 mt-2">
-                <h4 className="text-base font-semibold mb-3">
+                <h4 className="text-sm sm:text-base font-semibold mb-3">
                   Contact Information
                 </h4>
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone</FormLabel>
-                      <FormControl>
-                        <Input type="tel" {...field} disabled={!isEditing} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone</FormLabel>
+                        <FormControl>
+                          <Input type="tel" {...field} disabled={!isEditing} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="websiteUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Website URL</FormLabel>
+                        {!isEditing && hotel.websiteUrl ? (
+                          <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-muted/50 rounded-lg border w-full">
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                              <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                              </svg>
+                            </div>
+                            <div className="flex-1 min-w-0 overflow-hidden">
+                              <p className="text-xs sm:text-sm font-medium text-foreground truncate">Website</p>
+                              <a
+                                href={hotel.websiteUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline truncate block w-full"
+                                title={hotel.websiteUrl}
+                              >
+                                {hotel.websiteUrl}
+                              </a>
+                            </div>
+                          </div>
+                        ) : (
+                          <FormControl>
+                            <Input 
+                              type="url" 
+                              {...field} 
+                              placeholder="https://yourhotel.com"
+                              disabled={!isEditing}
+                              className="w-full"
+                            />
+                          </FormControl>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
 
               {/* Check-in and Check-out Times Section */}
