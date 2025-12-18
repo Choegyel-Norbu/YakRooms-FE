@@ -1144,7 +1144,7 @@ const HotelDetailsPage = () => {
               {(appState.hotel?.websiteUrl || appState.hotel?.facebookUrl || appState.hotel?.instagramUrl || appState.hotel?.tiktokUrl) && (
                 <div className="mt-6 pt-4 border-t border-slate-200">
                   <div className="mb-4">
-                    <h4 className="text-sm font-medium text-slate-800 mb-1">Website & Social Media</h4>
+                    <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Website & Social Media</h4>
                   </div>
                   
                   <div className="flex flex-wrap items-center gap-3">
@@ -1659,7 +1659,7 @@ const HotelDetailsPage = () => {
             {(appState.hotel?.websiteUrl || appState.hotel?.facebookUrl || appState.hotel?.instagramUrl || appState.hotel?.tiktokUrl) && (
               <Card className="rounded-none" style={{ borderRadius: 0 }}>
                 <CardHeader>
-                  <CardTitle className="text-base">Website & Social Media</CardTitle>
+                  <CardTitle className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Website & Social Media</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {appState.hotel.websiteUrl && (
