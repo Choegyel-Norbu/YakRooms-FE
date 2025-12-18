@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { Button } from "@/shared/components/button";
 import { Input } from "@/shared/components/input";
 import { Separator } from "@/shared/components/separator";
-import { Badge } from "@/shared/components/badge";
 
 import { MapPin, Clock, Shield, Search, Loader2 } from "lucide-react";
 
@@ -228,17 +227,14 @@ const HeroLG = () => {
         </div>
 
         {/* Search Section (NEW) */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+        <div 
           className="w-full max-w-3xl px-2 sm:px-0"
         >
           <div className="relative rounded-3xl bg-white/10 p-2 backdrop-blur-md border border-white/20 shadow-2xl ring-1 ring-black/5">
             <div className="flex flex-row gap-2">
               <div className="relative flex-1 group">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 sm:pl-4 pointer-events-none">
-                  <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-gray-300 group-focus-within:text-white transition-colors" />
+                  <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-gray-300 group-focus-within:text-white" />
                 </div>
                 <Input
                   type="text"
@@ -247,7 +243,7 @@ const HeroLG = () => {
                     "h-10 sm:h-12 pl-10 sm:pl-11 pr-3 sm:pr-4 w-full rounded-2xl text-sm sm:text-base",
                     "bg-white/10 text-white placeholder:text-gray-300",
                     "border-transparent focus:border-white/30 focus:bg-white/20",
-                    "focus:ring-0 transition-all duration-300",
+                    "focus:ring-0",
                     searchError && "border-red-400 focus:border-red-400"
                   )}
                   value={searchDistrict}
@@ -263,8 +259,7 @@ const HeroLG = () => {
                 className={cn(
                   "h-10 sm:h-12 w-10 sm:w-12 lg:w-auto px-0 sm:px-6 lg:px-8 rounded-2xl sm:rounded-3xl font-bold text-sm sm:text-base tracking-wide flex items-center justify-center",
                   "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600",
-                  "text-white shadow-lg hover:shadow-yellow-500/25",
-                  "transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  "text-white shadow-lg hover:shadow-yellow-500/25"
                 )}
                 onClick={validateAndSearch}
               >
@@ -276,14 +271,12 @@ const HeroLG = () => {
 
           {/* Error Message */}
           {searchError && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+            <div 
               className="mt-3 flex items-center justify-center gap-2 text-red-300 bg-red-900/30 py-2 px-4 rounded-lg backdrop-blur-sm border border-red-500/30 mx-auto w-fit"
             >
               <span className="text-lg">⚠</span>
               <span className="text-sm font-medium">{searchError}</span>
-            </motion.div>
+            </div>
           )}
 
           {/* Popular Destinations */}
@@ -302,7 +295,7 @@ const HeroLG = () => {
               </button>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         <Separator 
           className="w-full max-w-2xl mt-2 sm:mt-0"

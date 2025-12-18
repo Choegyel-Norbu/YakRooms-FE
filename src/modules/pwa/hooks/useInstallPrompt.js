@@ -1,8 +1,30 @@
 import { useState, useEffect } from 'react';
 
 /**
+ * Detects if the current device is a mobile device
+ * Uses a combination of user agent check and screen width
+ * @returns {boolean} - True if mobile device, false otherwise
+ */
+const isMobileDevice = () => {
+    // Check user agent for mobile indicators
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+    const isMobileUserAgent = mobileRegex.test(userAgent);
+
+    // Check screen width (typically mobile devices are < 768px)
+    const isMobileWidth = window.innerWidth <= 768;
+
+    // Check for touch capability (most mobile devices have touch)
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    // Consider it mobile if user agent matches OR (small screen AND has touch)
+    return isMobileUserAgent || (isMobileWidth && hasTouch);
+};
+
+/**
  * Custom hook to handle PWA install prompt
  * Captures the beforeinstallprompt event and provides methods to trigger installation
+ * Note: Install prompt is only shown on mobile devices
  */
 const useInstallPrompt = () => {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -13,6 +35,11 @@ const useInstallPrompt = () => {
         // Check if app is already installed
         if (window.matchMedia('(display-mode: standalone)').matches) {
             setIsInstalled(true);
+            return;
+        }
+
+        // Only show install prompt on mobile devices
+        if (!isMobileDevice()) {
             return;
         }
 
