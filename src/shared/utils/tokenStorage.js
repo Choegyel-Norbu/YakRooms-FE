@@ -1,42 +1,30 @@
 /**
  * Token Storage Utilities for Cross-Domain Auth
  * Handles localStorage token management for iOS Safari
+ * 
+ * SIMPLIFIED: Backend now provides a single token with no expiration.
+ * Token is only invalidated when user manually logs out.
  */
 
 import { getStorageItem, setStorageItem, removeStorageItem } from './safariLocalStorage';
 
-// Token storage keys
+// Token storage keys (simplified - no expiry tracking)
 const TOKEN_KEYS = {
   ACCESS_TOKEN: 'yakrooms_access_token',
-  REFRESH_TOKEN: 'yakrooms_refresh_token',
-  ACCESS_TOKEN_EXPIRY: 'yakrooms_access_token_expiry',
-  REFRESH_TOKEN_EXPIRY: 'yakrooms_refresh_token_expiry',
   TOKEN_TYPE: 'yakrooms_token_type' // 'localStorage' or 'cookie'
 };
 
 /**
- * Store tokens from cross-domain auth response
+ * Store token from cross-domain auth response
+ * @param {Object} tokenData - Token data from backend
+ * @param {string} tokenData.token - The authentication token
  */
 export const storeTokens = (tokenData) => {
   try {
-    const now = Date.now();
-    
-    // Store access token and calculate expiry
-    if (tokenData.accessToken) {
-      setStorageItem(TOKEN_KEYS.ACCESS_TOKEN, tokenData.accessToken);
-      
-      // Calculate expiry timestamp (accessTokenExpiresIn is in seconds)
-      const accessTokenExpiry = now + (tokenData.accessTokenExpiresIn * 1000);
-      setStorageItem(TOKEN_KEYS.ACCESS_TOKEN_EXPIRY, accessTokenExpiry.toString());
-    }
-    
-    // Store refresh token and calculate expiry
-    if (tokenData.refreshToken) {
-      setStorageItem(TOKEN_KEYS.REFRESH_TOKEN, tokenData.refreshToken);
-      
-      // Calculate expiry timestamp (refreshTokenExpiresIn is in seconds)
-      const refreshTokenExpiry = now + (tokenData.refreshTokenExpiresIn * 1000);
-      setStorageItem(TOKEN_KEYS.REFRESH_TOKEN_EXPIRY, refreshTokenExpiry.toString());
+    // Store the single token (backend may send as 'token' or 'accessToken' for backward compatibility)
+    const token = tokenData.token || tokenData.accessToken;
+    if (token) {
+      setStorageItem(TOKEN_KEYS.ACCESS_TOKEN, token);
     }
     
     // Mark that we're using localStorage tokens
@@ -49,90 +37,48 @@ export const storeTokens = (tokenData) => {
 };
 
 /**
- * Get stored access token
+ * Get stored token
+ * No expiry check needed - token is valid until user logs out
  */
 export const getAccessToken = () => {
   try {
-    const token = getStorageItem(TOKEN_KEYS.ACCESS_TOKEN);
-    const expiry = getStorageItem(TOKEN_KEYS.ACCESS_TOKEN_EXPIRY);
-    
-    if (!token || !expiry) {
-      return null;
-    }
-    
-    // Check if token is expired (with 30 second buffer)
-    const now = Date.now();
-    const expiryTime = parseInt(expiry, 10);
-    const isExpired = now >= (expiryTime - 30000); // 30 second buffer
-    
-    if (isExpired) {
-      return null;
-    }
-    
-    return token;
+    return getStorageItem(TOKEN_KEYS.ACCESS_TOKEN) || null;
   } catch (error) {
     return null;
   }
 };
 
 /**
- * Get stored refresh token
+ * Get stored refresh token (deprecated - kept for backward compatibility)
+ * Backend no longer uses refresh tokens, returns null
  */
 export const getRefreshToken = () => {
-  try {
-    const token = getStorageItem(TOKEN_KEYS.REFRESH_TOKEN);
-    const expiry = getStorageItem(TOKEN_KEYS.REFRESH_TOKEN_EXPIRY);
-    
-    if (!token || !expiry) {
-      return null;
-    }
-    
-    // Check if refresh token is expired
-    const now = Date.now();
-    const expiryTime = parseInt(expiry, 10);
-    const isExpired = now >= expiryTime;
-    
-    if (isExpired) {
-      clearTokens();
-      return null;
-    }
-    
-    return token;
-  } catch (error) {
-    return null;
-  }
+  return null;
 };
 
 /**
- * Check if we have valid tokens
+ * Check if we have a valid token
+ * No expiry check - token is valid until manual logout
  */
 export const hasValidTokens = () => {
-  const accessToken = getAccessToken();
-  const refreshToken = getRefreshToken();
-  
-  // We need at least a refresh token to be considered authenticated
-  return refreshToken !== null;
+  const token = getAccessToken();
+  return token !== null;
 };
 
 /**
- * Check if access token needs refresh
+ * Check if token needs refresh (deprecated)
+ * Backend tokens don't expire, always returns false
  */
 export const shouldRefreshToken = () => {
-  const accessToken = getAccessToken();
-  const refreshToken = getRefreshToken();
-  
-  // If we have refresh token but no valid access token, we should refresh
-  return refreshToken !== null && accessToken === null;
+  return false;
 };
 
 /**
- * Clear all stored tokens
+ * Clear stored token
  */
 export const clearTokens = () => {
   try {
     removeStorageItem(TOKEN_KEYS.ACCESS_TOKEN);
-    removeStorageItem(TOKEN_KEYS.REFRESH_TOKEN);
-    removeStorageItem(TOKEN_KEYS.ACCESS_TOKEN_EXPIRY);
     removeStorageItem(TOKEN_KEYS.TOKEN_TYPE);
     
     return true;
@@ -153,9 +99,9 @@ export const isUsingLocalStorageTokens = () => {
     return true;
   }
   
-  // If we have actual tokens stored, we're using localStorage
-  const hasStoredTokens = getStorageItem(TOKEN_KEYS.ACCESS_TOKEN) || getStorageItem(TOKEN_KEYS.REFRESH_TOKEN);
-  if (hasStoredTokens) {
+  // If we have actual token stored, we're using localStorage
+  const hasStoredToken = getStorageItem(TOKEN_KEYS.ACCESS_TOKEN);
+  if (hasStoredToken) {
     return true;
   }
   
@@ -196,28 +142,16 @@ export const isUsingLocalStorageTokens = () => {
 };
 
 /**
- * Update tokens from refresh response
+ * Update tokens from refresh response (deprecated)
+ * Backend no longer uses refresh tokens - this is kept for backward compatibility
+ * but simply stores the new token if provided
  */
 export const updateTokensFromRefresh = (refreshData) => {
   try {
-    const now = Date.now();
-    
-    // Update access token if provided
-    if (refreshData.accessToken) {
-      setStorageItem(TOKEN_KEYS.ACCESS_TOKEN, refreshData.accessToken);
-      
-      const accessTokenExpiry = now + (refreshData.accessTokenExpiresIn * 1000);
-      setStorageItem(TOKEN_KEYS.ACCESS_TOKEN_EXPIRY, accessTokenExpiry.toString());
+    const token = refreshData.token || refreshData.accessToken;
+    if (token) {
+      setStorageItem(TOKEN_KEYS.ACCESS_TOKEN, token);
     }
-    
-    // Update refresh token if provided (token rotation)
-    if (refreshData.refreshToken) {
-      setStorageItem(TOKEN_KEYS.REFRESH_TOKEN, refreshData.refreshToken);
-      
-      const refreshTokenExpiry = now + (refreshData.refreshTokenExpiresIn * 1000);
-      setStorageItem(TOKEN_KEYS.REFRESH_TOKEN_EXPIRY, refreshTokenExpiry.toString());
-    }
-    
     return true;
   } catch (error) {
     return false;
@@ -230,25 +164,21 @@ export const updateTokensFromRefresh = (refreshData) => {
 export const getTokenInfo = () => {
   try {
     const accessToken = getStorageItem(TOKEN_KEYS.ACCESS_TOKEN);
-    const refreshToken = getStorageItem(TOKEN_KEYS.REFRESH_TOKEN);
-    const accessTokenExpiry = getStorageItem(TOKEN_KEYS.ACCESS_TOKEN_EXPIRY);
-    const refreshTokenExpiry = getStorageItem(TOKEN_KEYS.REFRESH_TOKEN_EXPIRY);
     const tokenType = getStorageItem(TOKEN_KEYS.TOKEN_TYPE);
     
-    const now = Date.now();
-    
     return {
+      hasToken: !!accessToken,
+      // Deprecated fields kept for backward compatibility
       hasAccessToken: !!accessToken,
-      hasRefreshToken: !!refreshToken,
-      accessTokenExpiry: accessTokenExpiry ? new Date(parseInt(accessTokenExpiry, 10)).toISOString() : null,
-      refreshTokenExpiry: refreshTokenExpiry ? new Date(parseInt(refreshTokenExpiry, 10)).toISOString() : null,
-      accessTokenExpired: accessTokenExpiry ? now >= (parseInt(accessTokenExpiry, 10) - 30000) : null,
-      refreshTokenExpired: refreshTokenExpiry ? now >= parseInt(refreshTokenExpiry, 10) : null,
+      hasRefreshToken: false,
+      accessTokenExpiry: null,
+      refreshTokenExpiry: null,
+      accessTokenExpired: false,
+      refreshTokenExpired: false,
       tokenType,
       isUsingLocalStorage: tokenType === 'localStorage'
     };
   } catch (error) {
-    // Failed to get token info
     return null;
   }
 };

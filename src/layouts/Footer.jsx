@@ -148,13 +148,26 @@ const Footer = React.forwardRef((props, ref) => {
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  choegyell@gmail.com
+                  chogyalnorbu973@gmail.com
+                </span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  zepadorji222@gmail.com
+                </span>
+                
+              </div>
+              <div className="flex items-center space-x-3">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  +97517482648
                 </span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  +97577965452
+                  +97577236000
                 </span>
               </div>
               <div className="flex items-center space-x-3">

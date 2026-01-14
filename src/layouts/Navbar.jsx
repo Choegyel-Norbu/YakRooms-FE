@@ -666,7 +666,7 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
                 asChild={true}
                 className={cn(
                   "hover:bg-transparent",
-                  "text-sm font-medium transition-all",
+                  "text-xs font-medium transition-all uppercase",
                   link.isContact ? "text-primary" : undefined,
                   link.isListProperty ? "text-primary" : undefined,
                   "hover:border-b hover:border-b-primary/50 border-b border-b-transparent",
@@ -676,13 +676,14 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
                 {link.isContact ? (
                   <button
                     onClick={() => onContactClick && onContactClick()}
+                    className="uppercase"
                   >
                     {link.name}
                   </button>
                 ) : link.isListProperty ? (
                   <button
                     onClick={handleListPropertyClick}
-                    className="text-primary"
+                    className="text-primary uppercase"
                   >
                   {link.name}
                   </button>
@@ -690,7 +691,10 @@ const Navbar = ({ onLoginClick, onContactClick, isVisible = true }) => {
                   <NavLink
                     to={link.path}
                     className={({ isActive }) =>
-                      isActive ? "text-primary" : "text-muted-foreground"
+                      cn(
+                        "uppercase",
+                        isActive ? "text-primary" : "text-muted-foreground"
+                      )
                     }
                   >
                     {link.name}

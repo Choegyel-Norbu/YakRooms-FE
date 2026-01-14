@@ -1231,7 +1231,7 @@ const HotelDetailsPage = () => {
                   {appState.hotel.amenities?.map((amenity, index) => (
                     <div
                       key={index}
-                      className="inline-flex items-center py-2 px-4 text-sm bg-blue-50 rounded-2xl text-slate-900"
+                      className="inline-flex items-center py-2 px-4 text-sm bg-slate-100 rounded-2xl text-slate-900"
                     >
                       <span>{amenity}</span>
                     </div>

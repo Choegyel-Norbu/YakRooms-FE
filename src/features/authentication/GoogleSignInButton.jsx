@@ -26,31 +26,28 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
           headers: {
             "Content-Type": "application/json",
           },
-          withCredentials: useCredentials, // true for macOS Safari and same-domain, false for iOS cross-domain
+          withCredentials: useCredentials,
           timeout: 15000,
         }
       );
 
       if (res.status === 200) {
-        // Handle cross-domain auth response (with tokens) - only for iOS devices
+        // Handle cross-domain auth response (with token) - only for iOS devices
         // macOS Safari uses cookies even in cross-domain, so it won't receive tokens
-        if (useCrossDomain && res.data.accessToken && res.data.refreshToken) {
+        // Backend now sends a single 'token' field (or 'accessToken' for backward compatibility)
+        const token = res.data.token || res.data.accessToken;
+        
+        if (useCrossDomain && token) {
           const tokenStored = storeTokens({
-            accessToken: res.data.accessToken,
-            refreshToken: res.data.refreshToken,
-            accessTokenExpiresIn: res.data.accessTokenExpiresIn,
-            refreshTokenExpiresIn: res.data.refreshTokenExpiresIn
+            token: token
           });
           
           if (!tokenStored) {
-            throw new Error('Failed to store authentication tokens');
+            throw new Error('Failed to store authentication token');
           }
-          
-          // Warning is handled by backend response
         }
         
         // Pass user data to AuthProvider (same for both flows)
-        // macOS Safari uses 'cookie' method even in cross-domain (SameSite=None; Secure)
         await onLoginSuccess({
           email: res.data.user.email,
           userid: res.data.user.id,
@@ -60,7 +57,7 @@ const GoogleSignInButton = ({ onLoginSuccess, onClose, flag, onLoginStart, onLog
           flag: res.data.user.registerFlag || false,
           detailSet: res.data.user.detailSet || false,
           hotelIds: res.data.user.hotelIds || (res.data.user.hotelId ? [res.data.user.hotelId] : []),
-          authMethod: useCrossDomain ? 'localStorage' : 'cookie', // macOS Safari will use 'cookie'
+          authMethod: useCrossDomain ? 'localStorage' : 'cookie',
         });
         
         // Close modal after successful login
