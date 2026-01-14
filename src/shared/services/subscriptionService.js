@@ -1,4 +1,4 @@
-import { enhancedApi } from "./Api";
+import api from "./Api";
 import { API_BASE_URL } from "./firebaseConfig";
 
 /**
@@ -22,7 +22,7 @@ class SubscriptionService {
    */
   async createSubscription(subscriptionData) {
     try {
-      const response = await enhancedApi.post("/subscriptions", subscriptionData);
+      const response = await api.post("/subscriptions", subscriptionData);
       return response.data;
     } catch (error) {
       
@@ -37,7 +37,7 @@ class SubscriptionService {
    */
   async getSubscriptionsByUserId(userId) {
     try {
-      const response = await enhancedApi.get(`/subscriptions/user/${userId}`);
+      const response = await api.get(`/subscriptions/user/${userId}`);
       return response.data;
     } catch (error) {
       
@@ -75,7 +75,7 @@ class SubscriptionService {
    */
   async getSubscriptionById(subscriptionId) {
     try {
-      const response = await enhancedApi.get(`/subscriptions/${subscriptionId}`);
+      const response = await api.get(`/subscriptions/${subscriptionId}`);
       return response.data;
     } catch (error) {
       
@@ -91,7 +91,7 @@ class SubscriptionService {
    */
   async updateSubscription(subscriptionId, updateData) {
     try {
-      const response = await enhancedApi.put(`/subscriptions/${subscriptionId}`, updateData);
+      const response = await api.put(`/subscriptions/${subscriptionId}`, updateData);
       return response.data;
     } catch (error) {
       
@@ -118,7 +118,7 @@ class SubscriptionService {
       }
       
       const url = `/payment/initiate${params.toString() ? `?${params.toString()}` : ''}`;
-      const response = await enhancedApi.post(url, paymentRequest);
+      const response = await api.post(url, paymentRequest);
       
       return response.data;
     } catch (error) {
@@ -134,7 +134,7 @@ class SubscriptionService {
    */
   async handlePaymentCallback(callbackData) {
     try {
-      const response = await enhancedApi.post("/payment/callback", callbackData);
+      const response = await api.post("/payment/callback", callbackData);
       return response.data;
     } catch (error) {
       
@@ -149,7 +149,7 @@ class SubscriptionService {
    */
   async getPaymentStatus(transactionId) {
     try {
-      const response = await enhancedApi.get(`/payment/status/${transactionId}`);
+      const response = await api.get(`/payment/status/${transactionId}`);
       return response.data;
     } catch (error) {
       
@@ -165,7 +165,7 @@ class SubscriptionService {
    */
   async cancelSubscription(subscriptionId, reason = "User requested cancellation") {
     try {
-      const response = await enhancedApi.post(`/subscriptions/${subscriptionId}/cancel`, { reason });
+      const response = await api.post(`/subscriptions/${subscriptionId}/cancel`, { reason });
       return response.data;
     } catch (error) {
       
@@ -180,7 +180,7 @@ class SubscriptionService {
    */
   async reactivateSubscription(subscriptionId) {
     try {
-      const response = await enhancedApi.post(`/subscriptions/${subscriptionId}/reactivate`);
+      const response = await api.post(`/subscriptions/${subscriptionId}/reactivate`);
       return response.data;
     } catch (error) {
       
@@ -196,7 +196,7 @@ class SubscriptionService {
   async getSubscriptionAnalytics(userId = null) {
     try {
       const url = userId ? `/subscriptions/analytics?userId=${userId}` : "/subscriptions/analytics";
-      const response = await enhancedApi.get(url);
+      const response = await api.get(url);
       return response.data;
     } catch (error) {
       
@@ -211,7 +211,7 @@ class SubscriptionService {
    */
   async getSubscriptionHistory(userId) {
     try {
-      const response = await enhancedApi.get(`/subscriptions/user/${userId}`);
+      const response = await api.get(`/subscriptions/user/${userId}`);
       return response.data;
     } catch (error) {
       
@@ -252,7 +252,7 @@ class SubscriptionService {
    */
   async validateSubscriptionStatus(subscriptionId) {
     try {
-      const response = await enhancedApi.get(`/subscriptions/${subscriptionId}/validate`);
+      const response = await api.get(`/subscriptions/${subscriptionId}/validate`);
       return response.data;
     } catch (error) {
       
@@ -267,7 +267,7 @@ class SubscriptionService {
    */
   async getUpcomingRenewals(days = 7) {
     try {
-      const response = await enhancedApi.get(`/subscriptions/renewals/upcoming?days=${days}`);
+      const response = await api.get(`/subscriptions/renewals/upcoming?days=${days}`);
       return response.data;
     } catch (error) {
       
@@ -283,7 +283,7 @@ class SubscriptionService {
    */
   async sendSubscriptionReminder(subscriptionId, reminderType = "EXPIRATION") {
     try {
-      const response = await enhancedApi.post(`/subscriptions/${subscriptionId}/reminder`, { 
+      const response = await api.post(`/subscriptions/${subscriptionId}/reminder`, { 
         reminderType 
       });
       return response.data;

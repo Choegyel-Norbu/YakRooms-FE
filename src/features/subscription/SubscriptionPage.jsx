@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/shared/components/button';
 import { Check, ArrowLeft, CreditCard, Clock } from 'lucide-react';
 import { Spinner } from '@/components/ui/ios-spinner';
-import { enhancedApi } from '@/shared/services/Api';
+import api from '@/shared/services/Api';
 import { useAuth } from '@/features/authentication/AuthProvider';
 import { toast } from 'sonner';
 import { calculateDaysUntil, formatDate } from '@/shared/utils/subscriptionUtils';
@@ -255,7 +255,7 @@ const SubscriptionPage = () => {
         notes: "Initial subscription setup for new user"
       };
 
-      const response = await enhancedApi.post('/subscriptions', subscriptionData);
+      const response = await api.post('/subscriptions', subscriptionData);
       
       if (response.status === 200 || response.status === 201) {
         toast.success('Free trial started successfully! Welcome to EzeeRoom.');
@@ -326,7 +326,7 @@ const SubscriptionPage = () => {
       };
 
       
-      const response = await enhancedApi.post('/subscriptions/payment/initiate', subscriptionData, {
+      const response = await api.post('/subscriptions/payment/initiate', subscriptionData, {
         params: {
           baseUrl: window.location.origin
         }
@@ -403,7 +403,7 @@ const SubscriptionPage = () => {
           hotelId: hotelIdFromStorage
         };
         
-        const response = await enhancedApi.post('/subscriptions/payment/initiate', subscriptionData, {
+        const response = await api.post('/subscriptions/payment/initiate', subscriptionData, {
           params: {
             baseUrl: window.location.origin
           }
@@ -454,7 +454,7 @@ const SubscriptionPage = () => {
           notes: `Subscription renewed on ${new Date().toLocaleDateString()} - Extended for 1 month from expiration date ${formatDate(subscriptionNextBillingDate)}`
         };
 
-        const response = await enhancedApi.post('/subscriptions', subscriptionData);
+        const response = await api.post('/subscriptions', subscriptionData);
         
         if (response.status === 200 || response.status === 201) {
           toast.success('Subscription renewed successfully! Your hotel listing remains active.');
