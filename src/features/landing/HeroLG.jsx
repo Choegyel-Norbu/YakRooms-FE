@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/shared/utils";
+import { DEFAULT_NEARBY_RADIUS } from "@/shared/constants/nearbySearch";
 const EzeeroomHero = "/images/erHero.webp";
 const EzeeroomHeroMobile = "/images/heroIMG.webp";
 import { toast } from "sonner";
@@ -81,7 +82,7 @@ const HeroLG = () => {
         const searchParams = new URLSearchParams({
           lat: coords.latitude.toString(),
           lon: coords.longitude.toString(),
-          radius: "0.5",
+          radius: DEFAULT_NEARBY_RADIUS,
         });
 
         navigate(`/hotels?${searchParams.toString()}`);

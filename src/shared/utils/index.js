@@ -5,4 +5,13 @@ export { cn } from './utils';
 export { getAmenitiesForType, getCategorizedAmenities } from './amenitiesHelper';
 
 // Payment Redirect Utility
-export { handlePaymentRedirect, validatePaymentData, standardizePaymentData } from './paymentRedirect'; 
+export { handlePaymentRedirect, validatePaymentData, standardizePaymentData } from './paymentRedirect';
+
+// Geographic Utilities
+export { 
+  calculateDistance, 
+  formatDistance, 
+  parseLatitude, 
+  parseLongitude, 
+  parseCoordinates 
+} from './geoUtils'; 

@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { cn } from "@/shared/utils";
+import { cn, calculateDistance, parseCoordinates } from "@/shared/utils";
+import {
+  DEFAULT_NEARBY_RADIUS,
+  NEARBY_RADIUS_OPTIONS,
+  getNextLargerRadius,
+  getRadiusLabel,
+} from "@/shared/constants/nearbySearch";
 import {
   MapPin,
-  Home,
-  Building2,
   Search,
   X,
   Clock,
@@ -49,28 +53,6 @@ import {
 import api from "../../shared/services/Api";
 import Footer from "../../layouts/Footer";
 import { EzeeRoomLogo } from "@/shared/components";
-
-/**
- * Calculate the distance between two coordinates using the Haversine formula
- * @param {number} lat1 - Latitude of first point
- * @param {number} lon1 - Longitude of first point
- * @param {number} lat2 - Latitude of second point
- * @param {number} lon2 - Longitude of second point
- * @returns {number} Distance in meters
- */
-const calculateDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371000; // Earth's radius in meters
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return Math.round(R * c); // Distance in meters, rounded
-};
 
 const HotelCard = React.memo(({ hotel }) => (
   <Link to={`/hotel/${hotel.id}`} className="group block h-full focus:outline-none">
@@ -183,11 +165,11 @@ const HotelListingPage = () => {
   });
   const [showNearbyHeading, setShowNearbyHeading] = useState(false);
   
-  // User location state
+  // User location state - now derived from URL params to avoid duplicate requests
   const [userLocation, setUserLocation] = useState(null);
-  const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
-  const locationRetryCountRef = useRef(0);
-  const maxRetries = 2; // Maximum retry attempts for better accuracy
+  
+  // Nearby search radius state
+  const [nearbyRadius, setNearbyRadius] = useState(DEFAULT_NEARBY_RADIUS);
 
   // Refs for performance optimization
   const debounceTimerRef = useRef(null);
@@ -235,115 +217,46 @@ const HotelListingPage = () => {
     return `${page}-${district.trim()}-${locality.trim()}-${hotelType}-${sortBy}`;
   }, []);
 
-  // Derived flags
+  // Derived flags - simplified to only require lat/lon (radius has a default)
   const isNearbySearch = useMemo(() => {
     const params = new URLSearchParams(location.search);
-    return Boolean(params.get("lat") && params.get("lon") && params.get("radius"));
+    return Boolean(params.get("lat") && params.get("lon"));
   }, [location.search]);
 
-  // Reset location permission state when starting a nearby search
-  // This ensures we attempt to request location again and show the proper toast if denied
+  // Extract user location from URL params to avoid duplicate geolocation requests
+  // This uses the location that was already obtained in HeroLG component
   useEffect(() => {
     if (isNearbySearch) {
-      setLocationPermissionDenied(false);
-      setUserLocation(null);
-      locationRetryCountRef.current = 0;
-    }
-  }, [isNearbySearch]);
-
-  // Get user's current location with improved accuracy
-  // Only request location when navigating from "find nearby" button (isNearbySearch is true)
-  useEffect(() => {
-    if (!navigator.geolocation) {
+      const params = new URLSearchParams(location.search);
+      const lat = params.get("lat");
+      const lon = params.get("lon");
+      const radius = params.get("radius") || DEFAULT_NEARBY_RADIUS;
       
-      return;
+      // Validate coordinates using shared utility
+      const coordinates = parseCoordinates(lat, lon);
+      
+      if (coordinates) {
+        // Use validated location from URL params for distance calculation
+        setUserLocation({
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude,
+          accuracy: null, // Not available from URL params
+        });
+        
+        // Set radius state
+        setNearbyRadius(radius);
+      } else {
+        // Invalid coordinates in URL - clear and show regular search
+        setUserLocation(null);
+        toast.error("Invalid location coordinates", {
+          description: "The location in the URL is invalid. Please try searching again.",
+          duration: 6000,
+        });
+      }
+    } else {
+      setUserLocation(null);
     }
-
-    // Only request location if:
-    // 1. It's a nearby search (navigated from "find nearby" button)
-    // 2. Location is not already set
-    // 3. Permission hasn't been denied
-    if (isNearbySearch && userLocation === null && !locationPermissionDenied) {
-      const requestLocation = (retryCount = 0) => {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const accuracy = position.coords.accuracy; // Accuracy in meters
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
-
-            // Accept location if accuracy is good (< 100m) or if we've exhausted retries
-            // For mobile devices, accuracy can be 10-50m with GPS, 100-1000m with network
-            if (accuracy <= 100 || retryCount >= maxRetries) {
-              // If we had to fall back to a poorer accuracy after retries,
-              // let the user know nearby results might not be precise.
-              if (retryCount >= maxRetries && accuracy > 100) {
-                toast.warning("Location accuracy is a bit low", {
-                  description:
-                    "We couldn't get a very precise location. Nearby hotel results might not be exact.",
-                  duration: 6000,
-                });
-              }
-              setUserLocation({
-                latitude,
-                longitude,
-                accuracy, // Store accuracy for reference
-              });
-              locationRetryCountRef.current = 0; // Reset retry count on success
-            } else {
-              // Retry for better accuracy if current accuracy is poor and we have retries left
-              locationRetryCountRef.current = retryCount + 1;
-              setTimeout(() => {
-                requestLocation(retryCount + 1);
-              }, 1000 * (retryCount + 1)); // Exponential backoff: 1s, 2s
-            }
-          },
-          (error) => {
-
-            // Handle different error types
-            switch (error.code) {
-              case error.PERMISSION_DENIED:
-                setLocationPermissionDenied(true);
-                // Show toast when permission is denied during nearby search
-                toast.error("Location access denied", {
-                  description: "Please enable location permissions in your browser settings to use the nearby search feature.",
-                  duration: 6000,
-                });
-                break;
-              case error.POSITION_UNAVAILABLE:
-                
-                // Retry once if position unavailable (might be temporary)
-                if (retryCount < 1) {
-                  setTimeout(() => {
-                    requestLocation(retryCount + 1);
-                  }, 2000);
-                }
-                break;
-              case error.TIMEOUT:
-                
-                // Retry with longer timeout if we haven't exhausted retries
-                if (retryCount < maxRetries) {
-                  setTimeout(() => {
-                    requestLocation(retryCount + 1);
-                  }, 1000);
-                }
-                break;
-              default:
-                
-                break;
-            }
-          },
-          {
-            enableHighAccuracy: true, // Request GPS-level accuracy
-            timeout: 20000, // Increased timeout to 20 seconds for high accuracy GPS
-            maximumAge: 0, // Force fresh location data (no cache)
-          }
-        );
-      };
-
-      // Initial location request
-      requestLocation(0);
-    }
-  }, [userLocation, locationPermissionDenied, isNearbySearch]);
+  }, [isNearbySearch, location.search]);
 
   // Optimized fetch function with request deduplication and caching
   const fetchHotels = useCallback(
@@ -497,12 +410,13 @@ const HotelListingPage = () => {
     // Check for nearby search parameters
     const lat = params.get("lat");
     const lon = params.get("lon");
-    const radius = params.get("radius");
+    const radius = params.get("radius") || "0.5"; // Default to 0.5km if not specified
     
-    if (lat && lon && radius) {
+    if (lat && lon) {
       // Nearby search mode - make API call directly
       const nearbyParams = { lat, lon, radius };
       setShowNearbyHeading(true);
+      setNearbyRadius(radius);
       fetchHotels(0, "", "", "all", "default", nearbyParams);
     } else {
       // Regular search mode
@@ -648,9 +562,9 @@ const HotelListingPage = () => {
       const params = new URLSearchParams(location.search);
       const lat = params.get("lat");
       const lon = params.get("lon");
-      const radius = params.get("radius");
+      const radius = params.get("radius") || nearbyRadius;
       
-      if (lat && lon && radius) {
+      if (lat && lon) {
         // Nearby search pagination
         const nearbyParams = { lat, lon, radius };
         fetchHotels(newPage, "", "", "all", "default", nearbyParams);
@@ -662,7 +576,7 @@ const HotelListingPage = () => {
           isSearchActive ? "default" : searchState.sortBy);
       }
     }
-  }, [pagination.totalPages, searchState.district, searchState.locality, searchState.hotelType, searchState.sortBy, fetchHotels, location.search]);
+  }, [pagination.totalPages, searchState.district, searchState.locality, searchState.hotelType, searchState.sortBy, fetchHotels, location.search, nearbyRadius]);
 
   const handleDistrictChange = useCallback((value) => {
     setSearchState(prev => ({ ...prev, district: value }));
@@ -679,6 +593,35 @@ const HotelListingPage = () => {
   const handleSortChange = useCallback((value) => {
     setSearchState(prev => ({ ...prev, sortBy: value }));
   }, []);
+
+  const handleRadiusChange = useCallback((value) => {
+    setNearbyRadius(value);
+    const params = new URLSearchParams(location.search);
+    const lat = params.get("lat");
+    const lon = params.get("lon");
+    
+    if (lat && lon) {
+      // Update URL with new radius
+      const newParams = new URLSearchParams({ lat, lon, radius: value });
+      window.history.replaceState({}, "", `/hotels?${newParams.toString()}`);
+      
+      // Fetch hotels with new radius
+      const nearbyParams = { lat, lon, radius: value };
+      fetchHotels(0, "", "", "all", "default", nearbyParams);
+    }
+  }, [location.search, fetchHotels]);
+
+  const handleExpandRadius = useCallback(() => {
+    const nextRadius = getNextLargerRadius(nearbyRadius);
+    if (nextRadius) {
+      handleRadiusChange(nextRadius);
+    }
+  }, [nearbyRadius, handleRadiusChange]);
+
+  // Check if we can expand the radius further
+  const canExpandRadius = useMemo(() => {
+    return getNextLargerRadius(nearbyRadius) !== null;
+  }, [nearbyRadius]);
 
   const handleMobileFieldChange = useCallback((value) => {
     setMobileSearchField(value);
@@ -756,7 +699,7 @@ const HotelListingPage = () => {
   }, []);
 
   const transformedHotels = useMemo(() => {
-    return appState.hotels.map((hotel) => {
+    const hotelsWithDistance = appState.hotels.map((hotel) => {
       // Extract latitude and longitude from hotel data
       const hotelLat = hotel.latitude ? parseFloat(hotel.latitude) : null;
       const hotelLon = hotel.longitude ? parseFloat(hotel.longitude) : null;
@@ -791,7 +734,28 @@ const HotelListingPage = () => {
         distance,
       };
     });
-  }, [appState.hotels, formatTime, userLocation]);
+
+    // Sort by distance when in nearby search mode and distances are available
+    if (isNearbySearch && userLocation) {
+      return hotelsWithDistance.sort((a, b) => {
+        // Hotels with distance come first, sorted by distance ascending
+        if (a.distance !== null && b.distance !== null) {
+          return a.distance - b.distance;
+        }
+        // Hotels with distance come before hotels without distance
+        if (a.distance !== null && b.distance === null) {
+          return -1;
+        }
+        if (a.distance === null && b.distance !== null) {
+          return 1;
+        }
+        // If both don't have distance, maintain original order
+        return 0;
+      });
+    }
+
+    return hotelsWithDistance;
+  }, [appState.hotels, formatTime, userLocation, isNearbySearch]);
 
   // Memoized pagination component
   const renderPagination = useMemo(() => {
@@ -1012,6 +976,11 @@ const HotelListingPage = () => {
                     Type: {searchState.hotelType.replace(/_/g, " ")}
                   </Badge>
                 )}
+                {showNearbyHeading && (
+                  <Badge variant="secondary" className="bg-white border border-slate-200 text-slate-700">
+                    Within {nearbyRadius}km
+                  </Badge>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -1025,48 +994,45 @@ const HotelListingPage = () => {
             )}
           </div>
 
-          {/* Sort */}
-          {!isSearchActive && !appState.loading && (
-             <div className="flex items-center gap-2">
-               <span className="text-sm font-medium text-slate-500">Sort by</span>
-               <Select value={searchState.sortBy} onValueChange={handleSortChange}>
-                 <SelectTrigger className="w-[160px] rounded-full border-slate-200 bg-white text-sm">
-                   <SelectValue />
-                 </SelectTrigger>
-                 <SelectContent>
-                   <SelectItem value="default">Recommended</SelectItem>
-                   <SelectItem value="price-low">Price: Low to High</SelectItem>
-                   <SelectItem value="price-high">Price: High to Low</SelectItem>
-                 </SelectContent>
-               </Select>
-             </div>
-          )}
-        </div>
-
-        {/* Location Permission Warning */}
-        {locationPermissionDenied && isNearbySearch && !appState.loading && (
-            <div className="mb-8 rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-yellow-100 rounded-full text-yellow-600">
-                  <MapPin className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-yellow-900">Location access required</h3>
-                  <p className="text-sm text-yellow-700 mt-1">
-                    Please enable location access to see hotels near you.
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClearSearch}
-                  className="text-yellow-700 hover:bg-yellow-100"
-                >
-                  Dismiss
-                </Button>
+          {/* Sort & Radius Controls */}
+          <div className="flex items-center gap-3">
+            {/* Radius Selector for Nearby Search */}
+            {showNearbyHeading && !appState.loading && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-slate-500">Radius</span>
+                <Select value={nearbyRadius} onValueChange={handleRadiusChange}>
+                  <SelectTrigger className="w-[100px] rounded-full border-slate-200 bg-white text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {NEARBY_RADIUS_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
-        )}
+            )}
+            
+            {/* Sort */}
+            {!isSearchActive && !showNearbyHeading && !appState.loading && (
+               <div className="flex items-center gap-2">
+                 <span className="text-sm font-medium text-slate-500">Sort by</span>
+                 <Select value={searchState.sortBy} onValueChange={handleSortChange}>
+                   <SelectTrigger className="w-[160px] rounded-full border-slate-200 bg-white text-sm">
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="default">Recommended</SelectItem>
+                     <SelectItem value="price-low">Price: Low to High</SelectItem>
+                     <SelectItem value="price-high">Price: High to Low</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
+            )}
+          </div>
+        </div>
 
         {/* Grid Content */}
         {appState.loading ? (
@@ -1085,26 +1051,48 @@ const HotelListingPage = () => {
                  </div>
                  {renderPagination}
                </>
-             ) : (
-               appState.initialLoadDone && (
-                 <div className="flex flex-col items-center justify-center py-20 text-center">
-                   <div className="mb-6 rounded-full bg-slate-100 p-6">
-                     <Search className="h-10 w-10 text-slate-400" />
-                   </div>
-                   <h3 className="text-xl font-semibold text-slate-900">No hotels found</h3>
-                   <p className="mt-2 max-w-md text-slate-500">
-                     We couldn't find any matches for your search. Try adjusting your filters or search for a different location.
-                   </p>
-                   <Button 
-                     variant="outline" 
-                     onClick={handleClearSearch}
-                     className="mt-8 rounded-full px-8"
-                   >
-                     Clear all filters
-                   </Button>
-                 </div>
-               )
-             )}
+            ) : (
+              appState.initialLoadDone && (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="mb-6 rounded-full bg-slate-100 p-6">
+                    {showNearbyHeading ? (
+                      <MapPin className="h-10 w-10 text-slate-400" />
+                    ) : (
+                      <Search className="h-10 w-10 text-slate-400" />
+                    )}
+                  </div>
+                  <h3 className="text-xl font-semibold text-slate-900">
+                    {showNearbyHeading 
+                      ? `No hotels within ${getRadiusLabel(nearbyRadius)}` 
+                      : "No hotels found"}
+                  </h3>
+                  <p className="mt-2 max-w-md text-slate-500">
+                    {showNearbyHeading 
+                      ? canExpandRadius 
+                        ? "Try expanding your search radius to find more hotels nearby."
+                        : "There are no hotels registered near your location. Try searching by district instead."
+                      : "We couldn't find any matches for your search. Try adjusting your filters or search for a different location."}
+                  </p>
+                  <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                    {showNearbyHeading && canExpandRadius && (
+                      <Button 
+                        onClick={handleExpandRadius}
+                        className="rounded-full px-8"
+                      >
+                        Expand to {getRadiusLabel(getNextLargerRadius(nearbyRadius))}
+                      </Button>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      onClick={handleClearSearch}
+                      className="rounded-full px-8"
+                    >
+                      {showNearbyHeading ? "Search by district" : "Clear all filters"}
+                    </Button>
+                  </div>
+                </div>
+              )
+            )}
            </>
         )}
 
