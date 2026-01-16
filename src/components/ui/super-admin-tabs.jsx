@@ -18,7 +18,8 @@ function SuperAdminTabs({
   FeedbacksTable, 
   HotelTable, 
   AllNotificationsTable,
-  SubscriptionsTable
+  SubscriptionsTable,
+  UsersTable
 }) {
   return (
     <Tabs defaultValue="hotels" className="w-full">
@@ -108,6 +109,18 @@ function SuperAdminTabs({
             />
             Subscriptions
           </TabsTrigger>
+          <TabsTrigger
+            value="users"
+            className="relative overflow-hidden rounded-none border border-border py-3 px-4 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e data-[state=active]:bg-muted data-[state=active]:after:bg-primary"
+          >
+            <Users
+              className="-ms-0.5 me-2 opacity-60"
+              size={16}
+              strokeWidth={2}
+              aria-hidden="true"
+            />
+            Users
+          </TabsTrigger>
         </TabsList>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
@@ -138,6 +151,10 @@ function SuperAdminTabs({
       
       <TabsContent value="subscriptions" className="mt-0">
         <SubscriptionsTable />
+      </TabsContent>
+      
+      <TabsContent value="users" className="mt-0">
+        <UsersTable />
       </TabsContent>
     </Tabs>
   );

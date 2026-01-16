@@ -147,6 +147,16 @@ const SuperAdmin = () => {
     totalElements: 0,
   });
 
+  // Users management states
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [usersPagination, setUsersPagination] = useState({
+    pageNumber: 0,
+    pageSize: 20,
+    totalPages: 1,
+    totalElements: 0,
+  });
+
   // Booking filters and search states
   const [bookingFilters, setBookingFilters] = useState({
     searchQuery: "",
@@ -418,6 +428,37 @@ const SuperAdmin = () => {
     fetchSubscriptions();
   }, [subscriptionsPagination.pageNumber]);
 
+  // Fetch users
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoadingUsers(true);
+        const params = {
+          page: usersPagination.pageNumber,
+          size: usersPagination.pageSize,
+          sortBy: "id",
+          sortDir: "ascend",
+        };
+
+        const response = await api.get("/users", { params });
+        
+        setUsers(response.data.content || []);
+        setUsersPagination((prev) => ({
+          ...prev,
+          totalPages: response.data.page?.totalPages || 1,
+          totalElements: response.data.page?.totalElements || 0,
+        }));
+      } catch (err) {
+        
+        toast.error("Failed to fetch users");
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    fetchUsers();
+  }, [usersPagination.pageNumber]);
+
   useEffect(() => {
     const fetchHotels = async () => {
       try {
@@ -655,6 +696,11 @@ const SuperAdmin = () => {
   // Handle subscriptions pagination
   const handleSubscriptionsPageChange = (newPage) => {
     setSubscriptionsPagination((prev) => ({ ...prev, pageNumber: newPage }));
+  };
+
+  // Handle users pagination
+  const handleUsersPageChange = (newPage) => {
+    setUsersPagination((prev) => ({ ...prev, pageNumber: newPage }));
   };
 
   // Booking filter handlers
@@ -3121,6 +3167,231 @@ const SuperAdmin = () => {
     );
   };
 
+  const UsersPaginationControls = () => {
+    const handlePrevious = () => {
+      if (usersPagination.pageNumber > 0) {
+        handleUsersPageChange(usersPagination.pageNumber - 1);
+      }
+    };
+
+    const handleNext = () => {
+      if (usersPagination.pageNumber < usersPagination.totalPages - 1) {
+        handleUsersPageChange(usersPagination.pageNumber + 1);
+      }
+    };
+
+    return (
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex-1 flex justify-between md:hidden">
+          <Button
+            onClick={handlePrevious}
+            disabled={usersPagination.pageNumber === 0}
+            variant="outline"
+          >
+            Previous
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={usersPagination.pageNumber === usersPagination.totalPages - 1}
+            variant="outline"
+          >
+            Next
+          </Button>
+        </div>
+        <div className="hidden md:flex flex-1 items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">
+              Page{" "}
+              <span className="font-medium">{usersPagination.pageNumber + 1}</span>{" "}
+              of <span className="font-medium">{usersPagination.totalPages}</span>
+            </p>
+          </div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={handlePrevious}
+                disabled={usersPagination.pageNumber === 0}
+              >
+                <span className="sr-only">Go to previous page</span>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: usersPagination.totalPages }, (_, i) => (
+                <Button
+                  key={i}
+                  variant={usersPagination.pageNumber === i ? "default" : "outline"}
+                  className="h-8 w-8 p-0"
+                  onClick={() => handleUsersPageChange(i)}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={handleNext}
+                disabled={usersPagination.pageNumber === usersPagination.totalPages - 1}
+              >
+                <span className="sr-only">Go to next page</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const UsersTable = () => {
+    const formatRoles = (roles) => {
+      if (!roles || roles.length === 0) return "No roles";
+      return roles.map(role => role.replace(/_/g, " ")).join(", ");
+    };
+
+    const getRoleBadgeColor = (role) => {
+      if (role.includes("ADMIN")) return "bg-purple-100 text-purple-800 border-purple-200";
+      if (role.includes("MANAGER")) return "bg-blue-100 text-blue-800 border-blue-200";
+      if (role.includes("STAFF")) return "bg-green-100 text-green-800 border-green-200";
+      return "bg-gray-100 text-gray-800 border-gray-200";
+    };
+
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5 text-blue-500" />
+            Users Management
+          </CardTitle>
+          <CardDescription>
+            View and manage all system users
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingUsers ? (
+            <div className="flex justify-center items-center py-8">
+              <SimpleSpinner size={24} text="Loading users..." />
+            </div>
+          ) : users.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No users found</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Roles</TableHead>
+                  <TableHead>Hotel IDs</TableHead>
+                  <TableHead>Details</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-shrink-0 h-10 w-10">
+                          {user.profilePicUrl ? (
+                            <img
+                              className="h-10 w-10 rounded-full object-cover"
+                              src={user.profilePicUrl}
+                              alt={user.name || "User"}
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                              <User className="h-5 w-5 text-gray-500" />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium">
+                            {user.name || "Unknown User"}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            ID: {user.id}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div className="flex items-center gap-1 mb-1">
+                          <Mail className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-sm font-medium">
+                            {user.email || "No email"}
+                          </span>
+                        </div>
+                        {user.phone && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Phone className="h-3 w-3" />
+                            {user.phone}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {user.roles && user.roles.length > 0 ? (
+                          user.roles.map((role, index) => (
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className={`text-xs ${getRoleBadgeColor(role)}`}
+                            >
+                              {role.replace(/_/g, " ")}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-xs text-muted-foreground">No roles</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {user.hotelId && (
+                          <div className="mb-1">
+                            <span className="text-xs text-muted-foreground">Primary: </span>
+                            <Badge variant="outline" className="text-xs">
+                              {user.hotelId}
+                            </Badge>
+                          </div>
+                        )}
+                        {user.hotelIds && user.hotelIds.length > 0 && (
+                          <div>
+                            <span className="text-xs text-muted-foreground">All: </span>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {user.hotelIds.map((hotelId, index) => (
+                                <Badge key={index} variant="outline" className="text-xs">
+                                  {hotelId}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {(!user.hotelId && (!user.hotelIds || user.hotelIds.length === 0)) && (
+                          <span className="text-xs text-muted-foreground">N/A</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={user.detailSet ? "default" : "secondary"}>
+                        {user.detailSet ? "Complete" : "Incomplete"}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+        {users.length > 0 && <UsersPaginationControls />}
+      </Card>
+    );
+  };
+
   const SubscriptionsTable = () => {
     const getStatusBadge = (subscription) => {
       if (subscription.isExpired || subscription.expired) {
@@ -4004,6 +4275,7 @@ const SuperAdmin = () => {
             HotelTable={HotelTableWithPagination}
             AllNotificationsTable={AllNotificationsTable}
             SubscriptionsTable={SubscriptionsTable}
+            UsersTable={UsersTable}
           />
         )}
 
