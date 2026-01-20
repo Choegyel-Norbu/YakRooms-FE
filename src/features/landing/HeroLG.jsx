@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { cn } from "@/shared/utils";
 import { DEFAULT_NEARBY_RADIUS } from "@/shared/constants/nearbySearch";
 const EzeeroomHero = "/images/erHero.webp";
@@ -18,18 +17,6 @@ const HeroLG = () => {
   const [searchError, setSearchError] = useState("");
   const [isFindingLocation, setIsFindingLocation] = useState(false);
   const navigate = useNavigate();
-
-  // Simple fade-in animation for header and description
-  const fadeInVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 1.5,
-        ease: [0.16, 1, 0.3, 1],
-      },
-    },
-  };
 
   const validateAndSearch = () => {
     setSearchError("");
@@ -150,15 +137,12 @@ const HeroLG = () => {
       <div className="relative z-10 flex w-full max-w-4xl flex-col items-center justify-center space-y-4 sm:space-y-6 lg:space-y-8 text-center">
         {/* Header Section */}
         <div className="space-y-1.5 sm:space-y-2">
-          <motion.h1 
+          <h1 
             className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight px-2"
             style={{
               color: '#ffffff',
               textShadow: '2px 2px 8px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 0, 0, 0.25)',
             }}
-            variants={fadeInVariants}
-            initial="hidden"
-            animate="visible"
           >
             Discover Authentic Stays in
             <span 
@@ -169,21 +153,18 @@ const HeroLG = () => {
             >
               Bhutan with EzeeRoom
             </span>
-          </motion.h1>
+          </h1>
 
-          <motion.p 
+          <p 
             className="mx-auto max-w-2xl text-sm px-3 sm:px-4"
             style={{
               color: '#ffffff',
               textShadow: '1px 1px 4px rgba(0, 0, 0, 0.4), 0 0 10px rgba(0, 0, 0, 0.25)',
             }}
-            variants={fadeInVariants}
-            initial="hidden"
-            animate="visible"
           >
             Find your perfect stay anywhere in the country. 
             Discover authentic accommodations in unfamiliar destinations with confidence and ease.
-          </motion.p>
+          </p>
         </div>
 
         <Separator 
