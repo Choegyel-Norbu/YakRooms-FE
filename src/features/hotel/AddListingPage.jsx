@@ -897,7 +897,7 @@ const AddListingPage = () => {
 
             {step === 2 && (
               <div className="space-y-8">
-                {/* Section Header */}
+                {/* Section Header
                 <div className="text-center">
                   <h2 className="text-xl font-semibold text-foreground mb-2 font-sans">
                     Business Information
@@ -905,7 +905,7 @@ const AddListingPage = () => {
                   <p className="text-muted-foreground text-sm font-sans">
                     Provide comprehensive details about your {listingType}
                   </p>
-                </div>
+                </div> */}
 
                 {/* 1. Basic Business Information */}
                 <Card>
@@ -927,7 +927,7 @@ const AddListingPage = () => {
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        className={`w-full ${errors.name ? "border-destructive" : ""}`}
+                        className={`w-full placeholder:text-sm ${errors.name ? "border-destructive" : ""}`}
                         placeholder="Enter your business name"
                       />
                       {errors.name && (
@@ -945,7 +945,7 @@ const AddListingPage = () => {
                         value={formData.description}
                         onChange={handleChange}
                         rows={4}
-                        className={`w-full ${errors.description ? "border-destructive" : ""}`}
+                        className={`w-full placeholder:text-sm ${errors.description ? "border-destructive" : ""}`}
                         placeholder="Describe your business, services, and what makes it unique..."
                       />
                       {errors.description && (
@@ -978,7 +978,7 @@ const AddListingPage = () => {
                           type="tel"
                           value={formData.phone}
                           onChange={handleChange}
-                          className={`w-full pl-10 ${errors.phone ? "border-destructive" : ""}`}
+                          className={`w-full pl-10 placeholder:text-sm ${errors.phone ? "border-destructive" : ""}`}
                           placeholder="Enter your contact number"
                         />
                       </div>
@@ -1076,7 +1076,7 @@ const AddListingPage = () => {
                           name="address"
                           value={formData.address}
                           onChange={handleChange}
-                          className="w-full pl-10"
+                          className="w-full pl-10 placeholder:text-sm"
                           placeholder="Enter street address, building name, or landmarks"
                         />
                       </div>
@@ -1170,7 +1170,7 @@ const AddListingPage = () => {
                           value={formData.latitude}
                           onChange={handleCoordinateChange}
                           placeholder="e.g., 27.4728"
-                          className={`w-full ${formData.latitude ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : ""}`}
+                          className={`w-full placeholder:text-sm ${formData.latitude ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : ""}`}
                         />
                       </div>
 
@@ -1187,7 +1187,7 @@ const AddListingPage = () => {
                           value={formData.longitude}
                           onChange={handleCoordinateChange}
                           placeholder="e.g., 89.6386"
-                          className={`w-full ${formData.longitude ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : ""}`}
+                          className={`w-full placeholder:text-sm ${formData.longitude ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : ""}`}
                         />
                       </div>
                     </div>
@@ -1539,7 +1539,7 @@ const AddListingPage = () => {
                               onChange={handleChange}
                               rows={4}
                               placeholder="e.g., Free cancellation up to 24 hours before check-in. Cancellations made within 24 hours of check-in will be charged 50% of the total booking amount. No-shows will be charged the full amount."
-                              className={`text-sm ${errors.cancellationPolicy ? "border-destructive" : ""}`}
+                              className={`text-sm placeholder:text-sm ${errors.cancellationPolicy ? "border-destructive" : ""}`}
                             />
                             <div className="text-xs sm:text-sm text-muted-foreground space-y-2">
                               <p className="font-medium">Tips for writing effective policies:</p>
@@ -1674,7 +1674,7 @@ const AddListingPage = () => {
                           value={formData.accountHolderName}
                           onChange={handleChange}
                           placeholder="Enter account holder name"
-                          className={`w-full ${errors.accountHolderName ? "border-destructive" : ""}`}
+                          className={`w-full placeholder:text-sm ${errors.accountHolderName ? "border-destructive" : ""}`}
                         />
                         {errors.accountHolderName && (
                           <p className="text-destructive text-sm">{errors.accountHolderName}</p>
@@ -1694,7 +1694,7 @@ const AddListingPage = () => {
                           value={formData.accountNumber}
                           onChange={handleChange}
                           placeholder="Enter account number"
-                          className={`w-full ${errors.accountNumber ? "border-destructive" : ""}`}
+                          className={`w-full placeholder:text-sm ${errors.accountNumber ? "border-destructive" : ""}`}
                         />
                         {errors.accountNumber && (
                           <p className="text-destructive text-sm">{errors.accountNumber}</p>
@@ -1884,6 +1884,7 @@ const AddListingPage = () => {
                       onChange={handleChange}
                       rows={3}
                       placeholder="Any additional information about your business..."
+                      className="placeholder:text-sm"
                     />
                   </div>
                 </div>
