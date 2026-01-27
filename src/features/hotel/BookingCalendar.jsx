@@ -458,7 +458,8 @@ const BookingCalendar = ({ hotelId }) => {
                   {dayNames.map(day => (
                     <div 
                       key={day} 
-                      className="text-center text-[10px] md:text-xs font-bold text-white bg-black rounded-lg shadow-sm py-1.5 md:py-3 uppercase tracking-wide"
+                      className="text-center text-xs md:text-sm font-bold text-white py-2 md:py-3 uppercase tracking-wide"
+                      style={{ backgroundColor: '#7B7F85' }}
                     >
                       {day}
                     </div>
