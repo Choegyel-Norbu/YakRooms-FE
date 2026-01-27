@@ -138,7 +138,7 @@ const HeroLG = () => {
         {/* Header Section */}
         <div className="space-y-1.5 sm:space-y-2">
           <h1 
-            className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight px-2"
+            className="text-3xl sm:text-3xl lg:text-4xl font-semibold tracking-tight px-2"
             style={{
               color: '#ffffff',
               textShadow: '2px 2px 8px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 0, 0, 0.25)',
@@ -156,7 +156,7 @@ const HeroLG = () => {
           </h1>
 
           <p 
-            className="mx-auto max-w-2xl text-sm px-3 sm:px-4"
+            className="mx-auto max-w-2xl text-base sm:text-sm px-3 sm:px-4"
             style={{
               color: '#ffffff',
               textShadow: '1px 1px 4px rgba(0, 0, 0, 0.4), 0 0 10px rgba(0, 0, 0, 0.25)',
@@ -174,40 +174,6 @@ const HeroLG = () => {
           }}
         />
 
-        {/* Features Section */}
-        <div className="grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3 hidden sm:grid">
-          <div 
-            className="flex items-center justify-center space-x-2 text-sm"
-            style={{
-              color: '#ffffff',
-              textShadow: '1px 1px 3px rgba(0, 0, 0, 0.4)',
-            }}
-          >
-            <Clock className="h-4 w-4" />
-            <span>Real-time availability</span>
-          </div>
-          <div 
-            className="flex items-center justify-center space-x-2 text-sm"
-            style={{
-              color: '#ffffff',
-              textShadow: '1px 1px 3px rgba(0, 0, 0, 0.4)',
-            }}
-          >
-            <Shield className="h-4 w-4" />
-            <span>Verified accommodations</span>
-          </div>
-          <div 
-            className="flex items-center justify-center space-x-2 text-sm"
-            style={{
-              color: '#ffffff',
-              textShadow: '1px 1px 3px rgba(0, 0, 0, 0.4)',
-            }}
-          >
-            <MapPin className="h-4 w-4" />
-            <span>Local recommendations</span>
-          </div>
-        </div>
-
         {/* Search Section (NEW) */}
         <div 
           className="w-full max-w-3xl px-2 sm:px-0"
@@ -222,7 +188,7 @@ const HeroLG = () => {
                   type="text"
                   placeholder="Where do you want to go? (e.g., Thimphu, Paro)"
                   className={cn(
-                    "h-10 sm:h-12 pl-10 sm:pl-11 pr-3 sm:pr-4 w-full rounded-2xl text-sm sm:text-base",
+                    "h-10 sm:h-12 pl-10 sm:pl-11 pr-3 sm:pr-4 w-full rounded-2xl text-base sm:text-base",
                     "bg-white/10 text-white placeholder:text-gray-300",
                     "border-transparent focus:border-white/30 focus:bg-white/20",
                     "focus:ring-0",
@@ -239,7 +205,7 @@ const HeroLG = () => {
               
               <Button
                 className={cn(
-                  "h-10 sm:h-12 w-10 sm:w-12 lg:w-auto px-0 sm:px-6 lg:px-8 rounded-2xl sm:rounded-3xl font-bold text-sm sm:text-base tracking-wide flex items-center justify-center",
+                  "h-10 sm:h-12 w-10 sm:w-12 lg:w-auto px-0 sm:px-6 lg:px-8 rounded-2xl sm:rounded-3xl font-bold text-base sm:text-base tracking-wide flex items-center justify-center",
                   "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600",
                   "text-white shadow-lg hover:shadow-yellow-500/25"
                 )}
@@ -257,13 +223,13 @@ const HeroLG = () => {
               className="mt-3 flex items-center justify-center gap-2 text-red-300 bg-red-900/30 py-2 px-4 rounded-lg backdrop-blur-sm border border-red-500/30 mx-auto w-fit"
             >
               <span className="text-lg">⚠</span>
-              <span className="text-sm font-medium">{searchError}</span>
+              <span className="text-base font-medium">{searchError}</span>
             </div>
           )}
 
           {/* Popular Destinations */}
           <div className="mt-4 sm:mt-6 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 px-2">
-            <span className="text-xs sm:text-sm font-medium text-white/70 mr-1 sm:mr-2">Popular:</span>
+            <span className="text-sm sm:text-sm font-medium text-white/70 mr-1 sm:mr-2">Popular:</span>
             {['Mongar', 'Trashigang', 'Thimphu', 'Punakha'].map((district) => (
               <button
                 key={district}
@@ -271,7 +237,7 @@ const HeroLG = () => {
                   setSearchDistrict(district);
                   setSearchError("");
                 }}
-                className="px-4 py-1.5 text-xs sm:text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-full transition-all duration-200 border border-white/10 hover:border-white/30 backdrop-blur-sm"
+                className="px-4 py-1.5 text-sm sm:text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-full transition-all duration-200 border border-white/10 hover:border-white/30 backdrop-blur-sm"
               >
                 {district}
               </button>
@@ -289,7 +255,7 @@ const HeroLG = () => {
         {/* Call to Action */}
         <div className="space-y-3 sm:space-y-4 px-2">
           <p
-            className="text-xs sm:text-sm"
+            className="text-sm sm:text-sm"
             style={{
               color: "#ffffff",
               textShadow: "1px 1px 4px rgba(0, 0, 0, 0.4)",
@@ -301,7 +267,7 @@ const HeroLG = () => {
             <Button
               type="button"
               onClick={handleStartExploring}
-              className="px-5 sm:px-7 py-3 sm:py-5 text-xs sm:text-sm font-semibold rounded-full bg-white/95 text-slate-900 border border-white/80 shadow-md shadow-black/25 transition-all duration-200 hover:bg-transparent hover:text-white hover:border-white hover:shadow-lg hover:-translate-y-0.5"
+              className="px-5 sm:px-7 py-3 sm:py-5 text-sm sm:text-sm font-semibold rounded-full bg-white/95 text-slate-900 border border-white/80 shadow-md shadow-black/25 transition-all duration-200 hover:bg-transparent hover:text-white hover:border-white hover:shadow-lg hover:-translate-y-0.5"
             >
               Start Exploring
             </Button>
