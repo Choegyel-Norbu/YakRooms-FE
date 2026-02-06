@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Card,
@@ -10,6 +10,10 @@ import {
 import { Button } from '@/shared/components/button';
 import { Separator } from '@/shared/components/separator';
 import { Badge } from '@/shared/components/badge';
+import {
+  Dialog,
+  DialogContent,
+} from '@/shared/components/dialog';
 import { 
   Building2, 
   Users, 
@@ -25,8 +29,22 @@ import {
 import { EzeeRoomLogo } from "@/shared/components";
 
 const AboutUs = () => {
+  const [fullImage, setFullImage] = useState({ src: null, alt: '' });
+
   return (
     <div className="min-h-screen mb-10">
+      <Dialog open={!!fullImage.src} onOpenChange={(open) => !open && setFullImage({ src: null, alt: '' })}>
+        <DialogContent className="max-w-4xl w-[calc(100%-2rem)] p-2 overflow-hidden">
+          {fullImage.src && (
+            <img
+              src={fullImage.src}
+              alt={fullImage.alt}
+              className="w-full h-auto max-h-[85vh] object-contain rounded-md"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Modern Header */}
       <div className="relative  border-b border-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -181,14 +199,19 @@ const AboutUs = () => {
             {/* Chogyal Norbu */}
             <div className="text-center">
               <CardHeader>
-                <div className="mx-auto w-20 h-20 rounded-full overflow-hidden mb-4">
+                <button
+                  type="button"
+                  onClick={() => setFullImage({ src: '/images/chogyal.jpeg', alt: 'Chogyal Norbu' })}
+                  className="mx-auto w-20 h-20 rounded-full overflow-hidden mb-4 block cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full"
+                  aria-label="View full size photo of Chogyal Norbu"
+                >
                   <img 
-                    src="https://images.ecency.com/DQmVm8Gt2bwhX1B4iB9WiXbWMCLv69Ks3LdDNfoQ9DUKZt9/images_4_.jpeg" 
+                    src="/images/chogyal.jpeg" 
                     alt="Chogyal Norbu" 
                     loading="lazy"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
-                </div>
+                </button>
                 <CardTitle className="text-xl">Chogyal Norbu</CardTitle>
                 <CardDescription>Co-Founder & Developer</CardDescription>
               </CardHeader>
@@ -205,14 +228,19 @@ const AboutUs = () => {
               {/* Zepa Dorji */}
               <div className="text-center m-2">
                 <CardHeader>
-                  <div className="mx-auto w-20 h-20 rounded-full overflow-hidden mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setFullImage({ src: '/images/zepa1.jpeg', alt: 'Zepa Dorji' })}
+                    className="mx-auto w-20 h-20 rounded-full overflow-hidden mb-4 block cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full"
+                    aria-label="View full size photo of Zepa Dorji"
+                  >
                     <img 
                       src="/images/zepa1.jpeg" 
                       alt="Zepa Dorji" 
                       loading="lazy"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
-                  </div>
+                  </button>
                   <CardTitle className="text-xl">Zepa Dorji</CardTitle>
                   <CardDescription>Co-Founder & Quality Assurance</CardDescription>
                 </CardHeader>
