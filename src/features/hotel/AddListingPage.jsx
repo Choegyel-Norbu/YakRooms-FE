@@ -1808,7 +1808,7 @@ const AddListingPage = () => {
                     Verification Documents
                   </h2>
                   <p className="text-muted-foreground text-sm font-sans">
-                    Upload required documents for verification. Your listing will be reviewed within 2-3 business days.
+                    Upload required documents for verification. Your listing will be reviewed within 24 hours.
                   </p>
                 </div>
 

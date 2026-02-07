@@ -178,7 +178,7 @@ const HeroLG = () => {
         <div 
           className="w-full max-w-3xl px-2 sm:px-0"
         >
-          <div className="relative rounded-3xl bg-white/10 p-2 backdrop-blur-md border border-white/20 shadow-2xl ring-1 ring-black/5">
+          <div className="relative rounded-3xl bg-white/10 p-2 backdrop-blur-md border border-white/20 shadow-2xl ring-1 ring-[#050203]/5">
             <div className="flex flex-row gap-2">
               <div className="relative flex-1 group">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 sm:pl-4 pointer-events-none">
@@ -267,7 +267,7 @@ const HeroLG = () => {
             <Button
               type="button"
               onClick={handleStartExploring}
-              className="px-5 sm:px-7 py-3 sm:py-5 text-sm sm:text-sm font-semibold rounded-full bg-white/95 text-slate-900 border border-white/80 shadow-md shadow-black/25 transition-all duration-200 hover:bg-transparent hover:text-white hover:border-white hover:shadow-lg hover:-translate-y-0.5"
+              className="px-5 sm:px-7 py-3 sm:py-5 text-sm sm:text-sm font-semibold rounded-full bg-white/95 text-slate-900 border border-white/80 shadow-md shadow-[#050203]/25 transition-all duration-200 hover:bg-transparent hover:text-white hover:border-white hover:shadow-lg hover:-translate-y-0.5"
             >
               Start Exploring
             </Button>
@@ -275,7 +275,7 @@ const HeroLG = () => {
               type="button"
               onClick={handleSearchNearby}
               disabled={isFindingLocation}
-              className="px-5 sm:px-7 py-3 sm:py-5 text-xs sm:text-sm font-semibold rounded-full bg-white/95 text-slate-900 border border-white/80 shadow-md shadow-black/25 transition-all duration-200 hover:bg-transparent hover:text-white hover:border-white hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              className="px-5 sm:px-7 py-3 sm:py-5 text-sm font-semibold rounded-full bg-white/95 text-slate-900 border border-white/80 shadow-md shadow-black/25 transition-all duration-200 hover:bg-transparent hover:text-white hover:border-white hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
               {isFindingLocation ? (
                 <>
