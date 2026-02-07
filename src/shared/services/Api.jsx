@@ -116,10 +116,14 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       
       // Clear auth state and redirect to login
+      // Use the React-based logout if available; avoid window.location.href
+      // which causes a full page reload and can create an infinite redirect loop
+      // if the auth state is still invalid after reload.
       if (window.authLogout) {
         window.authLogout();
       } else {
-        window.location.href = '/';
+        // Fallback: clear auth data without a full reload to prevent loops
+        try { authService.clearAuthData(); } catch (_) { /* silent */ }
       }
       
       return Promise.reject(error);
@@ -127,15 +131,18 @@ api.interceptors.response.use(
 
     // Handle 403 Forbidden
     if (error.response?.status === 403) {
-      // For 403, clear auth data
+      // Clear auth data
       try {
         authService.clearAuthData();
       } catch (clearError) {
         // Silent fail
       }
       
-      // Redirect to login page
-      window.location.href = '/';
+      // Use React-based logout/navigation instead of window.location.href
+      // to prevent infinite redirect loops when API consistently returns 403
+      if (window.authLogout) {
+        window.authLogout();
+      }
       
       return Promise.reject(error);
     }
