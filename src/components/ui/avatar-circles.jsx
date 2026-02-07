@@ -41,7 +41,7 @@ const AvatarCircles = ({
       ))}
       {hasMore && (
         <div
-          className="flex h-7 w-7 min-w-[28px] items-center justify-center rounded-full border border-gray-300 bg-white text-center text-[11px] font-medium text-black hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white cursor-default"
+          className="flex h-7 w-7 min-w-[28px] items-center justify-center rounded-full border border-gray-300 bg-white text-center text-[11px] font-medium text-[#050203] hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white cursor-default"
           title="More reviews available"
         >
           3+

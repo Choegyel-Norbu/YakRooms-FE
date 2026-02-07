@@ -951,7 +951,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
 
                         {hotel.tiktokUrl && (
                           <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-950/20 rounded-lg border border-gray-200 dark:border-gray-800">
-                            <div className="w-8 h-8 rounded-full bg-black dark:bg-white flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-[#050203] dark:bg-white flex items-center justify-center">
                               <TikTokIcon className="h-4 w-4 text-white dark:text-black" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -1047,7 +1047,7 @@ const HotelInfoForm = ({ hotel, onUpdate }) => {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="flex items-center gap-2">
-                              <div className="w-5 h-5 rounded-full bg-black dark:bg-white flex items-center justify-center">
+                              <div className="w-5 h-5 rounded-full bg-[#050203] dark:bg-white flex items-center justify-center">
                                 <TikTokIcon className="h-3 w-3 text-white dark:text-black" />
                               </div>
                               TikTok Profile URL

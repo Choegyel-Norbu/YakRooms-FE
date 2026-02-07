@@ -13,7 +13,7 @@ export default function UnauthorizedPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+    <div className="min-h-screen text-white flex items-center justify-center p-4" style={{ backgroundColor: '#050203' }}>
       <div className="w-full max-w-md">
         <Card className="border-zinc-800 bg-zinc-950">
           <CardContent className="pt-6">

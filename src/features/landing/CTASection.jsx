@@ -38,7 +38,8 @@ const CTASection = () => {
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               size="lg"
-              className="rounded-full px-8 py-6 shadow-md hover:shadow-lg bg-black text-white hover:bg-gray-800" // Changed to black background, white text
+              className="rounded-full px-8 py-6 shadow-md hover:shadow-lg text-white hover:bg-gray-800" // Changed to deep black background, white text
+              style={{ backgroundColor: '#050203' }}
             >
               Explore Hotels
             </Button>
@@ -48,7 +49,8 @@ const CTASection = () => {
             <Button
               size="lg"
               variant="outline" // Shadcn outlined variant
-              className="rounded-full px-8 py-6 border-2 border-black text-black hover:bg-gray-100" // Changed to black border, black text, white hover
+              className="rounded-full px-8 py-6 border-2 hover:bg-gray-100" // Changed to deep black border, deep black text, white hover
+              style={{ borderColor: '#050203', color: '#050203' }}
             >
               View Restaurants
             </Button>

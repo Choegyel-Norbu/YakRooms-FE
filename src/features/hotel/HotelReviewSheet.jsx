@@ -160,7 +160,7 @@ const HotelReviewSheet = ({
       {/* Backdrop */}
       <div
         className={cn(
-          "fixed inset-0 bg-black/50 transition-all duration-500 ease-in-out z-40 backdrop",
+          "fixed inset-0 bg-[#050203]/50 transition-all duration-500 ease-in-out z-40 backdrop",
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       />

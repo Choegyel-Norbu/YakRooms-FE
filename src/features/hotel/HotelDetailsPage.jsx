@@ -261,7 +261,7 @@ const RoomImageCarousel = ({ images, roomNumber, roomType, isActive }) => {
         )}
 
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050203]/20 via-transparent to-transparent" />
 
         {/* Navigation Arrows - Only show if multiple images */}
         {images.length > 1 && (
@@ -305,7 +305,7 @@ const RoomImageCarousel = ({ images, roomNumber, roomType, isActive }) => {
 
         {/* Image Counter */}
         {images.length > 1 && (
-          <div className="absolute top-3 right-3 bg-black/60 text-white px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
+          <div className="absolute top-3 right-3 bg-[#050203]/60 text-white px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
             {currentImageIndex + 1} / {images.length}
           </div>
         )}
@@ -1033,7 +1033,7 @@ const HotelDetailsPage = () => {
                 className="h-full w-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105"
                 onClick={() => setUiState(prev => ({ ...prev, showImageModal: true }))}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#050203]/40 via-transparent to-transparent" />
 
               {/* Image Navigation */}
               {transformedHotel.images.length > 1 && (
@@ -1074,12 +1074,12 @@ const HotelDetailsPage = () => {
               </div>
 
               {/* Hotel Type Badge */}
-              <div className="absolute top-3 sm:top-4 left-3 sm:left-4 bg-white text-black px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium shadow-lg border border-gray-200">
+              <div className="absolute top-3 sm:top-4 left-3 sm:left-4 bg-white text-[#050203] px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium shadow-lg border border-gray-200">
                 {(transformedHotel.hotelType || "Hotel").replace(/_/g, " ")}
               </div>
 
               {/* Image Counter */}
-              <div className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-black/50 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
+              <div className="absolute top-3 sm:top-4 right-3 sm:right-4 bg-[#050203]/50 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
                 {uiState.currentImageIndex + 1} / {transformedHotel.images.length}
               </div>
             </div>
@@ -1805,7 +1805,7 @@ const HotelDetailsPage = () => {
 
       {/* Room Image Modal */}
       {roomImageModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#050203]/80 backdrop-blur-sm">
           <div className="relative bg-white shadow-2xl overflow-hidden max-w-[95vw] max-h-[90vh]">
             {/* Close Button */}
             <button

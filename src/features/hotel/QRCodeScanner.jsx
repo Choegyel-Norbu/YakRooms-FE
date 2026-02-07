@@ -494,7 +494,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
 
         {/* Camera Mode - Only on mobile devices */}
         {scanMode === 'camera' && isMobile && (
-          <div className="relative bg-black rounded-lg overflow-hidden aspect-square">
+          <div className="relative bg-[#050203] rounded-lg overflow-hidden aspect-square">
             {/* Video element for camera feed */}
             <video
               ref={videoRef}
@@ -509,7 +509,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
                 {/* Camera viewfinder overlay */}
                 <div className="absolute inset-0 pointer-events-none">
                   {/* Dark overlay with cutout for scanning area */}
-                  <div className="absolute inset-0 bg-black bg-opacity-60">
+                  <div className="absolute inset-0 bg-[#050203] bg-opacity-60">
                     {/* Cutout area - larger scanning zone */}
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64">
                       <div className="w-full h-full border-2 border-transparent relative">
@@ -550,7 +550,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
                 
                 {/* Status overlay at bottom */}
                 <div className="absolute bottom-4 left-4 right-4">
-                  <div className="bg-black bg-opacity-70 text-white text-center py-2 px-4 rounded-lg">
+                  <div className="bg-[#050203] bg-opacity-70 text-white text-center py-2 px-4 rounded-lg">
                     <div className="flex items-center justify-center gap-2 mb-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                       <span className="text-sm font-medium">Scanning Active</span>
@@ -657,7 +657,7 @@ const QRCodeScanner = ({ onScanSuccess, isActive }) => {
                     className="w-full h-full object-contain rounded-lg"
                   />
                   {processingUpload && (
-                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                    <div className="absolute inset-0 bg-[#050203] bg-opacity-50 flex items-center justify-center rounded-lg">
                       <div className="text-white text-center">
                         <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
                         <p className="text-sm">Processing...</p>

@@ -197,7 +197,7 @@ const Landing = () => {
 
   return (
     <>
-      <div className=" relative bg-white text-black dark:text-white">
+      <div className=" relative bg-white text-[#050203] dark:text-white">
         {/* Navigation */}
         <div className="pr-0 sm:pr-0">
           <Navbar 

@@ -184,7 +184,7 @@ const ListYourPropertySection = ({ onLoginClick }) => {
                       // User is not authenticated
                       <Button 
                         size="lg" 
-                        className="w-full sm:w-[60%] mx-auto flex bg-black hover:bg-gray-800 text-white rounded-full cursor-pointer hover:scale-105 transition-transform duration-200"
+                        className="w-full sm:w-[60%] mx-auto flex bg-[#050203] hover:bg-gray-800 text-white rounded-full cursor-pointer hover:scale-105 transition-transform duration-200"
                         onClick={handleListPropertyClick}
                       >
                         <span>List Your Property Today</span>

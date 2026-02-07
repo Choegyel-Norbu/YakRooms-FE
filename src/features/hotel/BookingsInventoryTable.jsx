@@ -570,7 +570,7 @@ const BookingsInventoryTable = ({ hotelId }) => {
                     </TableCell>
 
                     {/* Price */}
-                    <TableCell className="font-medium text-black">
+                    <TableCell className="font-medium text-[#050203]">
                       {formatCurrency(booking.totalPrice)}
                     </TableCell>
 

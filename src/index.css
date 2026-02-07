@@ -9,7 +9,7 @@
   --color-primary-dark: oklch(0.45 0.13 256.57); /* #0369a1 → Darker blue */
   --color-primary-light: oklch(0.85 0.08 256.57); /* #7dd3fc → Lighter blue */
 
-  --color-heading: oklch(0% 0 0); /* Black */
+  --color-heading: #050203; /* Deep Black */
   --color-sub-heading: oklch(62.47% 0.019 264.85); /* Gray */
   --color-text: oklch(29.24% 0.004 259.36); /* Dark gray */
 
@@ -369,7 +369,7 @@
   }
   body {
     background: white !important;
-    color: black !important;
+    color: #050203 !important;
   }
 }
 

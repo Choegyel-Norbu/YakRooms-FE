@@ -296,7 +296,7 @@ const GoogleMapsModal = ({ booking, isOpen, onClose }) => {
   if (!isOpen || !booking) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 animate-in fade-in-0 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-[#050203]/50 animate-in fade-in-0 flex items-center justify-center p-4 z-50">
       <div className="bg-background rounded-lg max-w-md w-full border animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
@@ -1047,7 +1047,7 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
   const minDate = getMinCheckOutDate();
 
   return (
-    <div className="fixed inset-0 bg-black/50 animate-in fade-in-0 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-[#050203]/50 animate-in fade-in-0 flex items-center justify-center p-4 z-50">
       <div className="bg-background rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto border animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
@@ -1332,7 +1332,7 @@ const ExtendBookingModal = ({ booking, isOpen, onClose, onExtend }) => {
       {/* Payment Redirect Dialog */}
       <Dialog open={openPaymentRedirectDialog} onOpenChange={() => {}}>
         <DialogPortal>
-          <DialogOverlay className="bg-black/30" />
+          <DialogOverlay className="bg-[#050203]/30" />
           <DialogPrimitive.Content
             className={cn(
               "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-md"
@@ -1684,7 +1684,7 @@ const BookingCard = ({
               </div>
               
               <div className="space-y-3">
-                <p className="text-sm text-black">
+                <p className="text-sm text-[#050203]">
                   Your cancellation request has been approved. Your booking has been cancelled.
                 </p>
                 
@@ -1693,13 +1693,13 @@ const BookingCard = ({
                   <div className="flex items-start gap-2">
                     <div className="w-1 h-1 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
                       <div className="text-xs text-green-700">
-                        <p className="text-xs text-black">
+                        <p className="text-xs text-[#050203]">
                           Please contact the hotel owner directly to claim your refund.
                         </p>
                         {booking.hotelPhone && (
                           <div className="mt-2 flex items-center gap-2">
                             <Phone size={12} className="text-green-600" />
-                            <span className="text-xs text-black font-medium">
+                            <span className="text-xs text-[#050203] font-medium">
                               Contact: {booking.hotelPhone}
                             </span>
                           </div>

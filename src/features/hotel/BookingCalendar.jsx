@@ -56,8 +56,9 @@ const BookingCalendar = ({ hotelId }) => {
     "July", "August", "September", "October", "November", "December"
   ];
 
-  // Day names
+  // Day names (full for desktop, single letter for mobile)
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const dayNamesShort = ["S", "M", "T", "W", "T", "F", "S"];
 
   // Fetch rooms for the hotel
   useEffect(() => {
@@ -453,15 +454,15 @@ const BookingCalendar = ({ hotelId }) => {
             <>
               {/* Calendar Grid */}
               <div className="space-y-3 w-full md:w-[90%] md:mx-auto">
-                {/* Day headers - Styled as gradient buttons */}
+                {/* Day headers - no background; single letter on mobile, full name on desktop */}
                 <div className="grid grid-cols-7 gap-1 md:gap-2 mb-2 md:mb-3">
-                  {dayNames.map(day => (
-                    <div 
-                      key={day} 
-                      className="text-center text-xs md:text-sm font-bold text-white py-2 md:py-3 uppercase tracking-wide"
-                      style={{ backgroundColor: '#7B7F85' }}
+                  {dayNames.map((day, i) => (
+                    <div
+                      key={day}
+                      className="text-center text-xs md:text-sm font-bold text-muted-foreground py-2 md:py-3 uppercase tracking-wide"
                     >
-                      {day}
+                      <span className="md:hidden">{dayNamesShort[i]}</span>
+                      <span className="hidden md:inline">{day}</span>
                     </div>
                   ))}
                 </div>

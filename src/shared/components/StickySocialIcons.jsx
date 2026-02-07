@@ -25,8 +25,8 @@ const StickySocialIcons = () => {
       name: "TikTok",
       icon: TikTokIcon,
       url: "https://www.tiktok.com/@ezeeroom?_t=ZS-90GXYrhhzYW&_r=1",
-      iconColor: "text-black dark:text-white",
-      hoverColor: "hover:text-black dark:hover:text-white",
+      iconColor: "text-[#050203] dark:text-white",
+      hoverColor: "hover:text-[#050203] dark:hover:text-white",
       bgColor: "hover:bg-gray-100 dark:hover:bg-gray-800",
     },
   ];

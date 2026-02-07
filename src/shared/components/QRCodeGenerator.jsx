@@ -51,7 +51,7 @@ const QRCodeGenerator = ({ isOpen, onClose, bookingData }) => {
         width: 256,
         margin: 2,
         color: {
-          dark: '#000000',
+          dark: '#050203',
           light: '#FFFFFF'
         },
         errorCorrectionLevel: 'M'

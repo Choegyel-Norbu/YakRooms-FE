@@ -22,7 +22,7 @@ function LeaveManagementTabs({
   return (
     <div className="mb-6">
       <ScrollArea>
-        <div className="flex h-auto -space-x-px bg-background p-0 shadow-sm shadow-black/5 rtl:space-x-reverse rounded-lg">
+        <div className="flex h-auto -space-x-px bg-background p-0 shadow-sm shadow-[#050203]/5 rtl:space-x-reverse rounded-lg">
           {showBasicLeavesTab && (
             <button
               onClick={() => setActiveTab("requests")}
