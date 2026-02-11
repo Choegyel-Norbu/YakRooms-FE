@@ -130,20 +130,12 @@ api.interceptors.response.use(
     }
 
     // Handle 403 Forbidden
+    // NOTE: 403 means "authenticated but not authorized" — the session IS valid,
+    // the user just lacks permission for this specific resource.
+    // We do NOT logout here. Only 401 (invalid/expired session) triggers logout.
+    // Individual services/components should handle 403 contextually
+    // (e.g., show "access denied", redirect to subscription page, etc.)
     if (error.response?.status === 403) {
-      // Clear auth data
-      try {
-        authService.clearAuthData();
-      } catch (clearError) {
-        // Silent fail
-      }
-      
-      // Use React-based logout/navigation instead of window.location.href
-      // to prevent infinite redirect loops when API consistently returns 403
-      if (window.authLogout) {
-        window.authLogout();
-      }
-      
       return Promise.reject(error);
     }
 

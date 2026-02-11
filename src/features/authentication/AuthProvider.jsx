@@ -392,8 +392,9 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       // Don't clear auth state for subscription errors, just handle silently
-      if (error.response?.status === 404) {
-        // No subscription found for this hotel - this is normal
+      if (error.response?.status === 404 || error.response?.status === 403) {
+        // 404: No subscription found for this hotel - normal for new hotels
+        // 403: User doesn't have permission to view subscriptions yet - normal for freshly created hotels
       }
       
       return null;
