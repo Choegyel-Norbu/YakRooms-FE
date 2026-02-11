@@ -16,7 +16,7 @@ import { getStorageItem, setStorageItem, removeStorageItem } from "@/shared/util
 
 const AccountDeletionPage = () => {
   const navigate = useNavigate();
-  const { userId, hotelId, selectedHotelId, userName } = useAuth();
+  const { userId, hotelId, selectedHotelId, userName, setRoles, setActiveRole } = useAuth();
   const [selectedReason, setSelectedReason] = useState("");
   const [customReason, setCustomReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -181,6 +181,14 @@ const AccountDeletionPage = () => {
               setStorageItem('hotelId', updatedHotelIds[0].toString());
             }
           }
+
+          // User still has hotels; keep HOTEL_ADMIN in roles if present,
+          // but always switch the active role view back to GUEST for safety.
+          try {
+            setActiveRole('GUEST');
+          } catch (error) {
+            // Silent fail – auth context will recompute on next load
+          }
         } else {
           // No remaining hotels - remove all hotel-related data
           removeStorageItem('selectedHotelId');
@@ -188,20 +196,48 @@ const AccountDeletionPage = () => {
           removeStorageItem('hotelIds');
           removeStorageItem('userHotels');
 
-          // Remove HOTEL_ADMIN role when all hotels are deleted
-          if (storedRoles) {
-            try {
-              const rolesArray = JSON.parse(storedRoles);
-              const updatedRoles = rolesArray.filter(role => role !== 'HOTEL_ADMIN');
+          // When all hotels are deleted, user should no longer be HOTEL_ADMIN
+          // but must always remain at least a GUEST. Also force activeRole to GUEST.
+          try {
+            let rolesArray = [];
 
-              if (updatedRoles.length > 0) {
-                setStorageItem('roles', JSON.stringify(updatedRoles));
-              } else {
-                removeStorageItem('roles');
+            if (storedRoles) {
+              try {
+                const parsed = JSON.parse(storedRoles);
+                if (Array.isArray(parsed)) {
+                  rolesArray = parsed;
+                }
+              } catch {
+                // If parsing fails, start fresh and treat as no roles
+                rolesArray = [];
               }
-            } catch (error) {
-              // If parsing fails, remove roles entirely to be safe
-              removeStorageItem('roles');
+            }
+
+            // Remove HOTEL_ADMIN from roles
+            rolesArray = rolesArray.filter(role => role !== 'HOTEL_ADMIN');
+
+            // Ensure GUEST role is present
+            if (!rolesArray.includes('GUEST')) {
+              rolesArray.push('GUEST');
+            }
+
+            // Persist updated roles to storage
+            setStorageItem('roles', JSON.stringify(rolesArray));
+
+            // And sync AuthProvider state so Navbar and other consumers
+            // immediately stop seeing HOTEL_ADMIN.
+            setRoles(rolesArray);
+            setActiveRole('GUEST');
+          } catch (error) {
+            // If anything goes wrong, fall back to a safe default:
+            // user is treated as a GUEST
+            setStorageItem('roles', JSON.stringify(['GUEST']));
+            setStorageItem('activeRole', 'GUEST');
+            try {
+              setRoles(['GUEST']);
+              setActiveRole('GUEST');
+            } catch (_) {
+              // Silent fail
             }
           }
         }
