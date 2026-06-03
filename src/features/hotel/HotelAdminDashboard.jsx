@@ -47,7 +47,6 @@ import { Input } from "@/shared/components/input";
 import { Label } from "@/shared/components/label";
 import StaffManager from "./StaffManager";
 import StaffCardGrid from "../admin/StaffCardGrid";
-import RoomStatusTable from "./RoomStatusTable";
 import BookingsTrendChart from "./BookingsTrendChart";
 import MonthlyPerformanceChart from "./MonthlyPerformanceChart";
 import PasscodeVerification from "./PasscodeVerification";
@@ -151,8 +150,7 @@ const HotelAdminDashboard = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const notificationRef = useRef(null);
-  const [showStaffGrid, setShowStaffGrid] = useState(false);
-  const [verificationTab, setVerificationTab] = useState("cid-verification"); // "cid-verification" or "passcode"
+const [verificationTab, setVerificationTab] = useState("cid-verification"); // "cid-verification" or "passcode"
   const [leaveNotificationCount, setLeaveNotificationCount] = useState(0);
   const [leaveNotifications, setLeaveNotifications] = useState([]);
   const [loadingLeaveNotifications, setLoadingLeaveNotifications] = useState(false);
@@ -1626,24 +1624,6 @@ const HotelAdminDashboard = () => {
                 <BookingCalendar hotelId={currentHotelId} />
               </div>
 
-              <div className="mb-10">
-                <RoomStatusTable hotelId={currentHotelId} />
-              </div>
-
-              {/* Toggle for StaffCardGrid (visible on all screens) */}
-              <div className="mb-2">
-                <Button
-                  variant={showStaffGrid ? "secondary" : "outline"}
-                  className="w-full"
-                  onClick={() => setShowStaffGrid((prev) => !prev)}
-                >
-                  {showStaffGrid
-                    ? "Hide Staff Overview"
-                    : "Show Staff Overview"}
-                </Button>
-              </div>
-
-              {showStaffGrid && <StaffCardGrid hotelId={currentHotelId} />}
             </div>
           )}
 
@@ -1754,11 +1734,14 @@ const HotelAdminDashboard = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <Card>
-                  <CardContent className="p-0 md:px-6 md:pb-6">
-                    <StaffManager hotelId={currentHotelId} />
-                  </CardContent>
-                </Card>
+                <div className="space-y-4">
+                  <StaffCardGrid hotelId={currentHotelId} />
+                  <Card>
+                    <CardContent className="p-0 md:px-6 md:pb-6">
+                      <StaffManager hotelId={currentHotelId} />
+                    </CardContent>
+                  </Card>
+                </div>
               )}
             </div>
           )}

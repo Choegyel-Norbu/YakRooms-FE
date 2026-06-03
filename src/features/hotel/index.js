@@ -18,6 +18,5 @@ export { default as HotelTable } from './HotelTable';
 export { default as MonthlyPerformanceChart } from './MonthlyPerformanceChart';
 export { default as PasscodeVerification } from './PasscodeVerification';
 export { default as RoomItemForm } from './RoomItemForm';
-export { default as RoomStatusTable } from './RoomStatusTable';
 export { default as StaffManager } from './StaffManager';
 export { default as HotelReviewSheet } from './HotelReviewSheet'; 

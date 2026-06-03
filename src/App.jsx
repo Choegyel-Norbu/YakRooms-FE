@@ -21,9 +21,9 @@ function App() {
           <PWARegistration />
           <InternetConnectionMonitor />
           <RatingDialogProvider />
-          <ToastContainer />
+          <ToastContainer position="top-right" />
           <Toaster
-            position="top-center"
+            position="top-right"
             closeButton={true}
             duration={6000}
             richColors={false}

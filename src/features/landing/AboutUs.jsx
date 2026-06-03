@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   Card,
@@ -11,16 +11,7 @@ import { Button } from '@/shared/components/button';
 import { Separator } from '@/shared/components/separator';
 import { Badge } from '@/shared/components/badge';
 import {
-  Dialog,
-  DialogContent,
-} from '@/shared/components/dialog';
-import { 
-  Building2, 
-  Users, 
-  Heart, 
-  Mountain,
-  Globe,
-  Sparkles,
+  Building2,
   MapPin,
   Phone,
   Mail,
@@ -29,21 +20,8 @@ import {
 import { EzeeRoomLogo } from "@/shared/components";
 
 const AboutUs = () => {
-  const [fullImage, setFullImage] = useState({ src: null, alt: '' });
-
   return (
     <div className="min-h-screen mb-10">
-      <Dialog open={!!fullImage.src} onOpenChange={(open) => !open && setFullImage({ src: null, alt: '' })}>
-        <DialogContent className="max-w-4xl w-[calc(100%-2rem)] p-2 overflow-hidden">
-          {fullImage.src && (
-            <img
-              src={fullImage.src}
-              alt={fullImage.alt}
-              className="w-full h-auto max-h-[85vh] object-contain rounded-md"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Modern Header */}
       <div className="relative  border-b border-border/50">
@@ -182,79 +160,6 @@ const AboutUs = () => {
 
         <Separator />
 
-        
-
-        {/* Our Team */}
-        <section>
-          <div className="text-center space-y-6">
-            <h2 className="text-2xl font-bold font-heading"> Our Team</h2>
-            <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-              EzeeRoom is created by a dedicated team of Bhutanese individuals 
-              who are passionate about connecting travelers with authentic Bhutanese 
-              hospitality through digital solutions.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 mt-8">
-            {/* Chogyal Norbu */}
-            <div className="text-center">
-              <CardHeader>
-                <button
-                  type="button"
-                  onClick={() => setFullImage({ src: '/images/chogyal.jpeg', alt: 'Chogyal Norbu' })}
-                  className="mx-auto w-20 h-20 rounded-full overflow-hidden mb-4 block cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full"
-                  aria-label="View full size photo of Chogyal Norbu"
-                >
-                  <img 
-                    src="/images/chogyal.jpeg" 
-                    alt="Chogyal Norbu" 
-                    loading="lazy"
-                    className="w-full h-full object-contain"
-                  />
-                </button>
-                <CardTitle className="text-xl">Chogyal Norbu</CardTitle>
-                <CardDescription>Co-Founder & Developer</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground italic mt-5">
-                  "My mission is to bridge the digital gap for underprivileged accommodations 
-                  while creating meaningful connections between travelers and local stays. 
-                  I'm passionate about preserving Bhutan's authentic hospitality spirit 
-                  through inclusive digital solutions."
-                </p>
-              </CardContent>
-            </div>
-
-              {/* Zepa Dorji */}
-              <div className="text-center m-2">
-                <CardHeader>
-                  <button
-                    type="button"
-                    onClick={() => setFullImage({ src: '/images/zepa1.jpeg', alt: 'Zepa Dorji' })}
-                    className="mx-auto w-20 h-20 rounded-full overflow-hidden mb-4 block cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full"
-                    aria-label="View full size photo of Zepa Dorji"
-                  >
-                    <img 
-                      src="/images/zepa1.jpeg" 
-                      alt="Zepa Dorji" 
-                      loading="lazy"
-                      className="w-full h-full object-contain"
-                    />
-                  </button>
-                  <CardTitle className="text-xl">Zepa Dorji</CardTitle>
-                  <CardDescription>Co-Founder & Quality Assurance</CardDescription>
-                </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground italic mt-5">
-                  "I believe that even the smallest improvements contribute significantly to long-term success. My focus lies in ensuring precision, consistency, and continual enhancement across all aspects of our service. I hold a firm conviction that genuine progress begins with the intention to benefit others, and I strive to uphold this mindset in every task I undertake  regardless of how visible the impact may be."
-                </p>
-              </CardContent>
-            </div>
-          </div>
-        </section>
-
-        <Separator />
-
         {/* Get in Touch */}
         <section>
           <Card>
@@ -264,30 +169,58 @@ const AboutUs = () => {
                 Get in Touch
               </CardTitle>
               <CardDescription>
-                We'd love to hear from you!
+                We're available for you. Just leave us a message!
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Whether you're a traveler looking for the perfect stay or a hotel owner 
-                interested in joining our platform, we're here to help.
-              </p>
-              <div className="space-y-2">
-                <p className="text-sm">
-                  <strong>Email:</strong>{' '}
-                  <a href="mailto:info@ezeeroom.com" className="text-primary hover:underline">
-                    choegyell@gmail.com, zepadorji222@gmail.com
+            <CardContent className="space-y-6">
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <MapPin className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-semibold">Address</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed pl-6">
+                    Thimphu 11001 Bhutan<br />
+                    192 Dondrup Zur Lam 12 Se,<br />
+                    HongKong Market, Thimphu, Bhutan
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-semibold">Email</span>
+                  </div>
+                  <a
+                    href="mailto:info@dcpl.bt"
+                    className="text-sm text-primary hover:underline pl-6 block"
+                  >
+                    info@dcpl.bt
                   </a>
-                </p>
-                <p className="text-sm">
-                  <strong>Phone:</strong>{' '}
-                  <a href="tel:+97577965452" className="text-primary hover:underline">
-                    +97577965452, +97577236000
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Phone className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-semibold">Call Us</span>
+                  </div>
+                  <a
+                    href="tel:+97517124535"
+                    className="text-sm text-primary hover:underline pl-6 block"
+                  >
+                    +975 17124535
                   </a>
-                </p>
-                <p className="text-sm">
-                  <strong>Address:</strong> Thimphu, Bhutan
-                </p>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Building2 className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-semibold">Office Hours</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground pl-6">
+                    Monday–Friday: 9am – 5pm
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

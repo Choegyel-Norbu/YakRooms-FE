@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/shared/components/button";
 import { Separator } from "@/shared/components/separator";
-import { Facebook, Linkedin, Youtube, Mail, Phone, MapPin } from "lucide-react";
+import { Facebook, Linkedin, Youtube, Mail, Phone, MapPin, Building2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import logoER from "@/assets/images/logoER.png";
 import TikTokIcon from "@/shared/components/TikTokIcon";
@@ -145,35 +145,28 @@ const Footer = React.forwardRef((props, ref) => {
               Contact Information
             </h3>
             <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <Mail className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-start space-x-3">
+                <Building2 className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                 <span className="text-sm text-muted-foreground">
-                  chogyalnorbu973@gmail.com
+                  Dragon Coders Private Limited
+                </span>
+              </div>
+              <div className="flex items-start space-x-3">
+                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                <span className="text-sm text-muted-foreground">
+                  192 Dondrup Zur Lam 12 Se,<br />Thimphu 11001 Bhutan
                 </span>
               </div>
               <div className="flex items-center space-x-3">
-                <Mail className="h-4 w-4 text-muted-foreground" />
+                <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-sm text-muted-foreground">
-                  zepadorji222@gmail.com
-                </span>
-                
-              </div>
-              <div className="flex items-center space-x-3">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">
-                  +97517482648
+                  +975 17124535
                 </span>
               </div>
-              <div className="flex items-center space-x-3">
-                <Phone className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-start space-x-3">
+                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                 <span className="text-sm text-muted-foreground">
-                  +97577236000
-                </span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">
-                  Thimphu, Bhutan
+                  Hong Kong Market: Thimphu, Bhutan
                 </span>
               </div>
             </div>

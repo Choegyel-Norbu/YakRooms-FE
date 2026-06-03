@@ -734,22 +734,22 @@ const AddListingPage = () => {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="text-center p-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Check className="text-green-600 h-8 w-8" />
+      <div className="min-h-screen bg-muted/20 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full shadow-lg border-border/50 rounded-2xl bg-background/95 backdrop-blur">
+          <CardContent className="text-center p-10">
+            <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <Check className="text-green-600 dark:text-green-400 h-10 w-10" />
             </div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">
+            <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">
               Listing Submitted!
             </h2>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-muted-foreground mb-8 text-base">
               Your {listingType} listing has been submitted for review. We'll
               notify you once it's approved.
             </p>
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground bg-muted/50 py-3 px-4 rounded-lg w-max mx-auto">
               <Spinner size="sm" />
-              <span>Redirecting...</span>
+              <span className="font-medium">Redirecting to setup...</span>
             </div>
           </CardContent>
         </Card>
@@ -758,21 +758,29 @@ const AddListingPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-muted/20 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
-        <div className="text-left mb-8">
-          <h1 className="text-xl font-semibold text-foreground mb-2 font-sans">
+        <div className="text-center space-y-2 mb-10 mt-4">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Add Your Listing
           </h1>
-          <p className="text-muted-foreground text-sm font-sans">
-            Share your business with travelers in Bhutan
+          <p className="text-muted-foreground">
+            Share your business with travelers in Bhutan. Complete the steps below.
           </p>
         </div>
 
         {/* Progress Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+        <nav aria-label="Progress" className="mb-16">
+          <div className="flex items-start justify-between relative">
+            {/* Background connecting line */}
+            <div className="absolute top-5 sm:top-7 left-0 w-full h-1 bg-muted -z-10 rounded-full" />
+            {/* Active connecting line */}
+            <div 
+              className="absolute top-5 sm:top-7 left-0 h-1 bg-primary -z-10 rounded-full transition-all duration-500" 
+              style={{ width: `${((step - 1) / (stepInfo.length - 1)) * 100}%` }}
+            />
+
             {stepInfo.map((info, index) => {
               const StepIcon = info.icon;
               const stepNumber = index + 1;
@@ -780,47 +788,38 @@ const AddListingPage = () => {
               const isCompleted = step > stepNumber;
               
               return (
-                <div key={stepNumber} className="flex-1 flex flex-col items-center">
+                <div key={info.title} className="flex-1 flex flex-col items-center relative">
                   <div className={`
-                    w-8 h-8 lg:w-12 lg:h-12 rounded-full flex items-center justify-center transition-all duration-200 mb-2
+                    flex h-10 w-10 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-500
                     ${isCompleted 
-                      ? 'bg-primary text-primary-foreground' 
+                      ? 'bg-primary border-primary hover:bg-primary/90' 
                       : isActive 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted text-muted-foreground'
+                        ? 'bg-background border-primary shadow-[0_0_15px_rgba(var(--primary),0.3)] scale-110' 
+                        : 'bg-background border-muted hover:border-muted-foreground/50'
                     }
                   `}>
-                    {isCompleted ? <Check className="h-4 w-4 lg:h-5 lg:w-5" /> : <StepIcon className="h-4 w-4 lg:h-5 lg:w-5" />}
+                    {isCompleted ? (
+                      <Check className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground transition-transform" />
+                    ) : (
+                      <StepIcon className={`h-5 w-5 sm:h-6 sm:w-6 transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                    )}
                   </div>
-                  <div className="text-center">
-                    <div className={`text-xs lg:text-sm font-medium font-sans ${isActive || isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  <div className="flex flex-col items-center mt-3 sm:mt-4 text-center px-1">
+                    <span className={`text-xs sm:text-sm font-semibold tracking-wide transition-colors duration-300 ${isActive ? 'text-primary' : isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
                       {info.title}
-                    </div>
-                    <div className="text-xs text-muted-foreground hidden sm:block font-sans">
+                    </span>
+                    <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block mt-1 max-w-[120px]">
                       {info.description}
-                    </div>
+                    </span>
                   </div>
-                  {index < stepInfo.length - 1 && (
-                    <div className={`
-                      hidden md:block absolute w-full h-0.5 top-6 left-1/2 -z-10
-                      ${step > stepNumber ? 'bg-primary' : 'bg-border'}
-                    `} style={{ width: `${100 / stepInfo.length}%` }} />
-                  )}
                 </div>
               );
             })}
           </div>
-          <div className="w-full bg-border h-1 rounded-full">
-            <div 
-              className="h-full bg-primary rounded-full transition-all duration-300"
-              style={{ width: `${(step / 4) * 100}%` }}
-            />
-          </div>
-        </div>
+        </nav>
 
         {/* Form Content */}
-        {/* <Card> */}
-          <CardContent className="p-0 md:p-8">
+        <div className="mt-8 space-y-8">
             {step === 1 && (
               <div className="space-y-6">
                 <div>
@@ -845,13 +844,13 @@ const AddListingPage = () => {
                     return (
                       <Card
                         key={type.id}
-                        className={`transition-all ${
+                        className={`transition-all duration-300 rounded-xl overflow-hidden border-2 ${
                           isDisabled
-                            ? "opacity-50 cursor-not-allowed bg-muted/50"
-                            : `cursor-pointer hover:shadow-md ${
+                            ? "opacity-50 cursor-not-allowed bg-muted/50 border-transparent"
+                            : `cursor-pointer hover:shadow-lg hover:shadow-primary/5 ${
                                 listingType === type.id
-                                  ? "border-primary bg-primary/5"
-                                  : "border-border hover:border-primary/50"
+                                  ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
+                                  : "border-border/50 bg-background/50 hover:border-primary/50 backdrop-blur"
                               }`
                         }`}
                         onClick={() => !isDisabled && handleListingTypeChange(type.id)}
@@ -908,12 +907,12 @@ const AddListingPage = () => {
                 </div> */}
 
                 {/* 1. Basic Business Information */}
-                <Card>
-                  <CardHeader className="pb-4">
+                <Card className="shadow-sm border border-border/50 overflow-hidden rounded-xl bg-background/95 backdrop-blur">
+                  <CardHeader className="bg-muted/30 border-b border-border/50 pb-4">
                     <CardTitle className="flex items-center gap-2 text-lg">
                       Basic Information
                     </CardTitle>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground mt-1">
                       Core details about your business
                     </p>
                   </CardHeader>
@@ -956,12 +955,12 @@ const AddListingPage = () => {
                 </Card>
 
                 {/* 2. Location & Contact Information */}
-                <Card>
-                  <CardHeader className="pb-4">
+                <Card className="shadow-sm border border-border/50 overflow-hidden rounded-xl bg-background/95 backdrop-blur">
+                  <CardHeader className="bg-muted/30 border-b border-border/50 pb-4">
                     <CardTitle className="flex items-center gap-2 text-lg">
                       Location & Contact
                     </CardTitle>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground mt-1">
                       Where your business is located and how customers can reach you
                     </p>
                   </CardHeader>
@@ -1085,12 +1084,12 @@ const AddListingPage = () => {
                 </Card>
 
                 {/* GPS Coordinates Section */}
-                <Card>
-                  <CardHeader className="pb-4">
+                <Card className="shadow-sm border border-border/50 overflow-hidden rounded-xl bg-background/95 backdrop-blur">
+                  <CardHeader className="bg-muted/30 border-b border-border/50 pb-4">
                     <CardTitle className="flex items-center gap-2 text-lg">
                       GPS Location
                     </CardTitle>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground mt-1">
                       Precise location coordinates for better guest navigation
                     </p>
                   </CardHeader>
@@ -1219,12 +1218,12 @@ const AddListingPage = () => {
                 {listingType === "hotel" && (
                   <>
                     {/* 3. Hotel-Specific Details */}
-                    <Card>
-                      <CardHeader className="pb-4">
+                    <Card className="shadow-sm border border-border/50 overflow-hidden rounded-xl bg-background/95 backdrop-blur">
+                      <CardHeader className="bg-muted/30 border-b border-border/50 pb-4">
                         <CardTitle className="flex items-center gap-2 text-lg">
                           Hotel Details
                         </CardTitle>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground mt-1">
                           Specific information for hotel operations
                         </p>
                       </CardHeader>
@@ -1360,12 +1359,12 @@ const AddListingPage = () => {
                     </Card>
 
                     {/* 4. Policies & Operations */}
-                    <Card>
-                      <CardHeader className="pb-4">
+                    <Card className="shadow-sm border border-border/50 overflow-hidden rounded-xl bg-background/95 backdrop-blur">
+                      <CardHeader className="bg-muted/30 border-b border-border/50 pb-4">
                         <CardTitle className="flex items-center gap-2 text-lg">
                           Policies & Operations
                         </CardTitle>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground mt-1">
                           Business rules and operational policies
                         </p>
                       </CardHeader>
@@ -1568,12 +1567,12 @@ const AddListingPage = () => {
 
                 {/* 5. Amenities & Features */}
                 {currentAmenities.length > 0 && (
-                  <Card>
-                    <CardHeader className="pb-4">
+                  <Card className="shadow-sm border border-border/50 overflow-hidden rounded-xl bg-background/95 backdrop-blur">
+                    <CardHeader className="bg-muted/30 border-b border-border/50 pb-4">
                       <CardTitle className="flex items-center gap-2 text-lg">
                         Amenities & Features
                       </CardTitle>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground mt-1">
                         Select the amenities and features your business offers
                       </p>
                     </CardHeader>
@@ -1612,12 +1611,12 @@ const AddListingPage = () => {
                 )}
 
                 {/* 6. Financial Information */}
-                <Card>
-                  <CardHeader className="pb-4">
+                <Card className="shadow-sm border border-border/50 overflow-hidden rounded-xl bg-background/95 backdrop-blur">
+                  <CardHeader className="bg-muted/30 border-b border-border/50 pb-4">
                     <CardTitle className="flex items-center gap-2 text-lg">
                       Financial Information
                     </CardTitle>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground mt-1">
                       Bank account details for payment processing
                     </p>
                   </CardHeader>
@@ -1726,12 +1725,12 @@ const AddListingPage = () => {
                 </Card>
 
                 {/* 7. Media & Documentation */}
-                <Card>
-                  <CardHeader className="pb-4">
+                <Card className="shadow-sm border border-border/50 overflow-hidden rounded-xl bg-background/95 backdrop-blur">
+                  <CardHeader className="bg-muted/30 border-b border-border/50 pb-4">
                     <CardTitle className="flex items-center gap-2 text-lg">
                       Photos & Media
                     </CardTitle>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground mt-1">
                       Upload photos to showcase your business
                     </p>
                   </CardHeader>
@@ -1764,16 +1763,23 @@ const AddListingPage = () => {
                         </div>
                       )}
 
-                      <Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
-                        <CardContent className="p-6">
+                      <Card className="border-dashed border-2 border-muted-foreground/20 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group rounded-xl">
+                        <CardContent className="p-8">
                           <Label 
                             htmlFor="photos" 
-                            className="flex flex-col items-center justify-center cursor-pointer"
+                            className="flex flex-col items-center justify-center cursor-pointer space-y-3"
                           >
-                            <Camera className="h-8 w-8 text-muted-foreground mb-2" />
-                            <span className="text-sm text-muted-foreground text-center">
-                              Upload photo
-                            </span>
+                            <div className="p-3 bg-primary/10 rounded-full group-hover:scale-110 transition-transform">
+                              <Camera className="h-6 w-6 text-primary" />
+                            </div>
+                            <div className="text-center">
+                              <span className="text-sm font-medium text-foreground block">
+                                Click to upload photos
+                              </span>
+                              <span className="text-xs text-muted-foreground mt-1">
+                                JPG, PNG (max. 4MB, up to 5 photos)
+                              </span>
+                            </div>
                             <Input
                               id="photos"
                               type="file"
@@ -1817,18 +1823,25 @@ const AddListingPage = () => {
                     <Label>
                       Trade License <span className="text-destructive">*</span>
                     </Label>
-                    <Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
-                      <CardContent className="p-6">
+                    <Card className="border-dashed border-2 border-muted-foreground/20 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group rounded-xl">
+                      <CardContent className="p-8">
                         <Label 
                           htmlFor="license" 
-                          className="flex flex-col items-center justify-center cursor-pointer"
+                          className="flex flex-col items-center justify-center cursor-pointer space-y-3"
                         >
-                          <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                          <span className="text-sm text-muted-foreground text-center">
-                            {formData.license
-                              ? formData.license.name
-                              : "Upload trade license (PDF or image)"}
-                          </span>
+                          <div className="p-3 bg-primary/10 rounded-full group-hover:scale-110 transition-transform">
+                             <Upload className="h-6 w-6 text-primary" />
+                          </div>
+                          <div className="text-center">
+                            <span className="text-sm font-medium text-foreground block">
+                              {formData.license
+                                ? formData.license.name
+                                : "Click to upload trade license"}
+                            </span>
+                            <span className="text-xs text-muted-foreground mt-1">
+                              PDF or Image (max. 4MB)
+                            </span>
+                          </div>
                           <Input
                             id="license"
                             type="file"
@@ -1848,18 +1861,25 @@ const AddListingPage = () => {
                     <Label>
                       ID Proof (Citizen ID or Passport) <span className="text-destructive">*</span>
                     </Label>
-                    <Card className="border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
-                      <CardContent className="p-6">
+                    <Card className="border-dashed border-2 border-muted-foreground/20 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group rounded-xl">
+                      <CardContent className="p-8">
                         <Label 
                           htmlFor="idProof" 
-                          className="flex flex-col items-center justify-center cursor-pointer"
+                          className="flex flex-col items-center justify-center cursor-pointer space-y-3"
                         >
-                          <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                          <span className="text-sm text-muted-foreground text-center">
-                            {formData.idProof
-                              ? formData.idProof.name
-                              : "Upload ID proof (PDF or image)"}
-                          </span>
+                          <div className="p-3 bg-primary/10 rounded-full group-hover:scale-110 transition-transform">
+                             <Upload className="h-6 w-6 text-primary" />
+                          </div>
+                          <div className="text-center">
+                            <span className="text-sm font-medium text-foreground block">
+                              {formData.idProof
+                                ? formData.idProof.name
+                                : "Click to upload ID proof"}
+                            </span>
+                            <span className="text-xs text-muted-foreground mt-1">
+                              PDF or Image (max. 4MB)
+                            </span>
+                          </div>
                           <Input
                             id="idProof"
                             type="file"
@@ -1904,8 +1924,8 @@ const AddListingPage = () => {
 
                 <div className="space-y-6">
                   {/* Listing Type */}
-                  <Card>
-                    <CardHeader>
+                  <Card className="shadow-sm border border-border/50 overflow-hidden rounded-xl bg-background/95 backdrop-blur">
+                    <CardHeader className="bg-muted/30 border-b border-border/50 pb-4">
                       <CardTitle className="flex items-center gap-2">
                         <Hotel className="h-5 w-5 text-primary" />
                         Listing Type
@@ -1919,8 +1939,8 @@ const AddListingPage = () => {
                   </Card>
 
                   {/* Business Information */}
-                  <Card>
-                    <CardHeader>
+                  <Card className="shadow-sm border border-border/50 overflow-hidden rounded-xl bg-background/95 backdrop-blur">
+                    <CardHeader className="bg-muted/30 border-b border-border/50 pb-4">
                       <CardTitle className="flex items-center gap-2">
                         <FileText className="h-5 w-5 text-primary" />
                         Business Information
@@ -2048,8 +2068,8 @@ const AddListingPage = () => {
                   </Card>
 
                   {/* Verification Documents */}
-                  <Card>
-                    <CardHeader>
+                  <Card className="shadow-sm border border-border/50 overflow-hidden rounded-xl bg-background/95 backdrop-blur">
+                    <CardHeader className="bg-muted/30 border-b border-border/50 pb-4">
                       <CardTitle className="flex items-center gap-2">
                         <Shield className="h-5 w-5 text-primary" />
                         Verification Documents
@@ -2082,21 +2102,21 @@ const AddListingPage = () => {
                 </div>
               </div>
             )}
-          </CardContent>
+          </div>
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between items-center p-6 border-t bg-muted/30">
+          <div className="flex justify-between items-center mt-12 pt-6 border-t border-border/50">
             {step > 1 ? (
               <Button
                 type="button"
                 variant="outline"
                 onClick={prevStep}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 px-6 h-11 rounded-full hover:bg-muted/50 transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" /> Back
               </Button>
             ) : (
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild className="px-6 h-11 rounded-full hover:bg-muted/50 transition-colors">
                 <Link to="/">Cancel</Link>
               </Button>
             )}
@@ -2106,7 +2126,7 @@ const AddListingPage = () => {
                 type="button"
                 onClick={nextStep}
                 disabled={step === 1 && !listingType}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 px-8 h-11 rounded-full shadow-md shadow-primary/20 transition-all hover:shadow-lg hover:shadow-primary/30"
               >
                 Next <ArrowRight className="h-4 w-4" />
               </Button>
@@ -2115,7 +2135,7 @@ const AddListingPage = () => {
                 type="submit"
                 onClick={submitFinalListing}
                 disabled={isSubmitting}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 px-8 h-11 rounded-full shadow-md shadow-primary/20 transition-all hover:shadow-lg hover:shadow-primary/30"
               >
                 {isSubmitting ? (
                   <>

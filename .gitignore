@@ -84,3 +84,4 @@ Thumbs.db
 # Security
 security-report-*.json
 security-scan-*.txt
+SECURITY-ISSUES.md
