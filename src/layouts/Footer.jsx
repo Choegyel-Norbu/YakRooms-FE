@@ -4,6 +4,7 @@ import { Separator } from "@/shared/components/separator";
 import { Facebook, Linkedin, Youtube, Mail, Phone, MapPin, Building2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import logoER from "@/assets/images/logoER.png";
+import dragonCodersLogo from "@/assets/images/Dragon-Coders-logo.png";
 import TikTokIcon from "@/shared/components/TikTokIcon";
 
 const Footer = React.forwardRef((props, ref) => {
@@ -201,10 +202,20 @@ const Footer = React.forwardRef((props, ref) => {
         {/* Copyright Section */}
         <div className="mt-8 pt-8">
           <Separator className="mb-6" />
-          <div className="text-center">
+          <div className="text-center space-y-3">
             <p className="text-sm text-muted-foreground">
-              © 2025 EzeeRoom. All rights reserved. 
+              © 2026 EzeeRoom. All rights reserved.
             </p>
+            <div className="flex flex-col items-center justify-center gap-2">
+              <img
+                src={dragonCodersLogo}
+                alt="Dragon Coders"
+                className="h-8 w-auto"
+              />
+              <span className="text-sm text-muted-foreground">
+                Powered by Dragon Coders Private Limited
+              </span>
+            </div>
           </div>
         </div>
       </div>

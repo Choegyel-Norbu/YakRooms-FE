@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import api from "../../shared/services/Api";
 import { uploadFile } from "../../shared/services/uploadService";
@@ -718,20 +718,6 @@ const AddListingPage = () => {
     }
   };
 
-  useEffect(() => {
-    if (isSubmitted) {
-      const timeout = setTimeout(() => {
-        setIsSubmitted(false);
-
-        // Always redirect to subscription page for new hotel listings
-        // This ensures users set up their subscription before accessing the dashboard
-        navigate("/subscription");
-      }, 3000);
-
-      return () => clearTimeout(timeout);
-    }
-  }, [isSubmitted, navigate]);
-
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-muted/20 flex items-center justify-center p-4">
@@ -743,14 +729,26 @@ const AddListingPage = () => {
             <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">
               Listing Submitted!
             </h2>
-            <p className="text-muted-foreground mb-8 text-base">
+            <p className="text-muted-foreground mb-6 text-base">
               Your {listingType} listing has been submitted for review. We'll
               notify you once it's approved.
             </p>
-            <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground bg-muted/50 py-3 px-4 rounded-lg w-max mx-auto">
-              <Spinner size="sm" />
-              <span className="font-medium">Redirecting to setup...</span>
-            </div>
+
+            <Alert className="text-left mb-8 border-amber-300 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-900/20">
+              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <AlertDescription className="text-amber-800 dark:text-amber-300">
+                <span className="font-semibold">One more step required.</span>{" "}
+                Your listing will not go live until you start your free 2-month
+                trial. Start it now to activate your listing.
+              </AlertDescription>
+            </Alert>
+
+            <Button
+              onClick={() => navigate("/subscription")}
+              className="w-full h-12 rounded-full text-base font-semibold"
+            >
+              Start Your Free Trial <ArrowRight className="h-4 w-4" />
+            </Button>
           </CardContent>
         </Card>
       </div>

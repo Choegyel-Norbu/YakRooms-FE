@@ -49,7 +49,7 @@ import StaffManager from "./StaffManager";
 import StaffCardGrid from "../admin/StaffCardGrid";
 import BookingsTrendChart from "./BookingsTrendChart";
 import MonthlyPerformanceChart from "./MonthlyPerformanceChart";
-import PasscodeVerification from "./PasscodeVerification";
+import BookingVerificationDialog from "./BookingVerificationDialog";
 // import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import {
   DropdownMenu,
@@ -84,12 +84,6 @@ import {
   AlertDialogTitle,
 } from "@/shared/components/alert-dialog";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/shared/components/tabs";
-import {
   Table,
   TableBody,
   TableCell,
@@ -102,7 +96,6 @@ import RoomManager from "../admin/RoomManager";
 import BookingTable from "./BookingTable";
 import CancellationRequestsTable from "./CancellationRequestsTable";
 import AdminBookingForm from "./AdminBookingForm";
-import CIDVerification from "./CIDVerification";
 import BookingsInventoryTable from "./BookingsInventoryTable";
 import LeaveManagement from "./LeaveManagement";
 import BookingCalendar from "./BookingCalendar";
@@ -150,7 +143,6 @@ const HotelAdminDashboard = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const notificationRef = useRef(null);
-const [verificationTab, setVerificationTab] = useState("cid-verification"); // "cid-verification" or "passcode"
   const [leaveNotificationCount, setLeaveNotificationCount] = useState(0);
   const [leaveNotifications, setLeaveNotifications] = useState([]);
   const [loadingLeaveNotifications, setLoadingLeaveNotifications] = useState(false);
@@ -2399,64 +2391,17 @@ const [verificationTab, setVerificationTab] = useState("cid-verification"); // "
                 </div>
               )}
 
-              {/* Admin Booking Form */}
-              <AdminBookingForm
-                hotelId={currentHotelId}
-                onBookingSuccess={handleBookingSuccess}
-                isDisabled={isSubscriptionExpired()}
-              />
-
-              {/* Booking Verification Section with Tabs */}
-              {/* <Card> */}
-                <CardHeader className="">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <CheckCircle className="h-4 w-4 text-primary" />
-                    Booking Verification
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 md:px-6 md:pb-6">
-                  <Tabs
-                    value={verificationTab}
-                    onValueChange={setVerificationTab}
-                    className="w-full"
-                  >
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger
-                        value="cid-verification"
-                        className="flex items-center gap-2"
-                      >
-                        <CreditCard className="h-4 w-4" />
-                        CID Verification
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="passcode"
-                        className="flex items-center gap-2"
-                      >
-                        <Bed className="h-4 w-4" />
-                        Passcode
-                      </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="cid-verification" className="mt-4">
-                      <div className="space-y-4">
-                        <div className="text-center text-sm text-gray-600 mb-4">
-                          Enter guest's CID number to verify their booking
-                        </div>
-                        <CIDVerification />
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="passcode" className="mt-4">
-                      <div className="space-y-4">
-                        <div className="text-center text-sm text-gray-600 mb-4">
-                          Enter room passcode to verify guest booking
-                        </div>
-                        <PasscodeVerification />
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              {/* </Card> */}
+              {/* Action Toolbar: Create + Verify */}
+              <div className="flex flex-wrap items-center gap-3">
+                <AdminBookingForm
+                  hotelId={currentHotelId}
+                  onBookingSuccess={handleBookingSuccess}
+                  isDisabled={isSubscriptionExpired()}
+                />
+                <BookingVerificationDialog
+                  isDisabled={isSubscriptionExpired()}
+                />
+              </div>
 
               {/* Booking Table */}
               <Card>

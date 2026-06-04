@@ -25,7 +25,7 @@ import { Spinner } from "@/components/ui/ios-spinner";
 import { useAuth } from "../authentication";
 import api from "../../shared/services/Api";
 
-const CIDVerification = () => {
+const CIDVerification = ({ compact = false }) => {
   const { selectedHotelId, hotelId } = useAuth();
   const [cidNumber, setCidNumber] = useState("");
   const [loading, setLoading] = useState(false);
@@ -257,10 +257,51 @@ const CIDVerification = () => {
   };
 
   return (
-    <div className="h-auto w-full flex items-center justify-center sm:p-6">
-      <div className="w-full max-w-2xl space-y-6">
+    <div className={compact ? "w-full" : "h-auto w-full flex items-center justify-center sm:p-6"}>
+      <div className={compact ? "w-full space-y-4" : "w-full max-w-2xl space-y-6"}>
         {/* Verification Form */}
         {bookings.length === 0 && !bookingData && (
+          compact ? (
+            <div className="space-y-1.5">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  type="text"
+                  placeholder="Enter CID number (e.g., 10901001065)"
+                  value={cidNumber}
+                  onChange={handleCIDChange}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      verifyCID(e);
+                    }
+                  }}
+                  className="flex-1 text-sm font-mono tracking-wider h-10"
+                  maxLength={11}
+                  disabled={loading}
+                  autoFocus
+                />
+                <Button
+                  onClick={verifyCID}
+                  className="h-10 text-sm sm:w-auto sm:px-6"
+                  disabled={loading || !cidNumber.trim() || cidNumber.length !== 11}
+                >
+                  {loading ? (
+                    <>
+                      <Spinner size="sm" className="mr-2" />
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Verify CID
+                    </>
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                11-digit Bhutanese CID number
+              </p>
+            </div>
+          ) : (
           <Card className="w-full">
             <CardHeader className="space-y-2">
               <CardTitle className="text-lg text-center">
@@ -309,6 +350,7 @@ const CIDVerification = () => {
               </div>
             </CardContent>
           </Card>
+          )
         )}
 
         {/* Error Message */}
