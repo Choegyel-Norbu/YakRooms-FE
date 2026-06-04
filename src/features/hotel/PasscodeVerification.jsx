@@ -23,7 +23,7 @@ import {
 import { Spinner } from "@/components/ui/ios-spinner";
 import api from "../../shared/services/Api";
 
-const PasscodeVerification = () => {
+const PasscodeVerification = ({ compact = false }) => {
   const [passcode, setPasscode] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
@@ -156,10 +156,49 @@ const PasscodeVerification = () => {
   };
 
   return (
-    <div className="h-auto w-full flex items-center justify-center sm:p-6">
-      <div className="w-full max-w-2xl space-y-6">
+    <div className={compact ? "w-full" : "h-auto w-full flex items-center justify-center sm:p-6"}>
+      <div className={compact ? "w-full space-y-4" : "w-full max-w-2xl space-y-6"}>
         {/* Verification Form */}
         {!bookingData && (
+          compact ? (
+            <div className="space-y-1.5">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  type="text"
+                  placeholder="Enter passcode (e.g., A7B9K2)"
+                  value={passcode}
+                  onChange={(e) => setPasscode(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      verifyPasscode(e);
+                    }
+                  }}
+                  className="flex-1 text-sm font-mono tracking-wider h-10"
+                  maxLength={10}
+                  disabled={loading}
+                  autoFocus
+                />
+                <Button
+                  onClick={verifyPasscode}
+                  className="h-10 text-sm sm:w-auto sm:px-6"
+                  disabled={loading || !passcode.trim()}
+                >
+                  {loading ? (
+                    <>
+                      <Spinner size="sm" className="mr-2" />
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Verify Passcode
+                    </>
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">6-character passcode</p>
+            </div>
+          ) : (
           <Card className="w-full">
             <CardHeader className="space-y-2">
               <CardTitle className="text-lg text-center">
@@ -206,6 +245,7 @@ const PasscodeVerification = () => {
               </div>
             </CardContent>
           </Card>
+          )
         )}
 
         {/* Error Message */}
